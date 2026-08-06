@@ -221,29 +221,25 @@ class CirqEncoder(json.JSONEncoder):
 
     def default(self, o) -> dict[str, Any] | list[Any] | float | bool:
         oid = id(o)
-        if (rv := self._cache.get(oid)) is not None:
-            return rv
+        if (val := self._cache.get(oid)) is not None:
+            return val
         # Object with custom method?
         if hasattr(o, '_json_dict_'):
-            json_dict = _json_dict_with_cirq_type(o)
             if isinstance(o, SerializableByKey):
                 if ref := self._memo.get(o):
                     return ref
                 key = len(self._memo)
                 ref = {"cirq_type": "REF", "key": key}
                 self._memo[o] = ref
-                return {"cirq_type": "VAL", "key": key, "val": json_dict}
-            # benchmark - check
-            return self._cache.setdefault(oid, json_dict)
-            # return json_dict
+                self._cache[oid] = ref
+                return {"cirq_type": "VAL", "key": key, "val": _json_dict_with_cirq_type(o)}
+            return self._cache.setdefault(oid, _json_dict_with_cirq_type(o))
 
         # Sympy object? (Must come before general number checks.)
         # TODO: More support for sympy
         # Github issue: https://github.com/quantumlib/Cirq/issues/2014
 
         if isinstance(o, sympy.Symbol):
-            # benchmark - check
-            # return self._cache.setdefault(oid, {'cirq_type': 'sympy.Symbol', 'name': o.name})
             return {'cirq_type': 'sympy.Symbol', 'name': o.name}
 
         if isinstance(
@@ -266,21 +262,15 @@ class CirqEncoder(json.JSONEncoder):
                 sympy.IndexedBase,
             ),
         ):
-            # benchmark - check
-            # return self._cache.setdefault(oid, {'cirq_type': f'sympy.{o.__class__.__name__}', 'args': o.args})
             return {'cirq_type': f'sympy.{o.__class__.__name__}', 'args': o.args}
 
         if isinstance(o, sympy.Integer):
-            # benchmark - skip number-like value
             return {'cirq_type': 'sympy.Integer', 'i': o.p}
 
         if isinstance(o, sympy.Float):
-            # benchmark - skip number-like value
             return {'cirq_type': 'sympy.Float', 'approx': float(o)}
 
         if isinstance(o, sympy.Rational):
-            # benchmark - check
-            # return self._cache.setdefault(oid, {'cirq_type': 'sympy.Rational', 'p': o.p, 'q': o.q})
             return {'cirq_type': 'sympy.Rational', 'p': o.p, 'q': o.q}
 
         if isinstance(o, sympy.NumberSymbol):
@@ -289,49 +279,34 @@ class CirqEncoder(json.JSONEncoder):
             # sympy.pi, sympy.E or sympy.EulerGamma
             # (note that these are singletons).
             if o is sympy.pi:
-                # benchmark - check
-                # return self._cache.setdefault(oid, {'cirq_type': 'sympy.pi'})
                 return {'cirq_type': 'sympy.pi'}
             if o is sympy.E:
-                # benchmark - check
-                # return self._cache.setdefault(oid, {'cirq_type': 'sympy.E'})
                 return {'cirq_type': 'sympy.E'}
             if o is sympy.EulerGamma:
-                # benchmark - check
-                # return self._cache.setdefault(oid, {'cirq_type': 'sympy.EulerGamma'})
                 return {'cirq_type': 'sympy.EulerGamma'}
 
         # A basic number object?
         if isinstance(o, numbers.Integral):
-            # benchmark - skip number-like value
             return int(o)
         if isinstance(o, numbers.Real):
-            # benchmark - skip number-like value
             return float(o)
         if isinstance(o, numbers.Complex):
-            # benchmark - skip number-like value
             return {'cirq_type': 'complex', 'real': o.real, 'imag': o.imag}
 
         # Numpy object?
         if isinstance(o, np.bool_):
-            # benchmark - skip number-like value
             return bool(o)
         if isinstance(o, np.ndarray):
-            # benchmark - check
-            # return self._cache.setdefault(oid, o.tolist())
             return o.tolist()
 
         # Pandas object?
         if isinstance(o, pd.MultiIndex):
-            # benchmark - skip objects that are not likely in Circuit data
             return {'cirq_type': 'pandas.MultiIndex', 'tuples': list(o), 'names': list(o.names)}
         if isinstance(o, pd.Index):
-            # benchmark - skip objects that are not likely in Circuit data
             return {'cirq_type': 'pandas.Index', 'data': list(o), 'name': o.name}
         if isinstance(o, pd.DataFrame):
             cols = [o[col].tolist() for col in o.columns]
             rows = list(zip(*cols))
-            # benchmark - skip objects that are not likely in Circuit data
             return {
                 'cirq_type': 'pandas.DataFrame',
                 'data': rows,
@@ -341,8 +316,6 @@ class CirqEncoder(json.JSONEncoder):
 
         # datetime
         if isinstance(o, datetime.datetime):
-            # benchmark - check
-            # return self._cache.setdefault(oid, {'cirq_type': 'datetime.datetime', 'timestamp': o.timestamp()})
             return {'cirq_type': 'datetime.datetime', 'timestamp': o.timestamp()}
 
         return super().default(o)  # pragma: no cover
