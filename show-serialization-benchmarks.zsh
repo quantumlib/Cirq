@@ -4,7 +4,8 @@ emulate zsh
 
 base_commit=18079a5c28a323f9b94de1d1bcb2d9e1053eabe2
 bench_commits=$(git log --pretty=%H --grep="^benchmark-line-" ${base_commit}..)
-commits=( ${base_commit} ${=bench_commits} )
+final_commit=21db9ed87af05800f5687bd558a6d8167cbb6b7d
+commits=( ${base_commit} ${=bench_commits} ${final_commit} )
 pytest-benchmark compare \
     --time-unit=s --sort=fullname --columns=mean,stddev \
     "*"${^commits} \
