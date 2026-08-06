@@ -32,6 +32,9 @@ class If(raw_types.Operation):
     """An operation that conditionally executes a sub-operation based on classical conditions.
 
     This operation decomposes into a `cirq.ClassicallyControlledOperation`.
+
+    Note: This is an experimental function designed as part of a prototype
+    for Cirq 2.0.  The interface for this class is subject to change between versions.
     """
 
     def __init__(
