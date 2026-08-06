@@ -22,7 +22,10 @@ from cirq.circuits.circuit import (
     Alignment as Alignment,
     Circuit as Circuit,
 )
-from cirq.circuits.circuit_operation import CircuitOperation as CircuitOperation
+from cirq.circuits.circuit_operation import (
+    CircuitOperation as CircuitOperation,
+    is_circuit_operation as is_circuit_operation,
+)
 from cirq.circuits.frozen_circuit import FrozenCircuit as FrozenCircuit
 from cirq.circuits.insert_strategy import InsertStrategy as InsertStrategy
 

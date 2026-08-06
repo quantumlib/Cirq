@@ -71,6 +71,7 @@ from cirq.circuits import (
     CircuitOperation as CircuitOperation,
     FrozenCircuit as FrozenCircuit,
     InsertStrategy as InsertStrategy,
+    is_circuit_operation as is_circuit_operation,
     Moment as Moment,
     PointOptimizationSummary as PointOptimizationSummary,
     PointOptimizer as PointOptimizer,
