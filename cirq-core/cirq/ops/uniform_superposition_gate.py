@@ -33,7 +33,9 @@ class UniformSuperpositionGate(raw_types.Gate):
     r"""Creates a uniform superposition state on the states $[0, M)$.
 
     The gate creates the state
-    $$\frac{1}{\sqrt{M}}\sum_{j=0}^{M-1}|j\rangle$$
+    $$
+    \frac{1}{\sqrt{M}}\sum_{j=0}^{M-1}|j\rangle
+    $$
     (where $1 \leq M \leq 2^n$), using n qubits, according to the
     Shukla-Vedula algorithm [SV24].
 
