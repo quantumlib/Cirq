@@ -175,6 +175,8 @@ class ParamResolver:
         # we wouldn't need the following block.
         if isinstance(value, sympy.Float):
             return float(value)
+        if isinstance(value, sympy.Integer):
+            return int(value)
         if isinstance(value, sympy.Add):
             summation = self.value_of(value.args[0], recursive)
             for addend in value.args[1:]:
@@ -213,6 +215,8 @@ class ParamResolver:
                 # Technically, this should not return complex, but changing
                 # type signature to complex would cause many cascading issues
                 return complex(v)
+            elif v.is_integer:
+                return int(v)
             else:
                 return float(v)
 

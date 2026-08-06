@@ -202,14 +202,14 @@ def test_addition_subtraction() -> None:
 
 
 def test_addition_subtraction_type_error() -> None:
-    with pytest.raises(TypeError, match='dave'):
+    with pytest.raises(TypeError, match='unsupported operand type'):
         _ = cirq.LineQubit(1) + 'dave'  # type: ignore[operator]
-    with pytest.raises(TypeError, match='dave'):
+    with pytest.raises(TypeError, match='unsupported operand type'):
         _ = cirq.LineQubit(1) - 'dave'  # type: ignore[operator]
 
-    with pytest.raises(TypeError, match='dave'):
+    with pytest.raises(TypeError, match='unsupported operand type'):
         _ = cirq.LineQid(1, 3) + 'dave'  # type: ignore[operator]
-    with pytest.raises(TypeError, match='dave'):
+    with pytest.raises(TypeError, match='unsupported operand type'):
         _ = cirq.LineQid(1, 3) - 'dave'  # type: ignore[operator]
 
     with pytest.raises(TypeError, match="Can only add LineQids with identical dimension."):
@@ -217,6 +217,29 @@ def test_addition_subtraction_type_error() -> None:
 
     with pytest.raises(TypeError, match="Can only subtract LineQids with identical dimension."):
         _ = cirq.LineQid(5, dimension=3) - cirq.LineQid(3, dimension=4)
+
+
+def test_multiplication() -> None:
+    assert cirq.LineQubit(3) * 2 == cirq.LineQubit(6)
+    assert 2 * cirq.LineQubit(4) == cirq.LineQubit(8)
+
+    assert cirq.LineQid(2, 3) * 4 == cirq.LineQid(8, 3)
+    assert 4 * cirq.LineQid(2, 3) == cirq.LineQid(8, 3)
+
+    assert cirq.LineQid(3, dimension=3) * cirq.LineQid(4, dimension=3) == cirq.LineQid(
+        12, dimension=3
+    )
+
+
+def test_multiplication_type_error() -> None:
+    with pytest.raises(TypeError, match='can\'t multiply'):
+        _ = cirq.LineQubit(1) * 'dave'  # type: ignore[operator]
+
+    with pytest.raises(TypeError, match='can\'t multiply'):
+        _ = cirq.LineQid(1, 3) * 'dave'  # type: ignore[operator]
+
+    with pytest.raises(TypeError, match="Can only multiply LineQids with identical dimension."):
+        _ = cirq.LineQid(5, dimension=3) * cirq.LineQid(3, dimension=4)
 
 
 def test_neg() -> None:
