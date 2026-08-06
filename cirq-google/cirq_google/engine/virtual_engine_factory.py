@@ -222,12 +222,13 @@ def _create_virtual_processor_from_device(
         device_specification: a` DeviceSpecification` proto that the processor
             should return if `get_device_specification()` is queried.
     """
-    _create_perfect_calibration(device)
+    calibration = _create_perfect_calibration(device)
     return simulated_local_processor.SimulatedLocalProcessor(
         processor_id=processor_id,
         device=device,
         validator=engine_validator.create_engine_validator(),
         program_validator=engine_validator.create_program_validator(),
+        calibrations={calibration.timestamp // 1000: calibration},
         device_specification=device_specification,
     )
 
