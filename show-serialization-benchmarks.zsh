@@ -2,7 +2,7 @@
 
 emulate zsh
 
-base_commit=18079a5c28a323f9b94de1d1bcb2d9e1053eabe2
+base_commit=9e53613b0ca8e65fbbbb2c8157a0a5e07e497707
 bench_commits=$(git log --pretty=%H --grep="^benchmark-line-" ${base_commit}..)
 final_commit=21db9ed87af05800f5687bd558a6d8167cbb6b7d
 commits=( ${base_commit} ${=bench_commits} ${final_commit} )
