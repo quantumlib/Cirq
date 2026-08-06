@@ -41,6 +41,7 @@ def find_terminal_measurements(circuit: cirq.AbstractCircuit) -> list[tuple[int,
 
     open_qubits: set[cirq.Qid] = set(circuit.all_qubits())
     seen_control_keys: set[cirq.MeasurementKey] = set()
+    seen_measurement_keys: set[cirq.MeasurementKey] = set()
     terminal_measurements: set[tuple[int, cirq.Operation]] = set()
     for i in range(len(circuit) - 1, -1, -1):
         moment = circuit[i]
@@ -51,10 +52,12 @@ def find_terminal_measurements(circuit: cirq.AbstractCircuit) -> list[tuple[int,
                 and open_qubits.issuperset(op.qubits)
                 and protocols.is_measurement(op)
                 and not (seen_control_keys & protocols.measurement_key_objs(op))
+                and not (seen_measurement_keys & protocols.measurement_key_objs(op))
             ):
                 terminal_measurements.add((i, op))
         open_qubits -= moment.qubits
         seen_control_keys |= protocols.control_keys(moment)
+        seen_measurement_keys |= protocols.measurement_key_objs(moment)
         if not open_qubits:
             break
     return list(terminal_measurements)
