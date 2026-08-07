@@ -240,8 +240,12 @@ class SimulatorBase(
         qubits = tuple(sorted(circuit.all_qubits()))
         sim_state = self._create_simulation_state(0, qubits, param_resolver=param_resolver)
 
+        def can_run_prefix(op: cirq.Operation) -> bool:
+            resolved_op = protocols.resolve_parameters(op, param_resolver)
+            return self._can_be_in_run_prefix(resolved_op)
+
         prefix, general_suffix = (
-            split_into_matching_protocol_then_general(circuit, self._can_be_in_run_prefix)
+            split_into_matching_protocol_then_general(circuit, can_run_prefix)
             if self._can_be_in_run_prefix(self.noise)
             else (circuit[0:0], circuit)
         )
@@ -250,7 +254,10 @@ class SimulatorBase(
             pass
         assert step_result is not None
 
-        general_ops = list(general_suffix.all_operations())
+        general_ops = [
+            protocols.resolve_parameters(op, sim_state.param_resolver)
+            for op in general_suffix.all_operations()
+        ]
         if all(isinstance(op.gate, ops.MeasurementGate) for op in general_ops):
             for step_result in self._core_iterator(
                 circuit=general_suffix, sim_state=sim_state, all_measurements_are_terminal=True
