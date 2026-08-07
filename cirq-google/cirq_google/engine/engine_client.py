@@ -19,7 +19,7 @@ import sys
 import warnings
 from collections.abc import AsyncIterable, Awaitable, Callable
 from functools import cached_property
-from typing import TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 import duet
 import proto
@@ -27,8 +27,13 @@ from google.api_core.exceptions import GoogleAPICallError, NotFound
 from google.protobuf import any_pb2, field_mask_pb2
 from google.protobuf.timestamp_pb2 import Timestamp
 
+if TYPE_CHECKING:
+    import cirq
+    import stim
+
+from cirq_google.api import v2
 from cirq_google.cloud import quantum
-from cirq_google.engine import stream_manager
+from cirq_google.engine import stream_manager, util
 from cirq_google.engine.asyncio_executor import AsyncioExecutor
 from cirq_google.engine.processor_config import (
     DeviceConfigRevision,
@@ -36,6 +41,7 @@ from cirq_google.engine.processor_config import (
     Snapshot,
     validate_device_config_revision,
 )
+from cirq_google.serialization import CIRCUIT_SERIALIZER
 
 _M = TypeVar('_M', bound=proto.Message)
 _R = TypeVar('_R')
@@ -93,7 +99,7 @@ class EngineClient:
 
     @property
     def _executor(self) -> AsyncioExecutor:
-        # We must re-use a single Executor due to multi-threading issues in gRPC
+        # We must reuse a single Executor due to multi-threading issues in gRPC
         # clients: https://github.com/grpc/grpc/issues/25364.
         return AsyncioExecutor.instance()
 
@@ -391,7 +397,7 @@ class EngineClient:
         description: str | None = None,
         labels: dict[str, str] | None = None,
         *,
-        run_name: str = "",
+        run_name: str | None = "",
         snapshot_id: str = "",
         device_config_name: str = "",
     ) -> tuple[str, quantum.QuantumJob]:
@@ -438,20 +444,15 @@ class EngineClient:
             raise ValueError('Must specify a processor id when creating a job.')
         if run_name and snapshot_id:
             print('Both run_name and snapshot_id were specified, using snapshot_id.')
-        if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
-            raise ValueError(
-                'Cannot specify only one of top level identifier (e.g `run_name`, `snapshot_id`)'
-                ' and `device_config_name`'
-            )
 
         # Create job.
         if snapshot_id:
             selector = quantum.DeviceConfigSelector(
-                snapshot_id=snapshot_id or None, config_alias=device_config_name
+                snapshot_id=snapshot_id or None, config_alias=device_config_name or 'default'
             )
         else:
             selector = quantum.DeviceConfigSelector(
-                run_name=run_name or None, config_alias=device_config_name
+                run_name=run_name or 'default', config_alias=device_config_name or 'default'
             )
         job_name = _job_name_from_ids(project_id, program_id, job_id) if job_id else ''
         job = quantum.QuantumJob(
@@ -463,6 +464,7 @@ class EngineClient:
                 )
             ),
             run_context=run_context,
+            execute_circuit=quantum.QuantumJob.ExecuteCircuitAction(),
         )
         if priority:
             job.scheduling_config.priority = priority
@@ -805,10 +807,6 @@ class EngineClient:
             raise ValueError('Must specify a processor id when creating a job.')
         if run_name and snapshot_id:
             print('Both run_name and snapshot_id were specified, using snapshot_id.')
-        if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
-            raise ValueError(
-                'Cannot specify only one of top level identifier and `device_config_name`'
-            )
 
         project_name = _project_name(project_id)
 
@@ -837,6 +835,7 @@ class EngineClient:
                 )
             ),
             run_context=run_context,
+            execute_circuit=quantum.QuantumJob.ExecuteCircuitAction(),
         )
         if priority:
             job.scheduling_config.priority = priority
@@ -883,79 +882,6 @@ class EngineClient:
         return await self._send_request_async(self.grpc_client.get_quantum_processor, request)
 
     get_processor = duet.sync(get_processor_async)
-
-    async def list_calibrations_async(
-        self, project_id: str, processor_id: str, filter_str: str = ''
-    ) -> list[quantum.QuantumCalibration]:
-        """Returns a list of quantum calibrations.
-
-        Args:
-            project_id: A project_id of the parent Google Cloud Project.
-            processor_id: The processor unique identifier.
-            filter_str: Filter string current only supports 'timestamp' with values
-            of epoch time in seconds or short string 'yyyy-MM-dd'. For example:
-                'timestamp > 1577960125 AND timestamp <= 1578241810'
-                'timestamp > 2020-01-02 AND timestamp <= 2020-01-05'
-
-        Returns:
-            A list of calibrations.
-        """
-        request = quantum.ListQuantumCalibrationsRequest(
-            parent=_processor_name_from_ids(project_id, processor_id), filter=filter_str
-        )
-        return await self._send_list_request_async(
-            self.grpc_client.list_quantum_calibrations, request
-        )
-
-    list_calibrations = duet.sync(list_calibrations_async)
-
-    async def get_calibration_async(
-        self, project_id: str, processor_id: str, calibration_timestamp_seconds: int
-    ) -> quantum.QuantumCalibration:
-        """Returns a quantum calibration.
-
-        Args:
-            project_id: A project_id of the parent Google Cloud Project.
-            processor_id: The processor unique identifier.
-            calibration_timestamp_seconds: The timestamp of the calibration in
-                seconds.
-
-        Returns:
-            The quantum calibration.
-        """
-        request = quantum.GetQuantumCalibrationRequest(
-            name=_calibration_name_from_ids(project_id, processor_id, calibration_timestamp_seconds)
-        )
-        return await self._send_request_async(self.grpc_client.get_quantum_calibration, request)
-
-    get_calibration = duet.sync(get_calibration_async)
-
-    async def get_current_calibration_async(
-        self, project_id: str, processor_id: str
-    ) -> quantum.QuantumCalibration | None:
-        """Returns the current quantum calibration for a processor if it has one.
-
-        Args:
-            project_id: A project_id of the parent Google Cloud Project.
-            processor_id: The processor unique identifier.
-
-        Returns:
-            The quantum calibration or None if there is no current calibration.
-
-        Raises:
-            EngineException: If the request for calibration fails.
-        """
-        try:
-            request = quantum.GetQuantumCalibrationRequest(
-                name=_processor_name_from_ids(project_id, processor_id) + '/calibrations/current'
-            )
-            return await self._send_request_async(self.grpc_client.get_quantum_calibration, request)
-        except EngineException as err:
-            if isinstance(err.__cause__, NotFound):
-                return None
-            raise
-
-    get_current_calibration = duet.sync(get_current_calibration_async)
 
     async def create_reservation_async(
         self,
@@ -1176,7 +1102,7 @@ class EngineClient:
         project_id: str,
         processor_id: str,
         config_name: str = 'default',
-        device_config_revision: DeviceConfigRevision = Run(id='current'),
+        device_config_revision: DeviceConfigRevision = Run(id='default'),
     ) -> quantum.QuantumProcessorConfig | None:
         """Returns the QuantumProcessorConfig for the given snapshot id.
 
@@ -1187,7 +1113,7 @@ class EngineClient:
             config_name: The id of the quantum processor config.
 
         Returns:
-            The quantum procesor config or None if it does not exist.
+            The quantum processor config or None if it does not exist.
 
         Raises:
             EngineException: If the request to get the config fails.
@@ -1215,7 +1141,7 @@ class EngineClient:
         self,
         project_id: str,
         processor_id: str,
-        device_config_revision: DeviceConfigRevision = Run(id='current'),
+        device_config_revision: DeviceConfigRevision = Run(id='default'),
     ) -> list[quantum.QuantumProcessorConfig]:
         """Returns the QuantumProcessorConfig for the given snapshot id.
 
@@ -1225,7 +1151,7 @@ class EngineClient:
             device_config_revision: Specifies either the snapshot_id or the run_name.
 
         Returns:
-            List of quantum procesor configs.
+            List of quantum processor configs.
         """
         parent_resource_name = _quantum_processor_revision_path(
             project_id=project_id,
@@ -1238,6 +1164,107 @@ class EngineClient:
         )
 
     list_quantum_processor_configs = duet.sync(list_quantum_processor_configs_async)
+
+    async def compile_circuit_async(
+        self,
+        project_id: str,
+        stim_circuit: str | stim.Circuit,
+        qec_recipe: list[str],
+        processor_id: str,
+        device_config_revision: DeviceConfigRevision = Run(id='default'),
+        config_name: str = 'default',
+    ) -> cirq.Circuit:
+        """Takes the given Stim circuit and compiles it to a cirq Circuit.
+
+        Args:
+            project_id: A project_id of the parent Google Cloud Project.
+            stim_circuit: The Stim circuit to compile.
+            qec_recipe: A list of the recipes to apply to the given circuit.
+            processor_id: The processor unique identifier.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
+            config_name: The identifier for the config.
+
+        Returns:
+            A cirq.Circuit.
+        """
+        validate_device_config_revision(device_config_revision)
+        if isinstance(device_config_revision, Snapshot):
+            selector = quantum.DeviceConfigSelector(
+                snapshot_id=device_config_revision.id or None, config_alias=config_name
+            )
+        else:
+            run_name = device_config_revision.id if device_config_revision else 'default'
+            selector = quantum.DeviceConfigSelector(
+                run_name=run_name or None, config_alias=config_name
+            )
+
+        parent_resource_name = _project_name(project_id=project_id)
+        request = quantum.CompileQecProgramRequest(
+            name=parent_resource_name,
+            stim_circuit=str(stim_circuit),
+            recipe=quantum.QecRecipe(desired_algorithms=qec_recipe),
+            processor_id=processor_id,
+            device_config_selector=selector,
+        )
+        response = await self._send_request_async(self.grpc_client.compile_qec_program, request)
+        program_proto = util.unpack_any(response.program.code, v2.program_pb2.Program())
+        return CIRCUIT_SERIALIZER.deserialize(program_proto)
+
+    compile_circuit = duet.sync(compile_circuit_async)
+
+    async def calibrate_for_circuit_async(
+        self,
+        project_id: str,
+        qec_circuit: cirq.Circuit,
+        processor_id: str,
+        device_config_revision: DeviceConfigRevision = Run(id='current'),
+        config_name: str = 'default',
+    ) -> quantum.QuantumJob:
+        """Calibrates the given QEC circuit on Quantum Engine.
+
+        Args:
+            project_id: A project_id of the parent Google Cloud Project.
+            qec_circuit: The QEC circuit to calibrate.
+            processor_id: The processor unique identifier.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
+            config_name: The identifier for the config.
+
+        Returns:
+            A `quantum.QuantumJob` created from the request.
+        """
+        validate_device_config_revision(device_config_revision)
+        if isinstance(device_config_revision, Snapshot):
+            selector = quantum.DeviceConfigSelector(
+                snapshot_id=device_config_revision.id or None, config_alias=config_name
+            )
+        else:
+            run_name = device_config_revision.id if device_config_revision else 'default'
+            selector = quantum.DeviceConfigSelector(
+                run_name=run_name or None, config_alias=config_name
+            )
+
+        program_id, _ = await self.create_program_async(
+            project_id=project_id,
+            program_id=None,
+            code=util.pack_any(CIRCUIT_SERIALIZER.serialize(qec_circuit)),
+        )
+        run_context = util.pack_any(v2.run_context_to_proto(None, 1))
+        job = quantum.QuantumJob(
+            scheduling_config=quantum.SchedulingConfig(
+                processor_selector=quantum.SchedulingConfig.ProcessorSelector(
+                    processor=_processor_name_from_ids(project_id, processor_id),
+                    device_config_selector=selector,
+                )
+            ),
+            run_context=run_context,
+            calibrate_circuit=quantum.QuantumJob.CalibrateCircuitAction(),
+        )
+        request = quantum.CreateQuantumJobRequest(
+            parent=_program_name_from_ids(project_id, program_id), quantum_job=job
+        )
+        return await self._send_request_async(self.grpc_client.create_quantum_job, request)
+
+    calibrate_for_circuit = duet.sync(calibrate_for_circuit_async)
 
 
 def _project_name(project_id: str) -> str:
@@ -1254,14 +1281,6 @@ def _job_name_from_ids(project_id: str, program_id: str, job_id: str) -> str:
 
 def _processor_name_from_ids(project_id: str, processor_id: str) -> str:
     return f'projects/{project_id}/processors/{processor_id}'
-
-
-def _calibration_name_from_ids(
-    project_id: str, processor_id: str, calibration_time_seconds: int
-) -> str:
-    return (
-        f'projects/{project_id}/processors/{processor_id}/calibrations/{calibration_time_seconds}'
-    )
 
 
 def _reservation_name_from_ids(project_id: str, processor_id: str, reservation_id: str) -> str:
@@ -1283,13 +1302,10 @@ def _ids_from_processor_name(processor_name: str) -> tuple[str, str]:
     return parts[1], parts[3]
 
 
-def _ids_from_calibration_name(calibration_name: str) -> tuple[str, str, int]:
-    parts = calibration_name.split('/')
-    return parts[1], parts[3], int(parts[5])
-
-
 def _quantum_processor_revision_path(
-    project_id: str, processor_id: str, device_config_revision: DeviceConfigRevision | None = None
+    project_id: str,
+    processor_id: str,
+    device_config_revision: DeviceConfigRevision = Run(id='default'),
 ) -> str:
     validate_device_config_revision(device_config_revision)
     processor_resource_name = _processor_name_from_ids(project_id, processor_id)

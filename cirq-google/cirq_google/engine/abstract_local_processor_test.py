@@ -34,15 +34,6 @@ class NothingProcessor(AbstractLocalProcessor):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def get_calibration(self, *args, **kwargs):
-        pass
-
-    def get_latest_calibration(self, *args, **kwargs):
-        pass
-
-    def get_current_calibration(self, *args, **kwargs):
-        pass
-
     def get_device(self, *args, **kwargs):
         pass
 
@@ -50,9 +41,6 @@ class NothingProcessor(AbstractLocalProcessor):
         pass
 
     def health(self, *args, **kwargs):
-        pass
-
-    def list_calibrations(self, *args, **kwargs):
         pass
 
     async def run_sweep_async(self, *args, **kwargs):

@@ -265,7 +265,7 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
         arglines = ",\n".join(args)
         return f'cirq_google.GoogleNoiseProperties({arglines})'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         storage_gate_times = {
             cirq.json_cirq_type(key): val for key, val in self.gate_times_ns.items()
         }

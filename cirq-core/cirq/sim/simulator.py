@@ -51,7 +51,7 @@ TSimulatorState = TypeVar('TSimulatorState', bound=Any)
 class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
     """Simulator that mimics running on quantum hardware.
 
-    Implementors of this interface should implement the _run method.
+    Implementers of this interface should implement the _run method.
     """
 
     def run_sweep(
@@ -121,7 +121,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
 
     Given a circuit and a list of bitstrings, computes the amplitudes
     of the given bitstrings in the state obtained by applying the circuit
-    to the all zeros state. Implementors of this interface should implement
+    to the all zeros state. Implementers of this interface should implement
     the compute_amplitudes_sweep_iter method.
     """
 
@@ -294,7 +294,7 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
     Given a circuit and an observable map, computes exact (to float precision)
     expectation values for each observable at the end of the circuit.
 
-    Implementors of this interface should implement the
+    Implementers of this interface should implement the
     simulate_expectation_values_sweep_iter method.
     """
 
@@ -445,7 +445,7 @@ class SimulatesFinalState(
 ):
     """Simulator that allows access to the simulator's final state.
 
-    Implementors of this interface should implement the simulate_sweep_iter
+    Implementers of this interface should implement the simulate_sweep_iter
     method. This simulator only returns the state of the quantum system
     for the final step of a simulation. This simulator state may be a state
     vector, the density matrix, or another representation, depending on the
@@ -548,7 +548,7 @@ class SimulatesIntermediateState(
     state at the end of a circuit, a SimulatesIntermediateState can
     simulate stepping through the moments of a circuit.
 
-    Implementors of this interface should implement the _core_iterator
+    Implementers of this interface should implement the _core_iterator
     method.
 
     Note that state here refers to simulator state, which is not necessarily

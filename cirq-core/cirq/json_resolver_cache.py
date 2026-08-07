@@ -150,6 +150,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'HPowGate': cirq.HPowGate,
         'ISwapPowGate': cirq.ISwapPowGate,
         'IdentityGate': cirq.IdentityGate,
+        'If': cirq.If,
         'InitObsSetting': cirq.work.InitObsSetting,
         'InsertionNoiseModel': InsertionNoiseModel,
         '_InverseCompositeGate': raw_types._InverseCompositeGate,

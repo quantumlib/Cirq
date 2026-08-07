@@ -53,6 +53,7 @@ plugins = ["duet.typing"]
 show_error_codes = true
 warn_redundant_casts = true
 warn_unused_ignores = true
+enable_error_code = "ignore-without-code"
 
 [[tool.mypy.overrides]]
 module = ["__main__"]
@@ -80,6 +81,7 @@ module = [
     "google.colab.*",
     "google.oauth2.*",
     "qsimcirq",
+    "stim",
 ]
 follow_imports = "silent"
 ignore_missing_imports = true

@@ -77,7 +77,7 @@ class MockJob(AbstractJob):
     def get_processor(self):
         pass
 
-    def get_calibration(self):
+    def get_config(self):
         pass
 
     def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:

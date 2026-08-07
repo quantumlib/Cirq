@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Iterable
 
 import cirq
@@ -86,8 +87,7 @@ class Circuit3D(widget.Widget):
                 symbol = self._build_3D_symbol(item, moment_id)
                 args.append(symbol.to_typescript())
 
-        argument_str = ','.join(str(item) for item in args)
-        return f'[{argument_str}]'
+        return _to_script_literal(args)
 
     def _build_3D_symbol(self, operation, moment) -> Operation3DSymbol:
         symbol_info = resolve_operation(operation, self._resolvers)
@@ -100,3 +100,15 @@ class Circuit3D(widget.Widget):
             else:
                 raise ValueError('Unsupported qubit type')
         return Operation3DSymbol(symbol_info.labels, location_info, symbol_info.colors, moment)
+
+
+def _to_script_literal(value) -> str:
+    """Encodes a value as a JS literal that is safe to inline in an HTML script element.
+
+    Wire symbols come from the circuit itself (a measurement key, for example), so a circuit
+    read with `cirq.read_json` can carry `</script>` or a quote into the widget markup and take
+    over the page it is rendered in. JSON is a subset of JS, and escaping the characters that
+    are meaningful to the HTML parser keeps the literal inside the script element.
+    """
+    # ensure_ascii in json.dumps also covers the U+2028/U+2029 line terminators.
+    return json.dumps(value).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
