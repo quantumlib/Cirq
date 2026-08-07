@@ -28,7 +28,6 @@ from cirq.sim.simulation_product_state import SimulationProductState
 from cirq.sim.simulation_state import TSimulationState
 from cirq.sim.simulation_state_base import SimulationStateBase
 from cirq.sim.simulator import (
-    check_all_resolved,
     SimulatesIntermediateState,
     SimulatesSamples,
     SimulationTrialResult,
@@ -199,23 +198,34 @@ class SimulatorBase(
             yield self._create_step_result(sim_state)
             return
 
-        noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
+        system_qubits = sorted(circuit.all_qubits())
         measured: dict[tuple[cirq.Qid, ...], bool] = collections.defaultdict(bool)
-        for moment in noisy_moments:
-            for op in ops.flatten_to_ops(moment):
-                try:
-                    # Preprocess measurements
-                    if all_measurements_are_terminal and measured[op.qubits]:
+        for moment in circuit:
+            resolved_moment = protocols.resolve_parameters(moment, sim_state.param_resolver)
+            noisy_moment = self.noise.noisy_moment(resolved_moment, system_qubits)
+            for op in ops.flatten_to_ops(noisy_moment):
+                # Preprocess measurements
+                if all_measurements_are_terminal and measured[op.qubits]:
+                    continue
+                if isinstance(op.gate, ops.MeasurementGate):
+                    measured[op.qubits] = True
+                    if all_measurements_are_terminal:
                         continue
-                    if isinstance(op.gate, ops.MeasurementGate):
-                        measured[op.qubits] = True
-                        if all_measurements_are_terminal:
-                            continue
 
-                    # Resolve parameters on the fly
-                    resolved_op = protocols.resolve_parameters(op, sim_state.param_resolver)
+                # Resolve parameters on the fly
+                resolved_op = protocols.resolve_parameters(op, sim_state.param_resolver)
 
-                    # Simulate the operation
+                raw_op = resolved_op.untagged if hasattr(resolved_op, 'untagged') else resolved_op
+                if protocols.is_parameterized(resolved_op) and not isinstance(
+                    raw_op, ops.SetVariable
+                ):
+                    raise ValueError(
+                        'Circuit contains ops whose symbols were not specified in parameter sweep. '
+                        f'Ops: [{resolved_op!r}]'
+                    )
+
+                # Simulate the operation
+                try:
                     protocols.act_on(resolved_op, sim_state)
                 except TypeError:
                     raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
@@ -366,7 +376,7 @@ class SimulatorBase(
             state = self._create_partial_simulation_state(
                 initial_state=initial_state, qubits=qubits, classical_data=classical_data
             )
-            state.param_resolver = param_resolver
+            state.param_resolver = param_resolver or study.ParamResolver({})
             return state
 
 
