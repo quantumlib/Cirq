@@ -264,8 +264,8 @@ class CircuitDiagramInfoArgs:
     def _tag_diagram_str(self, tag: Any) -> str:
         """Text used for a single tag in a circuit diagram.
 
-        If the tag implements the ``_circuit_diagram_info_`` protocol, the first
-        wire symbol from that info is used. Otherwise falls back to ``str(tag)``.
+        If the tag implements the `_circuit_diagram_info_` protocol, the first
+        wire symbol from that info is used. Otherwise falls back to `str(tag)`.
         """
         info = circuit_diagram_info(tag, self, default=None)
         if info is not None and info.wire_symbols:
@@ -275,8 +275,8 @@ class CircuitDiagramInfoArgs:
     def format_tags(self, tags: Iterable[Any]) -> str:
         """Formats tags for inclusion in a circuit diagram label.
 
-        Returns a string like ``'[tag1, tag2]'``, or ``''`` if no tags are visible
-        under ``include_tags``.
+        Returns a string like `'[tag1, tag2]'`, or `''` if no tags are visible
+        under `include_tags`.
         """
         visible_tags = self.tags_to_include(tags)
         if not visible_tags:
