@@ -525,7 +525,7 @@ def test_grid_device_validate_operations_negative():
             return self._qubits
 
         def with_qubits(self, *new_qubits):
-            return CustomNonGateOp(new_qubits)
+            raise NotImplementedError
 
     # Non-gate operation on valid qubits passes validation without gateset check
     device.validate_operation(CustomNonGateOp([device_info.grid_qubits[0]]))
@@ -539,7 +539,7 @@ def test_grid_device_validate_operations_negative():
     with pytest.raises(ValueError, match='Qubit pair is not valid'):
         device.validate_operation(CustomNonGateOp([q00, q10]))
 
-    class CustomGateOp(cirq.Operation, cirq.Gate):
+    class CustomGateOp(cirq.Operation, cirq.Gate):  # type: ignore[misc]
         def __init__(self, qubits):
             self._qubits = tuple(qubits)
 
@@ -548,10 +548,7 @@ def test_grid_device_validate_operations_negative():
             return self._qubits
 
         def with_qubits(self, *new_qubits):
-            return CustomGateOp(new_qubits)
-
-        def num_qubits(self) -> int:
-            return len(self._qubits)
+            raise NotImplementedError
 
     # Operation subclassing Gate is checked against gateset and fails if not in gateset
     with pytest.raises(ValueError, match='gate which is not supported'):
