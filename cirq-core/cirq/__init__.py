@@ -314,6 +314,7 @@ from cirq.ops import (
     ry as ry,
     rz as rz,
     S as S,
+    SetVariable as SetVariable,
     SimpleQubitManager as SimpleQubitManager,
     SingleQubitCliffordGate as SingleQubitCliffordGate,
     SingleQubitPauliStringGateOperation as SingleQubitPauliStringGateOperation,
