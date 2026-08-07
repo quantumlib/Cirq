@@ -227,19 +227,13 @@ class SimulatorBase(
     ) -> dict[str, np.ndarray]:
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = param_resolver or study.ParamResolver({})
-        has_dynamic = any(isinstance(op, ops.SetVariable) for op in circuit.all_operations())
-        if has_dynamic:
-            resolved_circuit = circuit
-        else:
-            resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-            check_all_resolved(resolved_circuit)
-        qubits = tuple(sorted(resolved_circuit.all_qubits()))
+        qubits = tuple(sorted(circuit.all_qubits()))
         sim_state = self._create_simulation_state(0, qubits, param_resolver=param_resolver)
 
         prefix, general_suffix = (
-            split_into_matching_protocol_then_general(resolved_circuit, self._can_be_in_run_prefix)
+            split_into_matching_protocol_then_general(circuit, self._can_be_in_run_prefix)
             if self._can_be_in_run_prefix(self.noise)
-            else (resolved_circuit[0:0], resolved_circuit)
+            else (circuit[0:0], circuit)
         )
         step_result: TStepResultBase | None = None
         for step_result in self._core_iterator(circuit=prefix, sim_state=sim_state):

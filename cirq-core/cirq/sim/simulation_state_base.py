@@ -21,7 +21,7 @@ from collections.abc import Iterator, Mapping, Sequence
 from types import NotImplementedType
 from typing import Any, Generic, Self, TYPE_CHECKING, TypeVar
 
-from cirq import protocols, value
+from cirq import protocols, study, value
 
 if TYPE_CHECKING:
     import numpy as np
@@ -52,9 +52,7 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
         """
         self._set_qubits(tuple(qubits))
         self._classical_data = classical_data or value.ClassicalDataDictionaryStore()
-        from cirq.study.resolver import ParamResolver
-
-        self._param_resolver = param_resolver or ParamResolver({})
+        self._param_resolver = param_resolver or study.ParamResolver({})
 
     @property
     def param_resolver(self) -> cirq.ParamResolver:

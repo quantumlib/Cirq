@@ -14,7 +14,7 @@
 
 """Operation to set variable values during simulation."""
 
-from typing import Any, Dict, Sequence, Tuple, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import sympy
 
@@ -54,7 +54,7 @@ class SetVariable(raw_types.Operation):
         return self._expression
 
     @property
-    def qubits(self) -> Tuple['cirq.Qid', ...]:
+    def qubits(self) -> tuple['cirq.Qid', ...]:
         return ()
 
     def with_qubits(self, *qubits: 'cirq.Qid') -> 'SetVariable':
@@ -134,7 +134,7 @@ class SetVariable(raw_types.Operation):
     def __str__(self) -> str:
         return f"SetVariable({self._target}, {self._expression})"
 
-    def _json_dict_(self) -> Dict[str, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'target': self._target, 'expression': self._expression}
 
     @classmethod

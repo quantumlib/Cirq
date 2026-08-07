@@ -632,16 +632,10 @@ class SimulatesIntermediateState(
             moment and returning a StepResult for each moment.
         """
         param_resolver = study.ParamResolver(param_resolver)
-        has_dynamic = any(isinstance(op, ops.SetVariable) for op in circuit.all_operations())
-        if has_dynamic:
-            resolved_circuit = circuit
-        else:
-            resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-            check_all_resolved(resolved_circuit)
         actual_initial_state = 0 if initial_state is None else initial_state
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         return self._base_iterator(
-            resolved_circuit, qubits, actual_initial_state, param_resolver=param_resolver
+            circuit, qubits, actual_initial_state, param_resolver=param_resolver
         )
 
     @abc.abstractmethod
