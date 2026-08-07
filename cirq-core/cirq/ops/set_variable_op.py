@@ -31,6 +31,10 @@ class SetVariable(raw_types.Operation):
     """An operation that assigns the value of a sympy expression to a sympy variable.
 
     This operation modifies the parameter resolver in the simulator's state.
+
+    Note:  This is an experimental feature for early fault-tolerant support
+    and may change interfaces and not be backwards compatible between versions.
+    In addition, this operation may not be supported by hardware or simulators.
     """
 
     def __init__(self, target: sympy.Symbol, expression: sympy.Basic):
