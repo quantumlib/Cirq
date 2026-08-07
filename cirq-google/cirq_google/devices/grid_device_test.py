@@ -516,6 +516,47 @@ def test_grid_device_validate_operations_negative():
             cirq.testing.DoesNotSupportSerializationGate()(device_info.grid_qubits[0])
         )
 
+    class CustomNonGateOp(cirq.Operation):
+        def __init__(self, qubits):
+            self._qubits = tuple(qubits)
+
+        @property
+        def qubits(self):
+            return self._qubits
+
+        def with_qubits(self, *new_qubits):
+            return CustomNonGateOp(new_qubits)
+
+    # Non-gate operation on valid qubits passes validation without gateset check
+    device.validate_operation(CustomNonGateOp([device_info.grid_qubits[0]]))
+    device.validate_operation(
+        CustomNonGateOp([device_info.grid_qubits[0], device_info.grid_qubits[1]])
+    )
+
+    # Non-gate operation on invalid qubits or invalid pair still fails
+    with pytest.raises(ValueError, match='Qubit not on device'):
+        device.validate_operation(CustomNonGateOp([bad_qubit]))
+    with pytest.raises(ValueError, match='Qubit pair is not valid'):
+        device.validate_operation(CustomNonGateOp([q00, q10]))
+
+    class CustomGateOp(cirq.Operation, cirq.Gate):
+        def __init__(self, qubits):
+            self._qubits = tuple(qubits)
+
+        @property
+        def qubits(self):
+            return self._qubits
+
+        def with_qubits(self, *new_qubits):
+            return CustomGateOp(new_qubits)
+
+        def num_qubits(self) -> int:
+            return len(self._qubits)
+
+    # Operation subclassing Gate is checked against gateset and fails if not in gateset
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(CustomGateOp([device_info.grid_qubits[0]]))
+
 
 def test_grid_device_validate_operation_coupler_for_horizontal_couplings():
     """Tests coupler device on a device spec that only
