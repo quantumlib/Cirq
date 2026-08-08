@@ -121,6 +121,7 @@ class RouteCQC:
         lookahead_radius: int = 8,
         tag_inserted_swaps: bool = False,
         initial_mapper: cirq.AbstractInitialMapper | None = None,
+        min_qubit_mapping_threshold: float = 0.5,
         context: cirq.TransformerContext | None = None,
     ) -> cirq.AbstractCircuit:
         """Transforms the given circuit to make it executable on the device.
@@ -137,6 +138,10 @@ class RouteCQC:
             initial_mapper: an initial mapping strategy (placement) of logical qubits in the
                 circuit onto physical qubits on the device. If not provided, defaults to an
                 instance of `cirq.LineInitialMapper`.
+            min_qubit_mapping_threshold: the minimum fraction (0.0 to 1.0) of qubits that should
+                have their initial mapping computed from outer (non-CircuitOperation) 2-qubit gates
+                before proceeding with routing. If there are not enough outer 2-qubit gates,
+                CircuitOperations will be partially unrolled to reach this threshold.
             context: transformer context storing common configurable options for transformers.
 
         Returns:
@@ -152,6 +157,7 @@ class RouteCQC:
             lookahead_radius=lookahead_radius,
             tag_inserted_swaps=tag_inserted_swaps,
             initial_mapper=initial_mapper,
+            min_qubit_mapping_threshold=min_qubit_mapping_threshold,
             context=context,
         )
         return routed_circuit
@@ -163,15 +169,15 @@ class RouteCQC:
         lookahead_radius: int = 8,
         tag_inserted_swaps: bool = False,
         initial_mapper: cirq.AbstractInitialMapper | None = None,
+        min_qubit_mapping_threshold: float = 0.5,
         context: cirq.TransformerContext | None = None,
     ) -> tuple[cirq.AbstractCircuit, dict[cirq.Qid, cirq.Qid], dict[cirq.Qid, cirq.Qid]]:
         """Transforms the given circuit to make it executable on the device.
 
         This transformer assumes that all multi-qubit operations have been decomposed into 2-qubit
         operations and will raise an error if `circuit` a n-qubit operation where n > 2. If
-        `circuit` contains `cirq.CircuitOperation`s and `context.deep` is True then they are first
-        unrolled before proceeding. If `context.deep` is False or `context` is None then any
-        `cirq.CircuitOperation` that acts on more than 2-qubits will also raise an error.
+        `circuit` contains `cirq.CircuitOperation`s and `min_qubit_mapping_threshold` < 1.0,
+        they are handled using a recursive routing strategy instead of being fully unrolled.
 
         The algorithm tries to find the best swap at each timestep by ranking a set of candidate
         swaps against operations starting from the current timestep (say s) to the timestep at index
@@ -191,6 +197,11 @@ class RouteCQC:
                 operations.
             initial_mapper: an initial mapping strategy (placement) of logical qubits in the
                 circuit onto physical qubits on the device.
+            min_qubit_mapping_threshold: the minimum fraction (0.0 to 1.0) of qubits that should
+                have their initial mapping computed from outer (non-CircuitOperation) 2-qubit gates
+                before proceeding with routing. If there are not enough outer 2-qubit gates,
+                CircuitOperations will be partially unrolled to reach this threshold. A value of 1.0
+                disables recursive routing and falls back to unrolling all CircuitOperations.
             context: transformer context storing common configurable options for transformers.
 
         Returns:
@@ -206,7 +217,20 @@ class RouteCQC:
             ValueError: if circuit has operations that act on 3 or more qubits, except measurements.
         """
 
-        # 0. Handle CircuitOperations by unrolling them.
+        # 0. Handle CircuitOperations - use recursive routing if threshold < 1.0
+        has_circuit_ops = self._has_circuit_operations(circuit)
+        use_recursive_routing = has_circuit_ops and min_qubit_mapping_threshold < 1.0
+
+        if use_recursive_routing:
+            return self._route_circuit_recursive(
+                circuit=circuit,
+                min_qubit_mapping_threshold=min_qubit_mapping_threshold,
+                lookahead_radius=lookahead_radius,
+                tag_inserted_swaps=tag_inserted_swaps,
+                initial_mapper=initial_mapper,
+            )
+
+        # Legacy behavior: unroll CircuitOperations if deep=True
         if context is not None and context.deep is True:
             circuit = transformer_primitives.unroll_circuit_op(circuit, deep=True)
         if any(
@@ -562,6 +586,87 @@ class RouteCQC:
         for swap in swaps:
             mm.apply_swap(*swap)
         return max_length, sum_length
+
+    def _has_circuit_operations(self, circuit: cirq.AbstractCircuit) -> bool:
+        """Check if the circuit contains any CircuitOperations."""
+        return any(
+            isinstance(op.untagged, circuits.CircuitOperation) for op in circuit.all_operations()
+        )
+
+    def _get_ops_outside_circuit_ops(
+        self, circuit: cirq.AbstractCircuit
+    ) -> tuple[list[list[cirq.Operation]], list[list[cirq.Operation]]]:
+        """Get 2-qubit and single-qubit ops that are NOT inside CircuitOperations."""
+        outer_circuit = circuits.Circuit()
+        for moment in circuit:
+            outer_moment = circuits.Moment(
+                op for op in moment if not isinstance(op.untagged, circuits.CircuitOperation)
+            )
+            outer_circuit.append(outer_moment)
+        return self._get_one_and_two_qubit_ops_as_timesteps(outer_circuit)
+
+    def _route_circuit_recursive(
+        self,
+        circuit: cirq.AbstractCircuit,
+        min_qubit_mapping_threshold: float,
+        lookahead_radius: int,
+        tag_inserted_swaps: bool,
+        initial_mapper: cirq.AbstractInitialMapper | None,
+    ) -> tuple[cirq.AbstractCircuit, dict[cirq.Qid, cirq.Qid], dict[cirq.Qid, cirq.Qid]]:
+        """Route a circuit containing CircuitOperations using recursive strategy."""
+        if initial_mapper is None:
+            initial_mapper = line_initial_mapper.LineInitialMapper(self.device_graph)
+
+        num_total_qubits = len(list(circuit.all_qubits()))
+        outer_two_qubit_ops, outer_single_qubit_ops = self._get_ops_outside_circuit_ops(circuit)
+        outer_qubits = {q for ops in outer_two_qubit_ops for op in ops for q in op.qubits}
+
+        if len(outer_qubits) / num_total_qubits >= min_qubit_mapping_threshold:
+            outer_for_map = circuits.Circuit(op for ops in outer_two_qubit_ops for op in ops)
+            initial_mapping = initial_mapper.initial_mapping(outer_for_map)
+        else:
+            initial_mapping = initial_mapper.initial_mapping(circuit)
+
+        mm = mapping_manager.MappingManager(self.device_graph, initial_mapping)
+
+        circuit_ops = [
+            (i, op, op.untagged)
+            for i, m in enumerate(circuit)
+            for op in m
+            if isinstance(op.untagged, circuits.CircuitOperation)
+        ]
+
+        routed_ops, routing_swaps = self._route(
+            mm,
+            outer_two_qubit_ops,
+            outer_single_qubit_ops,
+            lookahead_radius,
+            tag_inserted_swaps=tag_inserted_swaps,
+        )
+
+        routed_circuit = circuits.Circuit(circuits.Circuit(m) for m in routed_ops)
+
+        for _, _, circuit_op in circuit_ops:
+            inner = circuit_op.circuit.unfreeze(copy=True)
+            inner_routed, inner_init, _ = self.route_circuit(
+                inner,
+                lookahead_radius=lookahead_radius,
+                tag_inserted_swaps=tag_inserted_swaps,
+                initial_mapper=initial_mapper,
+                min_qubit_mapping_threshold=1.0,
+            )
+            routed_circuit.append(circuits.Circuit(inner_routed).transform_qubits(inner_init))
+
+        if routing_swaps and nx.is_directed(self.device_graph):
+            routed_circuit = circuits.Circuit(
+                self._replace_swaps_with_directional_decomposition(routed_circuit, routing_swaps)
+            )
+
+        final_mapping = {
+            mm.int_to_logical_qid[k]: mm.int_to_physical_qid[v]
+            for k, v in enumerate(mm.logical_to_physical)
+        }
+        return routed_circuit, initial_mapping, final_mapping
 
     def __eq__(self, other) -> bool:
         return nx.utils.graphs_equal(self.device_graph, other.device_graph)
