@@ -2839,16 +2839,15 @@ def _draw_moment_in_diagram(
         desc = _formatted_phase(global_phase, use_unicode_characters, precision)
         if desc:
             y = max(label_map.values(), default=0) + 1
-            visible_tags = protocols.CircuitDiagramInfoArgs(
+            tag_args = protocols.CircuitDiagramInfoArgs(
                 known_qubits=None,
                 known_qubit_count=None,
-                use_unicode_characters=True,
-                precision=None,
+                use_unicode_characters=use_unicode_characters,
+                precision=precision,
                 label_map=None,
                 include_tags=include_tags,
-            ).tags_to_include(tags)
-            if visible_tags:
-                desc = desc + f"[{', '.join(map(str, visible_tags))}]"
+            )
+            desc = desc + tag_args.format_tags(tags)
             out_diagram.write(x0, y, desc)
 
     if not non_global_ops:
