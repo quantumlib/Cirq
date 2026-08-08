@@ -530,7 +530,7 @@ def test_circuit_diagram() -> None:
             return '<taggy>'
 
     class DiagramInfoTag:
-        """Tag that customizes diagram rendering via _circuit_diagram_info_."""
+        """Tag that customizes diagram rendering via `_circuit_diagram_info_`."""
 
         def __str__(self):
             return 'should-not-appear-in-diagram'
