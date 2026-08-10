@@ -752,6 +752,27 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return self
 
+    def _is_parameterized_(self) -> bool:
+        """Returns true if qubits are parameterized, false otherwise."""
+        return protocols.is_parameterized(self.qubits) or bool(self._parameter_names_())
+
+    def _parameter_names_(self) -> Set[str]:
+        """Returns the names of the qubit parameters."""
+        return protocols.parameter_names(self.qubits)
+
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Operation:
+        """Attempts to resolve any parameters in the operation.
+
+        By default, the only parameterization arising in an operation comes from
+        the qubits."""
+        if not any(protocols.is_parameterized(q) for q in self.qubits):
+            return self
+
+        resolved_qubits = [
+            protocols.resolve_parameters(q, resolver, recursive) for q in self.qubits
+        ]
+        return self.with_qubits(*resolved_qubits)
+
 
 @value.value_equality
 class TaggedOperation(Operation):

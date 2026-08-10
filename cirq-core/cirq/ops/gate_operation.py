@@ -257,21 +257,20 @@ class GateOperation(raw_types.Operation):
 
     @_compat.cached_method
     def _is_parameterized_(self) -> bool:
-        getter = getattr(self.gate, '_is_parameterized_', None)
-        if getter is not None:
-            return getter()
-        return NotImplemented
+        return protocols.is_parameterized(self.gate) or protocols.is_parameterized(self.qubits)
 
     @_compat.cached_method
     def _parameter_names_(self) -> Set[str]:
-        getter = getattr(self.gate, '_parameter_names_', None)
-        if getter is not None:
-            return frozenset(getter())
-        return NotImplemented
+        return frozenset(
+            protocols.parameter_names(self.gate) | protocols.parameter_names(self.qubits)
+        )
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> cirq.Operation:
         resolved_gate = protocols.resolve_parameters(self.gate, resolver, recursive)
-        return self.with_gate(resolved_gate)
+        resolved_qubits = [
+            protocols.resolve_parameters(q, resolver, recursive) for q in self.qubits
+        ]
+        return resolved_gate.on(*resolved_qubits)
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.circuit_diagram_info(self.gate, args, NotImplemented)

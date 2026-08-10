@@ -847,6 +847,12 @@ class CircuitOperation(ops.Operation):
         resolved = self.with_params(resolver.param_dict, recursive)
         # repetitions can resolve to a float, but this is ok since constructor converts to
         # nearby int.
-        return resolved.replace(
-            repetitions=resolver.value_of(cast('cirq.TParamVal', self.repetitions), recursive)
+        resolved_repetitions = resolver.value_of(
+            cast('cirq.TParamVal', self.repetitions), recursive
         )
+        resolved_qubit_map = {
+            k: protocols.resolve_parameters(v, resolver, recursive)
+            for k, v in self._qubit_map.items()
+        }
+
+        return resolved.replace(repetitions=resolved_repetitions, qubit_map=resolved_qubit_map)
