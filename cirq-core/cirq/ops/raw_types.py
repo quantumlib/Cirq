@@ -144,6 +144,17 @@ class Qid(metaclass=abc.ABCMeta):
         """Circuit symbol for qids defaults to the string representation."""
         return protocols.CircuitDiagramInfo(wire_symbols=(str(self),))
 
+    def _resolved_value_(self) -> Any:
+        """Returns a resolved Qid during parameter resolution.
+
+        This marks a Qid as a resolved type, indicating it does not need to
+        be parsed further.
+
+        Returns:
+            The resolved Qid (i.e. itself)
+        """
+        return self
+
 
 @functools.total_ordering
 class _QubitAsQid(Qid):

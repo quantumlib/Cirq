@@ -236,6 +236,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'TwoQubitGateTabulation': cirq.TwoQubitGateTabulation,
         '_UnconstrainedDevice': cirq.devices.unconstrained_device._UnconstrainedDevice,
         '_Unit': cirq.study.sweeps._Unit,
+        'VariableQid': cirq.ops.variable_qid.VariableQid,
         'VarianceStoppingCriteria': cirq.work.VarianceStoppingCriteria,
         'VirtualTag': cirq.VirtualTag,
         'WaitGate': cirq.WaitGate,
