@@ -12,7 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Operation to set variable values during simulation."""
+"""Operation to set variable values during circuit execution.
+
+Currently, this operation is expected to only work during simulation.
+"""
+
+from __future__ import annotations
 
 from typing import Any, TYPE_CHECKING
 
@@ -28,18 +33,27 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class SetVariable(raw_types.Operation):
-    """An operation that assigns the value of a sympy expression to a sympy variable.
+    """An operation that assigns the value of a SymPy expression to a SymPy variable.
 
     This operation modifies the parameter resolver in the simulator's state.
 
-    Note:  This is an experimental feature for early fault-tolerant support
+    Note: This is an experimental feature for early fault-tolerant support
     and may change interfaces and not be backwards compatible between versions.
-    In addition, this operation may not be supported by hardware or simulators.
+
+    In addition, this operation may not be supported by all hardware or third-party
+    simulators.
     """
 
-    def __init__(self, target: sympy.Symbol, expression: sympy.Basic):
+    def __init__(self, target: sympy.Symbol, expression: sympy.Basic) -> None:
+        """Initializes the SetOperation object.
+
+        Args:
+             target: Symbol to modify the value of during execution.
+             expression:  A SymPy expression to evaluate.  The value of which
+                 will be assigned to the target symbol.
+        """
         if not isinstance(target, sympy.Symbol):
-            raise TypeError("target must be a sympy.Symbol")
+            raise TypeError("Target must be a sympy.Symbol")
         if not isinstance(expression, sympy.Basic):
             expression = sympy.sympify(expression)
 
@@ -58,27 +72,25 @@ class SetVariable(raw_types.Operation):
         return self._expression
 
     @property
-    def qubits(self) -> tuple['cirq.Qid', ...]:
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return ()
 
-    def with_qubits(self, *qubits: 'cirq.Qid') -> 'SetVariable':
+    def with_qubits(self, *qubits: cirq.Qid) -> SetVariable:
         if qubits:
             raise ValueError("SetVariable does not support qubits.")
         return self
 
-    def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'SetVariable':
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> SetVariable:
         resolved_expr = protocols.resolve_parameters(self._expression, resolver, recursive)
         return SetVariable(self._target, resolved_expr)
 
     def _is_parameterized_(self) -> bool:
-        return bool(protocols.parameter_names(self._expression))
+        return any(a.free_symbols for a in self._expression.args)
 
-    def _parameter_names_(self) -> Any:
+    def _parameter_names_(self) -> set[str]:
         return protocols.parameter_names(self._expression)
 
-    def _act_on_(self, sim_state: 'cirq.SimulationStateBase') -> bool:
+    def _act_on_(self, sim_state: cirq.SimulationStateBase) -> bool:
         replacements = {}
         for symbol in self._expression.free_symbols:
             if not isinstance(symbol, sympy.Symbol):
@@ -102,23 +114,26 @@ class SetVariable(raw_types.Operation):
                 )
 
         # Handle Indexed symbols (e.g. bitwise measurements)
-        for symbol in self._expression.free_symbols:
-            if isinstance(symbol, sympy.Indexed):
-                name = symbol.base.name
-                key = value.MeasurementKey.parse_serialized(name)
-                if key in sim_state.classical_data.keys():
-                    digits = sim_state.classical_data.get_digits(key)
-                    idx = int(symbol.indices[0])
-                    if 0 <= idx < len(digits):
-                        replacements[symbol] = digits[idx]
+        for indexed in self._expression.atoms(sympy.Indexed):
+            name = indexed.base.name
+            key = value.MeasurementKey.parse_serialized(name)
+            if key in sim_state.classical_data.keys():
+                digits = sim_state.classical_data.get_digits(key)
+                idx = int(indexed.indices[0])
+                if 0 <= idx < len(digits):
+                    replacements[indexed] = digits[idx]
+                else:
+                    raise ValueError(f"Index {idx} of symbol {key} out of bounds.")
+            else:
+                raise ValueError(f"Symbol {key} in expressions has no measurements.")
 
         evaluated_value = self._expression.subs(replacements)
-        if evaluated_value.is_number:
+        if evaluated_value.is_integer:
+            evaluated_value = int(evaluated_value)
+        elif evaluated_value.is_real:
+            evaluated_value = float(evaluated_value)
+        elif evaluated_value.is_number:
             evaluated_value = complex(evaluated_value)
-            if evaluated_value.imag == 0:
-                evaluated_value = evaluated_value.real
-                if evaluated_value.is_integer():
-                    evaluated_value = int(evaluated_value)
         else:
             raise ValueError(
                 f"Expression '{self._expression}' did not evaluate to a number: {evaluated_value}"
@@ -131,9 +146,9 @@ class SetVariable(raw_types.Operation):
         return True
 
     def __repr__(self) -> str:
-        from cirq._compat import proper_repr
+        import cirq._compat as _compat
 
-        return f"cirq.SetVariable({proper_repr(self._target)}, {proper_repr(self._expression)})"
+        return f"cirq.SetVariable({_compat.proper_repr(self._target)}, {_compat.proper_repr(self._expression)})"
 
     def __str__(self) -> str:
         return f"SetVariable({self._target}, {self._expression})"

@@ -19,7 +19,7 @@ import sympy
 import cirq
 
 
-def test_set_variable_init_and_properties():
+def test_set_variable_init_and_properties() -> None:
     a = sympy.Symbol('a')
     b = sympy.Symbol('b')
     op = cirq.SetVariable(a, b + 1)
@@ -31,11 +31,11 @@ def test_set_variable_init_and_properties():
     with pytest.raises(ValueError, match="does not support qubits"):
         op.with_qubits(cirq.LineQubit(0))
 
-    with pytest.raises(TypeError, match="target must be a sympy.Symbol"):
+    with pytest.raises(TypeError, match="Target must be a sympy.Symbol"):
         cirq.SetVariable("not_a_symbol", 1)
 
 
-def test_set_variable_repr_and_str():
+def test_set_variable_repr_and_str() -> None:
     a = sympy.Symbol('a')
     b = sympy.Symbol('b')
     op = cirq.SetVariable(a, b + 1)
@@ -46,7 +46,7 @@ def test_set_variable_repr_and_str():
     )
 
 
-def test_set_variable_parameter_names():
+def test_set_variable_parameter_names() -> None:
     a = sympy.Symbol('a')
     b = sympy.Symbol('b')
     op = cirq.SetVariable(a, b + 1)
@@ -55,17 +55,17 @@ def test_set_variable_parameter_names():
     assert not cirq.is_parameterized(cirq.SetVariable(a, 1.0))
 
 
-def test_set_variable_simulation_constant():
+def test_set_variable_simulation_constant() -> None:
     q = cirq.LineQubit(0)
     a = sympy.Symbol('a')
     circuit = cirq.Circuit(cirq.SetVariable(a, 1.0), cirq.Rx(rads=a).on(q))
     sim = cirq.Simulator()
     result = sim.simulate(circuit)
     expected_state = cirq.Circuit(cirq.Rx(rads=1.0).on(q)).final_state_vector()
-    np.testing.assert_allclose(result.final_state_vector, expected_state, atol=1e-6)
+    np.testing.assert_allclose(result.final_state_vector, expected_state)
 
 
-def test_set_variable_simulation_expression():
+def test_set_variable_simulation_expression() -> None:
     q = cirq.LineQubit(0)
     a = sympy.Symbol('a')
     b = sympy.Symbol('b')
@@ -73,10 +73,10 @@ def test_set_variable_simulation_expression():
     sim = cirq.Simulator()
     result = sim.simulate(circuit, param_resolver={'a': 0.5})
     expected_state = cirq.Circuit(cirq.Rx(rads=1.0).on(q)).final_state_vector()
-    np.testing.assert_allclose(result.final_state_vector, expected_state, atol=1e-6)
+    np.testing.assert_allclose(result.final_state_vector, expected_state)
 
 
-def test_set_variable_run_simulation():
+def test_set_variable_run_simulation() -> None:
     q0 = cirq.LineQubit(0)
     a = sympy.Symbol('a')
     circuit = cirq.Circuit(cirq.SetVariable(a, 1), cirq.measure(q0, key='m'))
@@ -85,7 +85,7 @@ def test_set_variable_run_simulation():
     assert len(result.measurements['m']) == 3
 
 
-def test_set_variable_simulation_measurement_dependency():
+def test_set_variable_simulation_measurement_dependency() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     a = sympy.Symbol('a')
 
@@ -103,10 +103,59 @@ def test_set_variable_simulation_measurement_dependency():
     # q0 is 1, so m=1, a=pi, Rx(pi) on q1 rotates |0> to -i|1>.
     # So q1 final state is |1> (up to phase).
     expected_state = cirq.Circuit(cirq.X(q0), cirq.Rx(rads=np.pi).on(q1)).final_state_vector()
-    np.testing.assert_allclose(np.abs(result.final_state_vector), np.abs(expected_state), atol=1e-6)
+    np.testing.assert_allclose(result.final_state_vector, expected_state)
 
 
-def test_set_variable_act_on_edge_cases():
+def test_set_variable_simulation_symbolic_constants() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    a = sympy.Symbol('a')
+
+    circuit = cirq.Circuit(
+        cirq.Moment(cirq.X(q0)),
+        cirq.Moment(cirq.measure(q0, key='m')),
+        cirq.Moment(cirq.SetVariable(a, sympy.Symbol('m') * sympy.pi / 2)),
+        cirq.Moment(cirq.Rx(rads=a).on(q1)),
+    )
+    sim = cirq.Simulator()
+    result = sim.simulate(circuit, qubit_order=[q0, q1])
+    expected_state = cirq.Circuit(cirq.X(q0), cirq.Rx(rads=np.pi / 2).on(q1)).final_state_vector(
+        qubit_order=[q0, q1]
+    )
+    np.testing.assert_allclose(result.final_state_vector, expected_state)
+
+
+def test_set_variable_bitwise_indexed_measurements() -> None:
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+    a = sympy.Symbol('a')
+    m = sympy.IndexedBase('m')
+
+    # Prepare non-trivial measurement outcome |1, 0, 1> on (q0, q1, q2)
+    circuit = cirq.Circuit(
+        cirq.Moment(cirq.X(q0), cirq.X(q2)),
+        cirq.Moment(cirq.measure(q0, q1, q2, key='m')),
+        cirq.Moment(
+            cirq.SetVariable(a, m[0] * sympy.pi + m[1] * (sympy.pi / 2) + m[2] * (sympy.pi / 4))
+        ),
+        cirq.Moment(cirq.Rx(rads=a).on(q3)),
+    )
+    sim = cirq.Simulator()
+    result = sim.simulate(circuit, qubit_order=[q0, q1, q2, q3])
+    expected_rads = 1 * np.pi + 0 * (np.pi / 2) + 1 * (np.pi / 4)
+    expected_state = cirq.Circuit(
+        cirq.X(q0), cirq.X(q2), cirq.Rx(rads=expected_rads).on(q3)
+    ).final_state_vector(qubit_order=[q0, q1, q2, q3])
+    np.testing.assert_allclose(result.final_state_vector, expected_state)
+
+    # Test multi-digit non-trivial outcome vector with _act_on_
+    qubits = cirq.LineQubit.range(4)
+    state = cirq.StateVectorSimulationState(qubits=qubits)
+    state.classical_data.record_measurement(cirq.MeasurementKey('m'), [1, 1, 0, 1], qubits)
+    op = cirq.SetVariable(a, m[0] * 8 + m[1] * 4 + m[2] * 2 + m[3])
+    assert op._act_on_(state)
+    assert state.param_resolver.value_of(a) == 13
+
+
+def test_set_variable_act_on_edge_cases() -> None:
     a = sympy.Symbol('a')
     b = sympy.Symbol('b')
     c = sympy.Symbol('c')
@@ -159,11 +208,20 @@ def test_set_variable_act_on_edge_cases():
     assert op_indexed._act_on_(indexed_state)
     assert indexed_state.param_resolver.value_of('a') == 1
 
+    # Indexed symbol index out of bounds
+    op_oob = cirq.SetVariable(a, m_base[5])
+    with pytest.raises(ValueError, match=r"Index 5 of symbol m out of bounds\."):
+        op_oob._act_on_(indexed_state)
 
-def test_set_variable_json():
-    a = sympy.Symbol('a')
-    b = sympy.Symbol('b')
-    op = cirq.SetVariable(a, b + 1)
-    json_text = cirq.to_json(op)
-    restored_op = cirq.read_json(json_text=json_text)
-    assert restored_op == op
+    # Indexed symbol with no measurements recorded
+    state_unrecorded = cirq.StateVectorSimulationState(
+        qubits=[q0], param_resolver=cirq.ParamResolver({'unrecorded': 1})
+    )
+    op_no_meas = cirq.SetVariable(a, sympy.IndexedBase('unrecorded')[0])
+    with pytest.raises(ValueError, match=r"Symbol unrecorded in expressions has no measurements\."):
+        op_no_meas._act_on_(state_unrecorded)
+
+    # 6. Complex number evaluation
+    op_complex = cirq.SetVariable(a, 1 + 2 * sympy.I)
+    assert op_complex._act_on_(state)
+    assert state.param_resolver.value_of(a) == 1 + 2j

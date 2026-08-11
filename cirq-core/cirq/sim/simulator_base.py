@@ -215,13 +215,13 @@ class SimulatorBase(
                 # Resolve parameters on the fly
                 resolved_op = protocols.resolve_parameters(op, sim_state.param_resolver)
 
-                raw_op = resolved_op.untagged if hasattr(resolved_op, 'untagged') else resolved_op
+                raw_op = getattr(resolved_op, 'untagged', resolved_op)
                 if protocols.is_parameterized(resolved_op) and not isinstance(
                     raw_op, ops.SetVariable
                 ):
                     raise ValueError(
-                        'Circuit contains ops whose symbols were not specified in parameter sweep. '
-                        f'Ops: [{resolved_op!r}]'
+                        'Circuit contains ops whose symbols were not specified in the '
+                        f'parameter sweep. Ops: [{resolved_op!r}]'
                     )
 
                 # Simulate the operation
@@ -383,7 +383,9 @@ class SimulatorBase(
             state = self._create_partial_simulation_state(
                 initial_state=initial_state, qubits=qubits, classical_data=classical_data
             )
-            state.param_resolver = param_resolver or study.ParamResolver({})
+            state.param_resolver = (
+                study.ParamResolver({}) if param_resolver is None else param_resolver
+            )
             return state
 
 
