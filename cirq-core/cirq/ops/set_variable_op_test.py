@@ -58,7 +58,9 @@ def test_set_variable_parameter_names() -> None:
 def test_set_variable_simulation_constant() -> None:
     q = cirq.LineQubit(0)
     a = sympy.Symbol('a')
-    circuit = cirq.Circuit(cirq.SetVariable(a, 1.0), cirq.Rx(rads=a).on(q))
+    circuit = cirq.Circuit(
+        cirq.Moment(cirq.SetVariable(a, 1.0)), cirq.Moment(cirq.Rx(rads=a).on(q))
+    )
     sim = cirq.Simulator()
     result = sim.simulate(circuit)
     expected_state = cirq.Circuit(cirq.Rx(rads=1.0).on(q)).final_state_vector()
@@ -69,7 +71,9 @@ def test_set_variable_simulation_expression() -> None:
     q = cirq.LineQubit(0)
     a = sympy.Symbol('a')
     b = sympy.Symbol('b')
-    circuit = cirq.Circuit(cirq.SetVariable(b, a * 2), cirq.Rx(rads=b).on(q))
+    circuit = cirq.Circuit(
+        cirq.Moment(cirq.SetVariable(b, a * 2)), cirq.Moment(cirq.Rx(rads=b).on(q))
+    )
     sim = cirq.Simulator()
     result = sim.simulate(circuit, param_resolver={'a': 0.5})
     expected_state = cirq.Circuit(cirq.Rx(rads=1.0).on(q)).final_state_vector()

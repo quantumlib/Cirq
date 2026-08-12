@@ -213,20 +213,16 @@ class SimulatorBase(
                         continue
 
                 # Resolve parameters on the fly
-                resolved_op = protocols.resolve_parameters(op, sim_state.param_resolver)
-
-                raw_op = getattr(resolved_op, 'untagged', resolved_op)
-                if protocols.is_parameterized(resolved_op) and not isinstance(
-                    raw_op, ops.SetVariable
-                ):
+                raw_op = getattr(op, 'untagged', op)
+                if protocols.is_parameterized(op) and not isinstance(raw_op, ops.SetVariable):
                     raise ValueError(
                         'Circuit contains ops whose symbols were not specified in the '
-                        f'parameter sweep. Ops: [{resolved_op!r}]'
+                        f'parameter sweep. Ops: [{op!r}]'
                     )
 
                 # Simulate the operation
                 try:
-                    protocols.act_on(resolved_op, sim_state)
+                    protocols.act_on(op, sim_state)
                 except TypeError:
                     raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
 

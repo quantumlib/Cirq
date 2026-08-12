@@ -148,7 +148,10 @@ class SetVariable(raw_types.Operation):
     def __repr__(self) -> str:
         import cirq._compat as _compat
 
-        return f"cirq.SetVariable({_compat.proper_repr(self._target)}, {_compat.proper_repr(self._expression)})"
+        return (
+            f"cirq.SetVariable({_compat.proper_repr(self._target)}, "
+            f"{_compat.proper_repr(self._expression)})"
+        )
 
     def __str__(self) -> str:
         return f"SetVariable({self._target}, {self._expression})"
