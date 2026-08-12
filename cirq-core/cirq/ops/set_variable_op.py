@@ -19,6 +19,7 @@ Currently, this operation is expected to only work during simulation.
 
 from __future__ import annotations
 
+from collections.abc import Set
 from typing import Any, TYPE_CHECKING
 
 import sympy
@@ -87,7 +88,7 @@ class SetVariable(raw_types.Operation):
     def _is_parameterized_(self) -> bool:
         return any(a.free_symbols for a in self._expression.args)
 
-    def _parameter_names_(self) -> set[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self._expression)
 
     def _act_on_(self, sim_state: cirq.SimulationStateBase) -> bool:

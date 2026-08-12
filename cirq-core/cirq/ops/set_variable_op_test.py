@@ -152,8 +152,9 @@ def test_set_variable_bitwise_indexed_measurements() -> None:
 
     # Test multi-digit non-trivial outcome vector with _act_on_
     qubits = cirq.LineQubit.range(4)
-    state = cirq.StateVectorSimulationState(qubits=qubits)
-    state.classical_data.record_measurement(cirq.MeasurementKey('m'), [1, 1, 0, 1], qubits)
+    classical_data = cirq.ClassicalDataDictionaryStore()
+    classical_data.record_measurement(cirq.MeasurementKey('m'), [1, 1, 0, 1], qubits)
+    state = cirq.StateVectorSimulationState(qubits=qubits, classical_data=classical_data)
     op = cirq.SetVariable(a, m[0] * 8 + m[1] * 4 + m[2] * 2 + m[3])
     assert op._act_on_(state)
     assert state.param_resolver.value_of(a) == 13
@@ -207,8 +208,9 @@ def test_set_variable_act_on_edge_cases() -> None:
     q1 = cirq.LineQubit(1)
     m_base = sympy.IndexedBase('m')
     op_indexed = cirq.SetVariable(a, m_base[0] + m_base[1])
-    indexed_state = cirq.StateVectorSimulationState(qubits=[q0, q1])
-    indexed_state.classical_data.record_measurement(cirq.MeasurementKey('m'), [1, 0], [q0, q1])
+    classical_data = cirq.ClassicalDataDictionaryStore()
+    classical_data.record_measurement(cirq.MeasurementKey('m'), [1, 0], [q0, q1])
+    indexed_state = cirq.StateVectorSimulationState(qubits=[q0, q1], classical_data=classical_data)
     assert op_indexed._act_on_(indexed_state)
     assert indexed_state.param_resolver.value_of('a') == 1
 
