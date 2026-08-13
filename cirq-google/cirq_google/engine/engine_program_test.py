@@ -543,3 +543,18 @@ def test_is_batch(get_program_async):
     get_program_async.reset_mock()
     get_program_async.return_value = quantum.QuantumProgram(code=_BATCH_PROGRAM_V2)
     assert program_batch.is_batch()
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
+def test_batch_keys(get_program_async):
+    # Single circuit program (not a batch)
+    program = cg.EngineProgram('a', 'b', EngineContext())
+    get_program_async.return_value = quantum.QuantumProgram(code=_PROGRAM_V2)
+    with pytest.raises(ValueError, match="not a batch program"):
+        _ = program.batch_keys()
+
+    # Batch program
+    program_batch = cg.EngineProgram('a', 'b', EngineContext())
+    get_program_async.reset_mock()
+    get_program_async.return_value = quantum.QuantumProgram(code=_BATCH_PROGRAM_V2)
+    assert program_batch.batch_keys() == ['c1', 'c2']
