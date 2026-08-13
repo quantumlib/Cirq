@@ -207,7 +207,7 @@ class AbstractJob(abc.ABC):
 
     batched_results = duet.sync(batched_results_async)
 
-    async def mappings_results_async(self) -> Mapping[str, Sequence[EngineResult]]:
+    async def mapping_results_async(self) -> Mapping[str, Sequence[EngineResult]]:
         """Returns the job results organized by circuit key for a mapped program batch.
 
         Instead of flattening results into a single list, this will return a mapping
@@ -217,11 +217,11 @@ class AbstractJob(abc.ABC):
             ValueError: If called for a non-batch program or if keys were not specified.
         """
         if not self.program().is_batch():
-            raise ValueError('mappings_results called for a non-batch program.')
+            raise ValueError('mapping_results called for a non-batch program.')
         batched = await self.batched_results_async()
         keys = self.program().batch_keys()
         if not keys or any(k == '' for k in keys):
-            raise ValueError('mappings_results called for a batch job without circuit keys.')
+            raise ValueError('mapping_results called for a batch job without circuit keys.')
         if len(keys) != len(batched):
             raise ValueError(
                 f'Number of keys ({len(keys)}) does not match '
@@ -229,9 +229,7 @@ class AbstractJob(abc.ABC):
             )
         return dict(zip(keys, batched))
 
-    mappings_results = duet.sync(mappings_results_async)
-    mapping_results_async = mappings_results_async
-    mapping_results = mappings_results
+    mapping_results = duet.sync(mapping_results_async)
 
     def __iter__(self) -> Iterator[cirq.Result]:
         yield from self.results()

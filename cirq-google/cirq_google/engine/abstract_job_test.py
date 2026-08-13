@@ -158,22 +158,22 @@ def test_batched_results():
         assert r_list[0].measurements['a'][0] == count
 
 
-def test_mappings_results():
+def test_mapping_results():
     job = MockJob()
     prog = MockProgram(is_batch=True, keys=['k0', 'k1', 'k2', 'k3', 'k4'])
     job._mock_program = prog
     assert prog.batch_size() == 5
-    mapping = job.mappings_results()
+    mapping = job.mapping_results()
     assert list(mapping.keys()) == ['k0', 'k1', 'k2', 'k3', 'k4']
     for count, (k, r_list) in enumerate(mapping.items()):
         assert len(r_list) == 1
         assert r_list[0].measurements['a'][0] == count
 
 
-def test_mappings_results_key_length_mismatch():
+def test_mapping_results_key_length_mismatch():
     job = MockJob()
     job._mock_program = MockProgram(is_batch=True, keys=['k0', 'k1'])
     with pytest.raises(
         ValueError, match=r'Number of keys \(2\) does not match number of batch results \(5\)'
     ):
-        _ = job.mappings_results()
+        _ = job.mapping_results()

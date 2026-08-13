@@ -61,6 +61,15 @@ class AbstractLocalProgram(AbstractProgram):
         else:
             self._batch_keys = batch_keys
             self._circuits = list(circuits)
+            if batch_keys:
+                if len(batch_keys) != len(circuits):
+                    raise ValueError(
+                        f"Mismatched circuits ({len(circuits)}) " f"and keys ({len(batch_keys)})."
+                    )
+                if len(set(batch_keys)) != len(batch_keys):
+                    raise ValueError(f"Duplicate keys provided in program. {batch_keys}")
+                if any(not key for key in batch_keys):
+                    raise ValueError(f"Empty key provided in program.")
 
     def engine(self) -> AbstractLocalEngine:
         """Returns the parent Engine object.
@@ -256,7 +265,7 @@ class AbstractLocalProgram(AbstractProgram):
         if not self.is_batch():
             raise ValueError("This program is not a batch program.")
         if self._batch_keys is not None:
-            return self._batch_keys
+            return self._batch_keys.copy()
         return [''] * len(self._circuits)
 
     batch_keys = duet.sync(batch_keys_async)

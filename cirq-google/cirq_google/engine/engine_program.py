@@ -437,7 +437,7 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     batch_size = duet.sync(batch_size_async)
 
-    async def batch_keys_async(self) -> list[str]:
+    async def batch_keys_async(self) -> Sequence[str]:
         """Returns the keys for circuits in a batch program.
 
         Raises:

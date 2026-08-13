@@ -273,7 +273,7 @@ def test_batched_results_unsupported_type():
         _ = job.batched_results()
 
 
-def test_mappings_results_non_batch_job_raises():
+def test_mapping_results_non_batch_job_raises():
     program = ParentProgram([cirq.Circuit(cirq.X(Q), cirq.measure(Q, key='m'))], None)
     job = SimulatedLocalJob(
         job_id='test_job',
@@ -282,11 +282,11 @@ def test_mappings_results_non_batch_job_raises():
         repetitions=10,
         sweeps=[cirq.UnitSweep],
     )
-    with pytest.raises(ValueError, match='mappings_results called for a non-batch program'):
-        _ = job.mappings_results()
+    with pytest.raises(ValueError, match='mapping_results called for a non-batch program'):
+        _ = job.mapping_results()
 
 
-def test_mappings_results_batch_job_without_keys_raises():
+def test_mapping_results_batch_job_without_keys_raises():
     program = ParentProgram(
         [
             cirq.Circuit(cirq.X(Q), cirq.measure(Q, key='m')),
@@ -302,12 +302,12 @@ def test_mappings_results_batch_job_without_keys_raises():
         sweeps=[cirq.UnitSweep, cirq.UnitSweep],
     )
     with pytest.raises(
-        ValueError, match='mappings_results called for a batch job without circuit keys'
+        ValueError, match='mapping_results called for a batch job without circuit keys'
     ):
-        _ = job.mappings_results()
+        _ = job.mapping_results()
 
 
-def test_mappings_results_mapped_job():
+def test_mapping_results_mapped_job():
     c1 = cirq.Circuit(cirq.X(Q), cirq.measure(Q, key='m'))
     c2 = cirq.Circuit(cirq.Y(Q), cirq.measure(Q, key='m'))
     program = ParentProgram({'first': c1, 'second': c2}, None)
@@ -318,7 +318,7 @@ def test_mappings_results_mapped_job():
         repetitions=[10, 20],
         sweeps=[cirq.UnitSweep, cirq.UnitSweep],
     )
-    mapping = job.mappings_results()
+    mapping = job.mapping_results()
     assert list(mapping.keys()) == ['first', 'second']
     assert len(mapping['first'][0].measurements['m']) == 10
     assert len(mapping['second'][0].measurements['m']) == 20
@@ -327,7 +327,7 @@ def test_mappings_results_mapped_job():
 
 
 @pytest.mark.asyncio
-async def test_mappings_results_mapped_job_async():
+async def test_mapping_results_mapped_job_async():
     c1 = cirq.Circuit(cirq.X(Q), cirq.measure(Q, key='m'))
     c2 = cirq.Circuit(cirq.Y(Q), cirq.measure(Q, key='m'))
     program = ParentProgram({'first': c1, 'second': c2}, None)
@@ -338,7 +338,7 @@ async def test_mappings_results_mapped_job_async():
         repetitions=[10, 20],
         sweeps=[cirq.UnitSweep, cirq.UnitSweep],
     )
-    mapping = await job.mappings_results_async()
+    mapping = await job.mapping_results_async()
     assert list(mapping.keys()) == ['first', 'second']
     assert len(mapping['first'][0].measurements['m']) == 10
     assert len(mapping['second'][0].measurements['m']) == 20

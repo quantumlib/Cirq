@@ -1093,7 +1093,7 @@ def test_batched_results_batch_job_v1_raises(get_job_results, mock_is_batch):
 
 @mock.patch('cirq_google.engine.engine_program.EngineProgram.is_batch_async')
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
-def test_mappings_results_non_batch_job_raises(get_job_results, mock_is_batch):
+def test_mapping_results_non_batch_job_raises(get_job_results, mock_is_batch):
     mock_is_batch.return_value = False
     qjob = quantum.QuantumJob(
         execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
@@ -1101,14 +1101,14 @@ def test_mappings_results_non_batch_job_raises(get_job_results, mock_is_batch):
     )
     get_job_results.return_value = RESULTS
     job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
-    with pytest.raises(ValueError, match='mappings_results called for a non-batch program'):
-        _ = job.mappings_results()
+    with pytest.raises(ValueError, match='mapping_results called for a non-batch program'):
+        _ = job.mapping_results()
 
 
 @mock.patch('cirq_google.engine.engine_program.EngineProgram.batch_keys_async')
 @mock.patch('cirq_google.engine.engine_program.EngineProgram.is_batch_async')
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
-def test_mappings_results_batch_job_without_keys_raises(
+def test_mapping_results_batch_job_without_keys_raises(
     get_job_results, mock_is_batch, mock_batch_keys
 ):
     mock_is_batch.return_value = True
@@ -1120,15 +1120,15 @@ def test_mappings_results_batch_job_without_keys_raises(
     get_job_results.return_value = RESULTS_NON_UNIFORM
     job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
     with pytest.raises(
-        ValueError, match='mappings_results called for a batch job without circuit keys'
+        ValueError, match='mapping_results called for a batch job without circuit keys'
     ):
-        _ = job.mappings_results()
+        _ = job.mapping_results()
 
 
 @mock.patch('cirq_google.engine.engine_program.EngineProgram.batch_keys_async')
 @mock.patch('cirq_google.engine.engine_program.EngineProgram.is_batch_async')
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
-def test_mappings_results_batch_job(get_job_results, mock_is_batch, mock_batch_keys):
+def test_mapping_results_batch_job(get_job_results, mock_is_batch, mock_batch_keys):
     mock_is_batch.return_value = True
     mock_batch_keys.return_value = ['c1', 'c2']
     qjob = quantum.QuantumJob(
@@ -1138,7 +1138,7 @@ def test_mappings_results_batch_job(get_job_results, mock_is_batch, mock_batch_k
     get_job_results.return_value = RESULTS_NON_UNIFORM
     job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
 
-    mapping = job.mappings_results()
+    mapping = job.mapping_results()
     assert list(mapping.keys()) == ['c1', 'c2']
     assert len(mapping['c1']) == 1
     assert len(mapping['c2']) == 1

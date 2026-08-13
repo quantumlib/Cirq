@@ -38,8 +38,20 @@ def test_delete():
 
 
 def test_init():
+    circuit1 = cirq.Circuit(cirq.X(cirq.LineQubit(1)))
+    circuit2 = cirq.Circuit(cirq.Y(cirq.LineQubit(2)))
+
     with pytest.raises(ValueError, match='No circuits provided'):
         _ = NothingProgram([], None)
+
+    with pytest.raises(ValueError, match=r'Mismatched circuits \(2\) and keys \(1\)\.'):
+        _ = NothingProgram([circuit1, circuit2], None, batch_keys=['a'])
+
+    with pytest.raises(ValueError, match=r'Duplicate keys provided in program\.'):
+        _ = NothingProgram([circuit1, circuit2], None, batch_keys=['a', 'a'])
+
+    with pytest.raises(ValueError, match='Empty key provided in program.'):
+        _ = NothingProgram([circuit1, circuit2], None, batch_keys=['a', ''])
 
 
 def test_jobs():
@@ -197,3 +209,15 @@ def test_batch_keys():
     assert program.is_batch()
     assert program.batch_size() == 1
     assert program.batch_keys() == ['only']
+
+    # Explicit batch keys
+    program = NothingProgram([circuit1, circuit2], None, batch_keys=['a', 'b'])
+    assert program.is_batch()
+    assert program.batch_size() == 2
+    assert program.batch_keys() == ['a', 'b']
+
+    # Explicit batch keys for single circuit
+    program = NothingProgram([circuit1], None, batch_keys=['single'])
+    assert program.is_batch()
+    assert program.batch_size() == 1
+    assert program.batch_keys() == ['single']
