@@ -18,7 +18,7 @@ import dataclasses
 import functools
 import itertools
 from collections.abc import Iterator, Mapping, Sequence
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import attrs
 import numpy as np
@@ -76,7 +76,7 @@ class RandomizedBenchMarkResult:
         self,
         num_cliffords: Sequence[int],
         ground_state_probabilities: Sequence[float],
-        ground_state_probabilities_std: Optional[Sequence[float]] | None = None,
+        ground_state_probabilities_std: Sequence[float] | None = None,
     ):
         """Inits RandomizedBenchMarkResult.
 

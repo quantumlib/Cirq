@@ -332,6 +332,7 @@ select = [
     "UP034",  # extraneous-parentheses
     "UP035",  # deprecated-import
     "UP037",  # quoted-annotation
+    "UP045",  # non-pep604-annotation-optional
     "W605",  # invalid-escape-sequence, pylint anomalous-backslash-in-string
 ]
 
