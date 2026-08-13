@@ -256,7 +256,7 @@ class AbstractLocalProgram(AbstractProgram):
             raise ValueError("This program is not a batch program.")
         return len(self._circuits)
 
-    async def batch_keys_async(self) -> list[str]:
+    async def batch_keys_async(self) -> Sequence[str]:
         """Returns the keys for circuits in a batch program.
 
         Raises:
