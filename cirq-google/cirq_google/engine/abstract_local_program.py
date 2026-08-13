@@ -64,12 +64,12 @@ class AbstractLocalProgram(AbstractProgram):
             if batch_keys:
                 if len(batch_keys) != len(circuits):
                     raise ValueError(
-                        f"Mismatched circuits ({len(circuits)}) " f"and keys ({len(batch_keys)})."
+                        f"Mismatched circuits ({len(circuits)}) and keys ({len(batch_keys)})."
                     )
                 if len(set(batch_keys)) != len(batch_keys):
                     raise ValueError(f"Duplicate keys provided in program. {batch_keys}")
                 if any(not key for key in batch_keys):
-                    raise ValueError(f"Empty key provided in program.")
+                    raise ValueError("Empty key provided in program.")
 
     def engine(self) -> AbstractLocalEngine:
         """Returns the parent Engine object.
