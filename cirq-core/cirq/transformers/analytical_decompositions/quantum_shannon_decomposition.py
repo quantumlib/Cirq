@@ -59,8 +59,8 @@ def quantum_shannon_decomposition(
     https://arxiv.org/abs/quant-ph/0406176
 
     Note: Shannon decomposition is sensitive to the numerical accuracy of doing eigendecomposition.
-        Eigendecomposition is obtained using `cirq.linalg.unitary_eig` and the resulting difference between
-        the input and output unitary is affected by the accuracy of the eigendecomposition.
+        Eigendecomposition is obtained using `cirq.linalg.unitary_eig` and the resulting difference
+        between the input and output unitary is affected by the accuracy of the eigendecomposition.
 
 
     Args:
