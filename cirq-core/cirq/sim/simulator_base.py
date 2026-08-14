@@ -232,7 +232,7 @@ class SimulatorBase(
         self, circuit: cirq.AbstractCircuit, param_resolver: cirq.ParamResolver, repetitions: int
     ) -> dict[str, np.ndarray]:
         """See definition in `cirq.SimulatesSamples`."""
-        param_resolver = param_resolver or study.ParamResolver({})
+        param_resolver = study.ParamResolver({}) if param_resolver is None else param_resolver
         qubits = tuple(sorted(circuit.all_qubits()))
         sim_state = self._create_simulation_state(0, qubits, param_resolver=param_resolver)
 

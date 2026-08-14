@@ -24,7 +24,7 @@ from typing import Any, TYPE_CHECKING
 
 import sympy
 
-from cirq import protocols, value
+from cirq import _compat, protocols, value
 from cirq.ops import raw_types
 from cirq.study import resolver
 
@@ -46,7 +46,7 @@ class SetVariable(raw_types.Operation):
     """
 
     def __init__(self, target: sympy.Symbol, expression: sympy.Basic) -> None:
-        """Initializes the SetOperation object.
+        """Initializes the SetVariable object.
 
         Args:
              target: Symbol to modify the value of during execution.
@@ -147,8 +147,6 @@ class SetVariable(raw_types.Operation):
         return True
 
     def __repr__(self) -> str:
-        import cirq._compat as _compat
-
         return (
             f"cirq.SetVariable({_compat.proper_repr(self._target)}, "
             f"{_compat.proper_repr(self._expression)})"

@@ -52,7 +52,7 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
         """
         self._set_qubits(tuple(qubits))
         self._classical_data = classical_data or value.ClassicalDataDictionaryStore()
-        self._param_resolver = param_resolver or study.ParamResolver({})
+        self._param_resolver = study.ParamResolver({}) if param_resolver is None else param_resolver
 
     @property
     def param_resolver(self) -> cirq.ParamResolver:
