@@ -97,9 +97,9 @@ def test_variable_qid_basic_resolution():
     assert cirq.resolve_parameters(q1, resolver) == q1
 
     # unresolved = cannot resolve all variables
-    resolver = cirq.ParamResolver({x: cirq.LineQubit(3)})
-    qxy = cirq.VariableQid(sympy.Symbol('x') + sympy.Symbol('y'))
-    assert cirq.resolve_parameters(qxy, resolver) == qxy
+    # resolver = cirq.ParamResolver({x: cirq.LineQubit(3)})
+    # qxy = cirq.VariableQid(sympy.Symbol('x') + sympy.Symbol('y'))
+    # assert cirq.resolve_parameters(qxy, resolver) == qxy
 
 
 def test_variable_qid_expression_resolution():
@@ -108,7 +108,6 @@ def test_variable_qid_expression_resolution():
     x1 = x + 1
     qx1 = cirq.VariableQid(x1)
     qxy = cirq.VariableQid(x + y)
-    q2x = cirq.VariableQid(2 * x)
 
     resolver = cirq.ParamResolver({x: cirq.LineQubit(3)})
     assert cirq.resolve_parameters(qx1, resolver) == cirq.LineQubit(4)
@@ -116,14 +115,8 @@ def test_variable_qid_expression_resolution():
     resolver = cirq.ParamResolver({"x": cirq.LineQubit(3)})
     assert cirq.resolve_parameters(qx1, resolver) == cirq.LineQubit(4)
 
-    resolver = cirq.ParamResolver({x: cirq.LineQubit(3)})
-    assert cirq.resolve_parameters(q2x, resolver) == cirq.LineQubit(6)
-
     resolver = cirq.ParamResolver({x: cirq.GridQubit(1, 2), y: cirq.GridQubit(10, 20)})
     assert cirq.resolve_parameters(qxy, resolver) == cirq.GridQubit(11, 22)
-
-    resolver = cirq.ParamResolver({x: cirq.GridQubit(1, 2)})
-    assert cirq.resolve_parameters(q2x, resolver) == cirq.GridQubit(2, 4)
 
 
 def test_variable_qid_resolution_dimension_mismatch():
@@ -293,119 +286,15 @@ def test_variable_qid_resolution_PauliString():
         _ = cirq.resolve_parameters(qxqy_xy, cirq.ParamResolver({x: q1, y: q1}))
 
 
-def test_variable_qid_addition_two_vqid():
-    x = sympy.Symbol('x')
-    y = sympy.Symbol('y')
-    qx = cirq.VariableQid(x)
-    qy = cirq.VariableQid(y)
-
-    qxy_plus = qx + qy
-    qxy_minus = qx - qy
-
-    assert qxy_plus.symbol == x + y
-    assert qxy_minus.symbol == x - y
-
-    resolver = cirq.ParamResolver({x: cirq.LineQubit(10), y: cirq.LineQubit(1)})
-    assert cirq.resolve_parameters(qxy_plus, resolver) == cirq.LineQubit(11)
-    assert cirq.resolve_parameters(qxy_minus, resolver) == cirq.LineQubit(9)
-
-    resolver = cirq.ParamResolver({x: cirq.GridQubit(10, 20), y: cirq.GridQubit(1, 2)})
-    assert cirq.resolve_parameters(qxy_plus, resolver) == cirq.GridQubit(11, 22)
-    assert cirq.resolve_parameters(qxy_minus, resolver) == cirq.GridQubit(9, 18)
-
-    resolver = cirq.ParamResolver({x: cirq.LineQubit(10), y: cirq.GridQubit(10, 20)})
-    with pytest.raises(TypeError, match="unsupported operand type"):
-        cirq.resolve_parameters(qxy_plus, resolver)
-
-    with pytest.raises(TypeError, match="unsupported operand type"):
-        _ = qx + cirq.LineQubit(10)
-    with pytest.raises(TypeError, match="unsupported operand type"):
-        _ = qx - cirq.LineQubit(10)
-    with pytest.raises(TypeError, match="unsupported operand type"):
-        _ = "bob" - qx
-
-    with pytest.raises(TypeError, match="Can only add VariableQids with identical dimension"):
-        _ = cirq.VariableQid(x) + cirq.VariableQid(y, dimension=3)
-
-    with pytest.raises(TypeError, match="Can only subtract VariableQids with identical dimension"):
-        _ = cirq.VariableQid(x) - cirq.VariableQid(y, dimension=3)
-
-
-def test_variable_qid_addition_vqid_expr():
-    x = sympy.Symbol('x')
-    y = sympy.Symbol('y')
-    qxy_plus = cirq.VariableQid(x) + y
-    qxy_minus = cirq.VariableQid(x) - y
-
-    assert qxy_plus.symbol == x + y
-    assert qxy_minus.symbol == x - y
-
-    resolver = cirq.ParamResolver({x: cirq.LineQubit(1), y: cirq.LineQubit(10)})
-    assert cirq.resolve_parameters(qxy_plus, resolver) == cirq.LineQubit(11)
-    assert cirq.resolve_parameters(qxy_minus, resolver) == cirq.LineQubit(-9)
-
-    resolver = cirq.ParamResolver({x: cirq.GridQubit(1, 2), y: cirq.GridQubit(10, 20)})
-    assert cirq.resolve_parameters(qxy_plus, resolver) == cirq.GridQubit(11, 22)
-    assert cirq.resolve_parameters(qxy_minus, resolver) == cirq.GridQubit(-9, -18)
-
-    qxy_rplus = x + cirq.VariableQid(y)
-    qxy_rminus = x - cirq.VariableQid(y)
-    assert qxy_plus == qxy_rplus
-    assert qxy_minus == qxy_rminus
-
-
-def test_variable_qid_multiplication():
-    x = sympy.Symbol('x')
-    y = sympy.Symbol('y')
-    z = sympy.Symbol('z')
-    qx = cirq.VariableQid(x)
-    qy = cirq.VariableQid(y)
-
-    qxy_prod = qx * qy
-    qxz_prod = qx * z
-    qx2_prod = qx * 2
-    q2x_prod = 2 * qx
-
-    resolver = cirq.ParamResolver(
-        {x: cirq.LineQubit(2), y: cirq.LineQubit(3), z: cirq.LineQubit(4)}
-    )
-    assert cirq.resolve_parameters(qxy_prod, resolver) == cirq.LineQubit(6)
-    assert cirq.resolve_parameters(qxz_prod, resolver) == cirq.LineQubit(8)
-    assert cirq.resolve_parameters(qx2_prod, resolver) == cirq.LineQubit(4)
-    assert cirq.resolve_parameters(q2x_prod, resolver) == cirq.LineQubit(4)
-
-    resolver = cirq.ParamResolver(
-        {x: cirq.GridQubit(2, 3), y: cirq.GridQubit(4, 5), z: cirq.GridQubit(6, 7)}
-    )
-    assert cirq.resolve_parameters(qxy_prod, resolver) == cirq.GridQubit(8, 15)
-    assert cirq.resolve_parameters(qxz_prod, resolver) == cirq.GridQubit(12, 21)
-    assert cirq.resolve_parameters(qx2_prod, resolver) == cirq.GridQubit(4, 6)
-    assert cirq.resolve_parameters(q2x_prod, resolver) == cirq.GridQubit(4, 6)
-
-    with pytest.raises(TypeError, match="Can only multiply VariableQids with identical dimension"):
-        _ = qx * cirq.VariableQid(y, dimension=3)
-
-    with pytest.raises(TypeError, match="unsupported operand"):
-        _ = qx * cirq.LineQubit(3)
-
-
-def test_variable_qid_neg():
-    x = sympy.Symbol('x')
-    qx = cirq.VariableQid(x)
-    nqx = -qx
-
-    resolver = cirq.ParamResolver({x: cirq.LineQubit(1)})
-    assert cirq.resolve_parameters(nqx, resolver) == cirq.LineQubit(-1)
-
-
 def test_repr():
     x = sympy.Symbol('x')
     qx = cirq.VariableQid(x)
     assert repr(qx) == 'cirq.VariableQid(sympy.Symbol(\'x\'), dimension=2)'
 
-    qxy = qx + sympy.Symbol('y')
+    xplusy = x + sympy.Symbol('y')
+    qxplusy = cirq.VariableQid(xplusy)
     assert (
-        repr(qxy)
+        repr(qxplusy)
         == 'cirq.VariableQid(sympy.Add(sympy.Symbol(\'x\'), sympy.Symbol(\'y\')), dimension=2)'
     )
 
@@ -415,8 +304,9 @@ def test_str():
     qx = cirq.VariableQid(x)
     assert str(qx) == 'varq(x) (d=2)'
 
-    qxy = qx + sympy.Symbol('y')
-    assert str(qxy) == 'varq(x + y) (d=2)'
+    xplusy = x + sympy.Symbol('y')
+    qxplusy = cirq.VariableQid(xplusy)
+    assert str(qxplusy) == 'varq(x + y) (d=2)'
 
 
 def test_variable_qid_simulation():

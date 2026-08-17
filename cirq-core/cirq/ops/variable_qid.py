@@ -120,59 +120,6 @@ class VariableQid(raw_types.Qid):
     def _from_json_dict_(cls, symbol: sympy.Expr, dimension: int, **kwargs) -> VariableQid:
         return cls(symbol=symbol, dimension=dimension)
 
-    def __add__(self, other: int | sympy.Expr | VariableQid) -> VariableQid:
-        if isinstance(other, VariableQid):
-            if self._dimension != other.dimension:
-                raise TypeError(
-                    "Can only add VariableQids with identical dimension. "
-                    f"Got {self._dimension} and {other.dimension}"
-                )
-            return VariableQid(self._symbol + other.symbol, dimension=self._dimension)
-        elif isinstance(other, (int, sympy.Expr)):
-            return VariableQid(self._symbol + other, dimension=self._dimension)
-
-        return NotImplemented
-
-    def __sub__(self, other: int | sympy.Expr | VariableQid) -> VariableQid:
-        if isinstance(other, VariableQid):
-            if self._dimension != other.dimension:
-                raise TypeError(
-                    "Can only subtract VariableQids with identical dimension. "
-                    f"Got {self._dimension} and {other.dimension}"
-                )
-            return VariableQid(self._symbol - other.symbol, dimension=self._dimension)
-        elif isinstance(other, (int, sympy.Expr)):
-            return VariableQid(self._symbol - other, dimension=self._dimension)
-
-        return NotImplemented
-
-    def __mul__(self, other: int | sympy.Expr | VariableQid) -> VariableQid:
-        if isinstance(other, VariableQid):
-            if self._dimension != other.dimension:
-                raise TypeError(
-                    "Can only multiply VariableQids with identical dimension. "
-                    f"Got {self._dimension} and {other.dimension}"
-                )
-            return VariableQid(self._symbol * other.symbol, dimension=self._dimension)
-        if isinstance(other, (int, sympy.Expr)):
-            return VariableQid(self._symbol * other, dimension=self._dimension)
-
-        return NotImplemented
-
-    def __radd__(self, other: int | sympy.Expr) -> VariableQid:
-        return self.__add__(other)
-
-    def __rsub__(self, other: int | sympy.Expr) -> VariableQid:
-        if isinstance(other, (int, sympy.Expr)):
-            return VariableQid(other - self._symbol, dimension=self._dimension)
-        return NotImplemented
-
-    def __rmul__(self, other: int | sympy.Expr) -> VariableQid:
-        return self.__mul__(other)
-
-    def __neg__(self) -> VariableQid:
-        return VariableQid(-self._symbol, dimension=self._dimension)
-
     def __repr__(self) -> str:
         return f'cirq.VariableQid({proper_repr(self._symbol)}, dimension={self._dimension})'
 
