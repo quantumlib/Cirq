@@ -130,10 +130,9 @@ class _BaseLineQid(ops.Qid):
                     f"Got {self._dimension} and {other._dimension}"
                 )
             return self._with_x(x=self._x + other._x)
-        if isinstance(other, int):
-            return self._with_x(self._x + other)
-
-        return NotImplemented
+        if not isinstance(other, int):
+            raise TypeError(f"Can only add ints and {type(self).__name__}. Instead was {other}")
+        return self._with_x(self._x + other)
 
     def __sub__(self, other: int | Self) -> Self:
         if isinstance(other, _BaseLineQid):
@@ -143,37 +142,20 @@ class _BaseLineQid(ops.Qid):
                     f"Got {self._dimension} and {other._dimension}"
                 )
             return self._with_x(x=self._x - other._x)
-        if isinstance(other, int):
-            return self._with_x(self._x - other)
-
-        return NotImplemented
-
-    def __mul__(self, other: int | Self) -> Self:
-        if isinstance(other, _BaseLineQid):
-            if self._dimension != other._dimension:
-                raise TypeError(
-                    'Can only multiply LineQids with identical dimension. '
-                    f'Got {self._dimension} and {other._dimension}'
-                )
-            return self._with_x(x=self._x * other._x)
-        if isinstance(other, int):
-            return self._with_x(self._x * other)
-
-        return NotImplemented
+        if not isinstance(other, int):
+            raise TypeError(
+                f"Can only subtract ints and {type(self).__name__}. Instead was {other}"
+            )
+        return self._with_x(self._x - other)
 
     def __radd__(self, other: int) -> Self:
-        return self.__add__(other)
+        return self + other
 
     def __rsub__(self, other: int) -> Self:
-        if isinstance(other, int):
-            return self._with_x(other - self._x)
-        return NotImplemented
+        return -self + other
 
     def __neg__(self) -> Self:
         return self._with_x(-self._x)
-
-    def __rmul__(self, other: int) -> Self:
-        return self.__mul__(other)
 
     def __complex__(self) -> complex:
         return complex(self._x)

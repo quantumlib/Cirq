@@ -153,14 +153,16 @@ class _BaseGridQid(ops.Qid):
                     f"Got {self.dimension} and {other.dimension}"
                 )
             return self._with_row_col(row=self._row + other._row, col=self._col + other._col)
-        if isinstance(other, (tuple, np.ndarray)):
-            if not (len(other) == 2 and all(isinstance(x, (int, np.integer)) for x in other)):
-                raise TypeError(
-                    'Can only add integer tuples of length 2 to '
-                    f'{type(self).__name__}. Instead was {other}'
-                )
-            return self._with_row_col(row=self._row + other[0], col=self._col + other[1])
-        return NotImplemented
+        if not (
+            isinstance(other, (tuple, np.ndarray))
+            and len(other) == 2
+            and all(isinstance(x, (int, np.integer)) for x in other)
+        ):
+            raise TypeError(
+                'Can only add integer tuples of length 2 to '
+                f'{type(self).__name__}. Instead was {other}'
+            )
+        return self._with_row_col(row=self._row + other[0], col=self._col + other[1])
 
     def __sub__(self, other: tuple[int, int] | Self) -> Self:
         if isinstance(other, _BaseGridQid):
@@ -170,42 +172,22 @@ class _BaseGridQid(ops.Qid):
                     f"Got {self.dimension} and {other.dimension}"
                 )
             return self._with_row_col(row=self._row - other._row, col=self._col - other._col)
-        if isinstance(other, (tuple, np.ndarray)):
-            if not (len(other) == 2 and all(isinstance(x, (int, np.integer)) for x in other)):
-                raise TypeError(
-                    "Can only subtract integer tuples of length 2 from "
-                    f"{type(self).__name__}. Instead was {other}"
-                )
-            return self._with_row_col(row=self._row - other[0], col=self._col - other[1])
-        return NotImplemented
-
-    def __mul__(self, other: tuple[int, int] | int | Self) -> Self:
-        if isinstance(other, _BaseGridQid):
-            if self.dimension != other.dimension:
-                raise TypeError(
-                    "Can only multiply GridQids with identical dimension. "
-                    f"Got {self.dimension} and {other.dimension}"
-                )
-            return self._with_row_col(row=self._row * other._row, col=self._col * other._col)
-        if isinstance(other, int):
-            return self._with_row_col(row=self._row * other, col=self._col * other)
-        if isinstance(other, (tuple, np.ndarray)):
-            if not (len(other) == 2 and all(isinstance(x, (int, np.integer)) for x in other)):
-                raise TypeError(
-                    f'Can only multiply {type(self).__name__} by integers, integer '
-                    f'tuples of length 2, and {type(self).__name__}. Instead was {other}'
-                )
-            return self._with_row_col(row=self._row * other[0], col=self._col * other[1])
-        return NotImplemented
+        if not (
+            isinstance(other, (tuple, np.ndarray))
+            and len(other) == 2
+            and all(isinstance(x, (int, np.integer)) for x in other)
+        ):
+            raise TypeError(
+                "Can only subtract integer tuples of length 2 to "
+                f"{type(self).__name__}. Instead was {other}"
+            )
+        return self._with_row_col(row=self._row - other[0], col=self._col - other[1])
 
     def __radd__(self, other: tuple[int, int]) -> Self:
-        return self.__add__(other)
+        return self + other
 
     def __rsub__(self, other: tuple[int, int]) -> Self:
-        return (-self).__add__(other)
-
-    def __rmul__(self, other: tuple[int, int] | int) -> Self:
-        return self.__mul__(other)
+        return -self + other
 
     def __neg__(self) -> Self:
         return self._with_row_col(row=-self._row, col=-self._col)

@@ -313,7 +313,7 @@ def test_addition_subtraction_numpy_array(dtype) -> None:
 
 def test_unsupported_add() -> None:
     # ruff: disable[RUF005]
-    with pytest.raises(TypeError, match='unsupported operand type'):
+    with pytest.raises(TypeError, match='1'):
         _ = cirq.GridQubit(1, 1) + 1  # type: ignore[operator]
     with pytest.raises(TypeError, match='(1,)'):
         _ = cirq.GridQubit(1, 1) + (1,)  # type: ignore[operator]
@@ -322,10 +322,8 @@ def test_unsupported_add() -> None:
     with pytest.raises(TypeError, match='(1, 2.0)'):
         _ = cirq.GridQubit(1, 1) + (1, 2.0)  # type: ignore[operator]
 
-    with pytest.raises(TypeError, match='unsupported operand type'):
+    with pytest.raises(TypeError, match='1'):
         _ = cirq.GridQubit(1, 1) - 1  # type: ignore[operator]
-    with pytest.raises(TypeError, match='(1,)'):
-        _ = cirq.GridQubit(1, 1) - (1,)  # type: ignore[operator]
 
     with pytest.raises(TypeError, match='[1., 2.]'):
         _ = cirq.GridQubit(1, 1) + np.array([1.0, 2.0])
@@ -334,81 +332,20 @@ def test_unsupported_add() -> None:
 
 
 def test_addition_subtraction_type_error() -> None:
-    with pytest.raises(TypeError, match="unsupported operand type"):
+    with pytest.raises(TypeError, match="bort"):
         _ = cirq.GridQubit(5, 3) + "bort"  # type: ignore[operator]
-    with pytest.raises(TypeError, match="unsupported operand type"):
+    with pytest.raises(TypeError, match="bort"):
         _ = cirq.GridQubit(5, 3) - "bort"  # type: ignore[operator]
 
-    with pytest.raises(TypeError, match="unsupported operand type"):
+    with pytest.raises(TypeError, match="bort"):
         _ = cirq.GridQid(5, 3, dimension=3) + "bort"  # type: ignore[operator]
-    with pytest.raises(TypeError, match="unsupported operand type"):
+    with pytest.raises(TypeError, match="bort"):
         _ = cirq.GridQid(5, 3, dimension=3) - "bort"  # type: ignore[operator]
 
     with pytest.raises(TypeError, match="Can only add GridQids with identical dimension."):
         _ = cirq.GridQid(5, 3, dimension=3) + cirq.GridQid(3, 5, dimension=4)
     with pytest.raises(TypeError, match="Can only subtract GridQids with identical dimension."):
         _ = cirq.GridQid(5, 3, dimension=3) - cirq.GridQid(3, 5, dimension=4)
-
-
-def test_multiplication() -> None:
-    # GridQubits
-    assert cirq.GridQubit(1, 2) * (3, 4) == cirq.GridQubit(3, 8)
-    assert cirq.GridQubit(1, 2) * (0, 0) == cirq.GridQubit(0, 0)
-    assert cirq.GridQubit(1, 2) * cirq.GridQubit(-3, 4) == cirq.GridQubit(-3, 8)
-
-    assert cirq.GridQubit(1, 2) * 3 == cirq.GridQubit(3, 6)
-    assert 3 * cirq.GridQubit(1, 2) == cirq.GridQubit(3, 6)
-
-    # GridQids
-    assert cirq.GridQid(5, 4, dimension=3) * (2, 3) == cirq.GridQid(10, 12, dimension=3)
-    assert cirq.GridQid(1, 2, dimension=3) * (0, 0) == cirq.GridQid(0, 0, dimension=3)
-    assert cirq.GridQid(2, 6, dimension=3) * cirq.GridQid(3, -2, dimension=3) == cirq.GridQid(
-        6, -12, dimension=3
-    )
-
-    assert (1, 5) * cirq.GridQid(3, 4, dimension=3) == cirq.GridQid(3, 20, dimension=3)
-
-    assert 2 * cirq.GridQid(3, 4, dimension=3) == cirq.GridQid(6, 8, dimension=3)
-    assert cirq.GridQid(3, 4, dimension=3) * 2 == cirq.GridQid(6, 8, dimension=3)
-
-
-@pytest.mark.parametrize('dtype', (np.int8, np.int16, np.int32, np.int64, int))
-def test_multiplication_numpy_array(dtype) -> None:
-    assert cirq.GridQubit(1, 2) * np.array([1, 2], dtype=dtype) == cirq.GridQubit(1, 4)
-    assert cirq.GridQubit(1, 2) * np.array([0, 0], dtype=dtype) == cirq.GridQubit(0, 0)
-    assert cirq.GridQubit(1, 2) * np.array([-1, 0], dtype=dtype) == cirq.GridQubit(-1, 0)
-
-    assert cirq.GridQid(1, 2, dimension=3) * np.array([-1, 0], dtype=dtype) == cirq.GridQid(
-        -1, 0, dimension=3
-    )
-    assert cirq.GridQid(1, 2, dimension=3) * np.array([3, 4], dtype=dtype) == cirq.GridQid(
-        3, 8, dimension=3
-    )
-
-
-def test_unsupported_multiplication() -> None:
-    with pytest.raises(TypeError, match='(1,)'):
-        _ = cirq.GridQubit(1, 1) * (1,)  # type: ignore[operator]
-    with pytest.raises(TypeError, match='(1, 2, 3)'):
-        _ = cirq.GridQubit(1, 1) * (1, 2, 3)  # type: ignore[operator]
-    with pytest.raises(TypeError, match='(1, 2.0)'):
-        _ = cirq.GridQubit(1, 1) * (1, 2.0)  # type: ignore[operator]
-
-    with pytest.raises(TypeError, match='[1., 2.]'):
-        _ = cirq.GridQubit(1, 1) * np.array([1.0, 2.0])
-    with pytest.raises(TypeError, match='[1, 2, 3]'):
-        _ = cirq.GridQubit(1, 1) * np.array([1, 2, 3], dtype=int)
-
-
-def test_multiplication_type_error() -> None:
-    with pytest.raises(TypeError, match="can't multiply"):
-        _ = cirq.GridQubit(5, 3) * "bort"  # type: ignore[operator]
-
-    with pytest.raises(TypeError, match="can't multiply"):
-        _ = cirq.GridQid(5, 3, dimension=3) * "bort"  # type: ignore[operator]
-
-    with pytest.raises(TypeError, match="Can only multiply GridQids with identical dimension."):
-        _ = cirq.GridQid(5, 3, dimension=3) * cirq.GridQid(3, 5, dimension=4)
 
 
 def test_neg() -> None:
