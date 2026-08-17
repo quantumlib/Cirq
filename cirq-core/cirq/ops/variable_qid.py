@@ -21,6 +21,7 @@ import sympy
 
 from cirq import protocols
 from cirq._compat import proper_repr
+from cirq.devices import LineQid, GridQid
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
@@ -63,6 +64,9 @@ class VariableQid(raw_types.Qid):
     def dimension(self) -> int:
         return self._dimension
 
+    def _with_symbol(self, symbol: sympy.Expr) -> VariableQid:
+        return VariableQid(symbol, dimension=self._dimension)
+
     def with_dimension(self, dimension: int) -> VariableQid:
         if dimension == self._dimension:
             return self
@@ -88,16 +92,16 @@ class VariableQid(raw_types.Qid):
             The resolved Qid. If the VariableQid cannot be resolved, returns self.
         """
         val = resolver.value_of(self._symbol, recursive)
-        if isinstance(val, raw_types.Qid):
-            if val.dimension != self._dimension:
-                raise ValueError(
-                    f"Resolved Qid dimension ({val.dimension}) "
-                    f"does not match the VariableQid dimension ({self._dimension})"
-                )
-            return val
+        if isinstance(val, sympy.Expr):
+            return self._with_symbol(val)
+        elif isinstance(val, int):
+            return LineQid(val, dimension=self._dimension)
+        if isinstance(val, tuple):
+            if len(val) != 2:
+                raise ValueError(f"Only tuples of length 2 may be resolved to a GridQid. Got {val}")
+            return GridQid(val[0], val[1], dimension=self._dimension)
 
-        # If unresolved or resolved to non-Qid, return self (i.e. remain unresolved)
-        return self
+        raise ValueError(f"Could not resolve the expression {val} to a Qid")
 
     def _resolved_value_(self) -> Any:
         """Returns NotImplemented to indicate that VariableQid is not resolved.
