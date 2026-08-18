@@ -380,7 +380,7 @@ def two_qubit_gate_numerical_compilation(
     return best
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, eq=False)
 class TwoQubitNumericalCompiler:
     r"""A two-qubit gate compiler based on numerical optimization (NuOp).
 

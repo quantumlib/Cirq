@@ -198,12 +198,15 @@ def test_numerical_compiler_wrapper() -> None:
 
 
 def test_numerical_compiler_equality() -> None:
-    compiler = TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=3)
-    assert compiler == TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=3)
-    assert compiler != TwoQubitNumericalCompiler(base_gates=(_ISWAP,), random_state=3)
-    assert compiler != TwoQubitNumericalCompiler(base_gates=(_CZ, _ISWAP), random_state=3)
-    assert compiler != TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=4)
-    assert compiler != TwoQubitNumericalCompiler(base_gates=(_CZ,), max_layers=2)
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(
+        TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=3),
+        TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=3),
+    )
+    eq.add_equality_group(TwoQubitNumericalCompiler(base_gates=(_ISWAP,), random_state=3))
+    eq.add_equality_group(TwoQubitNumericalCompiler(base_gates=(_CZ, _ISWAP), random_state=3))
+    eq.add_equality_group(TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=4))
+    eq.add_equality_group(TwoQubitNumericalCompiler(base_gates=(_CZ,), max_layers=2))
 
 
 def test_numerical_compiler_repr() -> None:
@@ -211,6 +214,9 @@ def test_numerical_compiler_repr() -> None:
         TwoQubitNumericalCompiler(
             base_gates=(_CZ, _SQRT_ISWAP), base_gate_error_rates=(0.01, 0.05), random_state=5
         )
+    )
+    cirq.testing.assert_equivalent_repr(
+        TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=5)
     )
 
 
