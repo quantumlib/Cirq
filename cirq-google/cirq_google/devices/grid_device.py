@@ -771,7 +771,17 @@ class GridDevice(cirq.Device):
         for operation in operations:
             op_qubits = operation.qubits
             if (
-                isinstance(operation, cirq.Gate) or isinstance(operation.gate, cirq.Gate)
+                isinstance(operation, cirq.Gate)
+                or isinstance(operation.gate, cirq.Gate)
+                or isinstance(
+                    operation.untagged,
+                    (
+                        cirq.CircuitOperation,
+                        cirq.ClassicallyControlledOperation,
+                        cirq.ControlledOperation,
+                    ),
+                )
+                or bool(operation.classical_controls)
             ) and operation not in gateset:
                 raise ValueError(f'Operation {operation} contains a gate which is not supported.')
 

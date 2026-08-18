@@ -516,6 +516,29 @@ def test_grid_device_validate_operations_negative():
             cirq.testing.DoesNotSupportSerializationGate()(device_info.grid_qubits[0])
         )
 
+    # Nested circuit with unsupported gate
+    q01 = device_info.grid_qubits[1]
+    nested_unsupported = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.CNOT(q00, q01)))
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(nested_unsupported)
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_circuit(cirq.Circuit(nested_unsupported))
+
+    # Nested circuit with supported gate passes validation
+    nested_supported = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.CZ(q00, q01), cirq.X(q00)))
+    device.validate_operation(nested_supported)
+    device.validate_circuit(cirq.Circuit(nested_supported))
+
+    # Supported gate with unsupported classical controls
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(cirq.X(q00).with_classical_controls('m'))
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_circuit(cirq.Circuit(cirq.X(q00).with_classical_controls('m')))
+
+    # Unsupported gate with classical controls
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(cirq.CNOT(q00, q01).with_classical_controls('m'))
+
     class CustomNonGateOp(cirq.Operation):
         def __init__(self, qubits):
             self._qubits = tuple(qubits)
