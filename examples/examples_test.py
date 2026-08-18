@@ -272,9 +272,11 @@ def test_example_shor_find_factor_with_composite_n_and_quantum_order_finder(n) -
 
 @pytest.mark.parametrize(
     'n, order_finder',
-    itertools.product(
-        (2, 3, 5, 11, 101, 127, 907),
-        (examples.shor.naive_order_finder, examples.shor.quantum_order_finder),
+    list(
+        itertools.product(
+            (2, 3, 5, 11, 101, 127, 907),
+            (examples.shor.naive_order_finder, examples.shor.quantum_order_finder),
+        )
     ),
 )
 def test_example_shor_find_factor_with_prime_n(n, order_finder) -> None:

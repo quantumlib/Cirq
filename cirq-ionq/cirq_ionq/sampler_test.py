@@ -169,7 +169,7 @@ def test_sampler_run_sweep_batched_job_results():
     job = ionq.Job(client=mock_service, job_dict=job_dict)
     mock_service.create_job.return_value = job
 
-    # Create dummy results
+    # Create mock results
     result1 = ionq.QPUResult(counts={0: 4}, num_qubits=1, measurement_dict={'a': [0]})
     result2 = ionq.QPUResult(counts={1: 4}, num_qubits=1, measurement_dict={'a': [0]})
 

@@ -16,8 +16,10 @@ from __future__ import annotations
 
 import copy
 import datetime
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING
+
+import duet
 
 from cirq_google.engine.abstract_program import AbstractProgram
 
@@ -39,7 +41,12 @@ class AbstractLocalProgram(AbstractProgram):
     need to implement abstract methods.
     """
 
-    def __init__(self, circuits: list[cirq.Circuit], engine: AbstractLocalEngine):
+    def __init__(
+        self,
+        circuits: list[cirq.Circuit] | Mapping[str, cirq.Circuit],
+        engine: AbstractLocalEngine,
+        batch_keys: list[str] | None = None,
+    ):
         if not circuits:
             raise ValueError('No circuits provided to program.')
         self._create_time = datetime.datetime.now()
@@ -48,7 +55,21 @@ class AbstractLocalProgram(AbstractProgram):
         self._labels: dict[str, str] = {}
         self._engine = engine
         self._jobs: dict[str, AbstractLocalJob] = {}
-        self._circuits = circuits
+        if isinstance(circuits, Mapping):
+            self._batch_keys: list[str] | None = list(circuits.keys())
+            self._circuits: list[cirq.Circuit] = list(circuits.values())
+        else:
+            self._batch_keys = batch_keys
+            self._circuits = list(circuits)
+            if batch_keys:
+                if len(batch_keys) != len(circuits):
+                    raise ValueError(
+                        f"Mismatched circuits ({len(circuits)}) and keys ({len(batch_keys)})."
+                    )
+                if len(set(batch_keys)) != len(batch_keys):
+                    raise ValueError(f"Duplicate keys provided in program. {batch_keys}")
+                if any(not key for key in batch_keys):
+                    raise ValueError("Empty key provided in program.")
 
     def engine(self) -> AbstractLocalEngine:
         """Returns the parent Engine object.
@@ -190,22 +211,61 @@ class AbstractLocalProgram(AbstractProgram):
             del self._labels[key]
         return self
 
-    def get_circuit(self, program_num: int | None = None) -> cirq.Circuit:
+    def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the program. This is only
         supported if the program was created with the V2 protos.
 
         Args:
-            program_num: if this is a multi-circuit program, the index of the circuit
+            circuit_num: if this is a multi-circuit program, the index of the circuit
                 to return.  This argument is zero-indexed. Negative values
                 indexing from the end of the list.
 
         Returns:
             The program's cirq Circuit.
         """
-        if program_num is not None:
-            return self._circuits[program_num]
-        return self._circuits[0]
+        if circuit_num is None:
+            if self.is_batch():
+                raise ValueError(
+                    f"This program is a batch program containing {len(self._circuits)} circuits. "
+                    "Please specify `circuit_num` to get a specific circuit, "
+                    "or use `get_circuits()` to get all of them."
+                )
+            return self._circuits[0]
+        try:
+            return self._circuits[circuit_num]
+        except IndexError:
+            raise IndexError(
+                f"Index {circuit_num} out of range for batch program of size {len(self._circuits)}."
+            )
+
+    def get_circuits(self) -> list[cirq.Circuit]:
+        """Returns all the cirq Circuits for the program."""
+        return self._circuits
+
+    def is_batch(self) -> bool:
+        """Returns True if the program is a batch program."""
+        return self._batch_keys is not None or len(self._circuits) > 1
 
     def batch_size(self) -> int:
-        """Returns the number of programs in a batch program."""
+        """Returns the number of programs in a batch program.
+
+        Raises:
+            ValueError: if the program created was not a batch program.
+        """
+        if not self.is_batch():
+            raise ValueError("This program is not a batch program.")
         return len(self._circuits)
+
+    async def batch_keys_async(self) -> Sequence[str]:
+        """Returns the keys for circuits in a batch program.
+
+        Raises:
+            ValueError: if the program created was not a batch program.
+        """
+        if not self.is_batch():
+            raise ValueError("This program is not a batch program.")
+        if self._batch_keys is not None:
+            return self._batch_keys.copy()
+        return [''] * len(self._circuits)
+
+    batch_keys = duet.sync(batch_keys_async)

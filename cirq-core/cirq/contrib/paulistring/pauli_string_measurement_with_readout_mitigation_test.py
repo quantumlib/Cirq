@@ -23,6 +23,11 @@ import pytest
 
 import cirq
 from cirq.contrib.paulistring import CircuitToPauliStringsParameters, measure_pauli_strings
+from cirq.contrib.paulistring.pauli_string_measurement_with_readout_mitigation import (
+    _build_trex_twirled_pauli_circuits,
+    PostFilteringSymmetryCalibrationResult as PostFilteringSymmetryCalibrationResult,
+    TRexMetadata,
+)
 from cirq.experiments import SingleQubitReadoutCalibrationResult
 from cirq.experiments.single_qubit_readout_calibration_test import NoisySingleQubitReadoutSampler
 
@@ -313,77 +318,84 @@ def test_group_pauli_string_measurement_errors_with_noise(use_sweep: bool) -> No
 
 
 @pytest.mark.parametrize("use_sweep", [True, False])
-def test_many_circuits_input_measurement_with_noise(use_sweep: bool) -> None:
-    """Test that the mitigated expectation is close to the ideal expectation
-    based on the Pauli string for multiple circuits"""
+def test_many_circuits_mixed_mitigation_types(use_sweep: bool) -> None:
+    """Test mixed input: some circuits using confusion matrices, some using symmetries.
+
+    This test specifically includes a QWC group with multiple Pauli strings to
+    ensure the processing logic handles nested groups correctly.
+    """
     qubits_1 = cirq.LineQubit.range(3)
-    qubits_2 = [
-        cirq.GridQubit(0, 1),
-        cirq.GridQubit(1, 1),
-        cirq.GridQubit(1, 0),
-        cirq.GridQubit(1, 2),
-        cirq.GridQubit(2, 1),
-    ]
-    qubits_3 = cirq.LineQubit.range(8)
+    qubits_2 = cirq.LineQubit.range(5)
+    qubits_3 = cirq.LineQubit.range(2)
 
+    # Circuit 1 is a Standard GHZ without symmetry.
     circuit_1 = cirq.FrozenCircuit(_create_ghz(3, qubits_1))
-    circuit_2 = cirq.FrozenCircuit(_create_ghz(5, qubits_2))
-    circuit_3 = cirq.FrozenCircuit(_create_ghz(8, qubits_3))
-
-    circuits_to_pauli: dict[
-        cirq.FrozenCircuit, Sequence[cirq.PauliString] | Sequence[Sequence[cirq.PauliString]]
-    ] = {}
-    # This is to test mixed types could be handled.
-    circuits_to_pauli[circuit_1] = [
-        _generate_qwc_paulis(
-            _generate_random_pauli_string(qubits_1, enable_coeff=True, allow_pauli_i=False), 6
-        )
-        for _ in range(3)
-    ]
-    circuits_to_pauli[circuit_2] = [_generate_random_pauli_string(qubits_2) for _ in range(3)]
-    circuits_to_pauli[circuit_3] = [_generate_random_pauli_string(qubits_3) for _ in range(3)]
-
-    sampler = NoisySingleQubitReadoutSampler(p0=0.03, p1=0.05, seed=1234)
-    simulator = cirq.Simulator()
-
-    circuits_with_pauli_expectations = measure_pauli_strings(
-        circuits_to_pauli,  # type: ignore
-        sampler,
-        300,
-        300,
-        300,
-        np.random.default_rng(),
-        use_sweep,
+    params_1 = CircuitToPauliStringsParameters(
+        circuit=circuit_1, pauli_strings=((cirq.PauliString(cirq.Z(qubits_1[0])),),)
     )
 
-    for circuit_with_pauli_expectations in circuits_with_pauli_expectations:
-        assert isinstance(circuit_with_pauli_expectations.circuit, cirq.FrozenCircuit)
+    # Circuit 2 is a GHZ with a known symmetry (Z0*Z1 = 1)
+    circuit_2 = cirq.FrozenCircuit(_create_ghz(5, qubits_2))
+    symmetry: cirq.PauliString = -1.0 * cirq.PauliString(cirq.Z(qubits_2[0]) * cirq.Z(qubits_2[1]))
 
-        expected_val_simulation = simulator.simulate(
-            circuit_with_pauli_expectations.circuit.unfreeze()
-        )
+    pauli_group: tuple[cirq.PauliString, ...] = (
+        cirq.PauliString(cirq.Z(qubits_2[0]) * cirq.Z(qubits_2[1])),
+        2.0 * cirq.PauliString(cirq.Z(qubits_2[1])),
+    )
+
+    params_sym = CircuitToPauliStringsParameters(
+        circuit=circuit_2, pauli_strings=(pauli_group,), postselection_symmetries=((symmetry, -1),)
+    )
+
+    # Circuit 3 is a |+>|+> state with a PauliSum symmetry (X0 + X1 = 2).
+    circuit_3 = cirq.FrozenCircuit(cirq.H(qubits_3[0]), cirq.H(qubits_3[1]))
+    symmetry_sum = cirq.X(qubits_3[0]) + cirq.X(qubits_3[1])
+    params_sym_sum = CircuitToPauliStringsParameters(
+        circuit=circuit_3,
+        pauli_strings=((2.0 * cirq.PauliString(cirq.X(qubits_3[0])),),),
+        postselection_symmetries=((symmetry_sum, 2),),
+    )
+
+    sampler = NoisySingleQubitReadoutSampler(p0=0.01, p1=0.02, seed=1234)
+    simulator = cirq.Simulator()
+
+    results = measure_pauli_strings(
+        [params_1, params_sym, params_sym_sum],
+        sampler,
+        pauli_repetitions=500,
+        readout_repetitions=500,
+        num_random_bitstrings=100,
+        rng_or_seed=1234,
+        use_sweep=use_sweep,
+    )
+
+    assert len(results) == 3
+
+    for circuit_res in results:
+        # For Circuit 2, we expect exactly 2 results because the group had 2 Pauli strings
+        if circuit_res.circuit == circuit_2:
+            assert len(circuit_res.results) == 2
+
+        # Simulate the ideal circuit to extract the ground truth state vector
+        expected_val_simulation = simulator.simulate(circuit_res.circuit.unfreeze())
         final_state_vector = expected_val_simulation.final_state_vector
 
-        for pauli_string_measurement_results in circuit_with_pauli_expectations.results:
+        for res in circuit_res.results:
+            # Calculate the ideal expectation directly from the state vector and Pauli string
+            ideal_expectation = _ideal_expectation_based_on_pauli_string(
+                res.pauli_string, final_state_vector
+            )
+
+            # Assert the mitigated result falls statistically close to the ideal simulation
             assert np.isclose(
-                pauli_string_measurement_results.mitigated_expectation,
-                _ideal_expectation_based_on_pauli_string(
-                    pauli_string_measurement_results.pauli_string, final_state_vector
-                ),
-                atol=10 * pauli_string_measurement_results.mitigated_stddev,
+                res.mitigated_expectation, ideal_expectation, atol=10 * res.mitigated_stddev
             )
-            assert isinstance(
-                pauli_string_measurement_results.calibration_result,
-                SingleQubitReadoutCalibrationResult,
-            )
-            for (
-                error
-            ) in pauli_string_measurement_results.calibration_result.zero_state_errors.values():
-                assert 0.025 < error < 0.035
-            for (
-                error
-            ) in pauli_string_measurement_results.calibration_result.one_state_errors.values():
-                assert 0.045 < error < 0.055
+
+            # Maintain type validations based on whether symmetries were used
+            if circuit_res.circuit in [circuit_2, circuit_3]:
+                assert isinstance(res.calibration_result, PostFilteringSymmetryCalibrationResult)
+            else:
+                assert isinstance(res.calibration_result, SingleQubitReadoutCalibrationResult)
 
 
 @pytest.mark.parametrize("use_sweep", [True, False])
@@ -619,7 +631,7 @@ def test_invalid_input_container_type() -> None:
     qubits_to_pauli[tuple(qubits)] = [cirq.PauliString(dict.fromkeys(qubits, cirq.X))]
     with pytest.raises(TypeError, match="Input must be a dict or a list"):
         measure_pauli_strings(
-            invalid_input, cirq.Simulator(), 100, 100, 100, np.random.default_rng()  # type: ignore
+            invalid_input, cirq.Simulator(), 100, 100, 100, np.random.default_rng()  # type: ignore[arg-type]
         )
 
 
@@ -643,7 +655,7 @@ def test_circuit_parameters_validation_errors() -> None:
 
     # Test Invalid Type for Circuit
     params_invalid_circuit_type = CircuitToPauliStringsParameters(
-        circuit="NotACircuit",  # type: ignore
+        circuit="NotACircuit",  # type: ignore[arg-type]
         pauli_strings=valid_pauli,
         postselection_symmetries=[],
     )
@@ -760,7 +772,7 @@ def test_group_paulis_are_not_qwc() -> None:
     pauli_str2: cirq.PauliString = cirq.PauliString({qubits[0]: cirq.Y})
 
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
-    circuits_to_pauli[circuit] = [[pauli_str1, pauli_str2]]  # type: ignore
+    circuits_to_pauli[circuit] = [[pauli_str1, pauli_str2]]  # type: ignore[list-item]
     with pytest.raises(ValueError, match="is not Qubit-Wise Commuting."):
         measure_pauli_strings(
             circuits_to_pauli, cirq.Simulator(), 300, 300, 300, np.random.default_rng()
@@ -774,7 +786,7 @@ def test_empty_group_paulis_not_allowed() -> None:
     circuit = cirq.FrozenCircuit(_create_ghz(5, qubits))
 
     circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
-    circuits_to_pauli[circuit] = [[]]  # type: ignore
+    circuits_to_pauli[circuit] = [[]]  # type: ignore[list-item]
     with pytest.raises(ValueError, match="Empty group of Pauli strings is not allowed"):
         measure_pauli_strings(
             circuits_to_pauli, cirq.Simulator(), 300, 300, 300, np.random.default_rng()
@@ -807,9 +819,9 @@ def test_postselection_symmetry_validation_and_logic() -> None:
     params_valid_sum = CircuitToPauliStringsParameters(
         circuit=circuit, pauli_strings=target_paulis, postselection_symmetries=good_symmetries
     )
-    # Postselection is not implemented; providing symmetries should raise.
-    with pytest.raises(NotImplementedError, match="Postselection symmetries are not implemented"):
-        measure_pauli_strings([params_valid_sum], sampler, 10, 10, 0, rng)
+    results = measure_pauli_strings([params_valid_sum], sampler, 10, 1, 0, rng)
+    assert len(results) == 1
+    assert len(results[0].results) == 1
 
     # Test PauliSum with Non-QWC Terms
     # X0 and Z0 do not commute. This is an invalid PauliSum *structure* for this context.
@@ -828,7 +840,7 @@ def test_postselection_symmetry_validation_and_logic() -> None:
     params_bad_type = CircuitToPauliStringsParameters(
         circuit=circuit,
         pauli_strings=target_paulis,
-        postselection_symmetries=[("NotASymmetry", 1)],  # type: ignore
+        postselection_symmetries=[("NotASymmetry", 1)],  # type: ignore[list-item]
     )
     with pytest.raises(
         TypeError, match="Postselection symmetry keys must be cirq.PauliString or cirq.PauliSum"
@@ -858,44 +870,140 @@ def test_sampler_receives_correct_circuits(use_sweep: bool) -> None:
 
     from cirq.study.result import ResultDict
 
-    # Create a circuit with 5 qubits
     qubits = cirq.LineQubit.range(5)
-
     circuit = cirq.FrozenCircuit(_create_ghz(5, qubits))
+    pauli_qubits = qubits[1:4]  # Q1, Q2, Q3
+    pauli_str: cirq.PauliString = cirq.PauliString(dict.fromkeys(pauli_qubits, cirq.X))
 
-    # Create Pauli strings that only use qubits 1, 2, 3 (indices 1,2,3)
-    pauli_qubits = qubits[1:4]  # qubits 1,2,3
-    pauli_string: cirq.PauliString = cirq.PauliString(dict.fromkeys(pauli_qubits, cirq.X))
-
-    circuits_to_pauli: dict[cirq.FrozenCircuit, list[cirq.PauliString]] = {}
-    circuits_to_pauli[circuit] = [pauli_string]
-
-    # Mock the sampler
+    # Test standard Pauli String without Symmetries
+    circuits_to_pauli = {circuit: [pauli_str]}
     mock_sampler = MagicMock()
 
-    # Configure the mock sampler to return a valid ResultDict
-    mock_sampler.run.return_value = ResultDict(
-        params=cirq.ParamResolver({}), measurements={"result": np.array([[0, 1, 0]])}
-    )
-    # Configure the mock sampler to return valid results for run_batch
-    mock_sampler.run_batch.return_value = [
-        [ResultDict(params=cirq.ParamResolver({}), measurements={"result": np.array([[0, 1, 0]])})]
-    ]
+    mock_res = ResultDict(params=cirq.ParamResolver({}), measurements={"result": np.zeros((1, 3))})
+    mock_sampler.run_batch.return_value = [[mock_res]]
+    mock_sampler.run_sweep.return_value = [mock_res]
 
-    # Call measure_pauli_strings with the mock sampler
-    measure_pauli_strings(circuits_to_pauli, mock_sampler, 100, 100, 0, 1234, use_sweep=use_sweep)
+    measure_pauli_strings(circuits_to_pauli, mock_sampler, 10, 10, 0, 1234, use_sweep=use_sweep)
 
-    # Verify the sampler was called with the correct circuits
-    batches = [call.args[0] for call in mock_sampler.run_batch.call_args_list]
-    called_circuits = [circuit for batch in batches for circuit in batch]
+    # Determine which mock method to check
+    if use_sweep:
+        called_circuits = [call.kwargs['program'] for call in mock_sampler.run_sweep.call_args_list]
+    else:
+        called_circuits = [
+            c for batch in mock_sampler.run_batch.call_args_list for c in batch.args[0]
+        ]
 
     for called_circuit in called_circuits:
-        measured_qubits = set()
-        for op in called_circuit.all_operations():
-            if isinstance(op.gate, cirq.MeasurementGate):
-                measured_qubits.update(op.qubits)
+        measured = {
+            q
+            for op in called_circuit.all_operations()
+            if isinstance(op.gate, cirq.MeasurementGate)
+            for q in op.qubits
+        }
+        assert measured == set(pauli_qubits)
 
-        # Ensure only the qubits in the Pauli string are measured
-        assert measured_qubits == set(
-            pauli_qubits
-        ), f"Expected measured qubits: {set(pauli_qubits)}, but found: {measured_qubits}"
+    # Now test with symmetries
+    sym_qubit = qubits[0]
+    params = CircuitToPauliStringsParameters(
+        circuit=circuit,
+        pauli_strings=[(pauli_str,)],
+        postselection_symmetries=[(cirq.PauliString(cirq.Z(sym_qubit)), 1)],
+    )
+
+    mock_sampler_sym = MagicMock()
+    mock_res_sym = ResultDict(
+        params=cirq.ParamResolver({}), measurements={"result": np.zeros((1, 4))}
+    )
+    mock_sampler_sym.run_batch.return_value = [[mock_res_sym]]
+    mock_sampler_sym.run_sweep.return_value = [mock_res_sym]
+
+    measure_pauli_strings([params], mock_sampler_sym, 10, 10, 0, 1234, use_sweep=use_sweep)
+
+    if use_sweep:
+        called_circuits_sym = [
+            call.kwargs['program'] for call in mock_sampler_sym.run_sweep.call_args_list
+        ]
+    else:
+        called_circuits_sym = [
+            c for batch in mock_sampler_sym.run_batch.call_args_list for c in batch.args[0]
+        ]
+
+    expected_qubits = set(pauli_qubits) | {sym_qubit}
+    for called_circuit in called_circuits_sym:
+        measured = {
+            q
+            for op in called_circuit.all_operations()
+            if isinstance(op.gate, cirq.MeasurementGate)
+            for q in op.qubits
+        }
+        assert measured == expected_qubits
+
+
+def test_build_trex_twirled_pauli_circuits_multiple_twirls():
+    """Test generating multiple circuits from a multi-row twirl_choices array."""
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    base_circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1), cirq.CNOT(q0, q2))
+    basis_ps = cirq.X(q0) * cirq.Y(q1) * cirq.Z(q2)
+
+    # 3 different twirl choices
+    twirl_choices = np.array(
+        [
+            [False, True, True],  # q0(no flip), q1(flip), q2(flip)]
+            [True, False, False],  # q0(flip), q1(no flip), q2(no flip)]
+            [False, False, False],  # q0(no flip), q1(no flip), q2(no flip)]
+        ]
+    )
+
+    circuits = _build_trex_twirled_pauli_circuits(base_circuit, basis_ps, twirl_choices)
+
+    assert len(circuits) == 3
+
+    q0_no_flip = cirq.Ry(rads=-np.pi / 2)(q0)
+    q0_flip = cirq.Ry(rads=np.pi / 2)(q0)
+
+    q1_no_flip = cirq.Rx(rads=np.pi / 2)(q1)
+    q1_flip = cirq.Rx(rads=-np.pi / 2)(q1)
+
+    q2_no_flip = cirq.I(q2)
+    q2_flip = cirq.X(q2)
+
+    # Verify Circuit 0: row [False, True, True]
+    assert q0_no_flip in circuits[0].moments[-2].operations
+    assert q1_flip in circuits[0].moments[-2].operations
+    assert q2_flip in circuits[0].moments[-2].operations
+
+    # Verify Circuit 1: row [True, False, False]
+    assert q0_flip in circuits[1].moments[-2].operations
+    assert q1_no_flip in circuits[1].moments[-2].operations
+    assert q2_no_flip in circuits[1].moments[-2].operations
+
+    # Verify Circuit 2: row [False, False, False]
+    assert q0_no_flip in circuits[2].moments[-2].operations
+    assert q1_no_flip in circuits[2].moments[-2].operations
+    assert q2_no_flip in circuits[2].moments[-2].operations
+
+    # Verify that every generated circuit ends with the correct joint measurement
+    for circuit in circuits:
+        meas_op = circuit.moments[-1].operations[0]
+        assert isinstance(meas_op.gate, cirq.MeasurementGate)
+        assert meas_op.qubits == (q0, q1, q2)
+        assert meas_op.gate.key == 'result'
+
+
+def test_trex_metadata_instantiation() -> None:
+    """Test the instantiation and attributes of TRexMetadata."""
+    q0, q1 = cirq.LineQubit.range(2)
+    pauli_str = cirq.X(q0) * cirq.Z(q1)
+
+    # 2D boolean arrays of shape (num_readout_circuits, num_qubits)
+    twirl_choices = np.array([[True, False], [False, True], [True, True]])
+
+    readout_choices = np.array([[False, False], [True, True], [False, True]])
+
+    metadata = TRexMetadata(
+        pauli_str=pauli_str, twirl_choices=twirl_choices, readout_choices=readout_choices
+    )
+
+    assert metadata.pauli_str == pauli_str
+    np.testing.assert_array_equal(metadata.twirl_choices, twirl_choices)
+    np.testing.assert_array_equal(metadata.readout_choices, readout_choices)

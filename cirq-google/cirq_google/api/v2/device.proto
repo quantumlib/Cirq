@@ -34,6 +34,9 @@ message DeviceSpecification {
   // are advice to users of the device, specified in English text
   // For instance, "All Z gates are converted to VirtualZ gates".
   string developer_recommendations = 4;
+
+  // Qubit attributes for the device.
+  map<string, QubitAttributes> qubit_attributes = 6;
 }
 
 // This contains information about a single device gate.
@@ -198,4 +201,19 @@ message TargetSet {
 message Target {
   // A list of qubit ids that form a valid gate target.
   repeated string ids = 1;
+}
+
+// Qubit attributes for a specific qubit.
+message QubitAttributes {
+  map<string, QubitAttributeValue> attributes = 1;
+}
+
+// A generic value for a qubit attribute.
+message QubitAttributeValue {
+  oneof val {
+    string string_value = 1;
+    int64 int_value = 2;
+    double double_value = 3;
+    bool bool_value = 4;
+  }
 }

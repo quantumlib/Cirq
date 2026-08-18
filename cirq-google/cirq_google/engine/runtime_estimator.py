@@ -157,7 +157,7 @@ def estimate_run_sweep_time(
     """
     width = len(program.all_qubits())
     depth = len(program)
-    sweeps = len(list(cirq.to_resolvers(params)))
+    sweeps = sum(1 for _ in cirq.to_resolvers(params))
     return _estimate_run_time_seconds(width, depth, sweeps, repetitions, latency)
 
 
@@ -199,7 +199,7 @@ def estimate_run_batch_time(
             current_width = width
         total_depth += len(program)
         num_circuits += 1
-        total_sweeps += len(list(cirq.to_resolvers(params_list[idx])))
+        total_sweeps += sum(1 for _ in cirq.to_resolvers(params_list[idx]))
     if num_circuits > 0:
         total_time += _estimate_run_time_seconds(
             width, total_depth // num_circuits, total_sweeps, repetitions, 0.0

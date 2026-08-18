@@ -93,7 +93,9 @@ def t1_decay(
     results = sampler.sample(circuit, params=sweep, repetitions=repetitions)
 
     # Cross tabulate into a delay_ns, false_count, true_count table.
-    tab = pd.crosstab(results.delay_ns, results.output)
+    tab = pd.crosstab(
+        results.delay_ns.reset_index(drop=True), results.output.reset_index(drop=True)
+    )
     tab.rename_axis(None, axis="columns", inplace=True)
     tab = tab.rename(columns={0: 'false_count', 1: 'true_count'}).reset_index()
     for col_index, name in [(1, 'false_count'), (2, 'true_count')]:

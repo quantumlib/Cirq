@@ -64,7 +64,7 @@ def make_bytes(s: str) -> bytes:
             idx = 0
     if idx:
         buf.append(byte)
-    return bytearray(buf)
+    return bytes(buf)
 
 
 def test_pack_results():

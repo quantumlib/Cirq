@@ -12,8 +12,8 @@ concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: true
 
-# Declare default permissions as read only.
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   notebooks-stable:
@@ -27,17 +27,17 @@ jobs:
         partition: [partition-0, partition-1, partition-2, partition-3]
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.11'
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/isolated-base.env.txt
       - name: Notebook tests
-        run: check/pytest -n auto -m weekly dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
+        run: check/pytest -n logical -m weekly dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
       - name: Persist the outputs
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
           name: notebook-outputs

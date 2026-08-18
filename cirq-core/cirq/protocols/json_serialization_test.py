@@ -23,6 +23,7 @@ import json
 import os
 import pathlib
 import warnings
+from typing import Any
 from unittest import mock
 
 import attrs
@@ -80,7 +81,7 @@ def test_deprecated_cirq_type_in_json_dict() -> None:
         def __eq__(self, other):
             return isinstance(other, HasOldJsonDict)  # pragma: no cover
 
-        def _json_dict_(self):
+        def _json_dict_(self) -> dict[str, Any]:
             return {'cirq_type': 'test.noncirq.namespace.HasOldJsonDict'}
 
         @classmethod
@@ -204,13 +205,13 @@ Q0, Q1, Q2, Q3, Q4 = QUBITS
 # during test setup deprecated submodules are inspected and trigger the
 # deprecation error in testing. It is cleaner to just turn it off than to assert
 # deprecation for each submodule.
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.dict(os.environ, {'CIRQ_TESTING': 'false'})
 def test_shouldnt_be_serialized_no_superfluous(mod_spec: ModuleJsonTestSpec) -> None:
     # everything in the list should be ignored for a reason
     names = set(mod_spec.get_all_names())
     missing_names = set(mod_spec.should_not_be_serialized).difference(names)
     assert len(missing_names) == 0, (
-        f"Defined as \"should't be serialized\", "
+        f"Defined as \"shouldn't be serialized\", "
         f"but missing from {mod_spec}: \n"
         f"{missing_names}"
     )
@@ -220,7 +221,7 @@ def test_shouldnt_be_serialized_no_superfluous(mod_spec: ModuleJsonTestSpec) -> 
 # during test setup deprecated submodules are inspected and trigger the
 # deprecation error in testing. It is cleaner to just turn it off than to assert
 # deprecation for each submodule.
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.dict(os.environ, {'CIRQ_TESTING': 'false'})
 def test_not_yet_serializable_no_superfluous(mod_spec: ModuleJsonTestSpec) -> None:
     # everything in the list should be ignored for a reason
     names = set(mod_spec.get_all_names())
@@ -373,7 +374,7 @@ class SBKImpl(cirq.SerializableByKey):
             (self.name, tuple(self.data_list), self.data_tuple, frozenset(self.data_dict.items()))
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "data_list": self.data_list,
@@ -425,7 +426,7 @@ def test_serializable_by_key() -> None:
 # during test setup deprecated submodules are inspected and trigger the
 # deprecation error in testing. It is cleaner to just turn it off than to assert
 # deprecation for each submodule.
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.dict(os.environ, {'CIRQ_TESTING': 'false'})
 def _list_public_classes_for_tested_modules():
     # to remove DeprecationWarning noise during test collection
     with warnings.catch_warnings():
@@ -518,7 +519,7 @@ def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: st
 class SerializableTypeObject:
     test_type: type
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return {'test_type': json_serialization.json_cirq_type(self.test_type)}
 
     @classmethod
@@ -732,7 +733,7 @@ def test_dataclass_json_dict() -> None:
         q: cirq.LineQubit
         desc: str
 
-        def _json_dict_(self):
+        def _json_dict_(self) -> dict[str, Any]:
             return cirq.dataclass_json_dict(self)
 
     def custom_resolver(name):

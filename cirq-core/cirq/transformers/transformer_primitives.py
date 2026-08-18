@@ -41,7 +41,7 @@ MAPPED_CIRCUIT_OP_TAG = '<mapped_circuit_op>'
 
 
 def _to_target_circuit_type(
-    circuit: circuits.AbstractCircuit, target_circuit: CIRCUIT_TYPE
+    circuit: cirq.AbstractCircuit, target_circuit: CIRCUIT_TYPE
 ) -> CIRCUIT_TYPE:
     return cast(
         CIRCUIT_TYPE,
@@ -752,6 +752,60 @@ def merge_moments(
     return _create_target_circuit_type(merged_moments, circuit)
 
 
+def merge_moments_batch(
+    circuit: CIRCUIT_TYPE,
+    merge_func: Callable[[Sequence[cirq.Moment]], tuple[cirq.Moment, Sequence[cirq.Moment]]],
+    *,
+    tags_to_ignore: Sequence[Hashable] = (),
+    deep: bool = False,
+) -> CIRCUIT_TYPE:
+    """Merges as many adjacent moments as possible at once using `merge_func(moments_list)`.
+
+    Starting from the first moment, the largest run of mergeable moments is found and then
+    merged at once. The process is repeated starting from the next moment, until the circuit
+    is exhausted. `merge_func` is not called on single-moment runs.
+
+    Args:
+        circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
+        merge_func: Callable that takes a sequence of moments and returns both the first
+            moment merged with as many consecutive moments as possible, and a sequence of
+            the remaining unmerged moments.
+        tags_to_ignore: Tagged circuit operations marked with any of `tags_to_ignore` will be
+            ignored when recursively applying the transformer primitive to sub-circuits, given
+            deep=True.
+        deep: If true, the transformer primitive will be recursively applied to all circuits
+            wrapped inside circuit operations.
+
+    Returns:
+        Copy of input circuit with merged moments.
+    """
+    if not circuit:
+        return circuit
+    if deep:
+        circuit = map_operations(
+            circuit,
+            lambda op, _: (
+                op.untagged.replace(
+                    circuit=merge_moments_batch(
+                        op.untagged.circuit, merge_func, tags_to_ignore=tags_to_ignore, deep=deep
+                    )
+                ).with_tags(*op.tags)
+                if isinstance(op.untagged, circuits.CircuitOperation)
+                else op
+            ),
+            tags_to_ignore=tags_to_ignore,
+        )
+
+    merged_moments: list[circuits.Moment] = []
+    moments_to_merge: Sequence[circuits.Moment] = circuit.moments
+
+    while moments_to_merge:
+        batch_merged_moment, moments_to_merge = merge_func(moments_to_merge)
+        merged_moments.append(batch_merged_moment)
+
+    return _create_target_circuit_type(merged_moments, circuit)
+
+
 def unroll_circuit_op(
     circuit: CIRCUIT_TYPE,
     *,
@@ -923,3 +977,26 @@ def toggle_tags(circuit: CIRCUIT_TYPE, tags: Sequence[Hashable], *, deep: bool =
         )
 
     return map_operations(circuit, map_func, deep=deep)
+
+
+def reverse_circuit(circuit: cirq.AbstractCircuit) -> cirq.Circuit:
+    """Return a mutable copy of the circuit with moments and operations reversed.
+
+    This creates a circuit with reversed iteration order in `circuit.all_operations()`.
+    A second call restores back the initial input circuit (as a mutable copy).
+
+    Args:
+        circuit: The input circuit to be reversed.
+
+    Returns:
+        A mutable circuit with a reversed order of moments and operations.
+    """
+    moments = [
+        (
+            circuits.Moment.from_ops(*reversed(m.operations), tags=m.tags)
+            if len(m.operations) > 1
+            else m
+        )
+        for m in circuit
+    ]
+    return circuits.Circuit._from_moments(reversed(moments), tags=circuit.tags)

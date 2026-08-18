@@ -11,10 +11,10 @@ import builtins as _builtins
 import sys
 import typing as _typing
 
-if sys.version_info >= (3, 10):
-    from typing import TypeAlias as _TypeAlias
+if sys.version_info >= (3, 11):
+    from typing import TypeAlias as _TypeAlias, Never as _Never
 else:
-    from typing_extensions import TypeAlias as _TypeAlias
+    from typing_extensions import TypeAlias as _TypeAlias, Never as _Never
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -43,8 +43,11 @@ class MetricsSnapshot(_message.Message):
         timestamp_ms: _builtins.int = ...,
         metrics: _abc.Iterable[Global___Metric] | None = ...,
     ) -> None: ...
+    _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
     _ClearFieldArgType: _TypeAlias = _typing.Literal["metrics", b"metrics", "timestamp_ms", b"timestamp_ms"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def WhichOneof(self, oneof_group: _Never) -> None: ...
 
 Global___MetricsSnapshot: _TypeAlias = MetricsSnapshot  # noqa: Y015
 
@@ -81,8 +84,11 @@ class Metric(_message.Message):
         targets: _abc.Iterable[_builtins.str] | None = ...,
         values: _abc.Iterable[Global___Value] | None = ...,
     ) -> None: ...
+    _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
     _ClearFieldArgType: _TypeAlias = _typing.Literal["name", b"name", "targets", b"targets", "values", b"values"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def WhichOneof(self, oneof_group: _Never) -> None: ...
 
 Global___Metric: _TypeAlias = Metric  # noqa: Y015
 

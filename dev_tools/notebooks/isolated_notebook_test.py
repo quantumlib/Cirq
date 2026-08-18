@@ -31,6 +31,7 @@ import pathlib
 import re
 import shutil
 import subprocess
+import time
 import warnings
 
 import pytest
@@ -47,8 +48,7 @@ from dev_tools.notebooks import filter_notebooks, list_all_notebooks, REPO_ROOT,
 # For more information, please see the section "Lifecycle" in docs/dev/notebooks.md.
 
 NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = [
-    # needs https://github.com/quantumlib/Cirq/pull/7972
-    'docs/hardware/pasqal/getting_started.ipynb'
+    'docs/simulate/virtual_engine_interface.ipynb'
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
@@ -60,7 +60,7 @@ SKIP_NOTEBOOKS = [
     '**/ionq/*.ipynb',
     # skipping quantum utility simulation (too large)
     'examples/advanced/*quantum_utility*',
-    # tutorials that use QCS and arent skipped due to one or more cleared output cells
+    # tutorials that use QCS and aren't skipped due to one or more cleared output cells
     'docs/tutorials/google/identifying_hardware_changes.ipynb',
     'docs/tutorials/google/echoes.ipynb',
     # temporary: need to fix QVM metrics and device spec
@@ -135,7 +135,7 @@ def _partitioned_test_cases(notebooks):
     return [(f"partition-{i%n_partitions}", notebook) for i, notebook in enumerate(notebooks)]
 
 
-def _rewrite_and_run_notebook(notebook_path, cloned_env):
+def _rewrite_and_run_notebook(notebook_path, cloned_env, papermill_scheduler):
     notebook_file = os.path.basename(notebook_path)
     notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, REPO_ROOT))
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
@@ -154,6 +154,8 @@ def _rewrite_and_run_notebook(notebook_path, cloned_env):
         pip list
         papermill "{rewritten_notebook_path}" "{REPO_ROOT/out_path}"
     """
+    wait_time = papermill_scheduler()[1]
+    time.sleep(wait_time)
     result = shell_tools.run(
         cmd,
         log_run_to_stderr=False,
@@ -189,7 +191,9 @@ def _rewrite_and_run_notebook(notebook_path, cloned_env):
     "partition, notebook_path",
     _partitioned_test_cases(filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS)),
 )
-def test_changed_notebooks_against_released_cirq(partition, notebook_path, cloned_env) -> None:
+def test_changed_notebooks_against_released_cirq(
+    partition, notebook_path, cloned_env, papermill_scheduler
+) -> None:
     """Tests changed notebooks in isolated virtual environments.
 
     In order to speed up the execution of these tests an auxiliary file may be supplied which
@@ -201,7 +205,7 @@ def test_changed_notebooks_against_released_cirq(partition, notebook_path, clone
     regular expression, it is considered best practice to not use complicated regular expressions.
     Lines in this file that do not have `->` are ignored.
     """
-    _rewrite_and_run_notebook(notebook_path, cloned_env)
+    _rewrite_and_run_notebook(notebook_path, cloned_env, papermill_scheduler)
 
 
 @pytest.mark.weekly
@@ -209,13 +213,15 @@ def test_changed_notebooks_against_released_cirq(partition, notebook_path, clone
     "partition, notebook_path",
     _partitioned_test_cases(filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS)),
 )
-def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_env) -> None:
+def test_all_notebooks_against_released_cirq(
+    partition, notebook_path, cloned_env, papermill_scheduler
+) -> None:
     """Tests all notebooks in isolated virtual environments.
 
     See `test_changed_notebooks_against_released_cirq` for more details on
     notebooks execution.
     """
-    _rewrite_and_run_notebook(notebook_path, cloned_env)
+    _rewrite_and_run_notebook(notebook_path, cloned_env, papermill_scheduler)
 
 
 @pytest.mark.parametrize("notebook_path", NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES)
@@ -223,7 +229,7 @@ def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path) -> None:
     # utf-8 is important for Windows testing, otherwise characters like ┌──┐ fail on cp1252
     content = pathlib.Path(notebook_path).read_text(encoding="utf-8")
     mandatory_matches = [
-        r"!pip install --upgrade --quiet cirq(-google)?~=1.0.dev",
+        r"!pip install --upgrade cirq(-google)?~=1.0.dev",
         (
             r"Note: this notebook relies on unreleased Cirq features\. "
             r"If you want to try these features, make sure you install cirq(-google)? via "

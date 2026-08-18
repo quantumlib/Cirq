@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 import base64
-import inspect
 from typing import cast
 
 import numpy as np
@@ -43,19 +42,6 @@ from cirq_google.serialization.arg_func_langs import (
     internal_gate_arg_to_proto,
     internal_gate_from_proto,
 )
-
-
-def _json_format_kwargs() -> dict[str, bool]:
-    """Determine kwargs to pass to json_format.MessageToDict.
-
-    Protobuf v5 has a different signature for MessageToDict. If we ever move to requiring
-    protobuf >= 5 this can be removed.
-    """
-    sig = inspect.signature(json_format.MessageToDict)
-    new_arg = "always_print_fields_with_no_presence"
-    old_arg = "including_default_value_fields"
-    arg = new_arg if new_arg in sig.parameters else old_arg
-    return {arg: True}
 
 
 @pytest.mark.parametrize(
@@ -190,7 +176,7 @@ def test_correspondence(value: ARG_LIKE, proto: v2.program_pb2.Arg):
     parsed = arg_from_proto(msg)
     packed = json_format.MessageToDict(
         arg_to_proto(value),
-        **_json_format_kwargs(),
+        always_print_fields_with_no_presence=True,
         preserving_proto_field_name=True,
         use_integers_for_enums=True,
     )
@@ -221,7 +207,7 @@ def test_serialize_sympy_constants():
     proto = arg_to_proto(sympy.pi)
     packed = json_format.MessageToDict(
         proto,
-        **_json_format_kwargs(),
+        always_print_fields_with_no_presence=True,
         preserving_proto_field_name=True,
         use_integers_for_enums=True,
     )
@@ -246,7 +232,7 @@ def test_serialize_conversion(value: ARG_LIKE, proto: v2.program_pb2.Arg):
     json_format.ParseDict(proto, msg)
     packed = json_format.MessageToDict(
         arg_to_proto(value),
-        **_json_format_kwargs(),
+        always_print_fields_with_no_presence=True,
         preserving_proto_field_name=True,
         use_integers_for_enums=True,
     )

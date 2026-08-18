@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import abc
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from typing import overload, TYPE_CHECKING
 
 import duet
@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     import cirq_google.engine.abstract_engine as abstract_engine
     import cirq_google.engine.abstract_processor as abstract_processor
     import cirq_google.engine.abstract_program as abstract_program
-    import cirq_google.engine.calibration as calibration
+    import cirq_google.engine.processor_config as processor_config
     from cirq_google.engine.engine_result import EngineResult
 
 
@@ -141,8 +141,15 @@ class AbstractJob(abc.ABC):
         """Return failure code and message of the job if present."""
 
     @abc.abstractmethod
-    def get_repetitions_and_sweeps(self) -> tuple[int, list[cirq.Sweep]]:
+    def get_repetitions_and_sweeps(
+        self, circuit_num: int | None = None
+    ) -> tuple[int, list[cirq.Sweep]]:
         """Returns the repetitions and sweeps for the job.
+
+        Args:
+            circuit_num: if this is a batch job, the index of the circuit
+                to return the sweeps for.  This argument is zero-indexed.
+                Negative values index from the end of the list.
 
         Returns:
             A tuple of the repetition count and list of sweeps.
@@ -154,16 +161,15 @@ class AbstractJob(abc.ABC):
         if available, else None."""
 
     @abc.abstractmethod
-    def get_calibration(self) -> calibration.Calibration | None:
-        """Returns the recorded calibration at the time when the job was run, if
-        one was captured, else None."""
+    def get_config(self) -> processor_config.ProcessorConfig | None:
+        """Returns the configuration used for the job, if available, else None."""
 
     @abc.abstractmethod
-    def get_circuit(self, program_num: int | None = None) -> cirq.Circuit:
+    def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the job.
 
         Args:
-            program_num: if this is a multi-circuit job, the index of the circuit
+            circuit_num: if this is a multi-circuit job, the index of the circuit
                 to return.  This argument is zero-indexed. Negative values
                 index from the end of the list.  Ignored if not multi-circuit.
 
@@ -184,6 +190,40 @@ class AbstractJob(abc.ABC):
         """Returns the job results, blocking until the job is complete."""
 
     results = duet.sync(results_async)
+
+    @abc.abstractmethod
+    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
+        """Returns the job results split by program/circuit in the batch.
+
+        Instead of flattening results into a single list, this will return a Sequence[EngineResult]
+        for each circuit in the batch.
+        """
+
+    batched_results = duet.sync(batched_results_async)
+
+    async def mapping_results_async(self) -> Mapping[str, Sequence[EngineResult]]:
+        """Returns the job results organized by circuit key for a mapped program batch.
+
+        Instead of flattening results into a single list, this will return a mapping
+        from string key to Sequence[EngineResult] for each circuit in the mapping.
+
+        Raises:
+            ValueError: If called for a non-batch program or if keys were not specified.
+        """
+        if not self.program().is_batch():
+            raise ValueError('mapping_results called for a non-batch program.')
+        batched = await self.batched_results_async()
+        keys = self.program().batch_keys()
+        if not keys or any(k == '' for k in keys):
+            raise ValueError('mapping_results called for a batch job without circuit keys.')
+        if len(keys) != len(batched):
+            raise ValueError(
+                f'Number of keys ({len(keys)}) does not match '
+                f'number of batch results ({len(batched)}).'
+            )
+        return dict(zip(keys, batched))
+
+    mapping_results = duet.sync(mapping_results_async)
 
     def __iter__(self) -> Iterator[cirq.Result]:
         yield from self.results()

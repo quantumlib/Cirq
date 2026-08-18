@@ -42,6 +42,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         prng: np.random.RandomState | None = None,
         qubits: Sequence[cirq.Qid] | None = None,
         classical_data: cirq.ClassicalDataStore | None = None,
+        param_resolver: cirq.ParamResolver | None = None,
     ):
         """Inits SimulationState.
 
@@ -53,12 +54,15 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
                 ordering of the computational basis states.
             classical_data: The shared classical data container for this
                 simulation.
+            param_resolver: The parameter resolver for the simulation.
             state: The underlying quantum state of the simulation.
         """
         if qubits is None:
             qubits = ()
         classical_data = classical_data or value.ClassicalDataDictionaryStore()
-        super().__init__(qubits=qubits, classical_data=classical_data)
+        super().__init__(
+            qubits=qubits, classical_data=classical_data, param_resolver=param_resolver
+        )
         if prng is None:
             prng = cast(np.random.RandomState, np.random)
         self._prng = prng

@@ -20,7 +20,7 @@ import dataclasses
 from typing import TYPE_CHECKING
 
 from cirq import circuits, ops
-from cirq.transformers import transformer_api
+from cirq.transformers import transformer_api, transformer_primitives
 
 if TYPE_CHECKING:
     import cirq
@@ -79,11 +79,6 @@ def align_right(
     # Reverse the circuit, align left, and reverse again. Note each moment also has to have its ops
     # reversed internally, to avoid edge conditions where non-commuting but can-be-in-same-moment
     # ops (measurements and classical controls, particularly) could end up getting swapped.
-    backwards = []
-    for moment in circuit[::-1]:
-        backwards.append(circuits.Moment(reversed(moment.operations)))
-    aligned_backwards = align_left(circuits.Circuit(backwards), context=context)
-    forwards = []
-    for moment in aligned_backwards[::-1]:
-        forwards.append(circuits.Moment(reversed(moment.operations)))
-    return circuits.Circuit(forwards)
+    backwards = transformer_primitives.reverse_circuit(circuit)
+    aligned_backwards = align_left(backwards, context=context)
+    return transformer_primitives.reverse_circuit(aligned_backwards)

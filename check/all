@@ -60,6 +60,7 @@ for arg in "$@"; do
         --apply-format-changes)
             echo "Warning: option '--apply-format-changes' is deprecated." \
                 "Please use '--fix' instead." >&2
+            echo "Warning: The '--apply-format-changes' will be removed in cirq v1.8." >&2
             echo >&2
             extra_format_args=( --apply )
             ;;
@@ -91,8 +92,8 @@ run() {
 }
 
 run check/misc
-run ruff check "${extra_ruff_args[@]}"
 run check/format-incremental "${base_rev[@]}" "${extra_format_args[@]}"
+run ruff check "${extra_ruff_args[@]}"
 
 if (( only_changed )); then
     run check/pylint-changed-files "${base_rev[@]}"
@@ -106,7 +107,7 @@ else
     run check/pytest-and-incremental-coverage "${base_rev[@]}"
 fi
 
-run check/mypy
+run check/typecheck
 
 # Make the only-changed mode fast.  Skip check/doctest which rarely fails,
 # but takes most run time in that mode.

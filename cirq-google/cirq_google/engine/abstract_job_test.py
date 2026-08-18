@@ -28,6 +28,21 @@ if TYPE_CHECKING:
     import cirq_google.engine.abstract_program as abstract_program
 
 
+class MockProgram:
+    def __init__(self, is_batch=True, keys=None):
+        self._is_batch = is_batch
+        self._keys = keys or []
+
+    def is_batch(self) -> bool:
+        return self._is_batch
+
+    def batch_size(self) -> int:
+        return len(self._keys)
+
+    def batch_keys(self) -> list[str]:
+        return self._keys
+
+
 class MockJob(AbstractJob):
     def engine(self) -> abstract_engine.AbstractEngine:  # type: ignore[empty-body]
         pass
@@ -35,8 +50,8 @@ class MockJob(AbstractJob):
     def id(self) -> str:  # type: ignore[empty-body]
         pass
 
-    def program(self) -> abstract_program.AbstractProgram:  # type: ignore[empty-body]
-        pass
+    def program(self) -> abstract_program.AbstractProgram:
+        return getattr(self, '_mock_program', MockProgram())  # type: ignore[arg-type]
 
     def create_time(self) -> datetime.datetime:  # type: ignore[empty-body]
         pass
@@ -77,10 +92,10 @@ class MockJob(AbstractJob):
     def get_processor(self):
         pass
 
-    def get_calibration(self):
+    def get_config(self):
         pass
 
-    def get_circuit(self, program_num: int | None = None) -> cirq.Circuit:
+    def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:
         return cirq.Circuit()
 
     def cancel(self) -> None:
@@ -91,6 +106,9 @@ class MockJob(AbstractJob):
 
     async def results_async(self):
         return [cirq.ResultDict(params={}, measurements={'a': np.asarray([t])}) for t in range(5)]
+
+    async def batched_results_async(self):
+        return [[r] for r in await self.results_async()]
 
 
 def test_instantiation_and_iteration():
@@ -126,3 +144,33 @@ def test_get_circuit():
     job = MockJob()
     assert job.get_circuit() == cirq.Circuit()
     assert job.get_circuit(1) == cirq.Circuit()
+
+
+def test_batched_results():
+    job = MockJob()
+    batched = job.batched_results()
+    assert len(batched) == 5
+    for count, r_list in enumerate(batched):
+        assert len(r_list) == 1
+        assert r_list[0].measurements['a'][0] == count
+
+
+def test_mapping_results():
+    job = MockJob()
+    prog = MockProgram(is_batch=True, keys=['k0', 'k1', 'k2', 'k3', 'k4'])
+    job._mock_program = prog
+    assert prog.batch_size() == 5
+    mapping = job.mapping_results()
+    assert list(mapping.keys()) == ['k0', 'k1', 'k2', 'k3', 'k4']
+    for count, (k, r_list) in enumerate(mapping.items()):
+        assert len(r_list) == 1
+        assert r_list[0].measurements['a'][0] == count
+
+
+def test_mapping_results_key_length_mismatch():
+    job = MockJob()
+    job._mock_program = MockProgram(is_batch=True, keys=['k0', 'k1'])
+    with pytest.raises(
+        ValueError, match=r'Number of keys \(2\) does not match number of batch results \(5\)'
+    ):
+        _ = job.mapping_results()

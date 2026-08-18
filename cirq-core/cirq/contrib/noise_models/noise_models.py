@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 from cirq import circuits, devices, ops, value
 from cirq.devices.noise_model import validate_all_measurements
@@ -71,7 +71,7 @@ class DepolarizingNoiseModel(devices.NoiseModel):
         ]
         return output[::-1] if self._prepend else output
 
-    def _json_dict_(self) -> dict[str, object]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'depol_prob': self.depol_prob, 'prepend': self._prepend}
 
 
@@ -125,7 +125,7 @@ class ReadoutNoiseModel(devices.NoiseModel):
             return output if self._prepend else output[::-1]
         return moment
 
-    def _json_dict_(self) -> dict[str, object]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'bitflip_prob': self.bitflip_prob, 'prepend': self._prepend}
 
 
@@ -181,7 +181,7 @@ class DampedReadoutNoiseModel(devices.NoiseModel):
             return output if self._prepend else output[::-1]
         return moment
 
-    def _json_dict_(self) -> dict[str, object]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'decay_prob': self.decay_prob, 'prepend': self._prepend}
 
 
@@ -230,7 +230,7 @@ class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
             return [circuits.Moment(self.readout_noise_gate(q) for q in system_qubits), moment]
         return [moment, circuits.Moment(self.qubit_noise_gate(q) for q in system_qubits)]
 
-    def _json_dict_(self) -> dict[str, object]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'depol_prob': self.depol_prob, 'bitflip_prob': self.bitflip_prob}
 
 
@@ -296,7 +296,7 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
         else:
             return [moment, circuits.Moment(self.qubit_noise_gate(q) for q in system_qubits)]
 
-    def _json_dict_(self) -> dict[str, object]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             'depol_prob': self.depol_prob,
             'bitflip_prob': self.bitflip_prob,

@@ -17,7 +17,7 @@ from __future__ import annotations
 import dataclasses
 import numbers
 from collections.abc import Iterable, Iterator, Mapping
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import sympy
 
@@ -61,7 +61,7 @@ class InitObsSetting:
             f'observable={self.observable!r})'
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.dataclass_json_dict(self)
 
 
@@ -181,5 +181,5 @@ class _MeasurementSpec:
             f'circuit_params={self.circuit_params!r})'
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.dataclass_json_dict(self)

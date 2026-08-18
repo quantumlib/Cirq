@@ -19,6 +19,7 @@ from __future__ import annotations
 import abc
 import collections
 import io
+import math
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import Any, cast, TYPE_CHECKING, TypeVar, Union
 
@@ -213,11 +214,78 @@ class Result(abc.ABC):
             c[fold_func(sample)] += 1
         return c
 
+    def _vectorized_histogram(
+        self,
+        key: TMeasurementKey,
+        fold_base: int | Iterable[int] | None = None,
+        batch_size: int = 50000,
+    ) -> collections.Counter | None:
+        """Counts the number of times a measurement result occurred quickly using NumPy.
+
+        This is a fast version of the histogram method that only supports
+        the default folding function; i.e., treating qubit/qudit measurements
+        as binary/base-n digits. If the output measurements will not fit in
+        an int64, returns None. To keep memory (and sorting time) overhead
+        low for large repetition counts, measurement results are counted in
+        batches of size `batch_size`.
+
+        Args:
+            key: Measurement key to include in the histogram.
+            fold_base: A convenience argument for interpreting qudit
+                measurement results. Specifies the base (or per-digit bases)
+                used to convert measurement digits to an integer. Defaults to
+                2 if not specified.
+            batch_size: Number of measurements to process per batch. Defaults to
+                50000.
+
+        Returns:
+            A counter indicating how often a measurement has sampled various
+            results.
+
+        Raises:
+            ValueError: If `fold_base` is specified as a sequence but its length does
+                not match the number of measured qubits/qudits.
+        """
+        key_measurements = self.measurements[_key_to_str(key)]
+        n_repetitions, n_qubits = key_measurements.shape
+
+        # Check if the output measurement indices will fit in an int64.
+        if fold_base is None or isinstance(fold_base, int):
+            base = 2 if fold_base is None else fold_base
+            max_val = int(base) ** n_qubits - 1
+            if max_val > np.iinfo(np.int64).max:
+                return None
+            powers = base ** np.arange(n_qubits - 1, -1, -1)
+        else:
+            base_list = list(fold_base)
+            if len(base_list) != n_qubits:
+                raise ValueError(f'len(digits) != len(base) ({n_qubits} != {len(base_list)})')
+            max_val = math.prod(base_list) - 1
+            if max_val > np.iinfo(np.int64).max:
+                return None
+            powers = np.hstack((np.cumprod(base_list[:0:-1])[::-1], [1]))
+
+        if n_repetitions == 0:
+            return collections.Counter()
+        if n_qubits == 0:
+            return collections.Counter({0: n_repetitions})
+
+        # Batch over repetitions to avoid huge memory cost.
+        # Note: np.unique sorts the array, so we need batches to avoid N log N scaling.
+        c: collections.Counter = collections.Counter()
+        for i in range(0, n_repetitions, batch_size):
+            measurement_batch = key_measurements[i : i + batch_size]
+            unique_measurements, counts = np.unique(measurement_batch @ powers, return_counts=True)
+            batch_dict = dict(zip(unique_measurements.tolist(), counts.tolist()))
+            c.update(batch_dict)
+        return c
+
     def histogram(
         self,
         *,  # Forces keyword args.
         key: TMeasurementKey,
-        fold_func: Callable[[tuple], T] = cast(Callable[[tuple], T], value.big_endian_bits_to_int),
+        fold_func: Callable[[tuple], T] | None = None,
+        fold_base: int | Iterable[int] | None = None,
     ) -> collections.Counter:
         """Counts the number of times a measurement result occurred.
 
@@ -250,11 +318,33 @@ class Result(abc.ABC):
                 together by a measurement. If this argument is not specified,
                 it defaults to interpreting the bits as a big endian
                 integer.
+            fold_base: A convenience argument for interpreting qudit
+                measurement results. Specifies the base (or per-digit bases)
+                used to convert measurement digits to an integer. Cannot be
+                specified together with fold_func.
 
         Returns:
             A counter indicating how often a measurement sampled various
             results.
         """
+        if fold_func is not None and fold_base is not None:
+            raise ValueError(
+                'Cannot specify both fold_func and fold_base. '
+                'fold_base is a convenience shorthand for fold_func.'
+            )
+        if fold_func is None:
+            # Run fast version if indices fit in an int64.
+            histogram = self._vectorized_histogram(key=key, fold_base=fold_base)
+            if histogram is not None:
+                return histogram
+
+            if fold_base is not None:
+                fold_func = cast(
+                    Callable[[tuple], T],
+                    lambda digits: value.big_endian_digits_to_int(digits, base=fold_base),
+                )
+            else:
+                fold_func = cast(Callable[[tuple], T], value.big_endian_bits_to_int)
         return self.multi_measurement_histogram(keys=[key], fold_func=lambda e: fold_func(e[0]))
 
     def __eq__(self, other: Any) -> bool:
@@ -395,7 +485,7 @@ class ResultDict(Result):
             return _keyed_repeated_records(self.records)
         return _keyed_repeated_bitstrings(self.measurements)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         packed_records = {}
         for key, digits in self.records.items():
             packed_digits, binary = _pack_digits(digits)

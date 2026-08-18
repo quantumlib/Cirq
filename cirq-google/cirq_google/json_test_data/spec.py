@@ -12,7 +12,7 @@ TestSpec = ModuleJsonTestSpec(
     name="cirq_google",
     packages=[cirq_google, cirq_google.experimental],
     test_data_path=pathlib.Path(__file__).parent,
-    not_yet_serializable=['Sycamore', 'Sycamore23'],
+    not_yet_serializable=['Sycamore', 'Sycamore23', 'Willow105'],
     should_not_be_serialized=[
         'AnnealSequenceSearchStrategy',
         'CircuitOpDeserializer',
@@ -27,6 +27,8 @@ TestSpec = ModuleJsonTestSpec(
         'ProtoVersion',
         'GreedySequenceSearchStrategy',
         'ProcessorSampler',
+        'Run',
+        'Snapshot',
         'ValidatingSampler',
         'CouldNotPlaceError',
         # Abstract:

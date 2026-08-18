@@ -20,6 +20,7 @@ import shutil
 import sys
 import tempfile
 import uuid
+from collections.abc import Callable
 from pathlib import Path
 from unittest import mock
 
@@ -28,15 +29,26 @@ from filelock import FileLock
 
 from dev_tools import shell_tools
 from dev_tools.env_tools import create_virtual_env
+from dev_tools.notebooks.utils import create_parallel_scheduler
 
 _LOGGER = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="session", autouse=True)
 def disable_local_gcloud_credentials(tmp_path_factory):
-    # Ensure tests cannot authenticate to production servers with user credentials
-    empty_dir = tmp_path_factory.mktemp("empty_gcloud_config", numbered=False)
-    with mock.patch.dict(os.environ, {"CLOUDSDK_CONFIG": str(empty_dir)}):
+    """Ensure tests cannot authenticate to cloud servers with user credentials.
+
+    Disable credentials set either through the GOOGLE_APPLICATION_CREDENTIALS environment variable
+    or via configuration files after running `gcloud auth application-default login`
+
+    For more details see `google.auth.default`.
+    """
+    empty_dir = tmp_path_factory.mktemp("empty_gcloud_config-dev_tools", numbered=False)
+    scrubbed_environ = {
+        **{k: v for k, v in os.environ.items() if k != "GOOGLE_APPLICATION_CREDENTIALS"},
+        "CLOUDSDK_CONFIG": str(empty_dir),
+    }
+    with mock.patch.dict(os.environ, scrubbed_environ, clear=True):
         yield
 
 
@@ -124,3 +136,13 @@ def cloned_env(testrun_uid, worker_id):
             raise
 
     return base_env_creator
+
+
+@pytest.fixture(scope="session")
+def papermill_scheduler(
+    tmp_path_factory: pytest.TempPathFactory,
+) -> Callable[[], tuple[float, float]]:
+    queuefile = tmp_path_factory.getbasetemp().parent.joinpath("papermill_scheduler_queue.tmp")
+    worker_count = int(os.environ.get("PYTEST_XDIST_WORKER_COUNT", "0"))
+    interval = 1.0 if worker_count > 1 else 0.0
+    return create_parallel_scheduler(queuefile, interval)

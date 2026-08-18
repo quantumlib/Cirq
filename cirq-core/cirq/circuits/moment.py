@@ -42,7 +42,7 @@ text_diagram_drawer = LazyLoader(
 def _default_breakdown(qid: cirq.Qid) -> tuple[Any, Any]:
     # Attempt to convert into a position on the complex plane.
     try:
-        plane_pos = complex(qid)  # type: ignore
+        plane_pos = complex(qid)  # type: ignore[call-overload]
         return plane_pos.real, plane_pos.imag
     except TypeError:
         return None, qid
@@ -101,7 +101,7 @@ class Moment:
 
         # An internal dictionary to support efficient operation access by qubit.
         self._qubit_to_op: dict[cirq.Qid, cirq.Operation] = {}
-        for op in self.operations:
+        for op in self._operations:
             for q in op.qubits:
                 # Check that operations don't overlap.
                 if q in self._qubit_to_op:
