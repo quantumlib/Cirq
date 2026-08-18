@@ -268,4 +268,8 @@ from cirq.ops.control_values import (
 
 from cirq.ops.uniform_superposition_gate import UniformSuperpositionGate as UniformSuperpositionGate
 
-from cirq.ops.variable_qid import VariableQid as VariableQid
+from cirq.ops.variable_qid import (
+    VariableGridQid as VariableGridQid,
+    VariableLineQid as VariableLineQid,
+    VariableQid as VariableQid,
+)

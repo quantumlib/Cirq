@@ -328,6 +328,8 @@ from cirq.ops import (
     TOFFOLI as TOFFOLI,
     transform_op_tree as transform_op_tree,
     TwoQubitDiagonalGate as TwoQubitDiagonalGate,
+    VariableGridQid as VariableGridQid,
+    VariableLineQid as VariableLineQid,
     VariableQid as VariableQid,
     VirtualTag as VirtualTag,
     wait as wait,

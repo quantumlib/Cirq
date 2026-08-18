@@ -1,15 +1,15 @@
 [
   {
-    "cirq_type": "VariableQid",
-    "symbol": {
+    "cirq_type": "VariableLineQid",
+    "x": {
       "cirq_type": "sympy.Symbol",
       "name": "x"
     },
     "dimension": 2
   },
   {
-    "cirq_type": "VariableQid",
-    "symbol": {
+    "cirq_type": "VariableLineQid",
+    "x": {
       "cirq_type": "sympy.Add",
       "args": [
         {

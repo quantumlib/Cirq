@@ -1,1 +1,0 @@
-[cirq.VariableQid(sympy.Symbol('x'), dimension=2), cirq.VariableQid(sympy.Add(sympy.Symbol('x'), sympy.Symbol('y')), dimension=3)]
