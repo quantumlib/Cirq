@@ -86,6 +86,8 @@ from cirq.ops.classically_controlled_operation import (
     ClassicallyControlledOperation as ClassicallyControlledOperation,
 )
 
+from cirq.ops.set_variable_op import SetVariable as SetVariable
+
 from cirq.ops.controlled_gate import ControlledGate as ControlledGate
 
 from cirq.ops.diagonal_gate import DiagonalGate as DiagonalGate
