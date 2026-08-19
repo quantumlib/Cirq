@@ -215,9 +215,9 @@ def _map_operations_impl(
                     f"Mapped operations {mapped_ops} should act on a subset "
                     f"of qubits of the original operation {op}"
                 )
-            if mapped_ops_qubits.intersection(mapped_op.qubits):
+            if not mapped_ops_qubits.isdisjoint(mapped_op.qubits):
                 has_overlapping_ops = True
-            mapped_ops_qubits = mapped_ops_qubits.union(mapped_op.qubits)
+            mapped_ops_qubits.update(mapped_op.qubits)
         if wrap_in_circuit_op and has_overlapping_ops:
             # Mapped operations should be wrapped in a `CircuitOperation` only iff they occupy more
             # than one moment, i.e. there are at least two operations that share a qubit.
@@ -249,7 +249,9 @@ def _map_operations_impl(
             mapped_ops = apply_map_func(op, idx)
             for mapped_op in mapped_ops:
                 placement_index = placement_cache.append(mapped_op)
-                curr_moments.extend([[] for _ in range(placement_index - len(curr_moments) + 1)])
+                # placement_index may increment at most by one
+                if placement_index == len(curr_moments):
+                    curr_moments.append([])
                 curr_moments[placement_index].append(mapped_op)
         new_moments.extend(curr_moments)
 
