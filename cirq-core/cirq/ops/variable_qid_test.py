@@ -255,16 +255,6 @@ def test_variable_line_qid_str():
     assert str(qxplusy) == 'varq(x + y) (d=2)'
 
 
-def test_variable_line_qid_simulation():
-    q1 = cirq.LineQubit(1)
-    qx = cirq.VariableLineQid(sympy.Symbol('x'))
-    circuit = cirq.Circuit((cirq.Moment(cirq.X(q1)), cirq.Moment(cirq.measure(qx, key='m'))))
-    sim = cirq.Simulator()
-    result = sim.run_sweep(circuit, params=[{'x': 0}, {'x': 1}])
-    assert result[0].records['m'][0, 0, 0] == 0
-    assert result[1].records['m'][0, 0, 0] == 1
-
-
 def test_variable_grid_qid_init():
     r = sympy.Symbol('r')
     c = sympy.Symbol('c')
@@ -361,11 +351,16 @@ def test_variable_grid_qid_repr_and_str():
 
 
 def test_variable_grid_qid_simulation():
+    """VariableQid does not work with simulator sweeps
+
+    Since the addition of SetVariable, VariableQids can not be
+    resolved during a simulator sweep. If we enable runtime resolution
+    of VariableQid, this test should be changed.
+    """
     r, c = sympy.symbols('r c')
     q = cirq.VariableGridQid(r, c)
-    circuit = cirq.Circuit(cirq.X(q), cirq.measure(q, key='m'))
+    q00 = cirq.GridQubit(0, 0)
+    circuit = cirq.Circuit(cirq.Moment(cirq.X(q00)), cirq.Moment(cirq.measure(q, key='m')))
     sim = cirq.Simulator()
-    results = sim.run_sweep(circuit, params=[{'r': 0, 'c': 0}, {'r': 1, 'c': 2}], repetitions=5)
-    assert len(results) == 2
-    assert results[0].records['m'][0, 0, 0] == 1
-    assert results[1].records['m'][0, 0, 0] == 1
+    with pytest.raises(ValueError):
+        _ = sim.run_sweep(circuit, params=[{'r': 0, 'c': 0}, {'r': 1, 'c': 2}])
