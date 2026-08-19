@@ -14,7 +14,8 @@
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # yamlfmt configuration to match project settings like line length.
-# See https://github.com/google/yamlfmt/blob/main/docs/config-file.md for info about configuration options.
+# See https://github.com/google/yamlfmt/blob/main/docs/config-file.md
+# for info about configuration options.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 formatter:

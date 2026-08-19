@@ -51,7 +51,7 @@ IFS=$'\n' read -r -d '' -a our_yaml_files <<< "$(
 # Ready to run here.
 if [[ ${#our_yaml_files[@]} -gt 0 ]]; then
     if (( opt_dry_run )); then
-        printf '%s ' '>>' 'yamllint' "${yamllint_options[@]} --config-file .yamllint.yaml"
+        printf '%s ' '>>' 'yamllint' "${yamllint_options[@]}" "--config-file .yamllint.yaml"
         printf '\\\n  %s ' "${our_yaml_files[@]}"
         printf '\\\n;\n'
     else
@@ -59,7 +59,7 @@ if [[ ${#our_yaml_files[@]} -gt 0 ]]; then
             if command -v yamlfmt >/dev/null 2>&1; then
                 yamlfmt -conf .yamlfmt.yaml "${our_yaml_files[@]}"
             else
-                printf "Warning: yamlfmt not found on PATH; skipping autofix.\n" \
+                echo -e "Warning: yamlfmt not found on PATH; skipping autofix.\n" \
                        "Install: go install github.com/google/yamlfmt/cmd/yamlfmt@latest" >&2
             fi
         fi
