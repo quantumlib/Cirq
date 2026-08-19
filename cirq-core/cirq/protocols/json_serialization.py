@@ -217,19 +217,24 @@ class CirqEncoder(json.JSONEncoder):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._memo: dict[Any, dict] = {}
+        self._cache: dict[int, Any] = {}
 
     def default(self, o) -> dict[str, Any] | list[Any] | float | bool:
+        oid = id(o)
+        if (val := self._cache.get(oid)) is not None:
+            return val
         # Object with custom method?
         if hasattr(o, '_json_dict_'):
-            json_dict = _json_dict_with_cirq_type(o)
             if isinstance(o, SerializableByKey):
                 if ref := self._memo.get(o):
                     return ref
                 key = len(self._memo)
                 ref = {"cirq_type": "REF", "key": key}
                 self._memo[o] = ref
-                return {"cirq_type": "VAL", "key": key, "val": json_dict}
-            return json_dict
+                self._cache[oid] = ref
+                return {"cirq_type": "VAL", "key": key, "val": _json_dict_with_cirq_type(o)}
+            val = self._cache[oid] = _json_dict_with_cirq_type(o)
+            return val
 
         # Sympy object? (Must come before general number checks.)
         # TODO: More support for sympy
@@ -636,5 +641,5 @@ def read_json_gzip(
         json_str = gzip.decompress(gzip_raw).decode(encoding='utf-8')
         return read_json(json_text=json_str, resolvers=resolvers)
 
-    with gzip.open(file_or_fn, 'rt') as json_file:  # type: ignore
+    with gzip.open(file_or_fn, 'rt') as json_file:  # type: ignore[arg-type]
         return read_json(cast(IO, json_file), resolvers=resolvers)

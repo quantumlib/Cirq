@@ -454,3 +454,13 @@ def test_inhomogeneous_measurement_count_padding() -> None:
     results = sim.run(c, repetitions=10)
     for i in range(10):
         assert np.sum(results.records['m'][i, :, :]) == 1
+
+
+def test_simulate_unresolved_parameter_raises() -> None:
+    sim = CountingSimulator()
+    circuit = cirq.Circuit(cirq.XPowGate(exponent=sympy.Symbol('a'))(q0))
+    with pytest.raises(
+        ValueError,
+        match=r'Circuit contains ops whose symbols were not specified in the parameter sweep\.',
+    ):
+        sim.simulate(circuit)

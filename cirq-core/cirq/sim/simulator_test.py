@@ -75,7 +75,11 @@ class SimulatesIntermediateStateImpl(
     """A SimulatesIntermediateState that uses the default SimulationTrialResult type."""
 
     def _base_iterator(
-        self, circuit: cirq.AbstractCircuit, qubits: tuple[cirq.Qid, ...], initial_state: Any
+        self,
+        circuit: cirq.AbstractCircuit,
+        qubits: tuple[cirq.Qid, ...],
+        initial_state: Any,
+        param_resolver: cirq.ParamResolver | None = None,
     ) -> Iterator[TStepResult]:
         raise NotImplementedError
 

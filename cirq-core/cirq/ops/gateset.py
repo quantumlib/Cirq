@@ -214,7 +214,7 @@ class GateFamily:
                 if self._ignore_global_phase
                 else gate == self._gate
             )
-        return isinstance(gate, self.gate)  # type: ignore
+        return isinstance(gate, self.gate)  # type: ignore[arg-type]
 
     def __contains__(self, item: raw_types.Gate | raw_types.Operation) -> bool:
         if self._should_check_tags:

@@ -24,7 +24,6 @@ from cirq_google.engine.abstract_job import AbstractJob
 
 if TYPE_CHECKING:
     import cirq
-    import cirq_google.engine.calibration as calibration
     import cirq_google.engine.processor_config as processor_config
     from cirq_google.engine.abstract_local_engine import AbstractLocalEngine
     from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
@@ -41,7 +40,7 @@ class AbstractLocalJob(AbstractJob):
     Implementers of this class should write the following functions:
       - Status functions: execution_status, failure
       - Action functions: cancel, delete
-      - Result functions: results, batched_results, calibration_results
+      - Result functions: results, batched_results, mapping_results, calibration_results
 
     Attributes:
       processor_ids: A string list of processor ids that this job can be run on.
@@ -190,11 +189,6 @@ class AbstractLocalJob(AbstractJob):
         """Returns the AbstractProcessor for the processor the job is/was run on,
         if available, else None."""
         return self.engine().get_processor(self._processor_id)
-
-    def get_calibration(self) -> calibration.Calibration | None:
-        """Returns the recorded calibration at the time when the job was created,
-        from the parent Engine object."""
-        return self.get_processor().get_latest_calibration(int(self._create_time.timestamp()))
 
     def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the job.

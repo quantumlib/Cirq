@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import dataclasses
 from abc import ABC, abstractmethod
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterator, Sequence
 from concurrent import futures
 from typing import Any, TYPE_CHECKING
 
@@ -296,7 +296,7 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
     gamma_default: float | None = None
     phi_default: float | None = None
 
-    def _iter_angles(self) -> Iterable[tuple[bool, float | None, sympy.Symbol]]:
+    def _iter_angles(self) -> Iterator[tuple[bool, float | None, sympy.Symbol]]:
         yield from (
             (self.characterize_theta, self.theta_default, THETA_SYMBOL),
             (self.characterize_zeta, self.zeta_default, ZETA_SYMBOL),
@@ -305,7 +305,7 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
             (self.characterize_phi, self.phi_default, PHI_SYMBOL),
         )
 
-    def _iter_angles_for_characterization(self) -> Iterable[tuple[float | None, sympy.Symbol]]:
+    def _iter_angles_for_characterization(self) -> Iterator[tuple[float | None, sympy.Symbol]]:
         yield from (
             (default, symbol)
             for characterize, default, symbol in self._iter_angles()

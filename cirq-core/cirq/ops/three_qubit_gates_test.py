@@ -256,8 +256,8 @@ def test_identity_multiplication() -> None:
 )
 def test_decomposition_cost(op: cirq.Operation, max_two_cost: int) -> None:
     ops = tuple(cirq.flatten_op_tree(cirq.decompose(op)))
-    two_cost = len([e for e in ops if len(e.qubits) == 2])
-    over_cost = len([e for e in ops if len(e.qubits) > 2])
+    two_cost = sum(1 for e in ops if len(e.qubits) == 2)
+    over_cost = sum(1 for e in ops if len(e.qubits) > 2)
     assert over_cost == 0
     assert two_cost == max_two_cost
 

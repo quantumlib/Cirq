@@ -474,90 +474,6 @@ def test_get_processor_no_processor():
     assert not job.get_processor()
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_async')
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_calibration_async')
-def test_get_calibration(get_calibration, get_job):
-    calibration_timestamp_seconds = 1562
-    raw_calibration_data = """
-timestamp_ms: 1562,
-metrics: [{
-    name: 'two_qubit_xeb',
-    targets: ['0_0', '0_1'],
-    values: [{
-        double_val: .9999
-    }]
-    }, {
-    name: 'two_qubit_xeb',
-    targets: ['0_0', '1_0'],
-    values: [{
-        double_val: .9998
-    }]
-    }, {
-    name: 't1',
-    targets: ['0_0'],
-    values: [{
-        double_val: 321
-    }]
-    }, {
-    name: 't1',
-    targets: ['0_1'],
-    values: [{
-        double_val: 911
-    }]
-    }, {
-    name: 't1',
-    targets: ['1_0'],
-    values: [{
-        double_val: 505
-    }]
-    }, {
-    name: 'globalMetric',
-    values: [{
-        int32_val: 12300
-    }]
-}]
-"""
-    calibration = Merge(raw_calibration_data, v2.metrics_pb2.MetricsSnapshot())
-    job_calibration = cg.Calibration(calibration=calibration)
-
-    qjob = quantum.QuantumJob(
-        execution_status=quantum.ExecutionStatus(
-            state=quantum.ExecutionStatus.State.SUCCESS,
-            calibration_name=f"projects/a/processors/p/calibrations/{calibration_timestamp_seconds}",
-        )
-    )
-    get_job.return_value = qjob
-
-    calibration_any_proto = any_pb2.Any()
-    calibration_any_proto.Pack(calibration)
-    quantum_calibration = quantum.QuantumCalibration(
-        name='calibration1',
-        timestamp=timestamp_pb2.Timestamp(seconds=calibration_timestamp_seconds),
-        data=calibration_any_proto,
-    )
-
-    get_calibration.return_value = quantum_calibration
-
-    job = cg.EngineJob('a', 'b', 'steve', EngineContext())
-
-    assert job.get_calibration() == job_calibration
-    get_job.assert_called_once()
-    get_calibration.assert_called_once_with('a', 'p', calibration_timestamp_seconds)
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_async')
-def test_get_calibration_no_calibration(get_job):
-    qjob = quantum.QuantumJob(
-        execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.RUNNING)
-    )
-    get_job.return_value = qjob
-
-    job = cg.EngineJob('a', 'b', 'steve', EngineContext())
-
-    assert not job.get_calibration()
-    get_job.assert_called_once()
-
-
 def test_get_config_not_set():
     qjob = quantum.QuantumJob(
         execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS)
@@ -1089,3 +1005,59 @@ def test_batched_results_batch_job_v1_raises(get_job_results, mock_is_batch):
 
     with pytest.raises(ValueError, match='batched_results was not populated for this batch job'):
         _ = job.batched_results()
+
+
+@mock.patch('cirq_google.engine.engine_program.EngineProgram.is_batch_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
+def test_mapping_results_non_batch_job_raises(get_job_results, mock_is_batch):
+    mock_is_batch.return_value = False
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
+        update_time=UPDATE_TIME,
+    )
+    get_job_results.return_value = RESULTS
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    with pytest.raises(ValueError, match='mapping_results called for a non-batch program'):
+        _ = job.mapping_results()
+
+
+@mock.patch('cirq_google.engine.engine_program.EngineProgram.batch_keys_async')
+@mock.patch('cirq_google.engine.engine_program.EngineProgram.is_batch_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
+def test_mapping_results_batch_job_without_keys_raises(
+    get_job_results, mock_is_batch, mock_batch_keys
+):
+    mock_is_batch.return_value = True
+    mock_batch_keys.return_value = ['', '']
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
+        update_time=UPDATE_TIME,
+    )
+    get_job_results.return_value = RESULTS_NON_UNIFORM
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    with pytest.raises(
+        ValueError, match='mapping_results called for a batch job without circuit keys'
+    ):
+        _ = job.mapping_results()
+
+
+@mock.patch('cirq_google.engine.engine_program.EngineProgram.batch_keys_async')
+@mock.patch('cirq_google.engine.engine_program.EngineProgram.is_batch_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
+def test_mapping_results_batch_job(get_job_results, mock_is_batch, mock_batch_keys):
+    mock_is_batch.return_value = True
+    mock_batch_keys.return_value = ['c1', 'c2']
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
+        update_time=UPDATE_TIME,
+    )
+    get_job_results.return_value = RESULTS_NON_UNIFORM
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+
+    mapping = job.mapping_results()
+    assert list(mapping.keys()) == ['c1', 'c2']
+    assert len(mapping['c1']) == 1
+    assert len(mapping['c2']) == 1
+    assert len(mapping['c1'][0].measurements['q']) == 10
+    assert len(mapping['c2'][0].measurements['q']) == 20
+    assert job.mapping_results() == mapping
