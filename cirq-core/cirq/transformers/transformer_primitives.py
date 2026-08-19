@@ -164,14 +164,13 @@ def _map_operations_impl(
 
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
-        map_func: Mapping function from (`cirq.Operation`, `moment_index`) to a
-            `cirq.OP_TREE`. If the
-            resulting optree spans more than 1 moment, it's either wrapped in a tagged circuit
-            operation and inserted in-place in the same moment (if  `wrap_in_circuit_op` is True)
-            OR the mapped operations are inserted directly in the circuit, preserving moment
-            structure. The effect is equivalent to (but much faster) a two-step approach of first
-            wrapping the operations in a circuit operation and then calling `cirq.unroll_circuit_op`
-            to unroll the corresponding circuit ops.
+        map_func: Mapping function from (`cirq.Operation`, `moment_index`) to a `cirq.OP_TREE`.
+            If the resulting optree spans more than 1 moment, it's either wrapped in a tagged
+            circuit operation and inserted in-place in the same moment (if `wrap_in_circuit_op`
+            is True) OR the mapped operations are inserted directly in the circuit, preserving
+            moment structure. The effect is equivalent to (but much faster) a two-step approach
+            of first wrapping the operations in a circuit operation and then calling
+            `cirq.unroll_circuit_op` to unroll the corresponding circuit ops.
         deep: If true, `map_func` will be recursively applied to circuits wrapped inside
             any circuit operations contained within `circuit`.
         raise_if_add_qubits: Set to True by default. If True, raises ValueError if
@@ -180,19 +179,19 @@ def _map_operations_impl(
             tagged operations -- i.e. `map_func(op, idx)` will be called only for operations that
             satisfy `set(op.tags).isdisjoint(tags_to_ignore)`.
         wrap_in_circuit_op: If True, the mapped operations will be wrapped in a tagged circuit
-        operation and inserted in-place if they occupy more than one moment.
+            operation and inserted in-place if they occupy more than one moment.
         preserve_moments: If True, all operations mapped from a single source moment are packed
             into a single target moment, preserving both the moment structure and the order of
-            operations within the moment. Raises ValueError if the mapped operations cannot fit
-            in a single moment (e.g. two mapped operations act on the same qubit).
+            operations within the moment.
 
     Raises:
-          ValueError: If `raise_if_add_qubits` is True and `map_func(op, idx)` returns
-            operations that act on qubits outside of `op.qubits` — i.e. if
-            `cirq.qubit_set(map_func(op, idx))` is not a subset of `op.qubits`.
+        ValueError: If `raise_if_add_qubits` is True and `map_func(op, idx)` returns
+            operations that act on qubits outside of the `op.qubits` set.
+        ValueError: If `preserve_moments` is True and the mapped operations cannot fit
+            in a single moment (e.g., two mapped operations act on the same qubit).
 
     Returns:
-        Copy of input circuit with mapped operations.
+        Copy of the input circuit with mapped operations.
     """
     tags_to_ignore_set = set(tags_to_ignore)
 
@@ -299,13 +298,13 @@ def map_operations(
             single moment (e.g. two mapped operations act on the same qubit).
 
     Raises:
-          ValueError if `issubset(qubit_set(map_func(op, idx)), op.qubits) is False` and
+        ValueError if `issubset(qubit_set(map_func(op, idx)), op.qubits) is False` and
             `raise_if_add_qubits is True`.
-          ValueError if `preserve_moments is True` and operations mapped from a source moment
+        ValueError if `preserve_moments is True` and operations mapped from a source moment
             cannot be packed into a single target moment.
 
     Returns:
-        Copy of input circuit with mapped operations (wrapped in a tagged CircuitOperation).
+        Copy of the input circuit with mapped operations (wrapped in a tagged CircuitOperation).
     """
     return _map_operations_impl(
         circuit,
