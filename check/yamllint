@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+###############################################################################
+# Execute yamllint for all YAML scripts in this repository
+#
+# Usage:
+#     check/yamllint [--dry-run] [yamllint-arguments]
+#
+# Use the '--dry-run' option to print out the yamllint command line without
+# running it.  This displays all YAML files found in the repository.
+# Use the '--fix' option to run yamlfmt (see .yamlfmt.yaml) before yamllint.
+#
+# NOTE: this repo doesn't have one consistent convention for how block
+# sequences are indented under their parent key ('key:\n- item' vs.
+# 'key:\n  - item'). .yamlfmt.yaml picks one (indented) arbitrarily via
+# 'indentless_arrays' -- see the comment there for how to switch it. Running
+# '--fix' will normalize every file to whichever style is active there.
+#
+################################################################################
+
+# Change working directory to the repository root.
+thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
+repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
+cd "${repo_dir}" || exit $?
+
+# Process command line arguments
+opt_dry_run=0
+opt_fix=0
+typeset -a yamllint_options
+typeset -a our_yaml_files
+
+for arg in "$@"; do
+    if [[ "${arg}" == "--dry-run" ]]; then
+        opt_dry_run=1
+    elif [[ "${arg}" == "--fix" ]]; then
+        opt_fix=1
+    else
+        yamllint_options+=( "${arg}" )
+    fi
+done
+
+# Find all YAML files in this repository.
+IFS=$'\n' read -r -d '' -a our_yaml_files <<< "$(
+    git ls-files -z -- \
+        ':(exclude,glob)docs/**/*.yaml' \
+        ':(exclude,glob)docs/**/*.yml' \
+        '*.yml' '*.yaml' | \
+    tr '\0' '\n' \
+)"
+
+# Ready to run here.
+if [[ ${#our_yaml_files[@]} -gt 0 ]]; then
+    if (( opt_dry_run )); then
+        printf '%s ' '>>' 'yamllint' "${yamllint_options[@]} --config-file .yamllint.yaml"
+        printf '\\\n  %s ' "${our_yaml_files[@]}"
+        printf '\\\n;\n'
+    else
+        if (( opt_fix )); then
+            if command -v yamlfmt >/dev/null 2>&1; then
+                yamlfmt -conf .yamlfmt.yaml "${our_yaml_files[@]}"
+            else
+                printf "Warning: yamlfmt not found on PATH; skipping autofix.\n" \
+                       "Install: go install github.com/google/yamlfmt/cmd/yamlfmt@latest" >&2
+            fi
+        fi
+        yamllint "${yamllint_options[@]}" --config-file .yamllint.yaml "${our_yaml_files[@]}"
+    fi
+fi

@@ -42,6 +42,7 @@ cd "${repo_dir}"
 declare only_changed=0
 declare -a extra_format_args=()
 declare -a extra_ruff_args=()
+declare -a extra_yamllint_args=()
 declare -a base_rev=()
 
 for arg in "$@"; do
@@ -56,6 +57,7 @@ for arg in "$@"; do
         --fix)
             extra_format_args=( --apply )
             extra_ruff_args=( --fix )
+            extra_yamllint_args=( --fix )
             ;;
         --apply-format-changes)
             echo "Warning: option '--apply-format-changes' is deprecated." \
@@ -114,6 +116,8 @@ run check/typecheck
 if (( only_changed == 0 )); then
     run check/doctest
 fi
+
+run check/yamllint "${extra_yamllint_args[@]}"
 
 # Summarize the results --------------------------------------------------------
 
