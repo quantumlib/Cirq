@@ -20,7 +20,6 @@ import sympy
 
 import cirq
 
-
 _NUMPY_FLOAT_TYPES = (np.float64, np.double)
 _NUMPY_INT_TYPES = (np.int64, np.short)
 
