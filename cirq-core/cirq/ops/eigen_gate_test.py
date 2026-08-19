@@ -344,6 +344,8 @@ def test_is_parameterized() -> None:
     assert not cirq.is_parameterized(CExpZinGate(0))
     assert not cirq.is_parameterized(CExpZinGate(1))
     assert not cirq.is_parameterized(CExpZinGate(3))
+    assert not cirq.is_parameterized(CExpZinGate(np.double(1)))
+    assert not cirq.is_parameterized(CExpZinGate(np.int64(1)))
     assert cirq.is_parameterized(CExpZinGate(sympy.Symbol('a')))
 
 
@@ -352,8 +354,23 @@ def test_resolve_parameters(resolve_fn) -> None:
     assert resolve_fn(
         CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': 0.5})
     ) == CExpZinGate(0.5)
+    assert resolve_fn(
+        CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': np.double(0.5)})
+    ) == CExpZinGate(0.5)
+    assert resolve_fn(
+        CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': np.float64(0.5)})
+    ) == CExpZinGate(0.5)
+    assert resolve_fn(
+        CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': np.int64(1)})
+    ) == CExpZinGate(1)
+    assert resolve_fn(
+        CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': np.short(1)})
+    ) == CExpZinGate(1)
 
     assert resolve_fn(CExpZinGate(0.25), cirq.ParamResolver({})) == CExpZinGate(0.25)
+    assert resolve_fn(CExpZinGate(np.double(0.25)), cirq.ParamResolver({})) == CExpZinGate(
+        np.double(0.25)
+    )
 
     with pytest.raises(ValueError, match='Complex exponent'):
         resolve_fn(CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': 0.5j}))

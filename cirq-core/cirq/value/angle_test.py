@@ -21,6 +21,10 @@ import sympy
 import cirq
 
 
+_NUMPY_FLOAT_TYPES = (np.float64, np.double)
+_NUMPY_INT_TYPES = (np.int64, np.short)
+
+
 def test_canonicalize_half_turns() -> None:
     assert cirq.canonicalize_half_turns(0) == 0
     assert cirq.canonicalize_half_turns(1) == +1
@@ -29,15 +33,36 @@ def test_canonicalize_half_turns() -> None:
     assert cirq.canonicalize_half_turns(1.5) == -0.5
     assert cirq.canonicalize_half_turns(-0.5) == -0.5
     assert cirq.canonicalize_half_turns(101.5) == -0.5
-    # NumPy number scalars (accepted by TParamVal)
-    assert cirq.canonicalize_half_turns(np.double(1.5)) == -0.5
-    assert cirq.canonicalize_half_turns(np.float64(0.5)) == 0.5
-    assert cirq.canonicalize_half_turns(np.int64(1)) == 1
     # Variable sympy expression
     assert cirq.canonicalize_half_turns(sympy.Symbol('a')) == sympy.Symbol('a')
     assert cirq.canonicalize_half_turns(sympy.Symbol('a') + 1) == sympy.Symbol('a') + 1
     # Constant sympy expression
     assert cirq.canonicalize_half_turns(sympy.Symbol('a') * 0 + 3) == 1
+
+
+def _assert_canonical_numpy(original, result, expected) -> None:
+    assert result == expected
+    assert type(result) is type(original)
+    assert isinstance(result, np.number)
+    assert -1 < result <= 1
+    assert (float(result) - float(original)) % 2 == pytest.approx(0)
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_FLOAT_TYPES)
+@pytest.mark.parametrize(
+    'value,expected',
+    [(0.0, 0.0), (1.0, 1.0), (-1.0, 1.0), (0.5, 0.5), (1.5, -0.5), (-0.5, -0.5), (101.5, -0.5)],
+)
+def test_canonicalize_half_turns_numpy_floats(dtype, value, expected) -> None:
+    original = dtype(value)
+    _assert_canonical_numpy(original, cirq.canonicalize_half_turns(original), expected)
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_INT_TYPES)
+@pytest.mark.parametrize('value,expected', [(0, 0), (1, 1), (-1, 1), (2, 0), (3, 1)])
+def test_canonicalize_half_turns_numpy_ints(dtype, value, expected) -> None:
+    original = dtype(value)
+    _assert_canonical_numpy(original, cirq.canonicalize_half_turns(original), expected)
 
 
 def test_chosen_angle_to_half_turns() -> None:

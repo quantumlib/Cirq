@@ -14,10 +14,21 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 import sympy
 
 import cirq
+
+_NUMPY_SCALAR_TYPES = (np.float64, np.double, np.int64, np.short)
+_EIGEN_GATES = (
+    cirq.XPowGate,
+    cirq.YPowGate,
+    cirq.ZPowGate,
+    cirq.HPowGate,
+    cirq.CZPowGate,
+    cirq.CXPowGate,
+)
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
@@ -133,3 +144,55 @@ def test_recursive_resolve() -> None:
     assert cirq.resolve_parameters_once(a, resolver) == b
     with pytest.raises(RecursionError):
         _ = cirq.resolve_parameters(a, resolver)
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_SCALAR_TYPES)
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve_parameters_numpy_scalars(resolve_fn, dtype) -> None:
+    val = dtype(1)
+    assert not cirq.is_parameterized(val)
+    assert cirq.parameter_names(val) == set()
+    assert resolve_fn(val, {'a': 0}) is val
+    assert resolve_fn((val, val), {}) == (val, val)
+
+
+@pytest.mark.parametrize('gate_cls', _EIGEN_GATES)
+@pytest.mark.parametrize('dtype', _NUMPY_SCALAR_TYPES)
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve_numpy_values_on_gates(resolve_fn, gate_cls, dtype) -> None:
+    a = sympy.Symbol('a')
+    gate = gate_cls(exponent=a)
+    resolved = resolve_fn(gate, {a: dtype(1)})
+    assert not cirq.is_parameterized(resolved)
+    assert resolved.exponent == 1.0
+    assert type(resolved.exponent) is float
+    assert resolved == gate_cls(exponent=1.0)
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_SCALAR_TYPES)
+def test_numpy_exponent_is_not_parameterized(dtype) -> None:
+    gate = cirq.XPowGate(exponent=dtype(1))
+    assert not cirq.is_parameterized(gate)
+    assert cirq.parameter_names(gate) == set()
+    assert cirq.resolve_parameters(gate, {'a': 0.5}) is gate
+
+
+def test_numpy_double_exponent_float_isinstance_back_compat() -> None:
+    # Issue 5758 (Dax Fohl): users may treat np.double exponents as Python floats.
+    gate = cirq.XPowGate(exponent=np.double(0.5))
+    is_parameterized = not isinstance(gate.exponent, float)
+    assert is_parameterized is False
+    assert not cirq.is_parameterized(gate)
+    assert gate.exponent == 0.5
+
+
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve_numpy_values_on_operations(resolve_fn) -> None:
+    q = cirq.LineQubit(0)
+    a = sympy.Symbol('a')
+    op = cirq.XPowGate(exponent=a).on(q)
+    resolved = resolve_fn(op, {'a': np.double(1)})
+    assert not cirq.is_parameterized(resolved)
+    assert resolved == cirq.X(q)
+    half = resolve_fn(op, {'a': np.float64(0.5)})
+    assert half == cirq.XPowGate(exponent=0.5).on(q)
