@@ -19,6 +19,7 @@ from __future__ import annotations
 import itertools
 import math
 from collections.abc import Iterator
+from typing import cast
 
 import numpy as np
 
@@ -118,8 +119,10 @@ def known_2q_op_to_sycamore_operations(op: cirq.Operation) -> cirq.OP_TREE | Non
 
     q0, q1 = op.qubits
 
-    if isinstance(op.untagged, cirq.CircuitOperation):
-        flattened_gates = [o.gate for o in cirq.decompose_once(op.untagged)]
+    if cirq.is_circuit_operation(op):
+        flattened_gates = [
+            o.gate for o in cirq.decompose_once(cast(cirq.CircuitOperation, op.untagged))
+        ]
         if len(flattened_gates) != 2:
             return None
         for g1, g2 in itertools.permutations(flattened_gates):

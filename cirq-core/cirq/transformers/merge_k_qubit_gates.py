@@ -38,11 +38,8 @@ def _rewrite_merged_k_qubit_unitaries(
 
     def map_func(op: cirq.Operation, _) -> cirq.OP_TREE:
         op_untagged = op.untagged
-        if (
-            deep
-            and isinstance(op_untagged, circuits.CircuitOperation)
-            and merged_circuit_op_tag not in op.tags
-        ):
+        if deep and circuits.is_circuit_operation(op) and merged_circuit_op_tag not in op.tags:
+            op_untagged = cast(circuits.CircuitOperation, op_untagged)
             return op_untagged.replace(
                 circuit=_rewrite_merged_k_qubit_unitaries(
                     op_untagged.circuit,

@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import cast, TYPE_CHECKING
 
 import numpy as np
 
@@ -49,11 +49,10 @@ class AQTTargetGateset(cirq.TwoQubitCompilationTargetGateset):
     def _decompose_single_qubit_operation(self, op: cirq.Operation, _: int) -> DecomposeResult:
         # unwrap tagged and circuit operations to get the actual operation
         opu = op.untagged
-        opu = (
-            next(opu.circuit.all_operations()).untagged
-            if isinstance(opu, cirq.CircuitOperation) and len(opu.circuit) == 1
-            else opu
-        )
+        if cirq.is_circuit_operation(opu):
+            circuit_op = cast(cirq.CircuitOperation, opu)
+            if len(circuit_op.circuit) == 1:
+                opu = next(circuit_op.circuit.all_operations()).untagged
         if isinstance(opu.gate, cirq.HPowGate) and opu.gate.exponent == 1:
             return [cirq.rx(np.pi).on(opu.qubits[0]), cirq.ry(-1 * np.pi / 2).on(opu.qubits[0])]
         if cirq.has_unitary(opu):

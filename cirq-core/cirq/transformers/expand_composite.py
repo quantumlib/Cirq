@@ -52,7 +52,7 @@ def expand_composite(
     """
 
     def map_func(op: cirq.Operation, _) -> cirq.OP_TREE:
-        if context and context.deep and isinstance(op.untagged, circuits.CircuitOperation):
+        if context and context.deep and circuits.is_circuit_operation(op):
             return op
         return protocols.decompose(op, keep=no_decomp, on_stuck_raise=None)
 

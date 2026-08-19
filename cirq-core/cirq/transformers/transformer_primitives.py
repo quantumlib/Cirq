@@ -110,9 +110,7 @@ def map_moments(
     mutable_circuit = circuit.unfreeze(copy=False)
     if deep:
         batch_replace = []
-        for i, op in circuit.findall_operations(
-            lambda o: isinstance(o.untagged, circuits.CircuitOperation)
-        ):
+        for i, op in circuit.findall_operations(circuits.is_circuit_operation):
             if set(op.tags).intersection(tags_to_ignore):
                 continue
             op_untagged = cast(circuits.CircuitOperation, op.untagged)
@@ -187,10 +185,11 @@ def _map_operations_impl(
     def apply_map_func(op: cirq.Operation, idx: int) -> list[cirq.Operation]:
         if tags_to_ignore_set.intersection(op.tags):
             return [op]
-        if deep and isinstance(op.untagged, circuits.CircuitOperation):
-            op = op.untagged.replace(
+        if deep and circuits.is_circuit_operation(op):
+            op_untagged = cast(circuits.CircuitOperation, op.untagged)
+            op = op_untagged.replace(
                 circuit=_map_operations_impl(
-                    op.untagged.circuit,
+                    op_untagged.circuit,
                     map_func,
                     deep=deep,
                     raise_if_add_qubits=raise_if_add_qubits,
@@ -488,10 +487,10 @@ def _merge_operations_impl(
         for op in sorted(current_moment.operations, key=lambda op: op.qubits):
             if (
                 deep
-                and isinstance(op.untagged, circuits.CircuitOperation)
+                and circuits.is_circuit_operation(op)
                 and tags_to_ignore_set.isdisjoint(op.tags)
             ):
-                op_untagged = op.untagged
+                op_untagged = cast(circuits.CircuitOperation, op.untagged)
                 merged_op = op_untagged.replace(
                     circuit=_merge_operations_impl(
                         op_untagged.circuit,
@@ -731,17 +730,16 @@ def merge_moments(
     if not circuit:
         return circuit
     if deep:
-        circuit = map_operations(
-            circuit,
-            lambda op, _: (
-                op.untagged.replace(
-                    circuit=merge_moments(op.untagged.circuit, merge_func, deep=deep)
-                ).with_tags(*op.tags)
-                if isinstance(op.untagged, circuits.CircuitOperation)
-                else op
-            ),
-            tags_to_ignore=tags_to_ignore,
-        )
+
+        def _map_nested_circuit_op(op: cirq.Operation, _: int) -> cirq.Operation:
+            if not circuits.is_circuit_operation(op):
+                return op
+            op_untagged = cast(circuits.CircuitOperation, op.untagged)
+            return op_untagged.replace(
+                circuit=merge_moments(op_untagged.circuit, merge_func, deep=deep)
+            ).with_tags(*op.tags)
+
+        circuit = map_operations(circuit, _map_nested_circuit_op, tags_to_ignore=tags_to_ignore)
     merged_moments: list[circuits.Moment] = [circuit[0]]
     for current_moment in circuit[1:]:
         merged_moment = merge_func(merged_moments[-1], current_moment)
@@ -782,19 +780,18 @@ def merge_moments_batch(
     if not circuit:
         return circuit
     if deep:
-        circuit = map_operations(
-            circuit,
-            lambda op, _: (
-                op.untagged.replace(
-                    circuit=merge_moments_batch(
-                        op.untagged.circuit, merge_func, tags_to_ignore=tags_to_ignore, deep=deep
-                    )
-                ).with_tags(*op.tags)
-                if isinstance(op.untagged, circuits.CircuitOperation)
-                else op
-            ),
-            tags_to_ignore=tags_to_ignore,
-        )
+
+        def _map_nested_circuit_op(op: cirq.Operation, _: int) -> cirq.Operation:
+            if not circuits.is_circuit_operation(op):
+                return op
+            op_untagged = cast(circuits.CircuitOperation, op.untagged)
+            return op_untagged.replace(
+                circuit=merge_moments_batch(
+                    op_untagged.circuit, merge_func, tags_to_ignore=tags_to_ignore, deep=deep
+                )
+            ).with_tags(*op.tags)
+
+        circuit = map_operations(circuit, _map_nested_circuit_op, tags_to_ignore=tags_to_ignore)
 
     merged_moments: list[circuits.Moment] = []
     moments_to_merge: Sequence[circuits.Moment] = circuit.moments
@@ -832,7 +829,8 @@ def unroll_circuit_op(
         to_zip: list[cirq.AbstractCircuit] = []
         for op in m:
             op_untagged = op.untagged
-            if isinstance(op_untagged, circuits.CircuitOperation):
+            if circuits.is_circuit_operation(op):
+                op_untagged = cast(circuits.CircuitOperation, op_untagged)
                 if deep:
                     op_untagged = op_untagged.replace(
                         circuit=unroll_circuit_op(
@@ -876,9 +874,7 @@ def unroll_circuit_op_greedy_earliest(
     batch_replace = []
     batch_remove = []
     batch_insert = []
-    for i, op in circuit.findall_operations(
-        lambda o: isinstance(o.untagged, circuits.CircuitOperation)
-    ):
+    for i, op in circuit.findall_operations(circuits.is_circuit_operation):
         op_untagged = cast(circuits.CircuitOperation, op.untagged)
         if deep:
             op_untagged = op_untagged.replace(
@@ -926,11 +922,11 @@ def unroll_circuit_op_greedy_frontier(
     while idx < len(unrolled_circuit):
         for op in unrolled_circuit[idx].operations:
             # Don't touch stuff inserted by unrolling previous circuit ops.
-            if not isinstance(op.untagged, circuits.CircuitOperation):
+            if not circuits.is_circuit_operation(op):
                 continue
             if any(frontier[q] > idx for q in op.qubits):
                 continue
-            op_untagged = op.untagged
+            op_untagged = cast(circuits.CircuitOperation, op.untagged)
             if deep:
                 op_untagged = op_untagged.replace(
                     circuit=unroll_circuit_op_greedy_frontier(

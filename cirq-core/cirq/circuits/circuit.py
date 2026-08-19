@@ -47,7 +47,7 @@ import cirq._version
 from cirq import _compat, devices, ops, protocols, qis
 from cirq._doc import document
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
-from cirq.circuits.circuit_operation import CircuitOperation
+from cirq.circuits.circuit_operation import CircuitOperation, is_circuit_operation
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
 from cirq.circuits.qasm_output import QasmOutput
@@ -863,12 +863,10 @@ class AbstractCircuit(abc.ABC):
             given predicate are terminal. Also checks within any CircuitGates
             the circuit may contain.
         """
-        from cirq.circuits import CircuitOperation
-
         if not all(
             self.next_moment_operating_on(op.qubits, i + 1) is None
             for (i, op) in self.findall_operations(predicate)
-            if not isinstance(op.untagged, CircuitOperation)
+            if not is_circuit_operation(op)
         ):
             return False
 
@@ -908,12 +906,10 @@ class AbstractCircuit(abc.ABC):
             given predicate are terminal. Also checks within any CircuitGates
             the circuit may contain.
         """
-        from cirq.circuits import CircuitOperation
-
         if any(
             self.next_moment_operating_on(op.qubits, i + 1) is None
             for (i, op) in self.findall_operations(predicate)
-            if not isinstance(op.untagged, CircuitOperation)
+            if not is_circuit_operation(op)
         ):
             return True
 
@@ -2719,8 +2715,8 @@ def _get_moment_annotations(moment: cirq.Moment) -> Iterator[cirq.Operation]:
         op = op.untagged
         if isinstance(op.gate, ops.GlobalPhaseGate):
             continue
-        if isinstance(op, CircuitOperation):
-            for m in op.circuit:
+        if is_circuit_operation(op):
+            for m in cast(CircuitOperation, op).circuit:
                 yield from _get_moment_annotations(m)
         else:
             yield op
@@ -2862,8 +2858,9 @@ def _draw_moment_in_diagram(
 def _get_global_phase_and_tags_for_op(op: cirq.Operation) -> tuple[complex | None, list[Any]]:
     if isinstance(op.gate, ops.GlobalPhaseGate):
         return complex(op.gate.coefficient), list(op.tags)
-    elif isinstance(op.untagged, CircuitOperation):
-        op_phase, op_tags = _get_global_phase_and_tags_for_ops(op.untagged.circuit.all_operations())
+    elif is_circuit_operation(op):
+        op_untagged = cast(CircuitOperation, op.untagged)
+        op_phase, op_tags = _get_global_phase_and_tags_for_ops(op_untagged.circuit.all_operations())
         return op_phase, list(op.tags) + op_tags
     return None, []
 

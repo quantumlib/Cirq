@@ -20,7 +20,7 @@ import itertools
 from collections import defaultdict
 from collections.abc import Callable, Iterable, Iterator, Sequence
 from types import NotImplementedType
-from typing import Any, overload, Protocol, TYPE_CHECKING, TypeVar, Union
+from typing import Any, cast, overload, Protocol, TYPE_CHECKING, TypeVar, Union
 
 from cirq import devices, ops
 from cirq._doc import doc_private
@@ -173,11 +173,12 @@ class _DecomposeArgs:
 
 
 def _decompose_dfs(item: Any, args: _DecomposeArgs) -> Iterator[cirq.Operation]:
-    from cirq.circuits import CircuitOperation, FrozenCircuit
+    from cirq.circuits import CircuitOperation, FrozenCircuit, is_circuit_operation
 
     if isinstance(item, ops.Operation):
         item_untagged = item.untagged
-        if args.preserve_structure and isinstance(item_untagged, CircuitOperation):
+        if args.preserve_structure and is_circuit_operation(item):
+            item_untagged = cast(CircuitOperation, item_untagged)
             new_fc = FrozenCircuit(_decompose_dfs(item_untagged.circuit, args))
             yield item_untagged.replace(circuit=new_fc).with_tags(*item.tags)
             return

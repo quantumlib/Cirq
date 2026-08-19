@@ -75,7 +75,7 @@ def _decompose_operations_to_target_gateset(
         if (
             context
             and context.deep
-            and isinstance(op.untagged, circuits.CircuitOperation)
+            and circuits.is_circuit_operation(op)
             and set(op.tags).isdisjoint(tags_to_decompose)
         ):
             return op

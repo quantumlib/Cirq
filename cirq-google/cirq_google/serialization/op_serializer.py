@@ -69,7 +69,7 @@ class CircuitOpSerializer(OpSerializer):
     """Describes how to serialize CircuitOperations."""
 
     def can_serialize_operation(self, op: cirq.Operation):
-        return isinstance(op.untagged, cirq.CircuitOperation)
+        return cirq.is_circuit_operation(op)
 
     def to_proto(
         self,

@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import cast, TYPE_CHECKING
 
 from cirq import circuits, ops
 
@@ -110,9 +110,10 @@ def map_clean_and_borrowable_qubits(
 
         # Handle CircuitOperation recursively, sharing the same QubitManager
         # to ensure globally unique qubit allocation across all nesting levels.
-        if isinstance(op.untagged, circuits.CircuitOperation):
-            inner_circuit = map_clean_and_borrowable_qubits(op.untagged.circuit, qm=qm)
-            op = op.untagged.replace(circuit=inner_circuit.freeze()).with_tags(*op.tags)
+        if circuits.is_circuit_operation(op):
+            op_untagged = cast(circuits.CircuitOperation, op.untagged)
+            inner_circuit = map_clean_and_borrowable_qubits(op_untagged.circuit, qm=qm)
+            op = op_untagged.replace(circuit=inner_circuit.freeze()).with_tags(*op.tags)
 
         for q in sorted(to_free):
             is_managed_qubit = allocated_map[q] not in all_qubits

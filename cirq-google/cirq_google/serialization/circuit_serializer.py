@@ -251,9 +251,9 @@ class CircuitSerializer(serializer.Serializer):
             moment_proto = v2.program_pb2.Moment()
 
             for op in moment:
-                if isinstance(op.untagged, cirq.CircuitOperation) or (
+                if cirq.is_circuit_operation(op) or (
                     isinstance(op.untagged, cirq.ClassicallyControlledOperation)
-                    and isinstance(op.untagged.without_classical_controls(), cirq.CircuitOperation)
+                    and cirq.is_circuit_operation(op.untagged.without_classical_controls())
                 ):
                     op_pb = moment_proto.circuit_operations.add()
                     self._serialize_circuit_op(

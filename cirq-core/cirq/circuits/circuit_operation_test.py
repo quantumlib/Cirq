@@ -791,21 +791,21 @@ def test_nonterminal_in_subcircuit() -> None:
 def test_is_circuit_operation() -> None:
     q = cirq.LineQubit(0)
     circuit_op = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q)))
-    tagged = circuit_op.with_tags('t')
-    multi_tagged = circuit_op.with_tags('a', 'b')
+    tagged_circuit_op = circuit_op.with_tags('t')
+    multi_tagged_circuit_op = circuit_op.with_tags('a', 'b')
     gate_op = cirq.X(q)
     tagged_gate = gate_op.with_tags('t')
 
     assert cirq.is_circuit_operation(circuit_op)
-    assert cirq.is_circuit_operation(tagged)
-    assert cirq.is_circuit_operation(multi_tagged)
+    assert cirq.is_circuit_operation(tagged_circuit_op)
+    assert cirq.is_circuit_operation(multi_tagged_circuit_op)
     assert not cirq.is_circuit_operation(gate_op)
     assert not cirq.is_circuit_operation(tagged_gate)
     assert not cirq.is_circuit_operation(None)
     assert not cirq.is_circuit_operation(object())
     # Matches the documented isinstance gap for tagged CircuitOperations.
-    assert not isinstance(tagged, cirq.CircuitOperation)
-    assert isinstance(tagged.untagged, cirq.CircuitOperation)
+    assert not isinstance(tagged_circuit_op, cirq.CircuitOperation)
+    assert isinstance(tagged_circuit_op.untagged, cirq.CircuitOperation)
 
 
 def test_decompose_applies_maps() -> None:

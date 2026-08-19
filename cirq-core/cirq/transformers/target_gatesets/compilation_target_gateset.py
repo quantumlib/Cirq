@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import abc
 from collections.abc import Hashable
-from typing import TYPE_CHECKING
+from typing import cast, TYPE_CHECKING
 
 from cirq import circuits, ops, protocols, transformers
 from cirq.transformers import merge_k_qubit_gates, merge_single_qubit_gates
@@ -235,9 +235,8 @@ class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
         new_optree = [*ops.flatten_to_ops_or_moments(new_optree)]
         op_untagged = op.untagged
         old_optree = (
-            [*op_untagged.circuit]
-            if isinstance(op_untagged, circuits.CircuitOperation)
-            and self._intermediate_result_tag in op.tags
+            [*cast(circuits.CircuitOperation, op_untagged).circuit]
+            if circuits.is_circuit_operation(op) and self._intermediate_result_tag in op.tags
             else [op]
         )
         old_2q_gate_count = sum(1 for o in ops.flatten_to_ops(old_optree) if len(o.qubits) == 2)
