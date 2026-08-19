@@ -240,18 +240,13 @@ def _map_operations_impl(
             moment_ops: list[cirq.Operation] = []
             for op in moment:
                 moment_ops.extend(apply_map_func(op, idx))
-            if len(moment_ops) == len(moment.operations) and all(
-                a is b for a, b in zip(moment_ops, moment.operations)
-            ):
-                preserved_moments.append(moment)
-            else:
-                try:
-                    preserved_moments.append(circuits.Moment(moment_ops))
-                except ValueError as ex:
-                    raise ValueError(
-                        f"Cannot preserve the moment structure - operations mapped from the "
-                        f"moment at index {idx} do not fit into a single moment: {ex}"
-                    ) from ex
+            try:
+                preserved_moments.append(circuits.Moment(moment_ops))
+            except ValueError as ex:
+                raise ValueError(
+                    f"Cannot preserve the moment structure - operations mapped from the "
+                    f"moment at index {idx} do not fit into a single moment: {ex}"
+                ) from ex
         return _create_target_circuit_type(preserved_moments, circuit)
 
     new_moments: list[list[cirq.Operation]] = []
