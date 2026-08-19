@@ -40,7 +40,7 @@ class InternalGate(ops.Gate):
         custom_args: Mapping[str, program_pb2.CustomArg] | None = None,
         **kwargs,
     ):
-        """Instatiates an InternalGate.
+        """Instantiates an InternalGate.
 
         Arguments:
             gate_name: Gate class name.

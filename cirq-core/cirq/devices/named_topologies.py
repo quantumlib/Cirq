@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import abc
 import warnings
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, Iterator, Sequence
 from dataclasses import dataclass
 from typing import Any, TYPE_CHECKING, Union
 
@@ -35,7 +35,7 @@ class NamedTopology(metaclass=abc.ABCMeta):
     """A topology (graph) with a name.
 
     "Named topologies" provide a mapping from a simple dataclass to a unique graph for categories
-    of relevant topologies. Relevant topologies may be hardware dependant, but common topologies
+    of relevant topologies. Relevant topologies may be hardware dependent, but common topologies
     are linear (1D) and rectangular grid topologies.
 
     Attributes:
@@ -54,7 +54,7 @@ _GRIDLIKE_NODE = Union['cirq.GridQubit', tuple[int, int]]
 
 def _node_and_coordinates(
     nodes: Iterable[_GRIDLIKE_NODE],
-) -> Iterable[tuple[_GRIDLIKE_NODE, tuple[int, int]]]:
+) -> Iterator[tuple[_GRIDLIKE_NODE, tuple[int, int]]]:
     """Yield tuples whose first element is the input node and the second is guaranteed to be a tuple
     of two integers. The input node can be a tuple of ints or a GridQubit."""
     for node in nodes:

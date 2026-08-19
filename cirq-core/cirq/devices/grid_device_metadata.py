@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Metadata subtype for 2D Homogenous devices."""
+"""Metadata subtype for 2D Homogeneous devices."""
 
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
-from typing import cast, TYPE_CHECKING
+from typing import Any, cast, TYPE_CHECKING
 
 import networkx as nx
 
@@ -41,7 +41,7 @@ document(
 
 @value.value_equality
 class GridDeviceMetadata(device.DeviceMetadata):
-    """Hardware metadata for homogenous 2d symmetric grid devices."""
+    """Hardware metadata for homogeneous 2d symmetric grid devices."""
 
     def __init__(
         self,
@@ -230,7 +230,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
             f'{qubit_attributes_repr})'
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         duration_payload = None
         if self._gate_durations is not None:
             duration_payload = sorted(self._gate_durations.items(), key=lambda x: repr(x[0]))

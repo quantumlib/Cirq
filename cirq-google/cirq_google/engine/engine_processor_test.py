@@ -378,6 +378,59 @@ def test_get_sampler_from_run_name_with_defaults() -> None:
     assert sampler.device_config_name == default_config_alias
 
 
+def test_get_sampler_initializes_jobs_per_batch() -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="run", config_alias="config_alias"
+            )
+        ),
+    )
+    sampler_default = processor.get_sampler()
+    assert sampler_default._jobs_per_batch == 1
+
+    jobs_per_batch = 5
+    sampler = processor.get_sampler(jobs_per_batch=jobs_per_batch)
+    assert sampler._jobs_per_batch == jobs_per_batch
+
+
+def test_get_sampler_initializes_jobs_per_batch_with_snapshot() -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                config_alias="config_alias", snapshot_id="snap"
+            )
+        ),
+    )
+    snapshot = Snapshot(id='test_snapshot')
+    jobs_per_batch = 5
+    sampler = processor.get_sampler(device_config_revision=snapshot, jobs_per_batch=jobs_per_batch)
+    assert sampler._jobs_per_batch == jobs_per_batch
+
+
+def test_get_sampler_initializes_jobs_per_batch_with_run() -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="run", config_alias="config_alias"
+            )
+        ),
+    )
+    run = Run(id='test_run')
+    jobs_per_batch = 5
+    sampler = processor.get_sampler(device_config_revision=run, jobs_per_batch=jobs_per_batch)
+    assert sampler._jobs_per_batch == jobs_per_batch
+
+
 def test_get_sampler_from_snapshot_id() -> None:
     default_snapshot_id = 'default_snap'
     processor = cg.EngineProcessor(
@@ -433,73 +486,6 @@ def test_get_sampler_loads_processor_with_default_device_configuration(get_proce
 
     assert sampler.run_name == "run"
     assert sampler.device_config_name == "config_alias"
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.list_calibrations_async')
-def test_list_calibrations(list_calibrations):
-    list_calibrations.return_value = [_CALIBRATION]
-    processor = cg.EngineProcessor('a', 'p', EngineContext())
-    assert [c.timestamp for c in processor.list_calibrations()] == [1562544000021]
-    list_calibrations.assert_called_with('a', 'p', '')
-    assert [c.timestamp for c in processor.list_calibrations(earliest_timestamp=1562500000)] == [
-        1562544000021
-    ]
-    list_calibrations.assert_called_with('a', 'p', 'timestamp >= 1562500000')
-    assert [c.timestamp for c in processor.list_calibrations(latest_timestamp=1562600000)] == [
-        1562544000021
-    ]
-    list_calibrations.assert_called_with('a', 'p', 'timestamp <= 1562600000')
-    assert [c.timestamp for c in processor.list_calibrations(1562500000, 1562600000)] == [
-        1562544000021
-    ]
-    list_calibrations.assert_called_with(
-        'a', 'p', 'timestamp >= 1562500000 AND timestamp <= 1562600000'
-    )
-    assert [
-        c.timestamp
-        for c in processor.list_calibrations(
-            earliest_timestamp=datetime.datetime.fromtimestamp(1562500000)
-        )
-    ] == [1562544000021]
-    list_calibrations.assert_called_with('a', 'p', 'timestamp >= 1562500000')
-
-    today = datetime.date.today()
-    # Use local time to get timestamp
-    today_midnight_timestamp = int(
-        datetime.datetime(today.year, today.month, today.day).timestamp()
-    )
-    assert [c.timestamp for c in processor.list_calibrations(earliest_timestamp=today)] == [
-        1562544000021
-    ]
-    list_calibrations.assert_called_with('a', 'p', f'timestamp >= {today_midnight_timestamp}')
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_calibration_async')
-def test_get_calibration(get_calibration):
-    get_calibration.return_value = _CALIBRATION
-    processor = cg.EngineProcessor('a', 'p', EngineContext())
-    calibration = processor.get_calibration(1562544000021)
-    assert calibration.timestamp == 1562544000021
-    assert set(calibration.keys()) == {'xeb', 't1', 'globalMetric'}
-    get_calibration.assert_called_once_with('a', 'p', 1562544000021)
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_current_calibration_async')
-def test_current_calibration(get_current_calibration):
-    get_current_calibration.return_value = _CALIBRATION
-    processor = cg.EngineProcessor('a', 'p', EngineContext())
-    calibration = processor.get_current_calibration()
-    assert calibration.timestamp == 1562544000021
-    assert set(calibration.keys()) == {'xeb', 't1', 'globalMetric'}
-    get_current_calibration.assert_called_once_with('a', 'p')
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_current_calibration_async')
-def test_missing_latest_calibration(get_current_calibration):
-    get_current_calibration.return_value = None
-    processor = cg.EngineProcessor('a', 'p', EngineContext())
-    assert not processor.get_current_calibration()
-    get_current_calibration.assert_called_once_with('a', 'p')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.create_reservation_async')

@@ -220,7 +220,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         return snapshot._terms.__iter__()
 
     def __len__(self) -> int:
-        return len([v for v, c in self._terms.items() if c != 0])
+        return sum(1 for c in self._terms.values() if c != 0)
 
     def __iadd__(self, other: Self) -> Self:
         for vector, other_coefficient in other.items():
@@ -324,7 +324,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         else:
             p.text(str(self))
 
-    def _json_dict_(self) -> dict[Any, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         if self._has_validator:
             raise ValueError('LinearDict with a validator is not json serializable.')
         return {'keys': list(self._terms.keys()), 'values': list(self._terms.values())}

@@ -86,6 +86,8 @@ from cirq.ops.classically_controlled_operation import (
     ClassicallyControlledOperation as ClassicallyControlledOperation,
 )
 
+from cirq.ops.set_variable_op import SetVariable as SetVariable
+
 from cirq.ops.controlled_gate import ControlledGate as ControlledGate
 
 from cirq.ops.diagonal_gate import DiagonalGate as DiagonalGate
@@ -107,6 +109,8 @@ from cirq.ops.gate_operation import GateOperation as GateOperation
 from cirq.ops.gateset import GateFamily as GateFamily, Gateset as Gateset
 
 from cirq.ops.identity import I as I, identity_each as identity_each, IdentityGate as IdentityGate
+
+from cirq.ops.if_op import If as If
 
 from cirq.ops.global_phase_op import (
     GlobalPhaseGate as GlobalPhaseGate,

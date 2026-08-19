@@ -107,3 +107,8 @@ def test_run_sweep(mock_post, mock_get):
     assert cirq.read_json(json_text=submitted_json) == ex_circuit_odd
     assert mock_post.call_count == 2
     assert data[1] == ex_circuit_odd
+
+    # The access token rides in the Authorization header of every request below,
+    # so none of them may turn off TLS certificate verification.
+    for call in [*mock_post.call_args_list, *mock_get.call_args_list]:
+        assert call[1].get('verify', True) is not False

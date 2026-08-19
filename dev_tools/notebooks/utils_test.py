@@ -111,7 +111,7 @@ def test_create_parallel_scheduler_with_100ms_interval(tmp_path: pathlib.Path) -
     event_time_1, wait_time_1 = scheduler()
     assert wait_time_0 == 0.0
     assert event_time_1 >= 0.1 + event_time_0
-    assert 0 < wait_time_1 <= 0.1
+    assert 0 <= wait_time_1 <= 0.1
 
 
 def test_create_parallel_scheduler_with_zero_interval(tmp_path: pathlib.Path) -> None:

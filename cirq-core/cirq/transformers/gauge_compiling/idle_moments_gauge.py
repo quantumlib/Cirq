@@ -62,23 +62,23 @@ def _get_structure(
     gauge_ending: bool,
 ) -> Iterator[tuple[int, int]]:
     if gauge_beginning:
-        stop, is_mergable = active[0]
+        stop, is_mergeable = active[0]
         if min_length <= stop:
-            if is_mergable:
+            if is_mergeable:
                 yield (0, stop)
             else:
                 yield (0, stop - 1)
 
     for i in range(len(active) - 1):
-        left_pos, left_is_mergable = active[i]
-        right_pos, right_is_mergable = active[i + 1]
+        left_pos, left_is_mergeable = active[i]
+        right_pos, right_is_mergeable = active[i + 1]
         if right_pos - left_pos - 1 >= min_length:
-            yield (left_pos + 1 - left_is_mergable, right_pos - 1 + right_is_mergable)
+            yield (left_pos + 1 - left_is_mergeable, right_pos - 1 + right_is_mergeable)
 
     if gauge_ending:
-        stop, is_mergable = active[-1]
+        stop, is_mergeable = active[-1]
         if min_length <= n - stop - 1:
-            if is_mergable:
+            if is_mergeable:
                 yield (stop, n - 1)
             else:
                 yield (stop + 1, n - 1)
@@ -180,13 +180,13 @@ class IdleMomentsGauge:
                     active_moments[q].append((m_id, False))
             else:
                 for op in moment:
-                    is_mergable = (
+                    is_mergeable = (
                         len(op.qubits) == 1
                         and tags_to_ignore.isdisjoint(op.tags)
                         and op.gate is not None
                     )
                     for q in op.qubits:
-                        active_moments[q].append((m_id, is_mergable))
+                        active_moments[q].append((m_id, is_mergeable))
 
         single_qubit_moments = [
             {op.qubits[0]: op for op in m if len(op.qubits) == 1} for m in circuit

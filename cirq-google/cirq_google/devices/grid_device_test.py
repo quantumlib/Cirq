@@ -516,6 +516,44 @@ def test_grid_device_validate_operations_negative():
             cirq.testing.DoesNotSupportSerializationGate()(device_info.grid_qubits[0])
         )
 
+    class CustomNonGateOp(cirq.Operation):
+        def __init__(self, qubits):
+            self._qubits = tuple(qubits)
+
+        @property
+        def qubits(self):
+            return self._qubits
+
+        def with_qubits(self, *new_qubits):
+            raise NotImplementedError
+
+    # Non-gate operation on valid qubits passes validation without gateset check
+    device.validate_operation(CustomNonGateOp([device_info.grid_qubits[0]]))
+    device.validate_operation(
+        CustomNonGateOp([device_info.grid_qubits[0], device_info.grid_qubits[1]])
+    )
+
+    # Non-gate operation on invalid qubits or invalid pair still fails
+    with pytest.raises(ValueError, match='Qubit not on device'):
+        device.validate_operation(CustomNonGateOp([bad_qubit]))
+    with pytest.raises(ValueError, match='Qubit pair is not valid'):
+        device.validate_operation(CustomNonGateOp([q00, q10]))
+
+    class CustomGateOp(cirq.Operation, cirq.Gate):  # type: ignore[misc]
+        def __init__(self, qubits):
+            self._qubits = tuple(qubits)
+
+        @property
+        def qubits(self):
+            return self._qubits
+
+        def with_qubits(self, *new_qubits):
+            raise NotImplementedError
+
+    # Operation subclassing Gate is checked against gateset and fails if not in gateset
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(CustomGateOp([device_info.grid_qubits[0]]))
+
 
 def test_grid_device_validate_operation_coupler_for_horizontal_couplings():
     """Tests coupler device on a device spec that only
@@ -706,12 +744,6 @@ def test_device_from_device_information_equals_device_from_proto():
             None,
         ),
         (
-            'Unrecognized gate',
-            [(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))],
-            cirq.Gateset(cirq.H),
-            None,
-        ),
-        (
             'Some gate_durations keys are not found in gateset',
             [(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))],
             cirq.Gateset(cirq.CZ),
@@ -733,6 +765,18 @@ def test_from_device_information_invalid_input(error_match, qubit_pairs, gateset
         grid_device.GridDevice._from_device_information(
             qubit_pairs=qubit_pairs, gateset=gateset, gate_durations=gate_durations
         )
+
+
+def test_from_device_information_unrecognized_gate():
+    gateset = cirq.Gateset(cirq.H)
+    gate_durations = {cirq.GateFamily(cirq.H): cirq.Duration(picos=1_000)}
+    device = grid_device.GridDevice._from_device_information(
+        qubit_pairs=[(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))],
+        gateset=gateset,
+        gate_durations=gate_durations,
+    )
+    assert cirq.GateFamily(cirq.H) in device.metadata.gateset.gates
+    assert device.metadata.gate_durations == {cirq.GateFamily(cirq.H): cirq.Duration(picos=1_000)}
 
 
 def test_from_device_information_fsim_gate_family():
@@ -860,3 +904,17 @@ def test_qubit_attributes_unlisted_qubit():
 
     with pytest.raises(ValueError, match="is not in valid_qubits"):
         _ = cirq_google.GridDevice.from_proto(spec)
+
+
+def test_to_proto_invalid_gate_durations():
+    metadata = cirq.GridDeviceMetadata(
+        qubit_pairs=[(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))],
+        gateset=cirq.Gateset(cirq.PhasedXZGate, cirq.XPowGate),
+        gate_durations={
+            cirq.GateFamily(cirq.PhasedXZGate): cirq.Duration(picos=1_000),
+            cirq.GateFamily(cirq.XPowGate): cirq.Duration(picos=2_000),
+        },
+    )
+    device = cirq_google.GridDevice(metadata)
+    with pytest.raises(ValueError, match="Multiple gate families"):
+        device.to_proto()

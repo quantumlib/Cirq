@@ -146,7 +146,7 @@ def test_sample_2q_parallel_xeb_circuits_bad_circuit_library() -> None:
     cycle_depths = [10]
     graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 2))
     combs = rqcg.get_random_combinations_for_device(
-        n_library_circuits=len(circuits) + 100,  # !!! should cause invlaid input
+        n_library_circuits=len(circuits) + 100,  # !!! should cause invalid input
         n_combinations=5,
         device_graph=graph,
         random_state=10,
