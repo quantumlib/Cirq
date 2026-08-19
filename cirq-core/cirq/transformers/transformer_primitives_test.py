@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import random
 from collections.abc import Iterator
 
 import pytest
@@ -457,6 +458,65 @@ def test_map_operations_can_drop_operations():
     c_mapped = cirq.map_operations(c, lambda op, _: op if op.gate == cirq.X else [])
     c_expected = cirq.Circuit(cirq.Moment(cirq.X(q[0])), cirq.Moment(cirq.X(q[1])))
     cirq.testing.assert_same_circuits(c_mapped, c_expected)
+
+
+@pytest.mark.parametrize('transform_choice', ["map_operations", "map_operations_and_unroll"])
+def test_map_operations_preserve_moments_duplicate_measurement_key(transform_choice: str) -> None:
+    transform = (
+        cirq.map_operations
+        if "transform_choice" == "map_operations"
+        else cirq.map_operations_and_unroll
+    )
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.Moment(cirq.M(q0, key='m'), cirq.M(q1, key='m')))
+
+    # Default - moments are split if they share a measurement key
+    c_mapped = transform(c, lambda op, _: op)
+    cirq.testing.assert_same_circuits(
+        c_mapped, cirq.Circuit(cirq.Moment(cirq.M(q0, key='m')), cirq.Moment(cirq.M(q1, key='m')))
+    )
+
+    # With the flag - moments with shared measurment keys are preserved.
+    c_mapped = transform(c, lambda op, _: op, preserve_moments=True)
+    cirq.testing.assert_same_circuits(c_mapped, c)
+
+
+def test_map_operations_preserve_moments_keeps_operation_order() -> None:
+    q = [cirq.LineQubit(i) for i in random.sample(range(3), 3)]
+    c = cirq.Circuit(
+        cirq.Moment(cirq.M(q[0], key='m'), cirq.M(q[1], key='m'), cirq.M(q[2], key='m'))
+    )
+    c_mapped = cirq.map_operations(c, lambda op, _: op, preserve_moments=True)
+    assert len(c_mapped) == 1
+    assert c_mapped[0].operations == c[0].operations
+
+
+def test_map_operations_preserve_moments_raises_when_ops_do_not_fit() -> None:
+    q0 = cirq.LineQubit(0)
+    c = cirq.Circuit(cirq.Moment(cirq.X(q0)))
+    # Expanding one op into two on the same qubit cannot fit in one moment.
+    with pytest.raises(ValueError, match='do not fit into a single moment'):
+        _ = cirq.map_operations_and_unroll(
+            c, lambda op, _: [cirq.X(q0), cirq.Y(q0)], preserve_moments=True
+        )
+
+
+def test_map_operations_preserve_moments_deep() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    inner = cirq.FrozenCircuit(cirq.Moment(cirq.M(q0, key='m'), cirq.M(q1, key='m')))
+    c = cirq.Circuit(cirq.Moment(cirq.X(q0), cirq.X(q1)), cirq.CircuitOperation(inner))
+    c_mapped = cirq.map_operations(
+        c,
+        lambda op, _: (
+            cirq.measure(*op.qubits, key="m1") if isinstance(op.gate, cirq.MeasurementGate) else op
+        ),
+        deep=True,
+        preserve_moments=True,
+    )
+    inner1 = cirq.FrozenCircuit(cirq.Moment(cirq.M(q0, key='m1'), cirq.M(q1, key='m1')))
+    cirq.testing.assert_same_circuits(
+        c_mapped, cirq.Circuit(cirq.Moment(cirq.X(q0), cirq.X(q1)), cirq.CircuitOperation(inner1))
+    )
 
 
 def test_map_moments_drop_empty_moments():
