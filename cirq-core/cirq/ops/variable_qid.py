@@ -98,7 +98,9 @@ class VariableLineQid(VariableQid):
             return self
         return VariableLineQid(self._x, dimension)
 
-    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> cirq.Qid:
+    def _resolve_parameters_(
+        self, resolver: cirq.ParamResolver, recursive: bool
+    ) -> cirq.LineQid | cirq.VariableLineQid:
         """Resolves the VariableLineQid to a physical LineQid.
 
         If the expression can be resolved to an integer, returns the corresponding
@@ -181,7 +183,9 @@ class VariableGridQid(VariableQid):
             return self
         return VariableGridQid(self._row, self._col, dimension)
 
-    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> cirq.Qid:
+    def _resolve_parameters_(
+        self, resolver: cirq.ParamResolver, recursive: bool
+    ) -> cirq.GridQid | cirq.VariableGridQid:
         """Resolves the VariableGridQid to a physical GridQid.
 
         If both the row and column expressions can be resolved to an integer,
