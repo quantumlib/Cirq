@@ -108,12 +108,13 @@ def map_moments(
         Copy of the input circuit with mapped moments.
     """
     mutable_circuit = circuit.unfreeze(copy=False)
+    tags_to_ignore_set = frozenset(tags_to_ignore)
     if deep:
         batch_replace = []
         for i, op in circuit.findall_operations(
             lambda o: isinstance(o.untagged, circuits.CircuitOperation)
         ):
-            if set(op.tags).intersection(tags_to_ignore):
+            if not tags_to_ignore_set.isdisjoint(op.tags):
                 continue
             op_untagged = cast(circuits.CircuitOperation, op.untagged)
             mapped_op = op_untagged.replace(
@@ -188,10 +189,10 @@ def _map_operations_impl(
     Returns:
         Copy of the input circuit with mapped operations.
     """
-    tags_to_ignore_set = set(tags_to_ignore)
+    tags_to_ignore_set = frozenset(tags_to_ignore)
 
     def apply_map_func(op: cirq.Operation, idx: int) -> list[cirq.Operation]:
-        if tags_to_ignore_set.intersection(op.tags):
+        if not tags_to_ignore_set.isdisjoint(op.tags):
             return [op]
         if deep and isinstance(op.untagged, circuits.CircuitOperation):
             op = op.untagged.replace(
@@ -864,6 +865,7 @@ def unroll_circuit_op(
     Returns:
         Copy of input circuit with (Tagged) CircuitOperation's expanded in a moment preserving way.
     """
+    tags_to_check_set = frozenset(tags_to_check or ())
 
     def map_func(m: circuits.Moment, _: int):
         to_zip: list[cirq.AbstractCircuit] = []
@@ -878,7 +880,7 @@ def unroll_circuit_op(
                     )
                 to_zip.append(
                     op_untagged.mapped_circuit()
-                    if (tags_to_check is None or set(tags_to_check).intersection(op.tags))
+                    if (tags_to_check is None or not tags_to_check_set.isdisjoint(op.tags))
                     else circuits.Circuit(op_untagged.with_tags(*op.tags))
                 )
             else:
@@ -910,6 +912,7 @@ def unroll_circuit_op_greedy_earliest(
     Returns:
         Copy of input circuit with (Tagged) CircuitOperation's expanded using EARLIEST strategy.
     """
+    tags_to_check_set = frozenset(tags_to_check or ())
     batch_replace = []
     batch_remove = []
     batch_insert = []
@@ -923,7 +926,7 @@ def unroll_circuit_op_greedy_earliest(
                     op_untagged.circuit, deep=deep, tags_to_check=tags_to_check
                 )
             )
-        if tags_to_check is None or set(tags_to_check).intersection(op.tags):
+        if tags_to_check is None or not tags_to_check_set.isdisjoint(op.tags):
             batch_remove.append((i, op))
             batch_insert.append((i, op_untagged.mapped_circuit().all_operations()))
         elif deep:
@@ -958,6 +961,7 @@ def unroll_circuit_op_greedy_frontier(
         Copy of input circuit with (Tagged) CircuitOperation's expanded inline at qubit frontier.
     """
     unrolled_circuit = circuit.unfreeze(copy=True)
+    tags_to_check_set = frozenset(tags_to_check or ())
     frontier: dict[cirq.Qid, int] = defaultdict(lambda: 0)
     idx = 0
     while idx < len(unrolled_circuit):
@@ -974,7 +978,7 @@ def unroll_circuit_op_greedy_frontier(
                         op_untagged.circuit, deep=deep, tags_to_check=tags_to_check
                     )
                 )
-            if tags_to_check is None or set(tags_to_check).intersection(op.tags):
+            if tags_to_check is None or not tags_to_check_set.isdisjoint(op.tags):
                 unrolled_circuit.clear_operations_touching(op.qubits, [idx])
                 frontier = unrolled_circuit.insert_at_frontier(
                     op_untagged.mapped_circuit().all_operations(), idx, frontier
