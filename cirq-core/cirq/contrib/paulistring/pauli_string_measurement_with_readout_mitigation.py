@@ -1194,7 +1194,7 @@ def generate_trex_and_readout_circuits(
             q: qubit_pauli_dict_unsorted[q] for q in sorted(qubit_pauli_dict_unsorted)
         }
 
-        joint_basis_pauli: cirq.PauliString = ops.PauliString(qubit_pauli_dict)
+        joint_basis_pauli: ops.PauliString = ops.PauliString(qubit_pauli_dict)
         num_qubits = len(qubit_pauli_dict)
 
         twirl_choices = _generate_random_boolean_choices(num_twirls, num_qubits, rng)
