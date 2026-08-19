@@ -78,14 +78,9 @@ def _remove_last(indices: list[int], value: int) -> None:
     Raises:
         ValueError: If the value is not in the list.
     """
-    if not indices:
-        raise ValueError("The value is not in the list of indices")  # pragma: no cover
-    # Optimized for majority case: check last element first.
-    if indices[-1] == value:
-        indices.pop()
-        return
-    pos = bisect.bisect_left(indices, value)
-    if pos < len(indices) and indices[pos] == value:
+    if indices and (
+        indices[pos := -1] == value or indices[pos := bisect.bisect_left(indices, value)] == value
+    ):
         indices.pop(pos)
     else:
         raise ValueError("The value is not in the list of indices")  # pragma: no cover
