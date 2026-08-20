@@ -17,7 +17,7 @@ run-name: Label and possibly close stale issues and PRs
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+  - cron: '0 0 * * *'
 
   workflow_dispatch:
     inputs:
@@ -71,51 +71,51 @@ jobs:
         open a new issue in this repository to let us know. You can also send
         email to the maintainers at quantum-oss-maintainers@google.com.
     steps:
-      - name: Label and/or close stale issues and/or PRs
-        uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
-        with:
-          repo-token: ${{secrets.GITHUB_TOKEN}}
-          debug-only: ${{inputs.debug || false}}
-          days-before-stale: ${{env.days-before-stale}}
-          days-before-close: ${{env.days-before-close}}
-          stale-issue-label: 'status/stale'
-          stale-pr-label: 'status/stale'
-          close-issue-label: 'status/autoclosed'
-          close-pr-label: 'status/autoclosed'
-          exempt-issue-labels: ${{join(fromJSON(env.exempt-issue-labels), ',')}}
-          exempt-pr-labels: ${{join(fromJSON(env.exempt-pr-labels), ',')}}
-          stale-issue-message: >-
-            This issue has automatically been labeled as stale because
-            ${{env.days-before-stale}} days have passed without activity. If no
-            further activity occurs and the `status/stale` label is not removed
-            by a maintainer within ${{env.days-before-close}} days, this issue
-            will be closed. If you want to keep the issue open, leave a comment
-            here and the status will be updated automatically.
-            <p>
-            ${{env.help-text}}
+    - name: Label and/or close stale issues and/or PRs
+      uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
+      with:
+        repo-token: ${{secrets.GITHUB_TOKEN}}
+        debug-only: ${{inputs.debug || false}}
+        days-before-stale: ${{env.days-before-stale}}
+        days-before-close: ${{env.days-before-close}}
+        stale-issue-label: 'status/stale'
+        stale-pr-label: 'status/stale'
+        close-issue-label: 'status/autoclosed'
+        close-pr-label: 'status/autoclosed'
+        exempt-issue-labels: ${{join(fromJSON(env.exempt-issue-labels), ',')}}
+        exempt-pr-labels: ${{join(fromJSON(env.exempt-pr-labels), ',')}}
+        stale-issue-message: >-
+          This issue has automatically been labeled as stale because
+          ${{env.days-before-stale}} days have passed without activity. If no
+          further activity occurs and the `status/stale` label is not removed
+          by a maintainer within ${{env.days-before-close}} days, this issue
+          will be closed. If you want to keep the issue open, leave a comment
+          here and the status will be updated automatically.
+          <p>
+          ${{env.help-text}}
 
-          stale-pr-message: >-
-            This pull request has been automatically labeled as stale because
-            ${{env.days-before-stale}} days have passed without activity. If no
-            further activity occurs and the `status/stale` label is not removed
-            by a maintainer within ${{env.days-before-close}} days, this pull
-            request will be closed. If you want to keep the pull request open,
-            leave a comment here and the status will be updated automatically.
-            <p>
-            ${{env.help-text}}
+        stale-pr-message: >-
+          This pull request has been automatically labeled as stale because
+          ${{env.days-before-stale}} days have passed without activity. If no
+          further activity occurs and the `status/stale` label is not removed
+          by a maintainer within ${{env.days-before-close}} days, this pull
+          request will be closed. If you want to keep the pull request open,
+          leave a comment here and the status will be updated automatically.
+          <p>
+          ${{env.help-text}}
 
-          close-issue-message: >-
-            This issue has been closed due to inactivity for
-            ${{env.days-before-close}} days since the time the `status/stale`
-            label was applied. If you believe the issue is still relevant, please
-            feel free to reopen it.
-            <p>
-            ${{env.help-text}}
+        close-issue-message: >-
+          This issue has been closed due to inactivity for
+          ${{env.days-before-close}} days since the time the `status/stale`
+          label was applied. If you believe the issue is still relevant, please
+          feel free to reopen it.
+          <p>
+          ${{env.help-text}}
 
-          close-pr-message: >-
-            This pull request has been closed due to inactivity for
-            ${{env.days-before-close}} days since the time the `status/stale`
-            label was applied. If you would like to continue working on this PR,
-            please feel free to reopen it.
-            <p>
-            ${{env.help-text}}
+        close-pr-message: >-
+          This pull request has been closed due to inactivity for
+          ${{env.days-before-close}} days since the time the `status/stale`
+          label was applied. If you would like to continue working on this PR,
+          please feel free to reopen it.
+          <p>
+          ${{env.help-text}}
