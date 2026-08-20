@@ -108,8 +108,8 @@ def map_moments(
         Copy of the input circuit with mapped moments.
     """
     mutable_circuit = circuit.unfreeze(copy=False)
-    tags_to_ignore_set = frozenset(tags_to_ignore)
     if deep:
+        tags_to_ignore_set = frozenset(tags_to_ignore)
         batch_replace = []
         for i, op in circuit.findall_operations(
             lambda o: isinstance(o.untagged, circuits.CircuitOperation)
