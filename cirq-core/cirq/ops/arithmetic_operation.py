@@ -17,10 +17,10 @@ from __future__ import annotations
 
 import abc
 import itertools
-from typing import cast, Iterable, Sequence, TYPE_CHECKING
+from collections.abc import Iterable, Sequence
+from typing import cast, Self, TYPE_CHECKING
 
 import numpy as np
-from typing_extensions import Self
 
 from cirq.ops.raw_types import Gate
 
@@ -131,9 +131,9 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
         1. The `apply` method is permitted to return values that have more bits
             than the registers they will be stored into. The extra bits are
             simply dropped. For example, if the value 5 is returned for a 2
-            qubit register then 5 % 2**2 = 1 will be used instead. Negative
+            qubit register then ``5 % 2**2 = 1`` will be used instead. Negative
             values are also permitted. For example, for a 3 qubit register the
-            value -2 becomes -2 % 2**3 = 6.
+            value -2 becomes ``-2 % 2**3 = 6``.
         2. When the value of the last `k` registers is not changed by the
             gate, the `apply` method is permitted to omit these values
             from the result. That is to say, when the length of the output is
@@ -165,11 +165,10 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     def _qid_shape_(self) -> tuple[int, ...]:
-        shape = []
+        shape: list[int] = []
         for r in self.registers():
             if isinstance(r, Sequence):
-                for i in r:
-                    shape.append(i)
+                shape.extend(r)
         return tuple(shape)
 
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
@@ -183,7 +182,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
                 shape.append(1)
                 overflow_sizes.append(register + 1)
             else:
-                size = int(np.prod([dim for dim in register], dtype=np.int64).item())
+                size = int(np.prod(list(register), dtype=np.int64).item())
                 shape.append(size)
                 input_ranges.append(range(size))
                 overflow_sizes.append(size)
@@ -226,7 +225,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
             dst[tuple(outputs)] = src[tuple(inputs)]
 
         # In case the reshaped arrays were copies instead of views.
-        dst.shape = transposed_args.available_buffer.shape
+        dst = dst.reshape(transposed_args.available_buffer.shape, copy=False)
         transposed_args.target_tensor[...] = dst
 
         return args.target_tensor

@@ -16,8 +16,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from types import NotImplementedType
-from typing import Any, Iterator
+from typing import Any
 
 import numpy as np
 
@@ -127,7 +128,7 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         self, ccz_gate: cirq.CCZPowGate, qubits: tuple[cirq.Qid, ...]
     ) -> cirq.OP_TREE:
         """Decomposition of all-to-all connected qubits are different from line
-         qubits or grid qubits, ckeckout IonQTargetGateset.
+         qubits or grid qubits, checkout IonQTargetGateset.
 
         For example, for qubits in the same ion trap, the decomposition of CCZ
         gate will be:
@@ -158,7 +159,8 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
             else []
         )
 
-        return global_phase_operation + [
+        return [
+            *global_phase_operation,
             self._cnot(*[b, c]),
             p(c) ** -1,
             self._cnot(*[a, c]),

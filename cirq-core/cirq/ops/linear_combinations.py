@@ -16,10 +16,12 @@ from __future__ import annotations
 
 import numbers
 from collections import defaultdict
-from typing import AbstractSet, Any, Iterable, Mapping, TYPE_CHECKING, Union
+from collections.abc import Iterable, Mapping, Set
+from typing import Any, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
+from scipy import sparse
 from sympy.logic.boolalg import And, Not, Or, Xor
 
 from cirq import linalg, protocols, qis, value
@@ -31,8 +33,6 @@ from cirq.ops.projector import ProjectorString
 from cirq.value.linear_dict import _format_terms
 
 if TYPE_CHECKING:
-    from scipy.sparse import csr_matrix
-
     import cirq
 
 UnitPauliStringT = frozenset[tuple[raw_types.Qid, pauli_gates.Pauli]]
@@ -136,7 +136,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(item) for item in self.items())
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return {name for item in self.items() for name in protocols.parameter_names(item)}
 
     def _resolve_parameters_(
@@ -253,7 +253,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(item) for item in self.items())
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return {name for item in self.items() for name in protocols.parameter_names(item)}
 
     def _resolve_parameters_(
@@ -359,7 +359,8 @@ class PauliSum:
 
     Under the hood, this class is backed by a LinearDict with coefficient-less
     PauliStrings as keys. PauliStrings are reconstructed on-the-fly during
-    iteration.
+    iteration.  Note the ordering of Pauli gates and qubits in such reconstructed
+    strings may differ from the order in PauliStrings that were combined in PauliSum.
 
     PauliSums can be constructed explicitly:
 
@@ -473,7 +474,7 @@ class PauliSum:
 
     @classmethod
     def from_boolean_expression(
-        cls, boolean_expr: sympy.Expr, qubit_map: dict[str, cirq.Qid]
+        cls, boolean_expr: sympy.Expr, qubit_map: Mapping[str, cirq.Qid]
     ) -> PauliSum:
         """Builds the Hamiltonian representation of a Boolean expression.
 
@@ -588,6 +589,50 @@ class PauliSum:
             result += coeff * op.matrix(qubits)
         return result
 
+    def sparse_matrix(self, qubits: Iterable[raw_types.Qid] | None = None) -> sparse.csr_matrix:
+        """Returns the sparse matrix of this `PauliSum` in the computational basis of the qubits.
+
+        For each term we build the sparse matrix via direct bit-manipulation
+        (see `PauliString.sparse_matrix`) and collect its non-zero entries as
+        COO (COOrdinate) triplets (data, row, col).  All triplets are
+        concatenated and a single sparse matrix is built at the end, avoiding
+        the overhead of adding sparse matrices term-by-term.
+
+        Args:
+            qubits: Ordered collection of qubits that determine the subspace
+                in which the matrix representation of the Pauli sum is to
+                be computed. If none is provided the default ordering of
+                `self.qubits` is used.  Qubits present in `qubits` but absent from
+                `self.qubits` are acted on by the identity.
+
+        Returns:
+            A `scipy.sparse.csr_matrix` representing the Pauli sum.
+        """
+        qubits = self.qubits if qubits is None else tuple(qubits)
+        num_qubits = len(qubits)
+        dim = 2**num_qubits
+        all_data: list[np.ndarray] = []
+        all_rows: list[np.ndarray] = []
+        all_cols: list[np.ndarray] = []
+
+        for vec, coeff in self._linear_dict.items():
+            op = _pauli_string_from_unit(vec)
+            term = coeff * op.sparse_matrix(qubits)
+            coo = term.tocoo()
+            all_data.append(coo.data)
+            all_rows.append(coo.row)
+            all_cols.append(coo.col)
+
+        if not all_data:
+            return sparse.csr_matrix((dim, dim), dtype=np.complex128)
+
+        data = np.concatenate(all_data)
+        rows = np.concatenate(all_rows)
+        cols = np.concatenate(all_cols)
+        result = sparse.coo_matrix((data, (rows, cols)), shape=(dim, dim)).tocsr()
+        result.eliminate_zeros()
+        return result
+
     def _has_unitary_(self) -> bool:
         return linalg.is_unitary(self.matrix())
 
@@ -597,11 +642,11 @@ class PauliSum:
             return m
         raise ValueError(f'{self} is not unitary')
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         def key_json(k: UnitPauliStringT):
             return [list(e) for e in sorted(k)]
 
-        return {'items': list((key_json(k), v) for k, v in self._linear_dict.items())}
+        return {'items': [(key_json(k), v) for k, v in self._linear_dict.items()]}
 
     @classmethod
     def _from_json_dict_(cls, items, **kwargs):
@@ -742,14 +787,12 @@ class PauliSum:
         return len(self._linear_dict)
 
     def __iadd__(self, other):
+        if isinstance(other, raw_types.Operation):
+            other = pauli_string._try_interpret_as_pauli_string(other)
         if isinstance(other, numbers.Complex):
             other = PauliSum.from_pauli_strings([PauliString(coefficient=other)])
         elif isinstance(other, PauliString):
             other = PauliSum.from_pauli_strings([other])
-        elif isinstance(other, raw_types.Operation) and isinstance(
-            other.gate, identity.IdentityGate
-        ):
-            other = PauliSum.from_pauli_strings([PauliString()])
 
         if not isinstance(other, PauliSum):
             return NotImplemented
@@ -758,10 +801,9 @@ class PauliSum:
         return self
 
     def __add__(self, other):
-        if not isinstance(other, (numbers.Complex, PauliString, PauliSum, raw_types.Operation)):
-            return NotImplemented
         result = self.copy()
-        result += other
+        if result.__iadd__(other) is NotImplemented:
+            return NotImplemented
         return result
 
     def __radd__(self, other):
@@ -771,14 +813,12 @@ class PauliSum:
         return -self.__sub__(other)
 
     def __isub__(self, other):
+        if isinstance(other, raw_types.Operation):
+            other = pauli_string._try_interpret_as_pauli_string(other)
         if isinstance(other, numbers.Complex):
             other = PauliSum.from_pauli_strings([PauliString(coefficient=other)])
         elif isinstance(other, PauliString):
             other = PauliSum.from_pauli_strings([other])
-        elif isinstance(other, raw_types.Operation) and isinstance(
-            other.gate, identity.IdentityGate
-        ):
-            other = PauliSum.from_pauli_strings([PauliString()])
 
         if not isinstance(other, PauliSum):
             return NotImplemented
@@ -787,10 +827,9 @@ class PauliSum:
         return self
 
     def __sub__(self, other):
-        if not isinstance(other, (numbers.Complex, PauliString, PauliSum, raw_types.Operation)):
-            return NotImplemented
         result = self.copy()
-        result -= other
+        if result.__isub__(other) is NotImplemented:
+            return NotImplemented
         return result
 
     def __neg__(self):
@@ -932,8 +971,8 @@ class ProjectorSum:
     def copy(self) -> ProjectorSum:
         return ProjectorSum(self._linear_dict.copy())
 
-    def matrix(self, projector_qids: Iterable[raw_types.Qid] | None = None) -> csr_matrix:
-        """Returns the matrix of self in computational basis of qubits.
+    def matrix(self, projector_qids: Iterable[raw_types.Qid] | None = None) -> sparse.csr_matrix:
+        """Returns the matrix of self in the computational basis of the qubits.
 
         Args:
             projector_qids: Ordered collection of qubits that determine the subspace in which the

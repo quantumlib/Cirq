@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import collections
 import time
-from typing import Mapping, Sequence
+from collections.abc import Mapping, Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np

@@ -14,8 +14,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-from typing import Any, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 import numpy as np
 
@@ -35,16 +35,17 @@ class InternalGate(ops.Gate):
     def __init__(
         self,
         gate_name: str,
-        gate_module: str,
+        gate_module: str | None = None,
         num_qubits: int = 1,
         custom_args: Mapping[str, program_pb2.CustomArg] | None = None,
         **kwargs,
     ):
-        """Instatiates an InternalGate.
+        """Instantiates an InternalGate.
 
         Arguments:
             gate_name: Gate class name.
-            gate_module: The module of the gate.
+            gate_module: The module of the gate. If not specified, the engine
+                will attempt to infer the module.
             num_qubits: Number of qubits that the gate acts on.
             custom_args: A mapping from argument name to `CustomArg`.
                 This is to support argument that require special processing.

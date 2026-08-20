@@ -21,8 +21,6 @@ from typing import NamedTuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     import cirq
-    import cirq.devices.unconstrained_device
-    import cirq.ops.pauli_gates
     from cirq.protocols.json_serialization import ObjectFactory
 
 
@@ -114,6 +112,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'BooleanHamiltonianGate': cirq.BooleanHamiltonianGate,
         'CCNotPowGate': cirq.CCNotPowGate,
         'CCXPowGate': cirq.CCXPowGate,
+        'CCYPowGate': cirq.CCYPowGate,
         'CCZPowGate': cirq.CCZPowGate,
         'Circuit': cirq.Circuit,
         'CircuitOperation': cirq.CircuitOperation,
@@ -129,6 +128,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'ControlledOperation': cirq.ControlledOperation,
         'CSwapGate': cirq.CSwapGate,
         'CXPowGate': cirq.CXPowGate,
+        'CYPowGate': cirq.CYPowGate,
         'CZPowGate': cirq.CZPowGate,
         'CZTargetGateset': cirq.CZTargetGateset,
         'DiagonalGate': cirq.DiagonalGate,
@@ -150,6 +150,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'HPowGate': cirq.HPowGate,
         'ISwapPowGate': cirq.ISwapPowGate,
         'IdentityGate': cirq.IdentityGate,
+        'If': cirq.If,
         'InitObsSetting': cirq.work.InitObsSetting,
         'InsertionNoiseModel': InsertionNoiseModel,
         '_InverseCompositeGate': raw_types._InverseCompositeGate,
@@ -219,6 +220,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'SingleQubitCliffordGate': cirq.SingleQubitCliffordGate,
         'SingleQubitPauliStringGateOperation': cirq.SingleQubitPauliStringGateOperation,
         'SingleQubitReadoutCalibrationResult': cirq.experiments.SingleQubitReadoutCalibrationResult,
+        'SetVariable': cirq.SetVariable,
         'SqrtIswapTargetGateset': cirq.SqrtIswapTargetGateset,
         'StabilizerStateChForm': cirq.StabilizerStateChForm,
         'StatePreparationChannel': cirq.StatePreparationChannel,

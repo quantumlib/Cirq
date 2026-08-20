@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import itertools
-from typing import Callable, Hashable, TYPE_CHECKING
+from collections.abc import Callable, Hashable
+from typing import TYPE_CHECKING
 
 from cirq.transformers import transformer_api, transformer_primitives
 

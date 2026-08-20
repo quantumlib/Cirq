@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import asyncio
-from typing import AsyncIterator, TYPE_CHECKING
+from collections.abc import AsyncIterator
+from typing import TYPE_CHECKING
 
 import google.api_core.exceptions as google_exceptions
 
@@ -184,7 +185,7 @@ class StreamManager:
 
     @property
     def _executor(self) -> AsyncioExecutor:
-        # We must re-use a single Executor due to multi-threading issues in gRPC
+        # We must reuse a single Executor due to multi-threading issues in gRPC
         # clients: https://github.com/grpc/grpc/issues/25364.
         return AsyncioExecutor.instance()
 

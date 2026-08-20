@@ -37,6 +37,9 @@ class QasmLexer:
         'gate': 'GATE',
         'if': 'IF',
         'pi': 'PI',
+        'input': 'INPUT',
+        'float': 'FLOAT',
+        'angle': 'ANGLE',
     }
 
     tokens = [
@@ -48,7 +51,9 @@ class QasmLexer:
         'ID',
         'ARROW',
         'EQ',
-    ] + list(reserved.values())
+        'AND',
+        *reserved.values(),
+    ]
 
     def t_newline(self, t):
         r"""\n+"""
@@ -101,8 +106,12 @@ class QasmLexer:
         """=="""
         return t
 
+    def t_AND(self, t):
+        """&&"""
+        return t
+
     def t_ID(self, t):
-        r"""[a-zA-Z][a-zA-Z\d_]*"""
+        r"""[a-zA-Z_][a-zA-Z\d_]*"""
         if t.value in QasmLexer.reserved:
             t.type = QasmLexer.reserved[t.value]
         return t

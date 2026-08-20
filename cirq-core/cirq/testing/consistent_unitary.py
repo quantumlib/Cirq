@@ -21,7 +21,7 @@ import numpy as np
 import cirq
 
 
-def assert_unitary_is_consistent(val: Any, ignoring_global_phase: bool = False):
+def assert_unitary_is_consistent(val: Any, ignoring_global_phase: bool = False) -> None:
     if not isinstance(val, (cirq.Operation, cirq.Gate)):
         return
 

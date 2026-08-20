@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import json
 import urllib.parse
-from typing import Any, cast, Iterable, Mapping, Sequence, TYPE_CHECKING
+from collections.abc import Iterable, Mapping, Sequence
+from typing import Any, cast, TYPE_CHECKING
 
 import numpy as np
 
@@ -39,7 +40,7 @@ def quirk_url_to_circuit(
     quirk_url: str,
     *,
     qubits: Sequence[cirq.Qid] | None = None,
-    extra_cell_makers: dict[str, cirq.Gate] | Iterable[cirq.interop.quirk.cells.CellMaker] = (),
+    extra_cell_makers: Mapping[str, cirq.Gate] | Iterable[cirq.interop.quirk.cells.CellMaker] = (),
     max_operation_count: int = 10**6,
 ) -> cirq.Circuit:
     """Parses a Cirq circuit out of a Quirk URL.
@@ -140,7 +141,7 @@ def quirk_json_to_circuit(
     data: dict,
     *,
     qubits: Sequence[cirq.Qid] | None = None,
-    extra_cell_makers: dict[str, cirq.Gate] | Iterable[cirq.interop.quirk.cells.CellMaker] = (),
+    extra_cell_makers: Mapping[str, cirq.Gate] | Iterable[cirq.interop.quirk.cells.CellMaker] = (),
     quirk_url: str | None = None,
     max_operation_count: int = 10**6,
 ) -> cirq.Circuit:
@@ -272,8 +273,7 @@ def _parse_cols_into_composite_cell(
     for c in parsed_cols:
         for cell in c:
             if cell is not None:
-                for key, modifier in cell.persistent_modifiers().items():
-                    persistent_mods[key] = modifier
+                persistent_mods.update(cell.persistent_modifiers())
         for i in range(len(c)):
             for modifier in persistent_mods.values():
                 cell = c[i]

@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import itertools
 import random
-from typing import Any, Hashable, Iterable, Mapping
+from collections.abc import Hashable, Iterable, Mapping
+from typing import Any
 
 AdjacencyList = set[frozenset[Hashable]]
 
@@ -127,5 +128,5 @@ class UndirectedHypergraph:
             for potential_edge in itertools.combinations(vertices, edge_size):
                 if random.random() < edge_prob:
                     edges.append(potential_edge)
-        labelled_edges: dict[Iterable[Hashable], Any] = {edge: None for edge in edges}
+        labelled_edges: dict[Iterable[Hashable], Any] = dict.fromkeys(edges)
         return cls(vertices=vertices, labelled_edges=labelled_edges)

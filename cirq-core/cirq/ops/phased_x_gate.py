@@ -18,8 +18,9 @@ from __future__ import annotations
 
 import math
 import numbers
+from collections.abc import Sequence, Set
 from types import NotImplementedType
-from typing import AbstractSet, Any, cast, Sequence
+from typing import Any, cast
 
 import numpy as np
 import sympy
@@ -166,7 +167,7 @@ class PhasedXPowGate(raw_types.Gate):
             self._phase_exponent
         )
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         """See `cirq.SupportsParameterization`."""
         return protocols.parameter_names(self._exponent) | protocols.parameter_names(
             self._phase_exponent
@@ -176,12 +177,12 @@ class PhasedXPowGate(raw_types.Gate):
         """See `cirq.SupportsParameterization`."""
         phase_exponent = resolver.value_of(self._phase_exponent, recursive)
         exponent = resolver.value_of(self._exponent, recursive)
-        if isinstance(phase_exponent, numbers.Complex):
+        if not isinstance(phase_exponent, float) and isinstance(phase_exponent, numbers.Complex):
             if isinstance(phase_exponent, numbers.Real):
                 phase_exponent = float(phase_exponent)
             else:
                 raise ValueError(f'PhasedXPowGate does not support complex value {phase_exponent}')
-        if isinstance(exponent, numbers.Complex):
+        if not isinstance(exponent, float) and isinstance(exponent, numbers.Complex):
             if isinstance(exponent, numbers.Real):
                 exponent = float(exponent)
             else:

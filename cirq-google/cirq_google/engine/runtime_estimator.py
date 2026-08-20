@@ -24,7 +24,7 @@ Your experience may vary based on many factors not captured here.
 Parameters were calculated using a variety of width/depth/sweeps from
 the rep rate calculator, see:
 
-[https://github.com/quantumlib/ReCirq/blob/master/recirq/benchmarks/rep_rate/](https://github.com/quantumlib/ReCirq/blob/master/recirq/benchmarks/rep_rate/){:.external}
+[https://github.com/quantumlib/ReCirq/blob/main/recirq/benchmarks/rep_rate/](https://github.com/quantumlib/ReCirq/blob/main/recirq/benchmarks/rep_rate/){:.external}
 
 Model was then fitted by hand, correcting for anomalies and outliers
 when possible.
@@ -32,7 +32,7 @@ when possible.
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import cirq
 
@@ -157,7 +157,7 @@ def estimate_run_sweep_time(
     """
     width = len(program.all_qubits())
     depth = len(program)
-    sweeps = len(list(cirq.to_resolvers(params)))
+    sweeps = sum(1 for _ in cirq.to_resolvers(params))
     return _estimate_run_time_seconds(width, depth, sweeps, repetitions, latency)
 
 
@@ -199,7 +199,7 @@ def estimate_run_batch_time(
             current_width = width
         total_depth += len(program)
         num_circuits += 1
-        total_sweeps += len(list(cirq.to_resolvers(params_list[idx])))
+        total_sweeps += sum(1 for _ in cirq.to_resolvers(params_list[idx]))
     if num_circuits > 0:
         total_time += _estimate_run_time_seconds(
             width, total_depth // num_circuits, total_sweeps, repetitions, 0.0

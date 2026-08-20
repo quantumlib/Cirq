@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import numbers
-from typing import AbstractSet, cast, Iterable, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Iterable, Iterator, Sequence, Set
+from typing import Any, cast, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq._compat import deprecated, proper_repr
@@ -73,9 +74,9 @@ class PauliStringPhasor(gate_operation.GateOperation):
                 `pauli_string` are acted upon by identity. The order of
                 these qubits must match the order in `pauli_string`.
             exponent_neg: How much to phase vectors in the negative eigenspace,
-                in the form of the t in (-1)**t = exp(i pi t).
+                in the form of the t in ``(-1)**t = exp(i*pi*t)``.
             exponent_pos: How much to phase vectors in the positive eigenspace,
-                in the form of the t in (-1)**t = exp(i pi t).
+                in the form of the t in ``(-1)**t = exp(i*pi*t)``.
 
         Raises:
             ValueError: If coefficient is not 1 or -1 or the qubits of
@@ -200,7 +201,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
         pn = self.exponent_neg
         return PauliStringPhasor(new_pauli_string, exponent_pos=pp, exponent_neg=pn)
 
-    @deprecated(deadline="v2.0", fix="Use conjuagetd_by() instead.")
+    @deprecated(deadline="v2.0", fix="Use conjugated_by() instead.")
     def pass_operations_over(
         self, ops: Iterable[raw_types.Operation], after_to_before: bool = False
     ) -> PauliStringPhasor:  # pragma: no cover
@@ -255,14 +256,14 @@ class PauliStringPhasor(gate_operation.GateOperation):
             return f'exp({sign}iπ{exponent}*{self.pauli_string})'
         return f'({self.pauli_string})**{self.exponent_relative}'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(
             self, ['pauli_string', 'qubits', 'exponent_neg', 'exponent_pos']
         )
 
     @classmethod
     def _from_json_dict_(cls, pauli_string, exponent_neg, exponent_pos, **kwargs):
-        qubits = kwargs['qubits'] if 'qubits' in kwargs else None
+        qubits = kwargs.get('qubits', None)
         return PauliStringPhasor(
             pauli_string=pauli_string,
             qubits=qubits,
@@ -388,7 +389,7 @@ class PauliStringPhasorGate(raw_types.Gate):
             self.exponent_pos
         )
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self.exponent_neg) | protocols.parameter_names(
             self.exponent_pos
         )
@@ -443,7 +444,7 @@ class PauliStringPhasorGate(raw_types.Gate):
             exponent_neg=self.exponent_neg,
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(
             self, ['dense_pauli_string', 'exponent_neg', 'exponent_pos']
         )
@@ -451,7 +452,7 @@ class PauliStringPhasorGate(raw_types.Gate):
 
 def xor_nonlocal_decompose(
     qubits: Iterable[raw_types.Qid], onto_qubit: cirq.Qid
-) -> Iterable[raw_types.Operation]:
+) -> Iterator[raw_types.Operation]:
     """Decomposition ignores connectivity."""
     for qubit in qubits:
         if qubit != onto_qubit:

@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 import base64
-import inspect
 from typing import cast
 
 import numpy as np
@@ -36,6 +35,8 @@ from cirq_google.serialization.arg_func_langs import (
     clifford_tableau_from_proto,
     condition_from_proto,
     condition_to_proto,
+    dict_from_arg_mapping_proto,
+    dict_to_arg_mapping_proto,
     float_arg_from_proto,
     float_arg_to_proto,
     internal_gate_arg_to_proto,
@@ -43,22 +44,10 @@ from cirq_google.serialization.arg_func_langs import (
 )
 
 
-def _json_format_kwargs() -> dict[str, bool]:
-    """Determine kwargs to pass to json_format.MessageToDict.
-
-    Protobuf v5 has a different signature for MessageToDict. If we ever move to requiring
-    protobuf >= 5 this can be removed.
-    """
-    sig = inspect.signature(json_format.MessageToDict)
-    new_arg = "always_print_fields_with_no_presence"
-    old_arg = "including_default_value_fields"
-    arg = new_arg if new_arg in sig.parameters else old_arg
-    return {arg: True}
-
-
 @pytest.mark.parametrize(
     'value,proto',
     [
+        (None, {}),
         (1.0, {'arg_value': {'float_value': 1.0}}),
         (1.5, {'arg_value': {'float_value': 1.5}}),
         (1, {'arg_value': {'float_value': 1.0}}),
@@ -187,12 +176,16 @@ def test_correspondence(value: ARG_LIKE, proto: v2.program_pb2.Arg):
     parsed = arg_from_proto(msg)
     packed = json_format.MessageToDict(
         arg_to_proto(value),
-        **_json_format_kwargs(),
+        always_print_fields_with_no_presence=True,
         preserving_proto_field_name=True,
         use_integers_for_enums=True,
     )
     assert parsed == value
     assert packed == proto
+
+
+def test_none_to_none_arg_roundtrip():
+    assert arg_from_proto(arg_to_proto(None)) is None
 
 
 def test_double_value():
@@ -214,7 +207,7 @@ def test_serialize_sympy_constants():
     proto = arg_to_proto(sympy.pi)
     packed = json_format.MessageToDict(
         proto,
-        **_json_format_kwargs(),
+        always_print_fields_with_no_presence=True,
         preserving_proto_field_name=True,
         use_integers_for_enums=True,
     )
@@ -239,7 +232,7 @@ def test_serialize_conversion(value: ARG_LIKE, proto: v2.program_pb2.Arg):
     json_format.ParseDict(proto, msg)
     packed = json_format.MessageToDict(
         arg_to_proto(value),
-        **_json_format_kwargs(),
+        always_print_fields_with_no_presence=True,
         preserving_proto_field_name=True,
         use_integers_for_enums=True,
     )
@@ -268,6 +261,22 @@ def test_ndarray_roundtrip(value: np.ndarray):
     msg = arg_to_proto(value)
     deserialized_value = cast(np.ndarray, arg_from_proto(msg))
     np.testing.assert_array_equal(value, deserialized_value)
+
+
+@pytest.mark.parametrize(
+    "d",
+    [
+        None,
+        {'a': 1},
+        {'a': 1 * tunits.units.ns},
+        {'a': 1.25},
+        {'a': "str"},
+        {'a': [1, 2]},
+        {'a': 1, 'b': 1 * tunits.units.ns, 'c': 1.25, 'd': "str", 'e': [1, 2]},
+    ],
+)
+def test_dict_from_arg_mapping_proto(d):
+    assert dict_from_arg_mapping_proto(dict_to_arg_mapping_proto(d)) == d
 
 
 @pytest.mark.parametrize('value', [[], (), set(), frozenset()])

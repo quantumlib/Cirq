@@ -20,7 +20,7 @@ import cirq.transformers.noise_adding as na
 from cirq import circuits, devices, ops
 
 
-def test_noise_adding():
+def test_noise_adding() -> None:
     qubits = devices.LineQubit.range(4)
     one_layer = circuits.Circuit(ops.CZ(*qubits[:2]), ops.CZ(*qubits[2:]))
     circuit = one_layer * 10
@@ -48,7 +48,7 @@ def test_noise_adding():
 
     # test that supplying a dictionary for p works
     transformed_circuit_p_dict = na.DepolarizingNoiseTransformer(
-        {tuple(qubits[:2]): 1.0, tuple(qubits[2:]): 0.0}
+        {(qubits[0], qubits[1]): 1.0, (qubits[2], qubits[3]): 0.0}
     )(circuit)
     assert len(transformed_circuit_p_dict) == 20  # depth should be doubled
     assert transformed_circuit_p_dict[1::2].all_qubits() == frozenset(

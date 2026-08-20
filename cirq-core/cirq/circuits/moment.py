@@ -17,24 +17,12 @@
 from __future__ import annotations
 
 import itertools
+from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping, Sequence, Set
 from functools import cached_property
 from types import NotImplementedType
-from typing import (
-    AbstractSet,
-    Any,
-    Callable,
-    cast,
-    Hashable,
-    Iterable,
-    Iterator,
-    Mapping,
-    overload,
-    Sequence,
-    TYPE_CHECKING,
-)
+from typing import Any, cast, overload, Self, TYPE_CHECKING
 
 import numpy as np
-from typing_extensions import Self
 
 from cirq import _compat, ops, protocols, qis
 from cirq._import import LazyLoader
@@ -54,7 +42,7 @@ text_diagram_drawer = LazyLoader(
 def _default_breakdown(qid: cirq.Qid) -> tuple[Any, Any]:
     # Attempt to convert into a position on the complex plane.
     try:
-        plane_pos = complex(qid)  # type: ignore
+        plane_pos = complex(qid)  # type: ignore[call-overload]
         return plane_pos.real, plane_pos.imag
     except TypeError:
         return None, qid
@@ -113,7 +101,7 @@ class Moment:
 
         # An internal dictionary to support efficient operation access by qubit.
         self._qubit_to_op: dict[cirq.Qid, cirq.Operation] = {}
-        for op in self.operations:
+        for op in self._operations:
             for q in op.qubits:
                 # Check that operations don't overlap.
                 if q in self._qubit_to_op:
@@ -230,9 +218,9 @@ class Moment:
 
         # Use private variables to facilitate a quick copy.
         m = Moment(_flatten_contents=False)
-        m._operations = self._operations + (operation,)
+        m._operations = (*self._operations, operation)
         m._sorted_operations = None
-        m._qubit_to_op = {**self._qubit_to_op, **{q: operation for q in operation.qubits}}
+        m._qubit_to_op = {**self._qubit_to_op, **dict.fromkeys(operation.qubits, operation)}
 
         m._measurement_key_objs = self._measurement_key_objs_().union(
             protocols.measurement_key_objs(operation)
@@ -273,10 +261,10 @@ class Moment:
         m._operations = self._operations + flattened_contents
         m._sorted_operations = None
         m._measurement_key_objs = self._measurement_key_objs_().union(
-            set(itertools.chain(*(protocols.measurement_key_objs(op) for op in flattened_contents)))
+            itertools.chain(*(protocols.measurement_key_objs(op) for op in flattened_contents))
         )
         m._control_keys = self._control_keys_().union(
-            set(itertools.chain(*(protocols.control_keys(op) for op in flattened_contents)))
+            itertools.chain(*(protocols.control_keys(op) for op in flattened_contents))
         )
 
         return m
@@ -297,9 +285,7 @@ class Moment:
         if not self.operates_on(qubits):
             return self
         return Moment(
-            operation
-            for operation in self.operations
-            if qubits.isdisjoint(frozenset(operation.qubits))
+            operation for operation in self.operations if qubits.isdisjoint(operation.qubits)
         )
 
     @_compat.cached_method()
@@ -307,7 +293,7 @@ class Moment:
         return any(protocols.is_parameterized(op) for op in self)
 
     @_compat.cached_method()
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return {name for op in self for name in protocols.parameter_names(op)}
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> cirq.Moment:

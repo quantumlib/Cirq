@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {expect} from 'chai';
+import {expect} from 'vitest';
 import {Axes} from './axes';
 import {Line, LineDashedMaterial, Color} from 'three';
 
@@ -22,7 +22,7 @@ describe('Axes', () => {
     const children = axes.children as Line[];
 
     it('returns 3 Line objects', () => {
-      expect(children.length).to.equal(3);
+      expect(children.length).toBe(3);
     });
 
     it('returns the correct default colors for each line', () => {
@@ -30,14 +30,14 @@ describe('Axes', () => {
 
       children.forEach((el, index) => {
         const material = el.material as LineDashedMaterial;
-        expect(material.color).to.eql(new Color(defaultColors[index]));
+        expect(material.color).toEqual(new Color(defaultColors[index]));
       });
     });
 
     it('returns all lines with a constant linewidth (1.5)', () => {
       children.forEach(el => {
         const material = el.material as LineDashedMaterial;
-        expect(material.linewidth).to.equal(1.5);
+        expect(material.linewidth).toBe(1.5);
       });
     });
   });

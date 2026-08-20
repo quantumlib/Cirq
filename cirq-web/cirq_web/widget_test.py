@@ -66,7 +66,7 @@ def test_generate_html_file_with_browser(tmpdir) -> None:
 
     test_widget = FakeWidget()
     test_html_path = test_widget.generate_html_file(str(path), 'test.html', open_in_browser=True)
-    actual = open(test_html_path, 'r', encoding='utf-8').read()
+    actual = Path(test_html_path).read_text(encoding='utf-8')
 
     expected = f"""
         <meta charset="UTF-8">

@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import cast, Iterable
+from collections.abc import Iterable
+from typing import cast
 
 import numpy as np
 import pytest
@@ -31,7 +32,7 @@ def assert_optimizes(
     eject_parameterized: bool = False,
     *,
     with_context: bool = False,
-):
+) -> None:
     context = cirq.TransformerContext(tags_to_ignore=("nocompile",)) if with_context else None
     circuit = cirq.eject_phased_paulis(
         before, eject_parameterized=eject_parameterized, context=context
@@ -83,7 +84,7 @@ def assert_optimizes(
         context = cirq.TransformerContext(tags_to_ignore=("ignore",), deep=True)
     else:
         context = dataclasses.replace(
-            context, tags_to_ignore=context.tags_to_ignore + ("ignore",), deep=True
+            context, tags_to_ignore=(*context.tags_to_ignore, "ignore"), deep=True
         )
     c_nested = cirq.eject_phased_paulis(
         c_nested, context=context, eject_parameterized=eject_parameterized
@@ -235,60 +236,12 @@ def test_crosses_czs() -> None:
     )
 
 
-def test_toggles_measurements() -> None:
+def test_doesnt_change_measurements() -> None:
     a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
-    x = sympy.Symbol('x')
 
-    # Single.
     assert_optimizes(
-        before=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=0.25).on(a)], [cirq.measure(a, b)]
-        ),
-        expected=quick_circuit([cirq.measure(a, b, invert_mask=(True,))]),
-    )
-    assert_optimizes(
-        before=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=0.25).on(b)], [cirq.measure(a, b)]
-        ),
-        expected=quick_circuit([cirq.measure(a, b, invert_mask=(False, True))]),
-    )
-    assert_optimizes(
-        before=quick_circuit([cirq.PhasedXPowGate(phase_exponent=x).on(b)], [cirq.measure(a, b)]),
-        expected=quick_circuit([cirq.measure(a, b, invert_mask=(False, True))]),
-        eject_parameterized=True,
-    )
-
-    # Multiple.
-    assert_optimizes(
-        before=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=0.25).on(a)],
-            [cirq.PhasedXPowGate(phase_exponent=0.25).on(b)],
-            [cirq.measure(a, b)],
-        ),
-        expected=quick_circuit([cirq.measure(a, b, invert_mask=(True, True))]),
-    )
-
-    # Xmon.
-    assert_optimizes(
-        before=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=0.25).on(a)], [cirq.measure(a, b, key='t')]
-        ),
-        expected=quick_circuit([cirq.measure(a, b, invert_mask=(True,), key='t')]),
-    )
-
-    # CCOs
-    assert_optimizes(
-        before=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=0.25).on(a)],
-            [cirq.measure(a, key="m")],
-            [cirq.X(b).with_classical_controls("m")],
-        ),
-        expected=quick_circuit(
-            [cirq.measure(a, invert_mask=(True,), key="m")],
-            [cirq.X(b).with_classical_controls("m")],
-        ),
-        compare_unitaries=False,
+        before=quick_circuit([cirq.PhasedXPowGate(phase_exponent=0.25).on(a)], [cirq.measure(a)]),
+        expected=quick_circuit([cirq.PhasedXPowGate(phase_exponent=0.25).on(a)], [cirq.measure(a)]),
     )
 
 

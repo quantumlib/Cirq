@@ -17,7 +17,8 @@ from __future__ import annotations
 
 import cmath
 import math
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 
@@ -38,7 +39,7 @@ class GPIGate(cirq.Gate):
     \end{bmatrix}
     $$
 
-    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
+    See [IonQ best practices](https://docs.ionq.com/guides/getting-started-with-native-gates){:external}.
     """
 
     def __init__(self, *, phi):
@@ -96,7 +97,7 @@ document(
     \end{bmatrix}
     $$
 
-    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
+    See [IonQ best practices](https://docs.ionq.com/guides/getting-started-with-native-gates){:external}.
     """,
 )
 
@@ -114,7 +115,7 @@ class GPI2Gate(cirq.Gate):
     \end{bmatrix}
     $$
 
-    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
+    See [IonQ best practices](https://docs.ionq.com/guides/getting-started-with-native-gates){:external}.
     """
 
     def __init__(self, *, phi):
@@ -173,7 +174,7 @@ document(
     \end{bmatrix}
     $$
 
-    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
+    See [IonQ best practices](https://docs.ionq.com/guides/getting-started-with-native-gates){:external}.
     """,
 )
 
@@ -193,7 +194,7 @@ class MSGate(cirq.Gate):
     \end{bmatrix}
     $$
 
-    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
+    See [IonQ best practices](https://docs.ionq.com/guides/getting-started-with-native-gates){:external}.
     """
 
     def __init__(self, *, phi0, phi1, theta=0.25):
@@ -270,7 +271,7 @@ document(
     \end{bmatrix}
     $$
 
-    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
+    See [IonQ best practices](https://docs.ionq.com/guides/getting-started-with-native-gates){:external}.
     """,
 )
 
@@ -291,7 +292,7 @@ class ZZGate(cirq.Gate):
     \end{bmatrix}
     $$
 
-    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
+    See [IonQ best practices](https://docs.ionq.com/guides/getting-started-with-native-gates){:external}.
     """
 
     def __init__(self, *, theta):
@@ -359,6 +360,6 @@ document(
     \end{bmatrix}
     $$
 
-    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
+    See [IonQ best practices](https://docs.ionq.com/guides/getting-started-with-native-gates){:external}.
     """,
 )

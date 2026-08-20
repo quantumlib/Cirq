@@ -20,7 +20,7 @@ import pytest
 import cirq
 
 
-def assert_optimizes(optimized: cirq.AbstractCircuit, expected: cirq.AbstractCircuit):
+def assert_optimizes(optimized: cirq.AbstractCircuit, expected: cirq.AbstractCircuit) -> None:
     # Ignore differences that would be caught by follow-up optimizations.
     followup_transformers: list[cirq.TRANSFORMER] = [
         cirq.drop_negligible_operations,

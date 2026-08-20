@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import itertools
 import math
-from typing import Any, Iterable, Mapping, TYPE_CHECKING
+from collections.abc import Iterable, Mapping
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 from scipy.sparse import csr_matrix

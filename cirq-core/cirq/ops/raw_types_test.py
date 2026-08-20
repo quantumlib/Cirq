@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import AbstractSet, Any, cast, Iterator
+from collections.abc import Iterator, Set
+from typing import Any, cast
 
 import numpy as np
 import pytest
@@ -48,7 +49,7 @@ class ValidQid(cirq.Qid):
         self.validate_dimension(dimension)
 
     @property
-    def dimension(self):
+    def dimension(self) -> int:
         return self._dimension
 
     def with_dimension(self, dimension) -> ValidQid:
@@ -210,10 +211,10 @@ def test_default_validation_and_inverse() -> None:
     assert i**-1 == t
     assert t**-1 == i
     assert cirq.decompose(i) == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]
-    assert [*i._decompose_()] == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]  # type: ignore[misc]
+    assert cirq.decompose_once(i) == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]
     gate = i.gate
     assert gate is not None
-    assert [*gate._decompose_([a, b])] == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]  # type: ignore
+    assert cirq.decompose_once_with_qubits(gate, [a, b]) == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(i), cirq.unitary(t).conj().T, atol=1e-8
     )
@@ -528,9 +529,30 @@ def test_circuit_diagram() -> None:
         def __str__(self):
             return '<taggy>'
 
+    class DiagramInfoTag:
+        """Tag that customizes diagram rendering via `_circuit_diagram_info_`."""
+
+        def __str__(self):
+            return 'should-not-appear-in-diagram'
+
+        def __repr__(self):
+            return 'DiagramInfoTag()'
+
+        def _circuit_diagram_info_(
+            self, args: cirq.CircuitDiagramInfoArgs
+        ) -> str | cirq.CircuitDiagramInfo:
+            if args.use_unicode_characters:
+                return '★'
+            return cirq.CircuitDiagramInfo(wire_symbols=('D',))
+
+    # str/repr exist for documentation; protocol path must not use them.
+    assert str(DiagramInfoTag()) == 'should-not-appear-in-diagram'
+    assert repr(DiagramInfoTag()) == 'DiagramInfoTag()'
+
     h = cirq.H(cirq.GridQubit(1, 1))
     tagged_h = h.with_tags('tag1')
     non_string_tag_h = h.with_tags(TaggyTag())
+    diagram_info_tag_h = h.with_tags(DiagramInfoTag())
 
     expected = cirq.CircuitDiagramInfo(
         wire_symbols=("H[tag1]",),
@@ -556,6 +578,23 @@ def test_circuit_diagram() -> None:
     assert c.to_text_diagram(include_tags=False) == diagram_without_tags
     assert c.to_text_diagram(include_tags={str}) == diagram_without_tags
     assert c.to_text_diagram(include_tags={TaggyTag}) == diagram_with_non_string_tag
+
+    # Tags implementing _circuit_diagram_info_ customize diagram text (not str).
+    c = cirq.Circuit(diagram_info_tag_h)
+    assert c.to_text_diagram(use_unicode_characters=True) == "(1, 1): ───H[★]───"
+    assert c.to_text_diagram(use_unicode_characters=False) == "(1, 1): ---H[D]---"
+    assert c.to_text_diagram(include_tags=False) == diagram_without_tags
+    assert c.to_text_diagram(include_tags={str}) == diagram_without_tags
+    assert (
+        c.to_text_diagram(include_tags={DiagramInfoTag}, use_unicode_characters=True)
+        == "(1, 1): ───H[★]───"
+    )
+    # Mixed tags: protocol text for custom tags, str() fallback for others.
+    mixed = h.with_tags('plain', DiagramInfoTag(), TaggyTag())
+    assert (
+        cirq.Circuit(mixed).to_text_diagram(use_unicode_characters=True)
+        == "(1, 1): ───H[plain, ★, <taggy>]───"
+    )
 
 
 def test_circuit_diagram_tagged_global_phase() -> None:
@@ -653,7 +692,7 @@ def test_tagged_operation_forwards_protocols() -> None:
     np.testing.assert_equal(cirq.unitary(tagged_h), cirq.unitary(h))
     assert cirq.has_unitary(tagged_h)
     assert cirq.decompose(tagged_h) == cirq.decompose(h)
-    assert [*tagged_h._decompose_()] == cirq.decompose_once(h)
+    assert cirq.decompose_once(tagged_h) == cirq.decompose_once(h)
     assert cirq.pauli_expansion(tagged_h) == cirq.pauli_expansion(h)
     assert cirq.equal_up_to_global_phase(h, tagged_h)
     assert np.isclose(cirq.kraus(h), cirq.kraus(tagged_h)).all()
@@ -739,7 +778,7 @@ class ParameterizableTag:
     def _is_parameterized_(self) -> bool:
         return cirq.is_parameterized(self.value)
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return cirq.parameter_names(self.value)
 
     def _resolve_parameters_(
@@ -781,7 +820,7 @@ def test_inverse_composite_standards() -> None:
         def _value_equality_values_(self):
             return (self._param,)
 
-        def _parameter_names_(self) -> AbstractSet[str]:
+        def _parameter_names_(self) -> Set[str]:
             return cirq.parameter_names(self._param)
 
         def _is_parameterized_(self) -> bool:

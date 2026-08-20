@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import operator
 import re
-from typing import Callable, Iterable, TYPE_CHECKING
+from collections.abc import Callable, Iterable
+from typing import TYPE_CHECKING
 
 import networkx as nx
 

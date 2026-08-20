@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import functools
 import itertools
-from typing import Iterable, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Iterable, Iterator, Sequence
+from typing import TYPE_CHECKING
 
 from cirq import ops
 from cirq.contrib.acquaintance.gates import acquaint

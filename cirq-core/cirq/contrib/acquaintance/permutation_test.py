@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import random
-from typing import Iterator
+from collections.abc import Iterator
 
 import pytest
 
@@ -104,17 +104,17 @@ def test_get_logical_operations() -> None:
 
 @pytest.mark.parametrize(
     'n_elements,n_permuted',
-    (
+    [
         (n_elements, random.randint(0, n_elements))
         for n_elements in (random.randint(5, 20) for _ in range(20))
-    ),
+    ],
 )
 def test_linear_permutation_gate(n_elements, n_permuted) -> None:
     qubits = cirq.LineQubit.range(n_elements)
     elements = tuple(range(n_elements))
     elements_to_permute = random.sample(elements, n_permuted)
     permuted_elements = random.sample(elements_to_permute, n_permuted)
-    permutation = {e: p for e, p in zip(elements_to_permute, permuted_elements)}
+    permutation = dict(zip(elements_to_permute, permuted_elements))
     cca.PermutationGate.validate_permutation(permutation, n_elements)
     gate = cca.LinearPermutationGate(n_elements, permutation)
     ct.assert_equivalent_repr(gate)
@@ -156,10 +156,10 @@ def random_permutation_equality_groups(
             fingerprints.add(fingerprint)
 
 
-@pytest.mark.parametrize('permutation_sets', [random_permutation_equality_groups(5, 3, 10, 0.5)])
-def test_linear_permutation_gate_equality(permutation_sets) -> None:
+def test_linear_permutation_gate_equality() -> None:
     swap_gates = [cirq.SWAP, cirq.CNOT]
     equals_tester = ct.EqualsTester()
+    permutation_sets = random_permutation_equality_groups(5, 3, 10, 0.5)
     for swap_gate in swap_gates:
         for permutation_set in permutation_sets:
             equals_tester.add_equality_group(

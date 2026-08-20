@@ -18,7 +18,8 @@ from __future__ import annotations
 
 import dataclasses
 import time
-from typing import Any, cast, Iterable, TYPE_CHECKING
+from collections.abc import Collection
+from typing import Any, cast, TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -212,7 +213,7 @@ class SingleQubitReadoutCalibrationResult:
 
 
 def estimate_single_qubit_readout_errors(
-    sampler: cirq.Sampler, *, qubits: Iterable[cirq.Qid], repetitions: int = 1000
+    sampler: cirq.Sampler, *, qubits: Collection[cirq.Qid], repetitions: int = 1000
 ) -> SingleQubitReadoutCalibrationResult:
     """Estimate single-qubit readout error.
 
@@ -233,7 +234,7 @@ def estimate_single_qubit_readout_errors(
         the probabilities. Also stores a timestamp indicating the time when
         data was finished being collected from the sampler.
     """
-    num_qubits = len(list(qubits))
+    num_qubits = len(qubits)
     return estimate_parallel_single_qubit_readout_errors(
         sampler=sampler,
         qubits=qubits,
@@ -246,7 +247,7 @@ def estimate_single_qubit_readout_errors(
 def estimate_parallel_single_qubit_readout_errors(
     sampler: cirq.Sampler,
     *,
-    qubits: Iterable[cirq.Qid],
+    qubits: Collection[cirq.Qid],
     trials: int = 20,
     repetitions: int = 1000,
     trials_per_batch: int | None = None,

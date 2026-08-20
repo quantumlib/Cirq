@@ -14,21 +14,21 @@
 
 from __future__ import annotations
 
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any, Self
 
 import numpy as np
 import pytest
-from typing_extensions import Self
 
 import cirq
 
 
 class ExampleQuantumState(cirq.QuantumStateRepresentation):
-    def copy(self, deep_copy_buffers=True):
-        pass
+    def copy(self, deep_copy_buffers=True) -> Self:
+        return self.__class__()  # pragma: no cover
 
-    def measure(self, axes, seed=None):
-        pass
+    def measure(self, axes, seed=None) -> list[int]:
+        return []  # pragma: no cover
 
 
 class ExampleSimulationState(cirq.SimulationState):

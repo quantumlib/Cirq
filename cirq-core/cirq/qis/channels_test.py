@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Sequence
+from collections.abc import Iterator, Sequence
 
 import numpy as np
 import pytest
@@ -37,7 +37,7 @@ def apply_kraus_operators(kraus_operators: Sequence[np.ndarray], rho: np.ndarray
     return out
 
 
-def generate_standard_operator_basis(d_out: int, d_in: int) -> Iterable[np.ndarray]:
+def generate_standard_operator_basis(d_out: int, d_in: int) -> Iterator[np.ndarray]:
     for i in range(d_out):
         for j in range(d_in):
             e_ij = np.zeros((d_out, d_in))

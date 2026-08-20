@@ -22,8 +22,9 @@ component operations in order, including any nested CircuitOperations.
 from __future__ import annotations
 
 import math
-from functools import cached_property
-from typing import Any, Callable, cast, Iterator, Mapping, Sequence, TYPE_CHECKING, TypeAlias
+from collections.abc import Callable, Iterator, Mapping, Sequence
+from functools import cached_property, reduce
+from typing import Any, cast, TYPE_CHECKING, TypeAlias
 
 import numpy as np
 import sympy
@@ -304,6 +305,19 @@ class CircuitOperation(ops.Operation):
         operations = self._mapped_any_loop.all_operations()
         return all(protocols.has_unitary(op) for op in operations)
 
+    def _unitary_(self) -> np.ndarray:
+        if len(self.qubits) > 1 or not protocols.has_unitary(self):
+            return NotImplemented
+
+        unitaries = [protocols.unitary(op) for op in self.circuit.all_operations()]
+        dim = max((u.shape for u in unitaries), default=(1,))[0]
+        u = np.eye(dim, dtype=np.complex128)
+        u = reduce(lambda u1, u2: np.dot(u1, u2, out=u), reversed(unitaries), u)
+
+        if self.repetitions != 1:
+            u = np.linalg.matrix_power(u, self.repetitions)
+        return u
+
     def _ensure_deterministic_loop_count(self):
         if self.repeat_until or isinstance(self.repetitions, sympy.Expr):
             raise ValueError('Cannot unroll circuit due to nondeterministic repetitions')
@@ -474,7 +488,7 @@ class CircuitOperation(ops.Operation):
     def __str__(self):
         # TODO: support out-of-line subcircuit definition in string format.
         msg_lines = str(self.circuit).split('\n')
-        msg_width = max([len(line) for line in msg_lines])
+        msg_width = max(len(line) for line in msg_lines)
         circuit_msg = '\n'.join(f'[ {line:<{msg_width}} ]' for line in msg_lines)
         args = []
 
@@ -533,7 +547,7 @@ class CircuitOperation(ops.Operation):
             del state[hash_attr]
         return state
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         resp = {
             'circuit': self.circuit,
             'repetitions': self.repetitions,

@@ -19,8 +19,10 @@ from __future__ import annotations
 import os
 import time
 import uuid
+from collections.abc import Callable, Sequence
+from contextlib import AbstractContextManager
 from dataclasses import dataclass
-from typing import Any, Callable, ContextManager, Sequence, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -150,7 +152,7 @@ class _ZippedCircuit:
             "unzip" the results of the `wide_circuit`.
         layer_i: Metadata indicating how the `pairs` were generated. This 0-based index is
             which `GridInteractionLayer` or `Moment` was used for these pairs when calibrating
-            several spacial layouts in one request. This field does not modify any behavior.
+            several spatial layouts in one request. This field does not modify any behavior.
             It is propagated to the output result object.
         combination_i: Metadata indicating how the `wide_circuit` was zipped. This is
             the row index of the combinations matrix that identifies this
@@ -159,7 +161,7 @@ class _ZippedCircuit:
     """
 
     wide_circuit: cirq.Circuit
-    pairs: list[tuple[cirq.Qid, cirq.Qid]]
+    pairs: Sequence[tuple[cirq.Qid, cirq.Qid]]
     combination: list[int]
     layer_i: int
     combination_i: int
@@ -257,7 +259,7 @@ def _execute_sample_2q_xeb_tasks_in_batches(
     combinations_by_layer: list[CircuitLibraryCombination],
     repetitions: int,
     batch_size: int,
-    progress_bar: Callable[..., ContextManager],
+    progress_bar: Callable[..., AbstractContextManager],
     dataset_directory: str | None = None,
 ) -> list[dict[str, Any]]:
     """Helper function used in `sample_2q_xeb_circuits` to batch and execute sampling tasks."""
@@ -287,18 +289,18 @@ def sample_2q_xeb_circuits(
     *,
     repetitions: int = 10_000,
     batch_size: int = 9,
-    progress_bar: Callable[..., ContextManager] | None = tqdm.tqdm,
+    progress_bar: Callable[..., AbstractContextManager] | None = tqdm.tqdm,
     combinations_by_layer: list[CircuitLibraryCombination] | None = None,
     shuffle: cirq.RANDOM_STATE_OR_SEED_LIKE | None = None,
     dataset_directory: str | None = None,
-):
+) -> pd.DataFrame:
     """Sample two-qubit XEB circuits given a sampler.
 
     Args:
         sampler: A Cirq sampler for executing circuits.
         circuits: A library of two-qubit circuits generated from
             `random_rotations_between_two_qubit_circuit` of sufficient length for `cycle_depths`.
-        cycle_depths: A sequence of cylce depths at which we will truncate each of the `circuits`
+        cycle_depths: A sequence of cycle depths at which we will truncate each of the `circuits`
             to execute.
         repetitions: Each (circuit, cycle_depth) will be sampled for this many repetitions.
         batch_size: We call `run_batch` on the sampler, which can speed up execution in certain

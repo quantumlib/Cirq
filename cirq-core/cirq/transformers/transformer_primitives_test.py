@@ -14,12 +14,13 @@
 
 from __future__ import annotations
 
-from typing import Iterator
+import random
+from collections.abc import Iterator
 
 import pytest
 
 import cirq
-from cirq.transformers.transformer_primitives import MAPPED_CIRCUIT_OP_TAG
+from cirq.transformers.transformer_primitives import MAPPED_CIRCUIT_OP_TAG, reverse_circuit
 
 
 def test_map_operations_can_write_new_gates_inline():
@@ -459,6 +460,65 @@ def test_map_operations_can_drop_operations():
     cirq.testing.assert_same_circuits(c_mapped, c_expected)
 
 
+@pytest.mark.parametrize('transform_choice', ["map_operations", "map_operations_and_unroll"])
+def test_map_operations_preserve_moments_duplicate_measurement_key(transform_choice: str) -> None:
+    transform = (
+        cirq.map_operations
+        if "transform_choice" == "map_operations"
+        else cirq.map_operations_and_unroll
+    )
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.Moment(cirq.M(q0, key='m'), cirq.M(q1, key='m')))
+
+    # Default - moments are split if they share a measurement key
+    c_mapped = transform(c, lambda op, _: op)
+    cirq.testing.assert_same_circuits(
+        c_mapped, cirq.Circuit(cirq.Moment(cirq.M(q0, key='m')), cirq.Moment(cirq.M(q1, key='m')))
+    )
+
+    # With the flag - moments with shared measurment keys are preserved.
+    c_mapped = transform(c, lambda op, _: op, preserve_moments=True)
+    cirq.testing.assert_same_circuits(c_mapped, c)
+
+
+def test_map_operations_preserve_moments_keeps_operation_order() -> None:
+    q = [cirq.LineQubit(i) for i in random.sample(range(3), 3)]
+    c = cirq.Circuit(
+        cirq.Moment(cirq.M(q[0], key='m'), cirq.M(q[1], key='m'), cirq.M(q[2], key='m'))
+    )
+    c_mapped = cirq.map_operations(c, lambda op, _: op, preserve_moments=True)
+    assert len(c_mapped) == 1
+    assert c_mapped[0].operations == c[0].operations
+
+
+def test_map_operations_preserve_moments_raises_when_ops_do_not_fit() -> None:
+    q0 = cirq.LineQubit(0)
+    c = cirq.Circuit(cirq.Moment(cirq.X(q0)))
+    # Expanding one op into two on the same qubit cannot fit in one moment.
+    with pytest.raises(ValueError, match='do not fit into a single moment'):
+        _ = cirq.map_operations_and_unroll(
+            c, lambda op, _: [cirq.X(q0), cirq.Y(q0)], preserve_moments=True
+        )
+
+
+def test_map_operations_preserve_moments_deep() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    inner = cirq.FrozenCircuit(cirq.Moment(cirq.M(q0, key='m'), cirq.M(q1, key='m')))
+    c = cirq.Circuit(cirq.Moment(cirq.X(q0), cirq.X(q1)), cirq.CircuitOperation(inner))
+    c_mapped = cirq.map_operations(
+        c,
+        lambda op, _: (
+            cirq.measure(*op.qubits, key="m1") if isinstance(op.gate, cirq.MeasurementGate) else op
+        ),
+        deep=True,
+        preserve_moments=True,
+    )
+    inner1 = cirq.FrozenCircuit(cirq.Moment(cirq.M(q0, key='m1'), cirq.M(q1, key='m1')))
+    cirq.testing.assert_same_circuits(
+        c_mapped, cirq.Circuit(cirq.Moment(cirq.X(q0), cirq.X(q1)), cirq.CircuitOperation(inner1))
+    )
+
+
 def test_map_moments_drop_empty_moments():
     op = cirq.X(cirq.NamedQubit("x"))
     c = cirq.Circuit(cirq.Moment(op), cirq.Moment(), cirq.Moment(op))
@@ -507,6 +567,27 @@ def _merge_z_moments_func(m1: cirq.Moment, m2: cirq.Moment) -> cirq.Moment | Non
     )
 
 
+def _can_merge_z_moment(m: cirq.Moment) -> bool:
+    return all(op.gate == cirq.Z for op in m)
+
+
+def _merge_z_moments_batch_func(ms: list[cirq.Moment]) -> tuple[cirq.Moment, list[cirq.Moment]]:
+    first_unmergeable = next((i for i, m in enumerate(ms) if not _can_merge_z_moment(m)), len(ms))
+    if first_unmergeable <= 1:
+        return (ms[0], ms[1:])
+    merged_moments = ms[:first_unmergeable]
+    unmerged_moments = ms[first_unmergeable:]
+
+    qubit_counts: dict[cirq.Qid, int] = {}
+    for m in merged_moments:
+        for q in m.qubits:
+            qubit_counts[q] = qubit_counts.get(q, 0) + 1
+    return (
+        cirq.Moment(cirq.Z(q) for q, count in qubit_counts.items() if count % 2),
+        unmerged_moments,
+    )
+
+
 def test_merge_moments():
     q = cirq.LineQubit.range(3)
     c_orig = cirq.Circuit(
@@ -529,6 +610,17 @@ def test_merge_moments():
 
     cirq.testing.assert_has_diagram(
         cirq.merge_moments(c_orig, _merge_z_moments_func),
+        '''
+0: ───────@───────
+          │
+1: ───Z───@───Z───
+          │
+2: ───Z───X───Z───
+''',
+    )
+
+    cirq.testing.assert_has_diagram(
+        cirq.merge_moments_batch(c_orig, _merge_z_moments_batch_func),
         '''
 0: ───────@───────
           │
@@ -566,6 +658,12 @@ def test_merge_moments_deep():
         cirq.merge_moments(c_orig, _merge_z_moments_func, tags_to_ignore=("ignore",), deep=True),
         c_expected,
     )
+    cirq.testing.assert_same_circuits(
+        cirq.merge_moments_batch(
+            c_orig, _merge_z_moments_batch_func, tags_to_ignore=("ignore",), deep=True
+        ),
+        c_expected,
+    )
 
 
 def test_merge_moments_empty_moment_as_intermediate_step():
@@ -581,6 +679,17 @@ def test_merge_moments_empty_moment_as_intermediate_step():
     assert isinstance(c_new[0][q].gate, cirq.PhasedXZGate)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(c_orig, c_new, atol=1e-8)
 
+    def merge_func_batch(m: list[cirq.Moment]):
+        gate = cirq.single_qubit_matrix_to_phxz(cirq.unitary(cirq.Circuit(m)), atol=1e-8)
+        return cirq.Moment(gate.on(q) if gate else []), []
+
+    c_new_batch = cirq.merge_moments_batch(c_orig, merge_func_batch)
+    assert len(c_new_batch) == 1
+    assert isinstance(c_new_batch[0][q].gate, cirq.PhasedXZGate)
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+        c_orig, c_new_batch, atol=1e-8
+    )
+
 
 def test_merge_moments_empty_circuit():
     def fail_if_called_func(*_):
@@ -588,6 +697,14 @@ def test_merge_moments_empty_circuit():
 
     c = cirq.Circuit()
     assert cirq.merge_moments(c, fail_if_called_func) is c
+    assert cirq.merge_moments_batch(c, fail_if_called_func) is c
+
+
+def test_merge_moments_batch_nothing_to_merge():
+    q = cirq.LineQubit.range(3)
+    c_orig = cirq.Circuit(cirq.Z(q[0]), cirq.Z(q[1]), cirq.X(q[2]), cirq.Z(q[1]), cirq.Z(q[0]))
+    c_new = cirq.merge_moments_batch(c_orig, _merge_z_moments_batch_func)
+    cirq.testing.assert_same_circuits(c_new, c_orig)
 
 
 def test_merge_operations_raises():
@@ -840,7 +957,7 @@ def test_merge_operations_complexity(op_density):
 
         wrapped_merge_func.num_function_calls = 0
         _ = cirq.merge_operations(circuit, wrapped_merge_func)
-        total_operations = len([*circuit.all_operations()])
+        total_operations = sum(1 for _ in circuit.all_operations())
         assert wrapped_merge_func.num_function_calls <= 2 * total_operations
 
 
@@ -877,3 +994,203 @@ def test_merge_operations_does_not_merge_measurements_behind_ccos():
     cirq.testing.assert_same_circuits(
         cirq.align_left(cirq.merge_operations(circuit, merge_func)), expected_circuit
     )
+
+
+def test_merge_3q_unitaries_to_circuit_op_3q_gate_absorbs_overlapping_2q_gates():
+    q = cirq.LineQubit.range(3)
+    c_orig = cirq.Circuit(
+        cirq.Moment(
+            cirq.H(q[0]).with_tags("ignore"),
+            cirq.H(q[1]).with_tags("ignore"),
+            cirq.H(q[2]).with_tags("ignore"),
+        ),
+        cirq.Moment(cirq.CNOT(q[0], q[2]), cirq.X(q[1]).with_tags("ignore")),
+        cirq.CNOT(q[0], q[1]),
+        cirq.CNOT(q[1], q[2]),
+        cirq.CCZ(*q),
+        strategy=cirq.InsertStrategy.NEW,
+    )
+    cirq.testing.assert_has_diagram(
+        c_orig,
+        '''
+                  ┌──────────┐
+0: ───H[ignore]────@─────────────@───────@───
+                   │             │       │
+1: ───H[ignore]────┼X[ignore]────X───@───@───
+                   │                 │   │
+2: ───H[ignore]────X─────────────────X───@───
+                  └──────────┘
+''',
+    )
+
+    c_new = cirq.merge_k_qubit_unitaries_to_circuit_op(
+        c_orig, k=3, merged_circuit_op_tag="merged", tags_to_ignore=["ignore"]
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.drop_empty_moments(c_new),
+        '''
+                              [ 0: ───@───@───────@─── ]
+                              [       │   │       │    ]
+0: ───H[ignore]───────────────[ 1: ───┼───X───@───@─── ]───────────
+                              [       │       │   │    ]
+                              [ 2: ───X───────X───@─── ][merged]
+                              │
+1: ───H[ignore]───X[ignore]───#2───────────────────────────────────
+                              │
+2: ───H[ignore]───────────────#3───────────────────────────────────
+''',
+    )
+
+
+def test_merge_3q_unitaries_to_circuit_op_3q_gate_absorbs_disjoint_gates():
+    q = cirq.LineQubit.range(3)
+    c_orig = cirq.Circuit(
+        cirq.Moment(cirq.CNOT(q[0], q[1]), cirq.X(q[2])),
+        cirq.CCZ(*q),
+        strategy=cirq.InsertStrategy.NEW,
+    )
+    cirq.testing.assert_has_diagram(
+        c_orig,
+        '''
+0: ───@───@───
+      │   │
+1: ───X───@───
+          │
+2: ───X───@───
+''',
+    )
+
+    c_new = cirq.merge_k_qubit_unitaries_to_circuit_op(
+        c_orig, k=3, merged_circuit_op_tag="merged", tags_to_ignore=["ignore"]
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.drop_empty_moments(c_new),
+        '''
+      [ 0: ───@───@─── ]
+      [       │   │    ]
+0: ───[ 1: ───X───@─── ]───────────
+      [           │    ]
+      [ 2: ───X───@─── ][merged]
+      │
+1: ───#2───────────────────────────
+      │
+2: ───#3───────────────────────────
+''',
+    )
+
+
+def test_merge_3q_unitaries_to_circuit_op_3q_gate_doesnt_absorb_unmergeable_gate():
+    q = cirq.LineQubit.range(3)
+    c_orig = cirq.Circuit(
+        cirq.CCZ(*q),
+        cirq.Moment(cirq.CNOT(q[0], q[1]), cirq.X(q[2]).with_tags("ignore")),
+        cirq.CCZ(*q),
+        strategy=cirq.InsertStrategy.NEW,
+    )
+    cirq.testing.assert_has_diagram(
+        c_orig,
+        '''
+0: ───@───@───────────@───
+      │   │           │
+1: ───@───X───────────@───
+      │               │
+2: ───@───X[ignore]───@───
+''',
+    )
+
+    c_new = cirq.merge_k_qubit_unitaries_to_circuit_op(
+        c_orig, k=3, merged_circuit_op_tag="merged", tags_to_ignore=["ignore"]
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.drop_empty_moments(c_new),
+        '''
+      [ 0: ───@───@─── ]
+      [       │   │    ]
+0: ───[ 1: ───@───X─── ]───────────────────────@───
+      [       │        ]                       │
+      [ 2: ───@─────── ][merged]               │
+      │                                        │
+1: ───#2───────────────────────────────────────@───
+      │                                        │
+2: ───#3───────────────────────────X[ignore]───@───
+''',
+    )
+
+
+def test_merge_3q_unitaries_to_circuit_op_prefer_to_merge_into_earlier_op():
+    q = cirq.LineQubit.range(6)
+    c_orig = cirq.Circuit(
+        cirq.Moment(
+            cirq.CCZ(*q[0:3]), cirq.X(q[3]), cirq.H(q[4]), cirq.H(q[5]).with_tags("ignore")
+        ),
+        cirq.Moment(cirq.CNOT(q[0], q[1]), cirq.X(q[2]).with_tags("ignore"), cirq.CCZ(*q[3:6])),
+        cirq.Moment(
+            cirq.X(q[0]),
+            cirq.X(q[1]),
+            cirq.X(q[2]),
+            cirq.X(q[3]).with_tags("ignore"),
+            cirq.CNOT(*q[4:6]),
+        ),
+        cirq.Moment(cirq.CCZ(*q[0:3]), cirq.CCZ(*q[3:6])),
+        strategy=cirq.InsertStrategy.NEW,
+    )
+    cirq.testing.assert_has_diagram(
+        c_orig,
+        '''
+0: ───@───────────@───────────X───────────@───
+      │           │                       │
+1: ───@───────────X───────────X───────────@───
+      │                                   │
+2: ───@───────────X[ignore]───X───────────@───
+
+3: ───X───────────@───────────X[ignore]───@───
+                  │                       │
+4: ───H───────────@───────────@───────────@───
+                  │           │           │
+5: ───H[ignore]───@───────────X───────────@───
+''',
+    )
+
+    c_new = cirq.merge_k_qubit_unitaries_to_circuit_op(
+        c_orig, k=3, merged_circuit_op_tag="merged", tags_to_ignore=["ignore"]
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.drop_empty_moments(c_new),
+        '''
+      [ 0: ───@───@───X─── ]                                                        [ 0: ───────@─── ]
+      [       │   │        ]                                                        [           │    ]
+0: ───[ 1: ───@───X───X─── ]────────────────────────────────────────────────────────[ 1: ───────@─── ]───────────
+      [       │            ]                                                        [           │    ]
+      [ 2: ───@─────────── ][merged]                                                [ 2: ───X───@─── ][merged]
+      │                                                                             │
+1: ───#2────────────────────────────────────────────────────────────────────────────#2───────────────────────────
+      │                                                                             │
+2: ───#3───────────────────────────────X[ignore]────────────────────────────────────#3───────────────────────────
+
+                                       [ 3: ───X───@─────── ]
+                                       [           │        ]
+3: ────────────────────────────────────[ 4: ───H───@───@─── ]───────────X[ignore]───@────────────────────────────
+                                       [           │   │    ]                       │
+                                       [ 5: ───────@───X─── ][merged]               │
+                                       │                                            │
+4: ────────────────────────────────────#2───────────────────────────────────────────@────────────────────────────
+                                       │                                            │
+5: ───H[ignore]────────────────────────#3───────────────────────────────────────────@────────────────────────────
+''',  # noqa: E501
+    )
+
+
+def test_reverse_circuit_has_reversed_all_operations() -> None:
+    q = cirq.LineQubit.range(3)
+    c_orig = cirq.Circuit(
+        cirq.Moment(cirq.H(q[0])).with_tags("H"),
+        cirq.Moment(cirq.X(q[0]), cirq.Y(q[1]), cirq.Z(q[2])).with_tags("XYZ"),
+        cirq.Moment(cirq.measure(q[1]), cirq.measure(q[2])).with_tags("M1M2"),
+    ).with_tags("circuit")
+    all_operations_orig = list(c_orig.all_operations())
+    c_reversed = reverse_circuit(c_orig)
+    assert c_reversed.tags == ("circuit",)
+    assert [len(m) for m in c_reversed] == [2, 3, 1]
+    assert [m.tags for m in c_reversed] == [("M1M2",), ("XYZ",), ("H",)]
+    assert list(c_reversed.all_operations()) == all_operations_orig[::-1]
+    cirq.testing.assert_same_circuits(reverse_circuit(c_reversed), c_orig)

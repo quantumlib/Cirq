@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2025 Google LLC
+# Copyright 2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,15 +14,15 @@
 # limitations under the License.
 #
 import abc
-from typing import Awaitable, Callable, Optional, Sequence
+from typing import Awaitable, Callable, Dict, Optional, Sequence, Union
 
 import google.api_core
-import google.auth
+import google.auth  # type: ignore
 import google.protobuf
-from google.api_core import exceptions as core_exceptions, gapic_v1
-from google.auth import credentials as ga_credentials
-from google.oauth2 import service_account
-from google.protobuf import empty_pb2
+import google.protobuf.empty_pb2 as empty_pb2  # type: ignore
+from google.api_core import exceptions as core_exceptions, gapic_v1, retry as retries
+from google.auth import credentials as ga_credentials  # type: ignore
+from google.oauth2 import service_account  # type: ignore
 
 import cirq_google
 from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
@@ -63,9 +63,10 @@ class QuantumEngineServiceTransport(abc.ABC):
                 credentials identify the application to the service; if none
                 are specified, the client will attempt to ascertain the
                 credentials from the environment.
-            credentials_file (Optional[str]): A file with credentials that can
+            credentials_file (Optional[str]): Deprecated. A file with credentials that can
                 be loaded with :func:`google.auth.load_credentials_from_file`.
-                This argument is mutually exclusive with credentials.
+                This argument is mutually exclusive with credentials. This argument will be
+                removed in the next major version of this library.
             scopes (Optional[Sequence[str]]): A list of scopes.
             quota_project_id (Optional[str]): An optional project to use for billing
                 and quota.
@@ -76,9 +77,11 @@ class QuantumEngineServiceTransport(abc.ABC):
                 your own client library.
             always_use_jwt_access (Optional[bool]): Whether self signed JWT should
                 be used for service account credentials.
+            api_audience (Optional[str]): The intended audience for the API calls
+                to the service that will be set when using certain 3rd party
+                authentication flows. Audience is typically a resource identifier.
+                If not set, the host value will be used as a default.
         """
-
-        scopes_kwargs = {"scopes": scopes, "default_scopes": self.AUTH_SCOPES}
 
         # Save the scopes.
         self._scopes = scopes
@@ -94,16 +97,20 @@ class QuantumEngineServiceTransport(abc.ABC):
 
         if credentials_file is not None:
             credentials, _ = google.auth.load_credentials_from_file(
-                credentials_file, **scopes_kwargs, quota_project_id=quota_project_id
+                credentials_file,
+                scopes=scopes,
+                quota_project_id=quota_project_id,
+                default_scopes=self.AUTH_SCOPES,
             )
         elif credentials is None and not self._ignore_credentials:
-            credentials, _ = google.auth.default(**scopes_kwargs, quota_project_id=quota_project_id)
+            credentials, _ = google.auth.default(
+                scopes=scopes, quota_project_id=quota_project_id, default_scopes=self.AUTH_SCOPES
+            )
             # Don't apply audience if the credentials file passed from user.
             if hasattr(credentials, "with_gdch_audience"):
                 credentials = credentials.with_gdch_audience(api_audience if api_audience else host)
 
-        # If the credentials are service account credentials, then always try to use self signed
-        # JWT.
+        # If the credentials are service account credentials, then always try to use self signed JWT.
         if (
             always_use_jwt_access
             and isinstance(credentials, service_account.Credentials)
@@ -118,6 +125,8 @@ class QuantumEngineServiceTransport(abc.ABC):
         if ':' not in host:
             host += ':443'
         self._host = host
+
+        self._wrapped_methods: Dict[Callable, Callable] = {}
 
     @property
     def host(self):
@@ -140,6 +149,9 @@ class QuantumEngineServiceTransport(abc.ABC):
             ),
             self.update_quantum_program: gapic_v1.method.wrap_method(
                 self.update_quantum_program, default_timeout=60.0, client_info=client_info
+            ),
+            self.compile_qec_program: gapic_v1.method.wrap_method(
+                self.compile_qec_program, default_timeout=None, client_info=client_info
             ),
             self.create_quantum_job: gapic_v1.method.wrap_method(
                 self.create_quantum_job, default_timeout=60.0, client_info=client_info
@@ -172,7 +184,15 @@ class QuantumEngineServiceTransport(abc.ABC):
                 self.get_quantum_processor, default_timeout=60.0, client_info=client_info
             ),
             self.get_quantum_processor_config: gapic_v1.method.wrap_method(
-                self.get_quantum_processor_config, default_timeout=60.0, client_info=client_info
+                self.get_quantum_processor_config, default_timeout=None, client_info=client_info
+            ),
+            self.list_quantum_processor_configs: gapic_v1.method.wrap_method(
+                self.list_quantum_processor_configs, default_timeout=None, client_info=client_info
+            ),
+            self.list_quantum_processor_automation_run_history: gapic_v1.method.wrap_method(
+                self.list_quantum_processor_automation_run_history,
+                default_timeout=None,
+                client_info=client_info,
             ),
             self.list_quantum_calibrations: gapic_v1.method.wrap_method(
                 self.list_quantum_calibrations, default_timeout=60.0, client_info=client_info
@@ -231,7 +251,7 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.CreateQuantumProgramRequest],
-        quantum.QuantumProgram | Awaitable[quantum.QuantumProgram],
+        Union[quantum.QuantumProgram, Awaitable[quantum.QuantumProgram]],
     ]:
         raise NotImplementedError()
 
@@ -240,7 +260,7 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.GetQuantumProgramRequest],
-        quantum.QuantumProgram | Awaitable[quantum.QuantumProgram],
+        Union[quantum.QuantumProgram, Awaitable[quantum.QuantumProgram]],
     ]:
         raise NotImplementedError()
 
@@ -249,7 +269,7 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.ListQuantumProgramsRequest],
-        engine.ListQuantumProgramsResponse | Awaitable[engine.ListQuantumProgramsResponse],
+        Union[engine.ListQuantumProgramsResponse, Awaitable[engine.ListQuantumProgramsResponse]],
     ]:
         raise NotImplementedError()
 
@@ -257,7 +277,7 @@ class QuantumEngineServiceTransport(abc.ABC):
     def delete_quantum_program(
         self,
     ) -> Callable[
-        [engine.DeleteQuantumProgramRequest], empty_pb2.Empty | Awaitable[empty_pb2.Empty]
+        [engine.DeleteQuantumProgramRequest], Union[empty_pb2.Empty, Awaitable[empty_pb2.Empty]]
     ]:
         raise NotImplementedError()
 
@@ -266,7 +286,16 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.UpdateQuantumProgramRequest],
-        quantum.QuantumProgram | Awaitable[quantum.QuantumProgram],
+        Union[quantum.QuantumProgram, Awaitable[quantum.QuantumProgram]],
+    ]:
+        raise NotImplementedError()
+
+    @property
+    def compile_qec_program(
+        self,
+    ) -> Callable[
+        [engine.CompileQecProgramRequest],
+        Union[engine.CompileQecProgramResponse, Awaitable[engine.CompileQecProgramResponse]],
     ]:
         raise NotImplementedError()
 
@@ -274,7 +303,7 @@ class QuantumEngineServiceTransport(abc.ABC):
     def create_quantum_job(
         self,
     ) -> Callable[
-        [engine.CreateQuantumJobRequest], quantum.QuantumJob | Awaitable[quantum.QuantumJob]
+        [engine.CreateQuantumJobRequest], Union[quantum.QuantumJob, Awaitable[quantum.QuantumJob]]
     ]:
         raise NotImplementedError()
 
@@ -282,7 +311,7 @@ class QuantumEngineServiceTransport(abc.ABC):
     def get_quantum_job(
         self,
     ) -> Callable[
-        [engine.GetQuantumJobRequest], quantum.QuantumJob | Awaitable[quantum.QuantumJob]
+        [engine.GetQuantumJobRequest], Union[quantum.QuantumJob, Awaitable[quantum.QuantumJob]]
     ]:
         raise NotImplementedError()
 
@@ -291,28 +320,32 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.ListQuantumJobsRequest],
-        engine.ListQuantumJobsResponse | Awaitable[engine.ListQuantumJobsResponse],
+        Union[engine.ListQuantumJobsResponse, Awaitable[engine.ListQuantumJobsResponse]],
     ]:
         raise NotImplementedError()
 
     @property
     def delete_quantum_job(
         self,
-    ) -> Callable[[engine.DeleteQuantumJobRequest], empty_pb2.Empty | Awaitable[empty_pb2.Empty]]:
+    ) -> Callable[
+        [engine.DeleteQuantumJobRequest], Union[empty_pb2.Empty, Awaitable[empty_pb2.Empty]]
+    ]:
         raise NotImplementedError()
 
     @property
     def update_quantum_job(
         self,
     ) -> Callable[
-        [engine.UpdateQuantumJobRequest], quantum.QuantumJob | Awaitable[quantum.QuantumJob]
+        [engine.UpdateQuantumJobRequest], Union[quantum.QuantumJob, Awaitable[quantum.QuantumJob]]
     ]:
         raise NotImplementedError()
 
     @property
     def cancel_quantum_job(
         self,
-    ) -> Callable[[engine.CancelQuantumJobRequest], empty_pb2.Empty | Awaitable[empty_pb2.Empty]]:
+    ) -> Callable[
+        [engine.CancelQuantumJobRequest], Union[empty_pb2.Empty, Awaitable[empty_pb2.Empty]]
+    ]:
         raise NotImplementedError()
 
     @property
@@ -320,7 +353,7 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.ListQuantumJobEventsRequest],
-        engine.ListQuantumJobEventsResponse | Awaitable[engine.ListQuantumJobEventsResponse],
+        Union[engine.ListQuantumJobEventsResponse, Awaitable[engine.ListQuantumJobEventsResponse]],
     ]:
         raise NotImplementedError()
 
@@ -328,7 +361,8 @@ class QuantumEngineServiceTransport(abc.ABC):
     def get_quantum_result(
         self,
     ) -> Callable[
-        [engine.GetQuantumResultRequest], quantum.QuantumResult | Awaitable[quantum.QuantumResult]
+        [engine.GetQuantumResultRequest],
+        Union[quantum.QuantumResult, Awaitable[quantum.QuantumResult]],
     ]:
         raise NotImplementedError()
 
@@ -337,7 +371,9 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.ListQuantumProcessorsRequest],
-        engine.ListQuantumProcessorsResponse | Awaitable[engine.ListQuantumProcessorsResponse],
+        Union[
+            engine.ListQuantumProcessorsResponse, Awaitable[engine.ListQuantumProcessorsResponse]
+        ],
     ]:
         raise NotImplementedError()
 
@@ -346,7 +382,7 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.GetQuantumProcessorRequest],
-        quantum.QuantumProcessor | Awaitable[quantum.QuantumProcessor],
+        Union[quantum.QuantumProcessor, Awaitable[quantum.QuantumProcessor]],
     ]:
         raise NotImplementedError()
 
@@ -355,7 +391,31 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.GetQuantumProcessorConfigRequest],
-        quantum.QuantumProcessorConfig | Awaitable[quantum.QuantumProcessorConfig],
+        Union[quantum.QuantumProcessorConfig, Awaitable[quantum.QuantumProcessorConfig]],
+    ]:
+        raise NotImplementedError()
+
+    @property
+    def list_quantum_processor_configs(
+        self,
+    ) -> Callable[
+        [engine.ListQuantumProcessorConfigsRequest],
+        Union[
+            engine.ListQuantumProcessorConfigsResponse,
+            Awaitable[engine.ListQuantumProcessorConfigsResponse],
+        ],
+    ]:
+        raise NotImplementedError()
+
+    @property
+    def list_quantum_processor_automation_run_history(
+        self,
+    ) -> Callable[
+        [engine.ListQuantumProcessorAutomationRunHistoryRequest],
+        Union[
+            engine.ListQuantumProcessorAutomationRunHistoryResponse,
+            Awaitable[engine.ListQuantumProcessorAutomationRunHistoryResponse],
+        ],
     ]:
         raise NotImplementedError()
 
@@ -364,7 +424,10 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.ListQuantumCalibrationsRequest],
-        engine.ListQuantumCalibrationsResponse | Awaitable[engine.ListQuantumCalibrationsResponse],
+        Union[
+            engine.ListQuantumCalibrationsResponse,
+            Awaitable[engine.ListQuantumCalibrationsResponse],
+        ],
     ]:
         raise NotImplementedError()
 
@@ -373,7 +436,7 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.GetQuantumCalibrationRequest],
-        quantum.QuantumCalibration | Awaitable[quantum.QuantumCalibration],
+        Union[quantum.QuantumCalibration, Awaitable[quantum.QuantumCalibration]],
     ]:
         raise NotImplementedError()
 
@@ -382,7 +445,7 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.CreateQuantumReservationRequest],
-        quantum.QuantumReservation | Awaitable[quantum.QuantumReservation],
+        Union[quantum.QuantumReservation, Awaitable[quantum.QuantumReservation]],
     ]:
         raise NotImplementedError()
 
@@ -391,7 +454,7 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.CancelQuantumReservationRequest],
-        quantum.QuantumReservation | Awaitable[quantum.QuantumReservation],
+        Union[quantum.QuantumReservation, Awaitable[quantum.QuantumReservation]],
     ]:
         raise NotImplementedError()
 
@@ -399,7 +462,7 @@ class QuantumEngineServiceTransport(abc.ABC):
     def delete_quantum_reservation(
         self,
     ) -> Callable[
-        [engine.DeleteQuantumReservationRequest], empty_pb2.Empty | Awaitable[empty_pb2.Empty]
+        [engine.DeleteQuantumReservationRequest], Union[empty_pb2.Empty, Awaitable[empty_pb2.Empty]]
     ]:
         raise NotImplementedError()
 
@@ -408,7 +471,7 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.GetQuantumReservationRequest],
-        quantum.QuantumReservation | Awaitable[quantum.QuantumReservation],
+        Union[quantum.QuantumReservation, Awaitable[quantum.QuantumReservation]],
     ]:
         raise NotImplementedError()
 
@@ -417,7 +480,10 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.ListQuantumReservationsRequest],
-        engine.ListQuantumReservationsResponse | Awaitable[engine.ListQuantumReservationsResponse],
+        Union[
+            engine.ListQuantumReservationsResponse,
+            Awaitable[engine.ListQuantumReservationsResponse],
+        ],
     ]:
         raise NotImplementedError()
 
@@ -426,7 +492,7 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.UpdateQuantumReservationRequest],
-        quantum.QuantumReservation | Awaitable[quantum.QuantumReservation],
+        Union[quantum.QuantumReservation, Awaitable[quantum.QuantumReservation]],
     ]:
         raise NotImplementedError()
 
@@ -435,7 +501,7 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.QuantumRunStreamRequest],
-        engine.QuantumRunStreamResponse | Awaitable[engine.QuantumRunStreamResponse],
+        Union[engine.QuantumRunStreamResponse, Awaitable[engine.QuantumRunStreamResponse]],
     ]:
         raise NotImplementedError()
 
@@ -444,8 +510,10 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.ListQuantumReservationGrantsRequest],
-        engine.ListQuantumReservationGrantsResponse
-        | Awaitable[engine.ListQuantumReservationGrantsResponse],
+        Union[
+            engine.ListQuantumReservationGrantsResponse,
+            Awaitable[engine.ListQuantumReservationGrantsResponse],
+        ],
     ]:
         raise NotImplementedError()
 
@@ -454,7 +522,7 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.ReallocateQuantumReservationGrantRequest],
-        quantum.QuantumReservationGrant | Awaitable[quantum.QuantumReservationGrant],
+        Union[quantum.QuantumReservationGrant, Awaitable[quantum.QuantumReservationGrant]],
     ]:
         raise NotImplementedError()
 
@@ -463,8 +531,10 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.ListQuantumReservationBudgetsRequest],
-        engine.ListQuantumReservationBudgetsResponse
-        | Awaitable[engine.ListQuantumReservationBudgetsResponse],
+        Union[
+            engine.ListQuantumReservationBudgetsResponse,
+            Awaitable[engine.ListQuantumReservationBudgetsResponse],
+        ],
     ]:
         raise NotImplementedError()
 
@@ -473,7 +543,7 @@ class QuantumEngineServiceTransport(abc.ABC):
         self,
     ) -> Callable[
         [engine.ListQuantumTimeSlotsRequest],
-        engine.ListQuantumTimeSlotsResponse | Awaitable[engine.ListQuantumTimeSlotsResponse],
+        Union[engine.ListQuantumTimeSlotsResponse, Awaitable[engine.ListQuantumTimeSlotsResponse]],
     ]:
         raise NotImplementedError()
 

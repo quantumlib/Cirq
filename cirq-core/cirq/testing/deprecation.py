@@ -17,7 +17,7 @@ from __future__ import annotations
 import contextlib
 import logging
 import os
-from typing import Iterator
+from collections.abc import Iterator
 
 from cirq._compat import ALLOW_DEPRECATION_IN_TEST
 
@@ -41,7 +41,7 @@ def assert_deprecated(*msgs: str, deadline: str, count: int | None = 1) -> Itera
     from cirq.testing import assert_logs
 
     orig_exist = ALLOW_DEPRECATION_IN_TEST in os.environ
-    orig_value = os.environ.get(ALLOW_DEPRECATION_IN_TEST, None)
+    orig_value = os.environ.get(ALLOW_DEPRECATION_IN_TEST, '')
     os.environ[ALLOW_DEPRECATION_IN_TEST] = 'True'
     try:
         with assert_logs(
@@ -50,8 +50,6 @@ def assert_deprecated(*msgs: str, deadline: str, count: int | None = 1) -> Itera
             yield
     finally:
         if orig_exist:
-            # mypy can't resolve that orig_exist ensures that orig_value
-            # of type Optional[str] can't be None
-            os.environ[ALLOW_DEPRECATION_IN_TEST] = orig_value  # type: ignore
+            os.environ[ALLOW_DEPRECATION_IN_TEST] = orig_value
         else:
             del os.environ[ALLOW_DEPRECATION_IN_TEST]

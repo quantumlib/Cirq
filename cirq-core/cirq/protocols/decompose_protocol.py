@@ -18,20 +18,9 @@ import dataclasses
 import inspect
 import itertools
 from collections import defaultdict
+from collections.abc import Callable, Iterable, Iterator, Sequence
 from types import NotImplementedType
-from typing import (
-    Any,
-    Callable,
-    Iterable,
-    Iterator,
-    overload,
-    Sequence,
-    TYPE_CHECKING,
-    TypeVar,
-    Union,
-)
-
-from typing_extensions import Protocol, runtime_checkable
+from typing import Any, overload, Protocol, TYPE_CHECKING, TypeVar, Union
 
 from cirq import devices, ops
 from cirq._doc import doc_private
@@ -51,10 +40,9 @@ DecomposeResult = Union[None, NotImplementedType, 'cirq.OP_TREE']
 _CONTEXT_COUNTER = itertools.count()  # Use _reset_context_counter() to reset the counter.
 
 
-@runtime_checkable
 class OpDecomposerWithContext(Protocol):
     def __call__(
-        self, __op: cirq.Operation, *, context: cirq.DecompositionContext | None = None
+        self, __op: cirq.Operation, *, context: cirq.DecompositionContext
     ) -> DecomposeResult: ...
 
 
@@ -132,9 +120,7 @@ class SupportsDecompose(Protocol):
     def _decompose_(self) -> DecomposeResult:
         pass
 
-    def _decompose_with_context_(
-        self, *, context: DecompositionContext | None = None
-    ) -> DecomposeResult:
+    def _decompose_with_context_(self, *, context: DecompositionContext) -> DecomposeResult:
         pass
 
 
@@ -161,26 +147,24 @@ class SupportsDecomposeWithQubits(Protocol):
         pass
 
     def _decompose_with_context_(
-        self, qubits: tuple[cirq.Qid, ...], *, context: DecompositionContext | None = None
+        self, qubits: tuple[cirq.Qid, ...], *, context: DecompositionContext
     ) -> DecomposeResult:
         pass
 
 
 def _try_op_decomposer(
-    val: Any, decomposer: OpDecomposer | None, *, context: DecompositionContext | None = None
+    val: Any, decomposer: OpDecomposer | None, *, context: DecompositionContext
 ) -> DecomposeResult:
     if decomposer is None or not isinstance(val, ops.Operation):
         return None
     if 'context' in inspect.signature(decomposer).parameters:
-        assert isinstance(decomposer, OpDecomposerWithContext)
-        return decomposer(val, context=context)
-    else:
-        return decomposer(val)
+        return decomposer(val, context=context)  # type: ignore[call-arg]
+    return decomposer(val)  # type: ignore[call-arg]
 
 
 @dataclasses.dataclass(frozen=True)
 class _DecomposeArgs:
-    context: DecompositionContext | None
+    context: DecompositionContext
     intercepting_decomposer: OpDecomposer | None
     fallback_decomposer: OpDecomposer | None
     keep: Callable[[cirq.Operation], bool] | None
@@ -373,7 +357,7 @@ def decompose_once(
 
     method = getattr(val, '_decompose_with_context_', None)
     decomposed = NotImplemented if method is None else method(*args, **kwargs, context=context)
-    if decomposed is NotImplemented or decomposed is None:
+    if decomposed is NotImplemented:
         method = getattr(val, '_decompose_', None)
         decomposed = NotImplemented if method is None else method(*args, **kwargs)
 

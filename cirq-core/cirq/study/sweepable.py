@@ -17,9 +17,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import cast, Iterable, Iterator, Sequence
-
-from typing_extensions import Protocol
+from collections.abc import Iterable, Iterator, Sequence
+from typing import cast, Protocol
 
 from cirq._doc import document
 from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
@@ -88,7 +87,7 @@ def to_sweep(
         A sweep equal to or containing the argument.
 
     Raises:
-        TypeError: If an unsupport type was supplied.
+        TypeError: If an unsupported type was supplied.
     """
     if isinstance(sweep_or_resolver_list, Sweep):
         return sweep_or_resolver_list

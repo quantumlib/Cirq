@@ -27,27 +27,21 @@ import html
 import itertools
 import math
 from collections import defaultdict
-from types import NotImplementedType
-from typing import (
-    AbstractSet,
-    Any,
+from collections.abc import (
     Callable,
-    cast,
     Hashable,
     Iterable,
     Iterator,
     Mapping,
     MutableSequence,
-    overload,
     Sequence,
-    TYPE_CHECKING,
-    TypeVar,
-    Union,
+    Set,
 )
+from types import NotImplementedType
+from typing import Any, cast, overload, Self, TYPE_CHECKING, TypeVar, Union
 
 import networkx
 import numpy as np
-from typing_extensions import Self
 
 import cirq._version
 from cirq import _compat, devices, ops, protocols, qis
@@ -593,8 +587,7 @@ class AbstractCircuit(abc.ABC):
             next_moment = self.next_moment_operating_on([qubit], moment)
             if next_moment is None:
                 end_frontier[qubit] = max(len(self), start_frontier[qubit])
-                if qubit in active:
-                    active.remove(qubit)
+                active.discard(qubit)
             else:
                 next_op = self.operation_at(qubit, next_moment)
                 assert next_op is not None
@@ -771,7 +764,7 @@ class AbstractCircuit(abc.ABC):
         start_index = min(start_frontier.values())
         blocked_qubits: set[cirq.Qid] = set()
         for index, moment in enumerate(self[start_index:], start_index):
-            active_qubits = set(q for q, s in start_frontier.items() if s <= index)
+            active_qubits = {q for q, s in start_frontier.items() if s <= index}
             for op in moment.operations:
                 if is_blocker(op) or blocked_qubits.intersection(op.qubits):
                     blocked_qubits.update(op.qubits)
@@ -799,7 +792,7 @@ class AbstractCircuit(abc.ABC):
 
     def findall_operations(
         self, predicate: Callable[[cirq.Operation], bool]
-    ) -> Iterable[tuple[int, cirq.Operation]]:
+    ) -> Iterator[tuple[int, cirq.Operation]]:
         """Find the locations of all operations that satisfy a given condition.
 
         This returns an iterator of (index, operation) tuples where each
@@ -820,7 +813,7 @@ class AbstractCircuit(abc.ABC):
 
     def findall_operations_with_gate_type(
         self, gate_type: type[_TGate]
-    ) -> Iterable[tuple[int, cirq.GateOperation, _TGate]]:
+    ) -> Iterator[tuple[int, cirq.GateOperation, _TGate]]:
         """Find the locations of all gate operations of a given type.
 
         Args:
@@ -844,7 +837,9 @@ class AbstractCircuit(abc.ABC):
         return protocols.is_measurement(self)
 
     def _is_measurement_(self) -> bool:
-        return any(protocols.is_measurement(op) for op in self.all_operations())
+        # Measurements are most likely at the end of the circuit,
+        # so iterate from the end of the circuit
+        return any(protocols.is_measurement(op) for moment in reversed(self) for op in moment)
 
     def are_all_measurements_terminal(self) -> bool:
         """Whether all measurement gates are at the end of the circuit.
@@ -947,7 +942,16 @@ class AbstractCircuit(abc.ABC):
         Returns: frozenset of `cirq.Qid` objects acted on by all operations
             in this circuit.
         """
-        return frozenset(q for m in self.moments for q in m.qubits)
+        # Filter for unique moment instances using object identity and collect their qubit sets.
+        # The condition `(m_id := id(m)) not in seen and not seen.add(m_id)` does both:
+        # 1. Checks if m_id is unseen.
+        # 2. Short-circuits to `seen.add(m_id)` (which returns None) to record m_id in `seen`.
+        seen: set[int] = set()
+        qubit_sets = [m.qubits for m in self if (m_id := id(m)) not in seen and not seen.add(m_id)]  # type: ignore[func-returns-value]
+
+        # Perform a C-level bulk set union across all collected qubit sets.
+        # This avoids element-by-element Python-level iteration and hashing.
+        return frozenset().union(*qubit_sets)
 
     def all_operations(self) -> Iterator[cirq.Operation]:
         """Returns an iterator over the operations in the circuit.
@@ -1278,8 +1282,7 @@ class AbstractCircuit(abc.ABC):
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         cbits = tuple(
             sorted(
-                set(key for op in self.all_operations() for key in protocols.control_keys(op)),
-                key=str,
+                {key for op in self.all_operations() for key in protocols.control_keys(op)}, key=str
             )
         )
         labels = qubits + cbits
@@ -1335,12 +1338,12 @@ class AbstractCircuit(abc.ABC):
         return diagram
 
     def _is_parameterized_(self) -> bool:
-        return any(protocols.is_parameterized(op) for op in self.all_operations()) or any(
+        return any(protocols.is_parameterized(moment) for moment in self) or any(
             protocols.is_parameterized(tag) for tag in self.tags
         )
 
-    def _parameter_names_(self) -> AbstractSet[str]:
-        op_params = {name for op in self.all_operations() for name in protocols.parameter_names(op)}
+    def _parameter_names_(self) -> Set[str]:
+        op_params = {name for moment in self for name in protocols.parameter_names(moment)}
         tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}
         return op_params | tag_params
 
@@ -1439,7 +1442,7 @@ class AbstractCircuit(abc.ABC):
         """
         self._to_qasm_output(header, precision, qubit_order).save(file_path)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         attribute_names = ['moments', 'tags'] if self.tags else ['moments']
         ret = protocols.obj_to_dict_helper(self, attribute_names)
         return ret
@@ -1611,7 +1614,7 @@ class AbstractCircuit(abc.ABC):
         for op in self.all_operations():
             if len(op.qubits) > 1:
                 uf.union(*op.qubits)
-        return sorted([qs for qs in uf.to_sets()], key=min)
+        return sorted(uf.to_sets(), key=min)
 
     def factorize(self) -> Iterable[Self]:
         """Factorize circuit into a sequence of independent circuits (factors).
@@ -1664,8 +1667,14 @@ class AbstractCircuit(abc.ABC):
         )
 
     def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
-        controls = frozenset(k for op in self.all_operations() for k in protocols.control_keys(op))
-        return controls - protocols.measurement_key_objs(self)
+        measures: set[cirq.MeasurementKey] = set()
+        controls: set[cirq.MeasurementKey] = set()
+        for op in self.all_operations():
+            # Only require keys that haven't already been measured earlier
+            controls.update(k for k in protocols.control_keys(op) if k not in measures)
+            # Record any measurement keys produced by this op
+            measures.update(protocols.measurement_key_objs(op))
+        return frozenset(controls)
 
 
 def _overlap_collision_time(
@@ -1815,8 +1824,8 @@ class Circuit(AbstractCircuit):
             contents: The initial list of moments and operations defining the
                 circuit. You can also pass in operations, lists of operations,
                 or generally anything meeting the `cirq.OP_TREE` contract.
-                Non-moment entries will be inserted according to the specified
-                insertion strategy.
+                Non-moment entries will be appended according to the specified
+                insertion strategy; see `Circuit.append` for specific mechanics.
             strategy: When initializing the circuit with operations and moments
                 from `contents`, this determines how the operations are packed
                 together. This option does not affect later insertions into the
@@ -1837,7 +1846,7 @@ class Circuit(AbstractCircuit):
         self._frozen: cirq.FrozenCircuit | None = None
         self._is_measurement: bool | None = None
         self._is_parameterized: bool | None = None
-        self._parameter_names: AbstractSet[str] | None = None
+        self._parameter_names: Set[str] | None = None
         if not contents:
             return
         flattened_contents = tuple(ops.flatten_to_ops_or_moments(contents))
@@ -1946,7 +1955,7 @@ class Circuit(AbstractCircuit):
             self._is_parameterized = super()._is_parameterized_()
         return self._is_parameterized
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         if self._parameter_names is None:
             self._parameter_names = super()._parameter_names_()
         return self._parameter_names
@@ -2044,7 +2053,7 @@ class Circuit(AbstractCircuit):
 
         return cirq.Circuit(inv_moments, tags=self.tags)
 
-    __hash__ = None  # type: ignore
+    __hash__ = None  # type: ignore[assignment]
 
     def concat_ragged(
         *circuits: cirq.AbstractCircuit, align: cirq.Alignment | str = Alignment.LEFT
@@ -2127,7 +2136,7 @@ class Circuit(AbstractCircuit):
             Index of the earliest matching moment. Returns `end_moment_index` if no moment on left
             is available.
         """
-        if end_moment_index is None:
+        if end_moment_index is None or end_moment_index > len(self.moments):
             end_moment_index = len(self.moments)
         last_available = end_moment_index
         k = end_moment_index
@@ -2146,17 +2155,109 @@ class Circuit(AbstractCircuit):
                 or not moment._control_keys_().isdisjoint(op_measurement_keys)
             ):
                 return last_available
-            if self._can_add_op_at(k, op):
-                # Note: Remove the if condition after `self._device` is gone and move the method to
-                # `cirq.AbstractDevice`.
-                last_available = k
+            last_available = k
         return last_available
 
     def _can_add_op_at(self, moment_index: int, operation: cirq.Operation) -> bool:
         if not 0 <= moment_index < len(self._moments):
             return True
 
-        return not self._moments[moment_index].operates_on(operation.qubits)
+        if self._moments[moment_index].operates_on(operation.qubits):
+            return False
+
+        op_measurement_keys = protocols.measurement_key_objs(operation)
+        op_control_keys = protocols.control_keys(operation)
+
+        # defer extraction of moment keys until truly needed
+        result = True
+        if op_control_keys or op_measurement_keys:
+            moment_measurement_keys = protocols.measurement_key_objs(self._moments[moment_index])
+            result = op_control_keys.isdisjoint(moment_measurement_keys) and (
+                (
+                    op_measurement_keys.isdisjoint(moment_measurement_keys)
+                    and op_measurement_keys.isdisjoint(
+                        protocols.control_keys(self._moments[moment_index])
+                    )
+                )
+                if op_measurement_keys
+                else True
+            )
+        return result
+
+    def _latest_available_moment(self, op: cirq.Operation, *, start_moment_index: int = 0) -> int:
+        """Finds the index of the latest (i.e. right most) moment which can accommodate `op`.
+
+        Assumes that `start_moment_index` is between 0 and `len(self._moments)`.
+
+        Args:
+            op: Operation for which the latest moment that can accommodate it needs to be found.
+            start_moment_index: The starting point of the reverse search. Defaults to 0.
+
+        Returns:
+            Index of the latest matching moment. Returns `start_moment_index - 1` if no moment on
+            the right is available, or `len(self._moments)` if `start_moment_index` equals it.
+        """
+        if start_moment_index == len(self._moments):
+            return start_moment_index
+        op_control_keys = protocols.control_keys(op)
+        op_measurement_keys = protocols.measurement_key_objs(op)
+        op_qubits = op.qubits
+        k = start_moment_index
+        while k < len(self._moments):
+            moment = self._moments[k]
+            if moment.operates_on(op_qubits):
+                return k - 1
+            moment_measurement_keys = moment._measurement_key_objs_()
+            if not (
+                op_measurement_keys.isdisjoint(moment_measurement_keys)
+                and op_control_keys.isdisjoint(moment_measurement_keys)
+                and moment._control_keys_().isdisjoint(op_measurement_keys)
+            ):
+                return k - 1
+            k += 1
+        return k - 1
+
+    def _insert_latest(self, k: int, batches: list[list[_MOMENT_OR_OP]]) -> int:
+        """Inserts batches of moments or operations using LATEST strategy.
+
+        Batches are processed in reverse order.
+        Operations are inserted into the latest possible moment from the starting
+        index k. Moments are inserted intact at index k.
+
+        Args:
+            k: The index to insert the batches at.
+            batches: Moments or operations to insert.
+
+        Returns:
+            The insertion index that will place operations just after the
+            operations that were inserted by this method. Returns k if batches
+            is empty.
+        """
+        max_latest_index = -1  # Maximum index of a changed moment
+        for batch in reversed(batches):
+            for moment_or_op in batch:
+                if isinstance(moment_or_op, Moment):
+                    self._moments.insert(k, moment_or_op)
+                    # All later moments shift by 1 when the new moment is inserted
+                    max_latest_index = max(k, max_latest_index + 1)
+                else:
+                    end_moment_index = len(self.moments)
+                    p = self._latest_available_moment(moment_or_op, start_moment_index=k)
+                    if p < k:
+                        self._moments.insert(k, Moment.from_ops(moment_or_op))
+                        max_latest_index = max(k, max_latest_index + 1)
+                    elif p < end_moment_index:
+                        self._moments[p] = self._moments[p].with_operation(moment_or_op)
+                        max_latest_index = max(p, max_latest_index)
+                    else:
+                        assert p == end_moment_index
+                        self._moments.append(Moment.from_ops(moment_or_op))
+                        max_latest_index = end_moment_index
+        # handle returned position index for empty batch
+        pos = k if max_latest_index == -1 else max_latest_index + 1
+        if max_latest_index != -1:
+            self._mutated(preserve_placement_cache=False)
+        return pos
 
     def insert(
         self,
@@ -2166,9 +2267,16 @@ class Circuit(AbstractCircuit):
     ) -> int:
         """Inserts operations into the circuit.
 
-        Operations are inserted into the moment specified by the index and
-        'InsertStrategy'.
-        Moments within the operation tree are inserted intact.
+        Moments within the operation tree are inserted intact. Operations are
+        inserted into the moment specified by the index and 'InsertStrategy'.
+        Operations affecting similar qubits are separated into different moments
+        according to the insertion strategy.
+
+        Measurements with the same keys are discouraged and will be separated
+        into different moments; prefer multi-qubit measurements. Controlled
+        operations and measurements with the same key will also be separated.
+        Special use cases requiring these operations to be in the same moment
+        should insert them as a moment.
 
         Args:
             index: The index to insert all the operations at.
@@ -2193,6 +2301,10 @@ class Circuit(AbstractCircuit):
             batches = [[mop] for mop in mops]  # Each op goes into its own moment.
         else:
             batches = list(_group_into_moment_compatible(mops))
+
+        if strategy is InsertStrategy.LATEST:
+            return self._insert_latest(k, batches)
+
         for batch in batches:
             # Insert a moment if inline/earliest and _any_ op in the batch requires it.
             if (
@@ -2220,8 +2332,10 @@ class Circuit(AbstractCircuit):
                     p = k
                 elif strategy is InsertStrategy.INLINE:
                     p = k - 1
-                else:  # InsertStrategy.EARLIEST:
+                elif strategy is InsertStrategy.EARLIEST:
                     p = self.earliest_available_moment(moment_or_op, end_moment_index=k)
+                else:
+                    raise ValueError('Unknown insertion strategy')
                 # Place
                 if isinstance(moment_or_op, Moment):
                     self._moments.insert(p, moment_or_op)
@@ -2371,7 +2485,7 @@ class Circuit(AbstractCircuit):
         flat_ops = tuple(ops.flatten_to_ops(operations))
         if not flat_ops:
             return frontier  # pragma: no cover
-        qubits = set(q for op in flat_ops for q in op.qubits)
+        qubits = {q for op in flat_ops for q in op.qubits}
         if any(frontier[q] > start for q in qubits):
             raise ValueError(
                 'The frontier for qubits on which the operations'
@@ -2499,7 +2613,15 @@ class Circuit(AbstractCircuit):
     ) -> None:
         """Appends operations onto the end of the circuit.
 
-        Moments within the operation tree are appended intact.
+        Moments within the operation tree are appended intact. Operations
+        affecting similar qubits are separated into different moments according
+        to the insertion strategy.
+
+        Measurements with the same keys are discouraged and will be separated
+        into different moments; prefer multi-qubit measurements. Controlled
+        operations and measurements with the same key will also be separated.
+        Special use cases requiring these operations to be in the same moment
+        should append them as a moment.
 
         Args:
             moment_or_operation_tree: The moment or operation tree to append.
@@ -2695,8 +2817,7 @@ def _draw_moment_in_diagram(
         for s, q in zip(symbols, labels):
             out_diagram.write(x, label_map[q], s)
 
-        if x > max_x:
-            max_x = x
+        max_x = max(max_x, x)
 
     _draw_moment_annotations(
         moment=moment,
@@ -2718,16 +2839,15 @@ def _draw_moment_in_diagram(
         desc = _formatted_phase(global_phase, use_unicode_characters, precision)
         if desc:
             y = max(label_map.values(), default=0) + 1
-            visible_tags = protocols.CircuitDiagramInfoArgs(
+            tag_args = protocols.CircuitDiagramInfoArgs(
                 known_qubits=None,
                 known_qubit_count=None,
-                use_unicode_characters=True,
-                precision=None,
+                use_unicode_characters=use_unicode_characters,
+                precision=precision,
                 label_map=None,
                 include_tags=include_tags,
-            ).tags_to_include(tags)
-            if visible_tags:
-                desc = desc + f"[{', '.join(map(str, visible_tags))}]"
+            )
+            desc = desc + tag_args.format_tags(tags)
             out_diagram.write(x0, y, desc)
 
     if not non_global_ops:
@@ -2868,14 +2988,14 @@ _TKey = TypeVar('_TKey')
 @overload
 def _group_until_different(
     items: Iterable[_TIn], key: Callable[[_TIn], _TKey]
-) -> Iterable[tuple[_TKey, list[_TIn]]]:
+) -> Iterator[tuple[_TKey, list[_TIn]]]:
     pass
 
 
 @overload
 def _group_until_different(
     items: Iterable[_TIn], key: Callable[[_TIn], _TKey], val: Callable[[_TIn], _TOut]
-) -> Iterable[tuple[_TKey, list[_TOut]]]:
+) -> Iterator[tuple[_TKey, list[_TOut]]]:
     pass
 
 
@@ -2922,17 +3042,39 @@ def _group_into_moment_compatible(inputs: Sequence[_MOMENT_OR_OP]) -> Iterator[l
     """
     batch: list[_MOMENT_OR_OP] = []
     batch_qubits: set[cirq.Qid] = set()
+    batch_measurement_keys: set[cirq.MeasurementKey] = set()
+    batch_control_keys: set[cirq.MeasurementKey] = set()
     for mop in inputs:
-        is_moment = isinstance(mop, cirq.Moment)
-        if (is_moment and batch) or not batch_qubits.isdisjoint(mop.qubits):
+        if isinstance(mop, cirq.Moment):
+            if batch:
+                yield batch
+                batch = []
+                batch_qubits.clear()
+                batch_measurement_keys.clear()
+                batch_control_keys.clear()
+            yield [mop]
+            continue
+
+        op_qubits = mop.qubits
+        op_measurement_keys = protocols.measurement_key_objs(mop)
+        op_control_keys = protocols.control_keys(mop)
+
+        if (
+            not batch_qubits.isdisjoint(op_qubits)
+            or not batch_measurement_keys.isdisjoint(op_measurement_keys)
+            or not batch_measurement_keys.isdisjoint(op_control_keys)
+            or not batch_control_keys.isdisjoint(op_measurement_keys)
+        ):
             yield batch
             batch = []
             batch_qubits.clear()
-        if is_moment:
-            yield [mop]
-            continue
+            batch_measurement_keys.clear()
+            batch_control_keys.clear()
+
         batch.append(mop)
-        batch_qubits.update(mop.qubits)
+        batch_qubits.update(op_qubits)
+        batch_measurement_keys.update(op_measurement_keys)
+        batch_control_keys.update(op_control_keys)
     if batch:
         yield batch
 
@@ -3000,13 +3142,15 @@ def get_earliest_accommodating_moment_index(
     mop_index = last_conflict + 1
 
     # Update our dicts with data from this `mop` placement. Note `mop_index` will always be greater
-    # than the existing value for all of these, by construction.
+    # than the existing value for qubits and measurement keys, by construction.
     for qubit in mop_qubits:
         qubit_indices[qubit] = mop_index
     for key in mop_mkeys:
         mkey_indices[key] = mop_index
+    # For control keys, keep the maximum moment index seen so far because ops with the same control
+    # keys can commute past each other.
     for key in mop_ckeys:
-        ckey_indices[key] = mop_index
+        ckey_indices[key] = max(mop_index, ckey_indices.get(key, -1))
 
     return mop_index
 

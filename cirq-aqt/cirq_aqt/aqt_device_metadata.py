@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable, Mapping
+from collections.abc import Iterable, Mapping
+from typing import Any
 
 import networkx as nx
 
@@ -100,8 +101,7 @@ class AQTDeviceMetadata(cirq.DeviceMetadata):
         for gate_family, duration in self.gate_durations.items():
             if operation in gate_family:
                 return duration
-        else:
-            raise ValueError(f'Unsupported gate type: {operation!r}')
+        raise ValueError(f'Unsupported gate type: {operation!r}')
 
     def _value_equality_values_(self) -> Any:
         return (

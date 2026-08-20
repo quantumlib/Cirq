@@ -17,10 +17,11 @@
 from __future__ import annotations
 
 import itertools
-from typing import Callable, Iterable, Sequence, TYPE_CHECKING, Union
+from collections.abc import Callable, Iterable, Sequence
+from typing import TYPE_CHECKING, Union
 
 from cirq import _import, circuits, ops, protocols
-from cirq.transformers import transformer_api
+from cirq.transformers import transformer_api, transformer_primitives
 
 drop_empty_moments = _import.LazyLoader('drop_empty_moments', globals(), 'cirq.transformers')
 
@@ -69,7 +70,7 @@ def stratified_circuit(
     # Try the algorithm with each permutation of the classifiers.
     smallest_depth = protocols.num_qubits(circuit) * len(circuit) + 1
     shortest_stratified_circuit = circuits.Circuit()
-    reversed_circuit = circuit[::-1]
+    reversed_circuit = transformer_primitives.reverse_circuit(circuit)
     for ordered_classifiers in itertools.permutations(classifiers):
         solution = _stratify_circuit(
             circuit,
@@ -87,9 +88,9 @@ def stratified_circuit(
             reversed_circuit,
             classifiers=ordered_classifiers,
             context=context or transformer_api.TransformerContext(),
-        )[::-1]
+        )
         if len(solution) < smallest_depth:
-            shortest_stratified_circuit = solution
+            shortest_stratified_circuit = transformer_primitives.reverse_circuit(solution)
             smallest_depth = len(solution)
 
     return shortest_stratified_circuit
@@ -236,7 +237,7 @@ def _get_op_class(op: cirq.Operation, classifiers: Sequence[Classifier]) -> int:
         elif classifier(op):
             return class_index
     # If we got this far, the operation did not match any "actual" classifier,
-    # so return the index of the mock classifer.
+    # so return the index of the mock classifier.
     try:
         return mock_classifier_index
     except NameError:

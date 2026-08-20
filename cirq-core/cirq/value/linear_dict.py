@@ -16,26 +16,21 @@
 
 from __future__ import annotations
 
-from typing import (
-    AbstractSet,
-    Any,
+from collections.abc import (
     Callable,
-    Generic,
     ItemsView,
     Iterable,
     Iterator,
     KeysView,
     Mapping,
     MutableMapping,
-    overload,
-    TYPE_CHECKING,
-    TypeVar,
+    Set,
     ValuesView,
 )
+from typing import Any, Generic, overload, Self, TYPE_CHECKING, TypeVar
 
 import numpy as np
 import sympy
-from typing_extensions import Self
 
 from cirq import protocols
 
@@ -178,26 +173,8 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         snapshot = self.copy().clean(atol=0)
         return snapshot._terms.items()
 
-    @overload
-    def update(
-        self, other: Mapping[TVector, cirq.TParamValComplex], **kwargs: cirq.TParamValComplex
-    ) -> None:
-        pass
-
-    @overload
-    def update(
-        self,
-        other: Iterable[tuple[TVector, cirq.TParamValComplex]],
-        **kwargs: cirq.TParamValComplex,
-    ) -> None:
-        pass
-
-    @overload
-    def update(self, *args: Any, **kwargs: cirq.TParamValComplex) -> None:
-        pass
-
     def update(self, *args, **kwargs):
-        terms = dict()
+        terms = {}
         terms.update(*args, **kwargs)
         for vector, coefficient in terms.items():
             if isinstance(coefficient, sympy.Basic):
@@ -243,7 +220,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         return snapshot._terms.__iter__()
 
     def __len__(self) -> int:
-        return len([v for v, c in self._terms.items() if c != 0])
+        return sum(1 for c in self._terms.values() if c != 0)
 
     def __iadd__(self, other: Self) -> Self:
         for vector, other_coefficient in other.items():
@@ -347,13 +324,10 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         else:
             p.text(str(self))
 
-    def _json_dict_(self) -> dict[Any, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         if self._has_validator:
             raise ValueError('LinearDict with a validator is not json serializable.')
-        return {
-            'keys': [k for k in self._terms.keys()],
-            'values': [v for v in self._terms.values()],
-        }
+        return {'keys': list(self._terms.keys()), 'values': list(self._terms.values())}
 
     @classmethod
     def _from_json_dict_(cls, keys, values, **kwargs):
@@ -362,8 +336,8 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(v) for v in self._terms.values())
 
-    def _parameter_names_(self) -> AbstractSet[str]:
-        return set(name for v in self._terms.values() for name in protocols.parameter_names(v))
+    def _parameter_names_(self) -> Set[str]:
+        return {name for v in self._terms.values() for name in protocols.parameter_names(v)}
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> LinearDict:
         result = self.copy()

@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Callable, TYPE_CHECKING
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from cirq import circuits, protocols
 from cirq.contrib.routing.greedy import route_circuit_greedily
@@ -56,7 +57,7 @@ def route_circuit(
     if any(protocols.num_qubits(op) > 2 for op in circuit.all_operations()):
         raise ValueError('Can only route circuits with operations that act on at most 2 qubits.')
 
-    if len(list(circuit.all_qubits())) > device_graph.number_of_nodes():
+    if len(circuit.all_qubits()) > device_graph.number_of_nodes():
         raise ValueError('Number of logical qubits is greater than number of physical qubits.')
 
     if not (algo_name is None or router is None):

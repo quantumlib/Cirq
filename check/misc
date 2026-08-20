@@ -8,9 +8,9 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
-topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
-cd "${topdir}" || exit $?
+thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
+repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
+cd "${repo_dir}" || exit $?
 
 # Check for non-contrib references to contrib.
 results=$(grep -Rl "\bcirq\.contrib\b" cirq-core | grep -v "cirq/contrib" | grep -v "__")
@@ -20,6 +20,19 @@ if [ $RESULT -eq 0 ]; then
   echo "${results}"
   echo
   echo -e "\033[31mSource files outside cirq.contrib must not reference cirq.contrib, as this can cause errors for users who 'pip install cirq' instead of 'pip install cirq-core[contrib]'.\033[0m"
+  exit 1
+fi
+
+# Check for whitespace errors.  Flag files that do not end with the newline.
+empty_tree=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null \
+  git -c core.whitespace=incomplete-line --no-pager diff --check \
+  "${empty_tree}" -- ':(attr:!linguist-generated)'
+RESULT=$?
+if (( RESULT )); then
+  echo
+  echo -e "\033[31mPlease correct the whitespace errors above.\033[0m"
+  echo -e "\033[31mConsider using the .git/hooks/pre-commit.sample hook.\033[0m"
   exit 1
 fi
 

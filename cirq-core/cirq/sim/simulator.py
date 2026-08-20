@@ -31,7 +31,8 @@ from __future__ import annotations
 
 import abc
 import collections
-from typing import Any, Callable, cast, Generic, Iterator, Mapping, Sequence, TYPE_CHECKING, TypeVar
+from collections.abc import Callable, Iterator, Mapping, Sequence
+from typing import Any, cast, Generic, TYPE_CHECKING, TypeVar
 
 import numpy as np
 
@@ -50,7 +51,7 @@ TSimulatorState = TypeVar('TSimulatorState', bound=Any)
 class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
     """Simulator that mimics running on quantum hardware.
 
-    Implementors of this interface should implement the _run method.
+    Implementers of this interface should implement the _run method.
     """
 
     def run_sweep(
@@ -120,7 +121,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
 
     Given a circuit and a list of bitstrings, computes the amplitudes
     of the given bitstrings in the state obtained by applying the circuit
-    to the all zeros state. Implementors of this interface should implement
+    to the all zeros state. Implementers of this interface should implement
     the compute_amplitudes_sweep_iter method.
     """
 
@@ -217,7 +218,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
     def sample_from_amplitudes(
         self,
         circuit: cirq.AbstractCircuit,
-        param_resolver: cirq.ParamResolver,
+        param_resolver: cirq.ParamResolverOrSimilarType,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE,
         repetitions: int = 1,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -271,7 +272,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
                     sample_set = [current_sample]
                     for idx in qubit_indices:
                         sample_set = [
-                            target[:idx] + (result,) + target[idx + 1 :]
+                            (*target[:idx], result, *target[idx + 1 :])
                             for target in sample_set
                             for result in [0, 1]
                         ]
@@ -293,7 +294,7 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
     Given a circuit and an observable map, computes exact (to float precision)
     expectation values for each observable at the end of the circuit.
 
-    Implementors of this interface should implement the
+    Implementers of this interface should implement the
     simulate_expectation_values_sweep_iter method.
     """
 
@@ -444,7 +445,7 @@ class SimulatesFinalState(
 ):
     """Simulator that allows access to the simulator's final state.
 
-    Implementors of this interface should implement the simulate_sweep_iter
+    Implementers of this interface should implement the simulate_sweep_iter
     method. This simulator only returns the state of the quantum system
     for the final step of a simulation. This simulator state may be a state
     vector, the density matrix, or another representation, depending on the
@@ -547,7 +548,7 @@ class SimulatesIntermediateState(
     state at the end of a circuit, a SimulatesIntermediateState can
     simulate stepping through the moments of a circuit.
 
-    Implementors of this interface should implement the _core_iterator
+    Implementers of this interface should implement the _core_iterator
     method.
 
     Note that state here refers to simulator state, which is not necessarily
@@ -631,15 +632,19 @@ class SimulatesIntermediateState(
             moment and returning a StepResult for each moment.
         """
         param_resolver = study.ParamResolver(param_resolver)
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        check_all_resolved(resolved_circuit)
         actual_initial_state = 0 if initial_state is None else initial_state
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-        return self._base_iterator(resolved_circuit, qubits, actual_initial_state)
+        return self._base_iterator(
+            circuit, qubits, actual_initial_state, param_resolver=param_resolver
+        )
 
     @abc.abstractmethod
     def _base_iterator(
-        self, circuit: cirq.AbstractCircuit, qubits: tuple[cirq.Qid, ...], initial_state: Any
+        self,
+        circuit: cirq.AbstractCircuit,
+        qubits: tuple[cirq.Qid, ...],
+        initial_state: Any,
+        param_resolver: cirq.ParamResolver | None = None,
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
@@ -767,7 +772,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
                 operations from `measurement_ops`.
         """
 
-        # Sanity checks.
+        # Validate measurement operations.
         for op in measurement_ops:
             gate = op.gate
             if not isinstance(gate, ops.MeasurementGate):
@@ -938,7 +943,7 @@ def _qubit_map_to_shape(qubit_map: Mapping[cirq.Qid, int]) -> tuple[int, ...]:
     return tuple(qid_shape)
 
 
-def check_all_resolved(circuit):
+def check_all_resolved(circuit) -> None:
     """Raises if the circuit contains unresolved symbols."""
     if protocols.is_parameterized(circuit):
         unresolved = [op for moment in circuit for op in moment if protocols.is_parameterized(op)]

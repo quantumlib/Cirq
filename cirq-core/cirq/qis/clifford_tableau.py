@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -38,7 +39,7 @@ class StabilizerState(
     """
 
     @abc.abstractmethod
-    def apply_x(self, axis: int, exponent: float = 1, global_shift: float = 0):
+    def apply_x(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         """Apply an X operation to the state.
 
         Args:
@@ -51,7 +52,7 @@ class StabilizerState(
         """
 
     @abc.abstractmethod
-    def apply_y(self, axis: int, exponent: float = 1, global_shift: float = 0):
+    def apply_y(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         """Apply an Y operation to the state.
 
         Args:
@@ -64,7 +65,7 @@ class StabilizerState(
         """
 
     @abc.abstractmethod
-    def apply_z(self, axis: int, exponent: float = 1, global_shift: float = 0):
+    def apply_z(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         """Apply a Z operation to the state.
 
         Args:
@@ -77,7 +78,7 @@ class StabilizerState(
         """
 
     @abc.abstractmethod
-    def apply_h(self, axis: int, exponent: float = 1, global_shift: float = 0):
+    def apply_h(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         """Apply an H operation to the state.
 
         Args:
@@ -92,7 +93,7 @@ class StabilizerState(
     @abc.abstractmethod
     def apply_cz(
         self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
-    ):
+    ) -> None:
         """Apply a CZ operation to the state.
 
         Args:
@@ -108,7 +109,7 @@ class StabilizerState(
     @abc.abstractmethod
     def apply_cx(
         self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
-    ):
+    ) -> None:
         """Apply a CX operation to the state.
 
         Args:
@@ -122,7 +123,7 @@ class StabilizerState(
         """
 
     @abc.abstractmethod
-    def apply_global_phase(self, coefficient: linear_dict.Scalar):
+    def apply_global_phase(self, coefficient: linear_dict.Scalar) -> None:
         """Apply a global phase to the state.
 
         Args:
@@ -188,8 +189,7 @@ class CliffordTableau(StabilizerState):
     def _reconstruct_xs(self, xs: np.ndarray | None) -> np.ndarray:
         if xs is None:
             new_xs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
-            for i in range(self.n):
-                new_xs[i, i] = True
+            np.fill_diagonal(new_xs[: self.n, :], True)
         else:
             shape = xs.shape
             if (
@@ -210,8 +210,7 @@ class CliffordTableau(StabilizerState):
     def _reconstruct_zs(self, zs: np.ndarray | None) -> np.ndarray:
         if zs is None:
             new_zs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
-            for i in range(self.n):
-                new_zs[self.n + i, i] = True
+            np.fill_diagonal(new_zs[self.n : 2 * self.n, :], True)
         else:
             shape = zs.shape
             if (
@@ -308,25 +307,23 @@ class CliffordTableau(StabilizerState):
         )
 
     def __str__(self) -> str:
-        string = ''
+        words = []
 
         for i in range(self.n, 2 * self.n):
-            string += '- ' if self.rs[i] else '+ '
+            words.append('- ' if self.rs[i] else '+ ')
 
             for k in range(self.n):
                 if self.xs[i, k] & (not self.zs[i, k]):
-                    string += 'X '
+                    words.append('X ')
                 elif (not self.xs[i, k]) & self.zs[i, k]:
-                    string += 'Z '
+                    words.append('Z ')
                 elif self.xs[i, k] & self.zs[i, k]:
-                    string += 'Y '
+                    words.append('Y ')
                 else:
-                    string += 'I '
+                    words.append('I ')
+            words.append('\n')
 
-            if i < 2 * self.n - 1:
-                string += '\n'
-
-        return string
+        return ''.join(words[:-1])
 
     def _str_full_(self) -> str:
         left_col_width = max(7, self.n * 2 + 3)
@@ -498,18 +495,18 @@ class CliffordTableau(StabilizerState):
         from cirq.ops.dense_pauli_string import DensePauliString
 
         coefficient = -1 if self.rs[i] else 1
-        pauli_mask = ""
+        pauli_mask = []
 
         for k in range(self.n):
             if self.xs[i, k] & (not self.zs[i, k]):
-                pauli_mask += "X"
+                pauli_mask.append("X")
             elif (not self.xs[i, k]) & self.zs[i, k]:
-                pauli_mask += "Z"
+                pauli_mask.append("Z")
             elif self.xs[i, k] & self.zs[i, k]:
-                pauli_mask += "Y"
+                pauli_mask.append("Y")
             else:
-                pauli_mask += "I"
-        return DensePauliString(pauli_mask, coefficient=coefficient)
+                pauli_mask.append("I")
+        return DensePauliString("".join(pauli_mask), coefficient=coefficient)
 
     def stabilizers(self) -> list[cirq.DensePauliString]:
         """Returns the stabilizer generators of the state. These
@@ -561,7 +558,7 @@ class CliffordTableau(StabilizerState):
 
         return int(self.rs[p])
 
-    def apply_x(self, axis: int, exponent: float = 1, global_shift: float = 0):
+    def apply_x(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         if exponent % 2 == 0:
             return
         if exponent % 0.5 != 0.0:
@@ -576,7 +573,7 @@ class CliffordTableau(StabilizerState):
             self.rs[:] ^= self.xs[:, axis] & self.zs[:, axis]
             self.xs[:, axis] ^= self.zs[:, axis]
 
-    def apply_y(self, axis: int, exponent: float = 1, global_shift: float = 0):
+    def apply_y(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         if exponent % 2 == 0:
             return
         if exponent % 0.5 != 0.0:
@@ -584,20 +581,14 @@ class CliffordTableau(StabilizerState):
         effective_exponent = exponent % 2
         if effective_exponent == 0.5:
             self.rs[:] ^= self.xs[:, axis] & (~self.zs[:, axis])
-            (self.xs[:, axis], self.zs[:, axis]) = (
-                self.zs[:, axis].copy(),
-                self.xs[:, axis].copy(),
-            )
+            self.xs[:, axis], self.zs[:, axis] = (self.zs[:, axis].copy(), self.xs[:, axis].copy())
         elif effective_exponent == 1:
             self.rs[:] ^= self.xs[:, axis] ^ self.zs[:, axis]
         elif effective_exponent == 1.5:
             self.rs[:] ^= ~(self.xs[:, axis]) & self.zs[:, axis]
-            (self.xs[:, axis], self.zs[:, axis]) = (
-                self.zs[:, axis].copy(),
-                self.xs[:, axis].copy(),
-            )
+            self.xs[:, axis], self.zs[:, axis] = (self.zs[:, axis].copy(), self.xs[:, axis].copy())
 
-    def apply_z(self, axis: int, exponent: float = 1, global_shift: float = 0):
+    def apply_z(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         if exponent % 2 == 0:
             return
         if exponent % 0.5 != 0.0:
@@ -612,7 +603,7 @@ class CliffordTableau(StabilizerState):
             self.rs[:] ^= self.xs[:, axis] & (~self.zs[:, axis])
             self.zs[:, axis] ^= self.xs[:, axis]
 
-    def apply_h(self, axis: int, exponent: float = 1, global_shift: float = 0):
+    def apply_h(self, axis: int, exponent: float = 1, global_shift: float = 0) -> None:
         if exponent % 2 == 0:
             return
         if exponent % 1 != 0:
@@ -622,12 +613,12 @@ class CliffordTableau(StabilizerState):
 
     def apply_cz(
         self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
-    ):
+    ) -> None:
         if exponent % 2 == 0:
             return
         if exponent % 1 != 0:
             raise ValueError('CZ exponent must be integer')  # pragma: no cover
-        (self.xs[:, target_axis], self.zs[:, target_axis]) = (
+        self.xs[:, target_axis], self.zs[:, target_axis] = (
             self.zs[:, target_axis].copy(),
             self.xs[:, target_axis].copy(),
         )
@@ -639,7 +630,7 @@ class CliffordTableau(StabilizerState):
         )
         self.xs[:, target_axis] ^= self.xs[:, control_axis]
         self.zs[:, control_axis] ^= self.zs[:, target_axis]
-        (self.xs[:, target_axis], self.zs[:, target_axis]) = (
+        self.xs[:, target_axis], self.zs[:, target_axis] = (
             self.zs[:, target_axis].copy(),
             self.xs[:, target_axis].copy(),
         )
@@ -647,7 +638,7 @@ class CliffordTableau(StabilizerState):
 
     def apply_cx(
         self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
-    ):
+    ) -> None:
         if exponent % 2 == 0:
             return
         if exponent % 1 != 0:
@@ -660,7 +651,7 @@ class CliffordTableau(StabilizerState):
         self.xs[:, target_axis] ^= self.xs[:, control_axis]
         self.zs[:, control_axis] ^= self.zs[:, target_axis]
 
-    def apply_global_phase(self, coefficient: linear_dict.Scalar):
+    def apply_global_phase(self, coefficient: linear_dict.Scalar) -> None:
         pass
 
     def measure(

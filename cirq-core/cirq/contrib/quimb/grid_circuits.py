@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Iterator, TYPE_CHECKING
+from collections.abc import Iterator
+from typing import TYPE_CHECKING
 
 import cirq
 
@@ -105,7 +106,7 @@ def get_grid_moments(
     )
 
 
-def simplify_expectation_value_circuit(circuit_sand: cirq.Circuit):
+def simplify_expectation_value_circuit(circuit_sand: cirq.Circuit) -> None:
     """For low weight operators on low-degree circuits, we can simplify
     the circuit representation of an expectation value.
 

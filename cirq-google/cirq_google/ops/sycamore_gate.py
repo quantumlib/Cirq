@@ -16,6 +16,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 
 import cirq
@@ -34,7 +36,7 @@ class SycamoreGate(cirq.FSimGate):
 
     This gate can be performed on the Google's Sycamore chip and
     is close to the gates that were used to demonstrate beyond
-    classical resuts used in this paper:
+    classical results used in this paper:
     https://www.nature.com/articles/s41586-019-1666-5
 
     Note that this gate will be transformed to a "ISWAP-like" gate
@@ -56,7 +58,7 @@ class SycamoreGate(cirq.FSimGate):
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs):
         return 'SYC', 'SYC'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, [])
 
 

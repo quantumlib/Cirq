@@ -39,7 +39,7 @@ For example, this circuit will execute the two gates in parallel:
 
 ```python
 cirq.Circuit(
-  cirq.Moment(cirq.X(cirq.GridQubit(4,4)), cirq.X(cirq.GridQubit(4,5)))
+    cirq.Moment(cirq.X(cirq.GridQubit(4, 4)), cirq.X(cirq.GridQubit(4, 5)))
 )
 ```
 
@@ -48,8 +48,8 @@ This circuit will execute the two gates in serial:
 
 ```python
 cirq.Circuit(
-  cirq.Moment(cirq.X(cirq.GridQubit(4,4))),
-  cirq.Moment(cirq.X(cirq.GridQubit(4,5)))
+    cirq.Moment(cirq.X(cirq.GridQubit(4, 4))),
+    cirq.Moment(cirq.X(cirq.GridQubit(4, 5))),
 )
 ```
 
@@ -58,8 +58,8 @@ is virtual and its moment will disappear:
 
 ```python
 cirq.Circuit(
-  cirq.Moment(cirq.Z(cirq.GridQubit(4,4))),
-  cirq.Moment(cirq.X(cirq.GridQubit(4,5)))
+    cirq.Moment(cirq.Z(cirq.GridQubit(4, 4))),
+    cirq.Moment(cirq.X(cirq.GridQubit(4, 5))),
 )
 ```
 
@@ -89,7 +89,7 @@ in 0.02 increments.
 
 
 ```python
-descriptor = cirq_google.study.DeviceParameter( ["q4_8", "piAmp"])
+descriptor = cirq_google.study.DeviceParameter(["q4_8", "piAmp"])
 sweep = cirq.Linspace("q4_8.piAmp", 0, 1, 51, metadata=descriptor)
 ```
 
@@ -165,7 +165,7 @@ Google devices provide several options for two-qubit gates.
 The availability of these gates is controlled by the gateset
 parameter that is used.
 
-Note that current hardware gates are noisy and not homogenous
+Note that current hardware gates are noisy and not homogeneous
 across the device.  Unitaries provided below are for the ideal case.
 Real unitaries applied to the qubit may vary from qubit to qubit
 and may drift over time.
@@ -192,6 +192,31 @@ $$
 $$
 
 This gate has a duration of 12ns.
+
+#### Willow Gate
+
+The hardware provides a gate known as the Willow gate that can
+be accessed using `cirq_google.WILLOW`.  This gate is equivalent to
+an FSimGate(π/2, π/9).  That is, it does both a partial swap and
+controlled phase rotation of the |11⟩ state.
+
+The unitary of this gate, which can also be found via the `cirq.unitary`
+function, is:
+
+$$
+\left[
+\begin{matrix}
+1 & 0 & 0 & 0 \\
+0 & 0 & -i & 0 \\
+0 & -i & 0 & 0 \\
+0 & 0 & 0 & e^{-i \frac{\pi}{9}}
+\end{matrix}
+\right]
+$$
+
+This gate can be performed on Google's Willow chip. Note that on hardware
+this gate will be transformed to an "ISWAP-like" gate and that the C-phase
+angle (phi) may change from processor to processor.
 
 #### Square root of iSWAP
 
@@ -228,12 +253,14 @@ on some devices.
 
 #### CZ gate
 
-The controlled-Z gate `cirq.CZ` is experimentally available on some
-devices.  Be sure to check with your sponsor or in the device specification
-to see if it is available on the processor you are using.
+The controlled-Z gate `cirq.CZ` is natively supported on Willow processors,
+as well as experimentally available on some older devices.  Be sure to check
+with your sponsor or in the device specification to see if it is available
+on the processor you are using.
 
 This gate is equivalent to FSimGate(0, π).  It has an approximate duration
-of 26ns.
+of 42ns on Willow processors (and 26ns on some earlier devices). For precise,
+up-to-date gate durations, ask your Google contact.
 
 ### Wait gate
 
@@ -268,6 +295,17 @@ are actually active.  Regular calibration and maintenance can disable
 and enable misbehaving qubits, so the grid configuration can change on a
 daily basis.
 
+Note that `cirq_google.Sycamore` and `cirq_google.Sycamore23` represent static layouts for earlier 54-qubit and 23-qubit Sycamore processors, while `cirq_google.Willow105` provides a static 105-qubit layout for Willow. Specific layouts can also be queried directly from the Quantum Engine API using `engine.get_processor(processor_id).get_device()` or `cirq_google.SimulatedProcessorWithLocalDeviceRecord('willow_pink').get_device()`.
+
+### Willow105
+
+The Willow105 device is a 105-qubit layout representing Google's Willow processor family.
+
+It can be accessed by using `cirq_google.Willow105`. This device supports:
+
+*   Controlled-Z gate (`cirq.CZ`).
+*   Arbitrary single-qubit rotations (`cirq.PhasedXZGate`).
+
 ### Sycamore
 
 The Sycamore device is a 54 qubit device introduced in 2019 with a
@@ -295,9 +333,9 @@ It can be accessed by using `cirq_google.Sycamore`. This device has two possible
 two-qubits gates that can be used.
 
 *  Square root of ISWAP. The gate `cirq.ISWAP ** 0.5` or `cirq.ISWAP ** -0.5` can be
-used on this device.
+   used on this device.
 *  Sycamore gate. This gate, equivalent to FSimGate(π/2, π/6) can be used as `cirq_google.SYC`
-or by using `cirq.FsimGate(numpy.pi/2,numpy.pi/6)`. 
+   or by using `cirq.FsimGate(numpy.pi/2,numpy.pi/6)`.
 
 
 ### Sycamore23

@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Sequence, SupportsFloat
+from collections.abc import Mapping, Sequence
+from typing import Any, SupportsFloat
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -103,9 +104,9 @@ def integrated_histogram(
     plot_options.update(kwargs)
 
     if cdf_on_x:
-        ax.step(bin_values, parameter_values, **plot_options)  # type: ignore
+        ax.step(bin_values, parameter_values, **plot_options)  # type: ignore[arg-type]
     else:
-        ax.step(parameter_values, bin_values, **plot_options)  # type: ignore
+        ax.step(parameter_values, bin_values, **plot_options)  # type: ignore[arg-type]
 
     set_semilog = ax.semilogy if cdf_on_x else ax.semilogx
     set_lim = ax.set_xlim if cdf_on_x else ax.set_ylim

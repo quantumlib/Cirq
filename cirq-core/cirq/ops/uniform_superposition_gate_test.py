@@ -28,7 +28,7 @@ import cirq
 def test_generated_unitary_is_uniform(m: int, n: int) -> None:
     r"""The code checks that the unitary matrix corresponds to the generated uniform superposition
     states (see uniform_superposition_gate.py). It is enough to check that the
-    first colum of the unitary matrix (which corresponds to the action of the gate on
+    first column of the unitary matrix (which corresponds to the action of the gate on
     $\ket{0}^n$ is $\frac{1}{\sqrt{M}} [1 1  \cdots 1 0 \cdots 0]^T$, where the first $M$
     entries are all "1"s (excluding the normalization factor of $\frac{1}{\sqrt{M}}$ and the
     remaining $2^n-M$ entries are all "0"s.
@@ -85,13 +85,14 @@ def test_str() -> None:
     )
 
 
-@pytest.mark.parametrize(["m", "n"], [(5, 3), (10, 4)])
-def test_eq(m: int, n: int) -> None:
-    a = cirq.UniformSuperpositionGate(m, n)
-    b = cirq.UniformSuperpositionGate(m, n)
-    c = cirq.UniformSuperpositionGate(m + 1, n)
-    d = cirq.X
-    assert a.m_value == b.m_value
-    assert a.__eq__(b)
-    assert not (a.__eq__(c))
-    assert not (a.__eq__(d))
+def test_eq_ne_hash() -> None:
+    eq = cirq.testing.EqualsTester()
+    a = cirq.UniformSuperpositionGate(5, 3)
+    b = cirq.UniformSuperpositionGate(5, 3)
+    c = cirq.UniformSuperpositionGate(8, 3)
+    d = cirq.UniformSuperpositionGate(8, 4)
+    eq.add_equality_group(a, b)
+    eq.add_equality_group(c)
+    eq.add_equality_group(d)
+    eq.add_equality_group(cirq.X)
+    assert len({a, b, c, d}) == 3

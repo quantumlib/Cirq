@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Callable, cast, Iterable, TYPE_CHECKING
+from collections.abc import Callable, Iterable, Iterator
+from typing import cast, TYPE_CHECKING
 
 from dev_tools import git_env_tools, shell_tools
 from dev_tools.prepared_env import PreparedEnv
@@ -25,7 +26,7 @@ if TYPE_CHECKING:
     from dev_tools.github_repository import GithubRepository
 
 
-def get_unhidden_ungenerated_python_files(directory: str) -> Iterable[str]:
+def get_unhidden_ungenerated_python_files(directory: str) -> Iterator[str]:
     """Iterates through relevant python files within the given directory.
 
     Args:

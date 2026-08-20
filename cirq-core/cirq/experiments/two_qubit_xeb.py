@@ -18,9 +18,11 @@ from __future__ import annotations
 
 import functools
 import itertools
+from collections.abc import Mapping, Sequence
+from concurrent import futures
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Any, cast, Mapping, Sequence, TYPE_CHECKING
+from typing import Any, cast, TYPE_CHECKING
 
 import networkx as nx
 import numpy as np
@@ -408,7 +410,7 @@ def parallel_xeb_workflow(
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ax: plt.Axes | None = None,
     pairs: Sequence[tuple[cirq.GridQubit, cirq.GridQubit]] | None = None,
-    pool: multiprocessing.pool.Pool | None = None,
+    pool: multiprocessing.pool.Pool | futures.Executor | None = None,
     batch_size: int = 9,
     tags: Sequence[Any] = (),
     **plot_kwargs,
@@ -427,7 +429,7 @@ def parallel_xeb_workflow(
         ax: the plt.Axes to plot the device layout on. If not given,
             no plot is created.
         pairs: Pairs to use. If not specified, use all pairs between adjacent qubits.
-        pool: An optional multiprocessing pool.
+        pool: An optional pool.
         batch_size: We call `run_batch` on the sampler, which can speed up execution in certain
             environments. The number of (circuit, cycle_depth) tasks to be run in each batch
             is given by this number.

@@ -84,7 +84,7 @@ def plot_density_matrix(
     show_text: bool = False,
     title: str | None = None,
 ) -> plt.Axes:
-    """Generates a plot for a given density matrix.
+    r"""Generates a plot for a given density matrix.
 
     1. Each entry of the density matrix, a complex number, is plotted as an
     Argand Diagram where the partially filled red circle represents the magnitude

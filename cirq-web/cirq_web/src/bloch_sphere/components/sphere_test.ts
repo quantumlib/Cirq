@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {expect} from 'chai';
+import {expect} from 'vitest';
 import {Sphere} from './sphere';
 import {Mesh, MeshNormalMaterial, SphereGeometry} from 'three';
 
@@ -38,17 +38,17 @@ describe('Sphere', () => {
     const sphereInfo = getSphereInfo(sphere);
 
     it('has a default radius of 5', () => {
-      expect(sphereInfo.params.radius).to.equal(5);
+      expect(sphereInfo.params.radius).toBe(5);
     });
 
     it('uses 32 width and height segments for the sphere shape', () => {
-      expect(sphereInfo.params.widthSegments).to.equal(32);
-      expect(sphereInfo.params.widthSegments).to.equal(32);
+      expect(sphereInfo.params.widthSegments).toBe(32);
+      expect(sphereInfo.params.widthSegments).toBe(32);
     });
 
     it('returns a transparent sphere', () => {
-      expect(sphereInfo.material.opacity).to.equal(0.6);
-      expect(sphereInfo.material.transparent).to.equal(true);
+      expect(sphereInfo.material.opacity).toBe(0.6);
+      expect(sphereInfo.material.transparent).toBe(true);
     });
   });
 
@@ -61,7 +61,7 @@ describe('Sphere', () => {
         const sphere = new Sphere(el);
         const sphereInfo = getSphereInfo(sphere);
 
-        expect(sphereInfo.params.radius).to.equal(expectedRadius[index]);
+        expect(sphereInfo.params.radius).toBe(expectedRadius[index]);
       });
     });
 
@@ -70,7 +70,7 @@ describe('Sphere', () => {
         const radiusInputs = [-1, 0];
         const expectedErrorMessage = 'The radius of a Sphere must be greater than or equal to 1';
         radiusInputs.forEach(el => {
-          expect(() => new Sphere(el)).to.throw(expectedErrorMessage);
+          expect(() => new Sphere(el)).toThrow(expectedErrorMessage);
         });
       });
     });

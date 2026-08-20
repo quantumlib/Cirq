@@ -16,9 +16,11 @@
 
 from __future__ import annotations
 
-import multiprocessing
+import contextlib
 import multiprocessing.pool
-from typing import Any, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from concurrent import futures
+from typing import Any, TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -45,7 +47,7 @@ def z_phase_calibration_workflow(
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     atol: float = 1e-3,
-    num_workers_or_pool: int | multiprocessing.pool.Pool = -1,
+    num_workers_or_pool: int | multiprocessing.pool.Pool | futures.Executor = -1,
     pairs: Sequence[tuple[cirq.GridQubit, cirq.GridQubit]] | None = None,
     tags: Sequence[Any] = (),
 ) -> tuple[xeb_fitting.XEBCharacterizationResult, pd.DataFrame]:
@@ -80,7 +82,7 @@ def z_phase_calibration_workflow(
         cycle_depths: The cycle depths to use.
         random_state: The random state to use.
         atol: Absolute tolerance to be used by the minimizer.
-        num_workers_or_pool: An optional multi-processing pool or number of workers.
+        num_workers_or_pool: An optional pool or number of workers.
             A zero value means no multiprocessing.
             A positive integer value will create a pool with the given number of workers.
             A negative value will create pool with maximum number of workers.
@@ -91,60 +93,58 @@ def z_phase_calibration_workflow(
         - A `pd.DataFrame` comparing the before and after fidelities.
     """
 
-    pool: multiprocessing.pool.Pool | None = None
-    local_pool = False
-    if isinstance(num_workers_or_pool, multiprocessing.pool.Pool):
-        pool = num_workers_or_pool  # pragma: no cover
-    elif num_workers_or_pool != 0:
-        pool = multiprocessing.Pool(num_workers_or_pool if num_workers_or_pool > 0 else None)
-        local_pool = True
+    with contextlib.ExitStack() as stack:
+        pool: multiprocessing.pool.Pool | futures.Executor | None = None
+        if isinstance(num_workers_or_pool, (multiprocessing.pool.Pool, futures.Executor)):
+            pool = num_workers_or_pool  # pragma: no cover
+        elif num_workers_or_pool != 0:
+            pool = stack.enter_context(
+                futures.ThreadPoolExecutor(num_workers_or_pool if num_workers_or_pool > 0 else None)
+            )
 
-    fids_df_0, circuits, sampled_df = parallel_xeb_workflow(
-        sampler=sampler,
-        qubits=qubits,
-        entangling_gate=two_qubit_gate,
-        n_repetitions=n_repetitions,
-        cycle_depths=cycle_depths,
-        n_circuits=n_circuits,
-        n_combinations=n_combinations,
-        random_state=random_state,
-        pool=pool,
-        tags=tags,
-        pairs=pairs,
-    )
+        fids_df_0, circuits, sampled_df = parallel_xeb_workflow(
+            sampler=sampler,
+            qubits=qubits,
+            entangling_gate=two_qubit_gate,
+            n_repetitions=n_repetitions,
+            cycle_depths=cycle_depths,
+            n_circuits=n_circuits,
+            n_combinations=n_combinations,
+            random_state=random_state,
+            pool=pool,
+            tags=tags,
+            pairs=pairs,
+        )
 
-    if options is None:
-        options = xeb_fitting.XEBPhasedFSimCharacterizationOptions(
-            characterize_chi=True,
-            characterize_gamma=True,
-            characterize_zeta=True,
-            characterize_theta=False,
-            characterize_phi=False,
-        ).with_defaults_from_gate(two_qubit_gate)
+        if options is None:
+            options = xeb_fitting.XEBPhasedFSimCharacterizationOptions(
+                characterize_chi=True,
+                characterize_gamma=True,
+                characterize_zeta=True,
+                characterize_theta=False,
+                characterize_phi=False,
+            ).with_defaults_from_gate(two_qubit_gate)
 
-    p_circuits = [
-        xeb_fitting.parameterize_circuit(circuit, options, ops.GateFamily(two_qubit_gate))
-        for circuit in circuits
-    ]
+        p_circuits = [
+            xeb_fitting.parameterize_circuit(circuit, options, ops.GateFamily(two_qubit_gate))
+            for circuit in circuits
+        ]
 
-    result = xeb_fitting.characterize_phased_fsim_parameters_with_xeb_by_pair(
-        sampled_df=sampled_df,
-        parameterized_circuits=p_circuits,
-        cycle_depths=cycle_depths,
-        options=options,
-        fatol=atol,
-        xatol=atol,
-        pool=pool,
-    )
+        result = xeb_fitting.characterize_phased_fsim_parameters_with_xeb_by_pair(
+            sampled_df=sampled_df,
+            parameterized_circuits=p_circuits,
+            cycle_depths=cycle_depths,
+            options=options,
+            fatol=atol,
+            xatol=atol,
+            pool=pool,
+        )
 
-    before_after = xeb_fitting.before_and_after_characterization(
-        fids_df_0, characterization_result=result
-    )
+        before_after = xeb_fitting.before_and_after_characterization(
+            fids_df_0, characterization_result=result
+        )
 
-    if local_pool:
-        assert isinstance(pool, multiprocessing.pool.Pool)
-        pool.close()
-    return result, before_after
+        return result, before_after
 
 
 def calibrate_z_phases(
@@ -158,7 +158,7 @@ def calibrate_z_phases(
     cycle_depths: Sequence[int] = tuple(np.arange(3, 100, 20)),
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     atol: float = 1e-3,
-    num_workers_or_pool: int | multiprocessing.pool.Pool = -1,
+    num_workers_or_pool: int | multiprocessing.pool.Pool | futures.Executor = -1,
     pairs: Sequence[tuple[cirq.GridQubit, cirq.GridQubit]] | None = None,
     tags: Sequence[Any] = (),
 ) -> dict[tuple[cirq.Qid, cirq.Qid], cirq.PhasedFSimGate]:

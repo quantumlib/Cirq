@@ -60,12 +60,12 @@ def _random_double_MS_effect():
     )
 
 
-def assert_ops_implement_unitary(q0, q1, operations, intended_effect, atol=0.01):
+def assert_ops_implement_unitary(q0, q1, operations, intended_effect, atol=0.01) -> None:
     actual_effect = _operations_to_matrix(operations, (q0, q1))
     assert cirq.allclose_up_to_global_phase(actual_effect, intended_effect, atol=atol)
 
 
-def assert_ms_depth_below(operations, threshold):
+def assert_ms_depth_below(operations, threshold) -> None:
     total_ms = 0
 
     for op in operations:

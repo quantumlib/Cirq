@@ -21,6 +21,12 @@ The basic steps for running a quantum circuit in a blocking manner are:
 
 Here is a simple example of this flow:
 
+<!---test_substitution
+service = ionq.Service\(api_key=API_KEY\)
+service = mock.create_autospec(ionq.Service, instance=True)
+mock_result = mock.create_autospec(cirq.Result, instance=True)
+service.configure_mock(**{"run.return_value": mock_result})
+--->
 ```python
 import cirq
 import cirq_ionq as ionq
@@ -28,8 +34,8 @@ import cirq_ionq as ionq
 # A circuit that applies a square root of NOT and then a measurement.
 qubit = cirq.LineQubit(0)
 circuit = cirq.Circuit(
-  cirq.X(qubit)**0.5,      # Square root of NOT.
-  cirq.measure(qubit, key='x')  # Measurement store in key 'x'
+    cirq.X(qubit) ** 0.5,  # Square root of NOT.
+    cirq.measure(qubit, key='x'),  # Measurement store in key 'x'
 )
 
 # Create a ionq.Service object.
@@ -82,7 +88,7 @@ when creating a `cirq_ionq.Service` object.
 then this instance will use the environment variable `IONQ_REMOTE_HOST`. If that
 variable is not set, then this uses `https://api.ionq.co/{api_version}`.
 * `default_target`: this is a string of either `simulator` or `qpu`. By setting this, you do not have to specify a target every time you run a job using `run`, `create_job` or via the `sampler` interface. A helpful pattern is to create two services with defaults for the simulator and for the QPU separately.
-* `api_version`: Version of the API to be used. Defaults to 'v0.3'.
+* `api_version`: Version of the API to be used. Defaults to 'v0.4'.
 * `max_retry_seconds`: The API will poll with exponential backoff for completed jobs. By specifying this, you can change the number of seconds before this retry gives up. It is common to set this to a very small number when, for example, wanting to fail fast, or to be set very high for long running jobs.
 
 ## Run parameters
@@ -105,11 +111,11 @@ Here is an example of using error mitigation and sharpening options:
 ```python
 # Run a program against the service with error mitigation and sharpening
 result = service.run(
-  circuit=circuit,
-  repetitions=100,
-  target='qpu',
-  error_mitigation={'debias': True},
-  sharpen=True
+    circuit=circuit,
+    repetitions=100,
+    target='qpu',
+    error_mitigation={'debias': True},
+    sharpen=True,
 )
 ```
 

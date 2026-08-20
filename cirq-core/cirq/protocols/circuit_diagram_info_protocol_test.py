@@ -257,6 +257,44 @@ def test_circuit_diagram_info_args_repr() -> None:
     )
 
 
+def test_tag_diagram_str_and_format_tags() -> None:
+    class ProtocolTag:
+        def __str__(self) -> str:
+            return 'via-str'
+
+        def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> str:
+            return 'via-protocol'
+
+    class ProtocolTagInfo:
+        def _circuit_diagram_info_(
+            self, args: cirq.CircuitDiagramInfoArgs
+        ) -> cirq.CircuitDiagramInfo:
+            return cirq.CircuitDiagramInfo(wire_symbols=('info-sym',))
+
+    class NoProtocolTag:
+        def __str__(self) -> str:
+            return 'plain'
+
+    # str() is defined but protocol path must win when present.
+    assert str(ProtocolTag()) == 'via-str'
+
+    args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT.copy()
+    assert args._tag_diagram_str(ProtocolTag()) == 'via-protocol'
+    assert args._tag_diagram_str(ProtocolTagInfo()) == 'info-sym'
+    assert args._tag_diagram_str(NoProtocolTag()) == 'plain'
+    assert args._tag_diagram_str('string-tag') == 'string-tag'
+
+    assert args.format_tags([]) == ''
+    assert args.format_tags([NoProtocolTag(), ProtocolTag()]) == '[plain, via-protocol]'
+
+    args.include_tags = False
+    assert args.format_tags([ProtocolTag(), 'x']) == ''
+
+    # Attribute type is bool | frozenset[type] (constructor accepts Iterable[type]).
+    args.include_tags = frozenset({ProtocolTag})
+    assert args.format_tags([ProtocolTag(), NoProtocolTag(), 'x']) == '[via-protocol]'
+
+
 def test_format_real() -> None:
     args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT.copy()
     assert args.format_real(1) == '1'

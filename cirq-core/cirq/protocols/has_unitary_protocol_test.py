@@ -218,8 +218,8 @@ class EmptyOp(cirq.Operation):
     """A trivial operation that will be recognized as `_apply_unitary_`-able."""
 
     @property
-    def qubits(self):
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return ()
 
-    def with_qubits(self, *new_qubits):  # pragma: no cover
-        return self
+    def with_qubits(self, *new_qubits) -> cirq.Operation:
+        raise NotImplementedError()

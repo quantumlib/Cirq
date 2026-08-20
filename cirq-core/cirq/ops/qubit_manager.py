@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import abc
 import dataclasses
-from typing import Iterable, TYPE_CHECKING
+from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
 from cirq.ops import raw_types
 
@@ -25,6 +26,14 @@ if TYPE_CHECKING:
 
 
 class QubitManager(metaclass=abc.ABCMeta):
+    """Orchestrates allocation and reuse of helper ancilla qubits used in a circuit.
+
+    QubitManager keeps track of ancilla qubits which it can supply in either a clean,
+    |0> state or dirty, arbitrary state.  Ancilla qubits can be deallocated to become
+    available for reuse later.  Circuit creators can use QubitManager to obtain ancilla
+    qubits without having to manually track their availability and state.
+    """
+
     @abc.abstractmethod
     def qalloc(self, n: int, dim: int = 2) -> list[cirq.Qid]:
         """Allocate `n` clean qubits, i.e. qubits guaranteed to be in state |0>."""

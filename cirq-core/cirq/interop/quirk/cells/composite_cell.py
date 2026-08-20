@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Callable, cast, Iterable, Iterator, Sequence, TYPE_CHECKING, TypeVar
+from collections.abc import Callable, Iterable, Iterator, Sequence
+from typing import cast, TYPE_CHECKING, TypeVar
 
 from cirq import circuits
 from cirq.interop.quirk.cells.cell import Cell

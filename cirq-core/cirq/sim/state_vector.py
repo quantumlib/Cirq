@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import abc
-from typing import Mapping, Sequence, TYPE_CHECKING
+from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -105,7 +106,7 @@ class StateVectorMixin:
             and non-zero floats of the specified accuracy."""
         return qis.dirac_notation(self.state_vector(), decimals, qid_shape=self._qid_shape)
 
-    def density_matrix_of(self, qubits: list[cirq.Qid] | None = None) -> np.ndarray:
+    def density_matrix_of(self, qubits: Sequence[cirq.Qid] | None = None) -> np.ndarray:
         r"""Returns the density matrix of the state.
 
         Calculate the density matrix for the system on the qubits provided.
@@ -135,8 +136,7 @@ class StateVectorMixin:
 
         Raises:
             ValueError: if the size of the state represents more than 25 qubits.
-            IndexError: if the indices are out of range for the number of qubits
-                corresponding to the state.
+            KeyError: if some of the qubits provided are not in the quantum state.
         """
         return qis.density_matrix_from_state_vector(
             self.state_vector(),
@@ -153,15 +153,14 @@ class StateVectorMixin:
         numpy.kron.
 
         Args:
-            qubit: qubit who's bloch vector we want to find.
+            qubit: qubit whose bloch vector we want to find.
 
         Returns:
             A length 3 numpy array representing the qubit's bloch vector.
 
         Raises:
             ValueError: if the size of the state represents more than 25 qubits.
-            IndexError: if index is out of range for the number of qubits
-                corresponding to the state.
+            KeyError: if the specified qubit is not in the quantum state.
         """
         return qis.bloch_vector_from_state_vector(
             self.state_vector(), self.qubit_map[qubit], qid_shape=self._qid_shape
@@ -288,9 +287,6 @@ def measure_state_vector(
 
     prng = value.parse_random_state(seed)
 
-    # Cache initial shape.
-    initial_shape = state_vector.shape
-
     # Calculate the measurement probabilities and then make the measurement.
     probs = (state_vector * state_vector.conj()).real
     probs = simulation_utils.state_probabilities_by_indices(probs, indices, shape)
@@ -315,12 +311,10 @@ def measure_state_vector(
         np.copyto(dst=out, src=state_vector)
     # Final else: if out is state then state will be modified in place.
 
-    # Potentially reshape to tensor, and then set masked values to 0.
-    out.shape = shape
-    out[mask] = 0
+    # Reshape to a tensor inplace to set the masked values to 0.
+    out.reshape(shape, copy=False)[mask] = 0
 
-    # Restore original shape (if necessary) and renormalize.
-    out.shape = initial_shape
+    # Renormalize.
     out /= np.sqrt(probs[result])
 
     assert out is not None

@@ -15,38 +15,20 @@
 from __future__ import annotations
 
 import datetime
-from typing import Any, TYPE_CHECKING
+from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING
 
-from cirq import _compat
 from cirq_google.api import v2
 from cirq_google.devices import grid_device
-from cirq_google.engine import abstract_processor, calibration, processor_sampler, util
+from cirq_google.engine import abstract_processor, processor_config, processor_sampler, util
 
 if TYPE_CHECKING:
-    from google.protobuf import any_pb2
 
     import cirq
     import cirq_google as cg
     import cirq_google.cloud.quantum as quantum
     import cirq_google.engine.abstract_job as abstract_job
     import cirq_google.engine.engine as engine_base
-
-
-def _date_to_timestamp(union_time: datetime.datetime | datetime.date | int | None) -> int | None:
-    if isinstance(union_time, int):
-        return union_time
-    elif isinstance(union_time, datetime.datetime):
-        return int(union_time.timestamp())
-    elif isinstance(union_time, datetime.date):
-        return int(datetime.datetime.combine(union_time, datetime.datetime.min.time()).timestamp())
-    return None
-
-
-def _fix_deprecated_allowlisted_users_args(
-    args: tuple[Any, ...], kwargs: dict[str, Any]
-) -> tuple[tuple[Any, ...], dict[str, Any]]:
-    kwargs['allowlisted_users'] = kwargs.pop('whitelisted_users')
-    return args, kwargs
 
 
 class EngineProcessor(abstract_processor.AbstractProcessor):
@@ -95,60 +77,76 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
     def get_sampler(
         self,
-        run_name: str = "",
-        device_config_name: str = "",
-        snapshot_id: str = "",
-        max_concurrent_jobs: int = 10,
+        device_config_name: str | None = None,
+        device_config_revision: processor_config.DeviceConfigRevision | None = None,
+        max_concurrent_jobs: int = 100,
+        jobs_per_batch: int = 1,
     ) -> cg.engine.ProcessorSampler:
-        """Returns a sampler backed by the engine.
+        """Returns the default sampler backed by the engine.
+
         Args:
-            run_name: A unique identifier representing an automation run for the
-                processor. An Automation Run contains a collection of device
-                configurations for the processor.
             device_config_name: An identifier used to select the processor configuration
                 utilized to run the job. A configuration identifies the set of
                 available qubits, couplers, and supported gates in the processor.
-            snapshot_id: A unique identifier for an immutable snapshot reference.
-                A snapshot contains a collection of device configurations for the
-                processor.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
             max_concurrent_jobs: The maximum number of jobs to be sent
                 simultaneously to the Engine. This client-side throttle can be
                 used to proactively reduce load to the backends and avoid quota
                 violations when pipelining circuit executions.
+            jobs_per_batch:  If set to greater than 1, this will batch multiple
+                circuits within the same API call when calling run_batch() or
+                run_batch_async() up to a maximum of `jobs_per_batch`.
+                Note that actual hardware execution order is not guaranteed
+                if jobs_per_batch > 1. (For instance, the hardware may run
+                all circuits for the first sweep point, then the second point, etc.).
 
         Returns:
             A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
             that will send circuits to the Quantum Computing Service
             when sampled.
 
-        Raises:
-            ValueError: If only one of `run_name` and `device_config_name` are specified.
-            ValueError: If both `run_name` and `snapshot_id` are specified.
-
         """
+        processor_config.validate_device_config_revision(device_config_revision)
         processor = self._inner_processor()
-        if run_name and snapshot_id:
-            raise ValueError('Cannot specify both `run_name` and `snapshot_id`')
-        if (bool(run_name) or bool(snapshot_id)) ^ bool(device_config_name):
-            raise ValueError(
-                'Cannot specify only one of top level identifier and `device_config_name`'
+
+        device_config_name = (
+            device_config_name
+            if device_config_name
+            else processor.default_device_config_key.config_alias
+        )
+
+        if isinstance(device_config_revision, processor_config.Snapshot):
+            return processor_sampler.ProcessorSampler(
+                processor=self,
+                snapshot_id=device_config_revision.id,
+                device_config_name=device_config_name,
+                max_concurrent_jobs=max_concurrent_jobs,
+                jobs_per_batch=jobs_per_batch,
             )
-        # If not provided, initialize the sampler with the Processor's default values.
-        if not run_name and not device_config_name and not snapshot_id:
-            run_name = processor.default_device_config_key.run
-            device_config_name = processor.default_device_config_key.config_alias
-            snapshot_id = processor.default_device_config_key.snapshot_id
+        if isinstance(device_config_revision, processor_config.Run):
+            return processor_sampler.ProcessorSampler(
+                processor=self,
+                run_name=device_config_revision.id,
+                device_config_name=device_config_name,
+                max_concurrent_jobs=max_concurrent_jobs,
+                jobs_per_batch=jobs_per_batch,
+            )
+
         return processor_sampler.ProcessorSampler(
             processor=self,
-            run_name=run_name,
-            snapshot_id=snapshot_id,
+            run_name=processor.default_device_config_key.run,
             device_config_name=device_config_name,
             max_concurrent_jobs=max_concurrent_jobs,
+            jobs_per_batch=jobs_per_batch,
         )
 
     async def run_sweep_async(
         self,
-        program: cirq.AbstractCircuit,
+        program: (
+            cirq.AbstractCircuit
+            | Sequence[cirq.AbstractCircuit]
+            | Mapping[str, cirq.AbstractCircuit]
+        ),
         *,
         device_config_name: str,
         run_name: str = "",
@@ -170,6 +168,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         Args:
             program: The Circuit to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
+                A list or mapping of circuits can also be provided.  If so,
+                it will be executed as a KeyedCircuit.
             run_name: A unique identifier representing an automation run for the
                 processor. An Automation Run contains a collection of device
                 configurations for the processor.
@@ -241,7 +241,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
     def supported_languages(self) -> list[str]:
         """Returns the list of processor supported program languages."""
-        return self._inner_processor().supported_languages
+        return list(self._inner_processor().supported_languages)
 
     def get_device_specification(self) -> v2.device_pb2.DeviceSpecification | None:
         """Returns a device specification proto for use in determining
@@ -268,73 +268,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             raise ValueError('Processor does not have a device specification')
         return grid_device.GridDevice.from_proto(spec)
 
-    def list_calibrations(
-        self,
-        earliest_timestamp: datetime.datetime | datetime.date | int | None = None,
-        latest_timestamp: datetime.datetime | datetime.date | int | None = None,
-    ) -> list[calibration.Calibration]:
-        """Retrieve metadata about a specific calibration run.
-
-        Params:
-            earliest_timestamp: The earliest timestamp of a calibration to return in UTC.
-            latest_timestamp: The latest timestamp of a calibration to return in UTC.
-
-        Returns:
-            The list of calibration data with the most recent first.
-        """
-        earliest_timestamp_seconds = _date_to_timestamp(earliest_timestamp)
-        latest_timestamp_seconds = _date_to_timestamp(latest_timestamp)
-
-        if earliest_timestamp_seconds and latest_timestamp_seconds:
-            filter_str = (
-                f'timestamp >= {earliest_timestamp_seconds:d} AND '
-                f'timestamp <= {latest_timestamp_seconds:d}'
-            )
-        elif earliest_timestamp_seconds:
-            filter_str = f'timestamp >= {earliest_timestamp_seconds:d}'
-        elif latest_timestamp_seconds:
-            filter_str = f'timestamp <= {latest_timestamp_seconds:d}'
-        else:
-            filter_str = ''
-        response = self.context.client.list_calibrations(
-            self.project_id, self.processor_id, filter_str
-        )
-        return [_to_calibration(c.data) for c in list(response)]
-
-    def get_calibration(self, calibration_timestamp_seconds: int) -> calibration.Calibration:
-        """Retrieve metadata about a specific calibration run.
-
-        Params:
-            calibration_timestamp_seconds: The timestamp of the calibration in
-                seconds since epoch.
-
-        Returns:
-            The calibration data.
-        """
-        response = self.context.client.get_calibration(
-            self.project_id, self.processor_id, calibration_timestamp_seconds
-        )
-        return _to_calibration(response.data)
-
-    def get_current_calibration(self) -> calibration.Calibration | None:
-        """Returns metadata about the current calibration for a processor.
-
-        Returns:
-            The calibration data or None if there is no current calibration.
-        """
-        response = self.context.client.get_current_calibration(self.project_id, self.processor_id)
-        if response is not None:
-            return _to_calibration(response.data)
-        else:
-            return None
-
-    @_compat.deprecated_parameter(
-        deadline='v1.7',
-        fix='Change whitelisted_users to allowlisted_users.',
-        parameter_desc='whitelisted_users',
-        match=lambda args, kwargs: 'whitelisted_users' in kwargs,
-        rewrite=_fix_deprecated_allowlisted_users_args,
-    )
     def create_reservation(
         self,
         start_time: datetime.datetime,
@@ -403,13 +336,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             self.project_id, self.processor_id, reservation_id
         )
 
-    @_compat.deprecated_parameter(
-        deadline='v1.7',
-        fix='Change whitelisted_users to allowlisted_users.',
-        parameter_desc='whitelisted_users',
-        match=lambda args, kwargs: 'whitelisted_users' in kwargs,
-        rewrite=_fix_deprecated_allowlisted_users_args,
-    )
     def update_reservation(
         self,
         reservation_id: str,
@@ -497,16 +423,63 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         filter_str = ' AND '.join(filters)
         return self.context.client.list_time_slots(self.project_id, self.processor_id, filter_str)
 
+    def get_config(
+        self,
+        device_config_revision: processor_config.DeviceConfigRevision | None = None,
+        config_name: str = '',
+    ) -> processor_config.ProcessorConfig | None:
+        """Retrieves a ProcessorConfig from an automation run.
+
+        If no `run_name` and `config_name` are specified, the internally configured default config
+        is returned.
+
+        Args:
+            processor_id: The processor unique identifier.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
+            config_name: The quantum processor's unique identifier.
+            run_name: The automation run name.  Use 'default'
+                      if none id provided.
+
+        Returns: The quantum processor config.
+        """
+        default_device_key = self._inner_processor().default_device_config_key
+        return self.engine().get_processor_config(
+            processor_id=self.processor_id,
+            device_config_revision=(
+                device_config_revision
+                if device_config_revision
+                else processor_config.Run(default_device_key.run)
+            ),
+            config_name=config_name if config_name else default_device_key.config_alias,
+        )
+
+    def list_configs(
+        self, device_config_revision: processor_config.DeviceConfigRevision | None = None
+    ) -> list[processor_config.ProcessorConfig]:
+        """Returns list of ProcessorConfigs from the given snapshot.
+
+        Args:
+           processor_id: The processor unique identifier.
+           device_config_revision: Specifies either the snapshot_id or the run_name.
+
+        Returns:
+           List of ProcessorConfigs for this processor.
+        """
+        default_device_key = self._inner_processor().default_device_config_key
+        device_revsion = (
+            device_config_revision
+            if device_config_revision
+            else processor_config.Run(default_device_key.run)
+        )
+        return self.engine().list_processor_configs(
+            processor_id=self.processor_id, device_config_revision=device_revsion
+        )
+
     def __str__(self):
         return (
             f"EngineProcessor(project_id={self.project_id!r}, "
             f"processor_id={self.processor_id!r})"
         )
-
-
-def _to_calibration(calibration_any: any_pb2.Any) -> calibration.Calibration:
-    metrics = v2.metrics_pb2.MetricsSnapshot.FromString(calibration_any.value)
-    return calibration.Calibration(metrics)
 
 
 def _to_date_time_filters(

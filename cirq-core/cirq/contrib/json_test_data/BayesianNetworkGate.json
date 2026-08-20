@@ -1,0 +1,10 @@
+{
+  "cirq_type": "BayesianNetworkGate",
+  "init_probs": [
+    ["q0", 0.125],
+    ["q1", null]
+  ],
+  "arc_probs": [
+    ["q1", ["q0"], [0.25, 0.5]]
+  ]
+}

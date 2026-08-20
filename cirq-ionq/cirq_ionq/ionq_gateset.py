@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterator
+from collections.abc import Iterator
+from typing import Any
 
 import cirq
 
@@ -152,7 +153,8 @@ def decompose_all_to_all_connect_ccz_gate(
         else []
     )
 
-    return global_phase_operation + [
+    return [
+        *global_phase_operation,
         cirq.CNOT(b, c),
         p(c) ** -1,
         cirq.CNOT(a, c),

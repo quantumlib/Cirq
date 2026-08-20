@@ -20,15 +20,16 @@ import contextlib
 import contextvars
 import dataclasses
 import functools
-import importlib
+import importlib.util
 import inspect
 import os
 import re
 import sys
 import traceback
 import warnings
+from collections.abc import Callable, Iterator
 from types import ModuleType
-from typing import Any, Callable, Iterator, overload, TypeVar
+from typing import Any, overload, TypeVar
 
 import numpy as np
 import pandas as pd
@@ -62,10 +63,6 @@ def with_debug(value: bool) -> Iterator[None]:
         yield
     finally:
         __cirq_debug__.reset(token)
-
-
-# Sentinel used by wrapped_no_args below when method has not yet been cached.
-_NOT_FOUND = object()
 
 
 TFunc = TypeVar('TFunc', bound=Callable)
@@ -102,11 +99,12 @@ def cached_method(method: TFunc | None = None, *, maxsize: int = 128) -> Any:
 
             @functools.wraps(func)
             def wrapped_no_args(self):
-                result = getattr(self, cache_name, _NOT_FOUND)
-                if result is _NOT_FOUND:
+                try:
+                    return getattr(self, cache_name)
+                except AttributeError:
                     result = func(self)
                     object.__setattr__(self, cache_name, result)
-                return result
+                    return result
 
             return wrapped_no_args
 
@@ -263,7 +261,7 @@ def _warn_or_error(msg):
             f"During testing using Cirq deprecated functionality is not allowed: {msg}"
             f"Update to non-deprecated functionality, or alternatively, you can quiet "
             f"this error by removing the CIRQ_TESTING environment variable "
-            f"temporarily with `@mock.patch.dict(os.environ, clear='CIRQ_TESTING')`.\n"
+            f"temporarily with `@mock.patch.dict(os.environ, {{'CIRQ_TESTING': 'false'}})`.\n"
             f"In case the usage of deprecated cirq is intentional, use "
             f"`with cirq.testing.assert_deprecated(...):` around this line:\n"
             f"{filename}:{line_number}: in {function_name}\n"
@@ -510,15 +508,15 @@ class DeprecatedModuleLoader(importlib.abc.Loader):
         self.loader = loader
         if hasattr(loader, 'exec_module'):
             # mypy#2427
-            self.exec_module = self._wrap_exec_module(loader.exec_module)  # type: ignore
+            self.exec_module = self._wrap_exec_module(loader.exec_module)  # type: ignore[method-assign]
         # while this is rare and load_module was deprecated in 3.4
         # in older environments this line makes them work as well
         if hasattr(loader, 'load_module'):
             # mypy#2427
-            self.load_module = self._wrap_load_module(loader.load_module)  # type: ignore
+            self.load_module = self._wrap_load_module(loader.load_module)  # type: ignore[method-assign]
         if hasattr(loader, 'create_module'):
             # mypy#2427
-            self.create_module = loader.create_module  # type: ignore
+            self.create_module = loader.create_module  # type: ignore[method-assign]
         self.old_module_name = old_module_name
         self.new_module_name = new_module_name
 
@@ -588,7 +586,7 @@ _warned: set[str] = set()
 
 
 def _called_from_test() -> bool:
-    return 'CIRQ_TESTING' in os.environ
+    return os.environ.get("CIRQ_TESTING", "").lower() == "true"
 
 
 def _should_dedupe_module_deprecation() -> bool:

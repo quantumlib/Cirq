@@ -13,9 +13,11 @@
 # limitations under the License.
 
 """Define detuning gates for Analog Experiment usage."""
+
 from __future__ import annotations
 
-from typing import AbstractSet, Any, Iterable, TYPE_CHECKING
+from collections.abc import Iterable, Set
+from typing import Any, TYPE_CHECKING
 
 import cirq
 from cirq_google.ops import coupler
@@ -98,7 +100,7 @@ class AnalogDetuneQubit(cirq.ops.Gate):
             or su.is_parameterized_dict(self.prev_neighbor_coupler_g_dict)
         )
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return (
             cirq.parameter_names(self.length)
             | cirq.parameter_names(self.w)
@@ -152,15 +154,23 @@ class AnalogDetuneQubit(cirq.ops.Gate):
             self.w,
             self.target_freq,
             self.prev_freq,
-            self.neighbor_coupler_g_dict,
-            self.prev_neighbor_coupler_g_dict,
+            (
+                tuple(sorted(self.neighbor_coupler_g_dict.items()))
+                if self.neighbor_coupler_g_dict
+                else None
+            ),
+            (
+                tuple(sorted(self.prev_neighbor_coupler_g_dict.items()))
+                if self.prev_neighbor_coupler_g_dict
+                else None
+            ),
             self.linear_rise,
         )
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> str:
         return f"AnalogDetune(freq={self.target_freq})"
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(
             self,
             [
@@ -227,7 +237,7 @@ class AnalogDetuneCouplerOnly(cirq.ops.Gate):
             g_ramp_exponent: See g_0.
             neighbor_qubits_freq: Two frequency of the neighbor qubits at the moment.
                 If the provided value is None, we assume neighbor qubits are at idle freq.
-            prev_neighbor_qubits_freq: Two frequency of the neighbor qubits at preivous moment.
+            prev_neighbor_qubits_freq: Two frequency of the neighbor qubits at previous moment.
             interpolate_coupling_cal: If true, find the required amp for the coupling strength
                 through interpolation. If not true, require all coupling strength has associated
                 amp calibrated in the registry.
@@ -277,7 +287,7 @@ class AnalogDetuneCouplerOnly(cirq.ops.Gate):
             or cirq.is_parameterized(self.prev_neighbor_qubits_freq)
         )
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return (
             cirq.parameter_names(self.length)
             | cirq.parameter_names(self.w)
@@ -335,7 +345,7 @@ class AnalogDetuneCouplerOnly(cirq.ops.Gate):
             self.analog_cal_for_pulseshaping,
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(
             self,
             [

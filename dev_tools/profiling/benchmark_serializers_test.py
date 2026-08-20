@@ -33,7 +33,7 @@ def test_json_serializer() -> None:
 
 def test_args_have_defaults() -> None:
     kwargs = benchmark_serializers.parse_arguments([])
-    for _, v in kwargs.items():
+    for v in kwargs.values():
         assert v is not None
 
 

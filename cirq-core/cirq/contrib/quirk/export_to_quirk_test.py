@@ -172,10 +172,10 @@ class MysteryOperation(cirq.Operation):
         self._qubits = qubits
 
     @property
-    def qubits(self):
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return self._qubits
 
-    def with_qubits(self, *new_qubits):
+    def with_qubits(self, *new_qubits) -> MysteryOperation:
         return MysteryOperation(*new_qubits)
 
 

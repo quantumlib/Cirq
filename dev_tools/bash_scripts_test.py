@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import os
 import subprocess
-from typing import Iterable, TYPE_CHECKING
+from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
 from dev_tools import shell_tools
 from dev_tools.test_utils import only_on_posix
@@ -59,6 +60,9 @@ def run(
     with open(file_path, 'w', encoding="utf8") as f:
         f.writelines(script_lines)
 
+    # isolate the `coverage` command when running in a `pytest --cov` session
+    env = {k: v for k, v in os.environ.items() if k != 'COVERAGE_PROCESS_CONFIG'}
+
     cmd = f"""
 export GIT_CONFIG_GLOBAL=/dev/null
 export GIT_CONFIG_SYSTEM=/dev/null
@@ -75,7 +79,7 @@ chmod +x ./test-script.sh
 ./test-script.sh {arg}
 """
     return shell_tools.run(
-        cmd, log_run_to_stderr=False, shell=True, check=False, capture_output=True
+        cmd, log_run_to_stderr=False, shell=True, check=False, capture_output=True, env=env
     )
 
 
@@ -321,7 +325,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory) -> None:
         'git init --quiet --initial-branch main\n'
         'git config --local user.name \'Me\'\n'
         'git config --local user.email \'<>\'\n'
-        'git commit -m tes --quiet --allow-empty --no-gpg-sign\n'
+        'git commit -m test --quiet --allow-empty --no-gpg-sign\n'
         'cd ..\n'
         'git remote add origin alt\n'
         'git fetch origin main --quiet 2> /dev/null\n',
@@ -604,9 +608,7 @@ def test_pylint_changed_files_file_selection(tmpdir_factory) -> None:
         ).split()
     )
 
-    intercepted_prefix = (
-        'INTERCEPTED env PYTHONPATH=dev_tools pylint --jobs=0 --rcfile=dev_tools/conf/.pylintrc '
-    )
+    intercepted_prefix = 'INTERCEPTED pylint --jobs=0 '
 
     result = run(
         script_file='check/pylint-changed-files',

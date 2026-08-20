@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import itertools
 import multiprocessing
-from typing import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Sequence
 
 import networkx as nx
 import numpy as np
@@ -50,7 +50,7 @@ def pool() -> Iterator[multiprocessing.pool.Pool]:
 
 
 @pytest.fixture(scope='module')
-def circuits_cycle_depths_sampled_df():
+def circuits_cycle_depths_sampled_df() -> tuple[list[cirq.Circuit], Sequence[int], pd.DataFrame]:
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
@@ -58,7 +58,7 @@ def circuits_cycle_depths_sampled_df():
         )
         for _ in range(2)
     ]
-    cycle_depths = np.arange(10, 40 + 1, 10)
+    cycle_depths = list(range(10, 40 + 1, 10))
 
     sampled_df = sample_2q_xeb_circuits(
         sampler=cirq.Simulator(seed=53), circuits=circuits, cycle_depths=cycle_depths
@@ -67,7 +67,7 @@ def circuits_cycle_depths_sampled_df():
 
 
 @pytest.mark.parametrize('pass_cycle_depths', (True, False))
-def test_benchmark_2q_xeb_fidelities(circuits_cycle_depths_sampled_df, pass_cycle_depths):
+def test_benchmark_2q_xeb_fidelities(circuits_cycle_depths_sampled_df, pass_cycle_depths) -> None:
     circuits, cycle_depths, sampled_df = circuits_cycle_depths_sampled_df
 
     if pass_cycle_depths:
@@ -75,7 +75,7 @@ def test_benchmark_2q_xeb_fidelities(circuits_cycle_depths_sampled_df, pass_cycl
     else:
         fid_df = benchmark_2q_xeb_fidelities(sampled_df, circuits)
     assert len(fid_df) == len(cycle_depths)
-    assert sorted(fid_df['cycle_depth'].unique()) == cycle_depths.tolist()
+    assert sorted(fid_df['cycle_depth'].unique()) == cycle_depths
     assert np.all(fid_df['fidelity'] > 0.98)
 
     fit_df = fit_exponential_decays(fid_df)
@@ -84,7 +84,7 @@ def test_benchmark_2q_xeb_fidelities(circuits_cycle_depths_sampled_df, pass_cycl
         assert len(row['fidelities']) == len(cycle_depths)
 
 
-def test_benchmark_2q_xeb_subsample_depths(circuits_cycle_depths_sampled_df):
+def test_benchmark_2q_xeb_subsample_depths(circuits_cycle_depths_sampled_df) -> None:
     circuits, _, sampled_df = circuits_cycle_depths_sampled_df
     cycle_depths = [10, 20]
     fid_df = benchmark_2q_xeb_fidelities(sampled_df, circuits, cycle_depths)
@@ -114,7 +114,7 @@ def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
     )
 
 
-def test_benchmark_2q_xeb_fidelities_parallel():
+def test_benchmark_2q_xeb_fidelities_parallel() -> None:
     circuits = rqcg.generate_library_of_2q_circuits(
         n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, max_cycle_depth=4
     )
@@ -140,7 +140,7 @@ def test_benchmark_2q_xeb_fidelities_parallel():
         assert len(row['fidelities']) == len(cycle_depths)
 
 
-def test_benchmark_2q_xeb_fidelities_vectorized():
+def test_benchmark_2q_xeb_fidelities_vectorized() -> None:
     rs = np.random.RandomState(52)
     mock_records = [{'pure_probs': rs.rand(4), 'sampled_probs': rs.rand(4)} for _ in range(100)]
     df = pd.DataFrame(mock_records)
@@ -177,7 +177,7 @@ def test_benchmark_2q_xeb_fidelities_vectorized():
 
 
 @pytest.mark.parametrize('gate', [cirq.SQRT_ISWAP, cirq.FSimGate(np.pi / 4, 0)])
-def test_parameterize_phased_fsim_circuit(gate):
+def test_parameterize_phased_fsim_circuit(gate) -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = rqcg.random_rotations_between_two_qubit_circuit(
         q0, q1, depth=3, two_qubit_op_factory=lambda a, b, _: gate(a, b), seed=52
@@ -208,7 +208,7 @@ X^0.5                                PhX(0.25)^0.5
     )
 
 
-def test_get_initial_simplex():
+def test_get_initial_simplex() -> None:
     options = SqrtISwapXEBOptions()
     simplex, names = options.get_initial_simplex_and_names()
     assert names == ['theta', 'zeta', 'chi', 'gamma', 'phi']
@@ -216,7 +216,7 @@ def test_get_initial_simplex():
     assert simplex.shape[1] == len(names)
 
 
-def test_characterize_phased_fsim_parameters_with_xeb(pool):
+def test_characterize_phased_fsim_parameters_with_xeb(pool) -> None:
     q0, q1 = cirq.LineQubit.range(2)
     rs = np.random.RandomState(52)
     circuits = [
@@ -225,7 +225,7 @@ def test_characterize_phased_fsim_parameters_with_xeb(pool):
         )
         for _ in range(2)
     ]
-    cycle_depths = np.arange(3, 20, 6)
+    cycle_depths = list(range(3, 20, 6))
     sampled_df = sample_2q_xeb_circuits(
         sampler=cirq.Simulator(seed=rs),
         circuits=circuits,
@@ -260,7 +260,7 @@ def test_characterize_phased_fsim_parameters_with_xeb(pool):
 
 
 @pytest.mark.parametrize('use_pool', (True, False))
-def test_parallel_full_workflow(request, use_pool):
+def test_parallel_full_workflow(request, use_pool) -> None:
     circuits = rqcg.generate_library_of_2q_circuits(
         n_library_circuits=5,
         two_qubit_gate=cirq.ISWAP**0.5,
@@ -320,7 +320,7 @@ def test_parallel_full_workflow(request, use_pool):
         assert 0 <= row['layer_fid_c'] <= 1
 
 
-def test_fit_exponential_decays():
+def test_fit_exponential_decays() -> None:
     rs = np.random.RandomState(999)
     cycle_depths = np.arange(3, 100, 11)
     fidelities = 0.95 * 0.98**cycle_depths + rs.normal(0, 0.2)
@@ -330,7 +330,7 @@ def test_fit_exponential_decays():
     assert 0 < layer_fid_std < 1e-3
 
 
-def test_fit_exponential_decays_negative_fids():
+def test_fit_exponential_decays_negative_fids() -> None:
     rs = np.random.RandomState(999)
     cycle_depths = np.arange(3, 100, 11)
     fidelities = 0.5 * 0.5**cycle_depths + rs.normal(0, 0.2) - 0.5
@@ -342,10 +342,12 @@ def test_fit_exponential_decays_negative_fids():
     assert layer_fid_std == np.inf
 
 
-def test_options_with_defaults_from_gate():
+def test_options_with_defaults_from_gate() -> None:
     options = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(cirq.ISWAP**0.5)
+    assert options.theta_default is not None
     np.testing.assert_allclose(options.theta_default, -np.pi / 4)
     options = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(cirq.ISWAP**-0.5)
+    assert options.theta_default is not None
     np.testing.assert_allclose(options.theta_default, np.pi / 4)
 
     options = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(
@@ -365,7 +367,7 @@ def test_options_with_defaults_from_gate():
         _ = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(cirq.XX)
 
 
-def test_options_defaults_set():
+def test_options_defaults_set() -> None:
     o1 = XEBPhasedFSimCharacterizationOptions(
         characterize_zeta=True,
         characterize_chi=True,
@@ -424,13 +426,13 @@ def _random_angles(n, seed):
     ]
     + [cirq.PhasedFSimGate(*r) for r in _random_angles(10, 0)],
 )
-def test_phased_fsim_angles_from_gate(gate):
+def test_phased_fsim_angles_from_gate(gate) -> None:
     angles = phased_fsim_angles_from_gate(gate)
     angles = {k.removesuffix('_default'): v for k, v in angles.items()}
     phasedfsim = cirq.PhasedFSimGate(**angles)
     np.testing.assert_allclose(cirq.unitary(phasedfsim), cirq.unitary(gate), atol=1e-9)
 
 
-def test_phased_fsim_angles_from_gate_unsupporet_gate():
+def test_phased_fsim_angles_from_gate_unsupporet_gate() -> None:
     with pytest.raises(ValueError, match='Unknown default angles'):
         _ = phased_fsim_angles_from_gate(cirq.testing.TwoQubitGate())

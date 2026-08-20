@@ -12,9 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pathlib
 import runpy
+import sys
 
 from setuptools import setup
+
+# Ensure we can import our own dev_tools
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 from dev_tools import modules
 from dev_tools.requirements import explode
@@ -31,7 +36,7 @@ description = (
 )
 
 # README file as long_description.
-long_description = open('README.md', encoding='utf-8').read()
+long_description = pathlib.Path('README.md').read_text(encoding='utf-8')
 
 # This is a pure metapackage that installs all our packages
 requirements = [f'{p.name}=={p.version}' for p in modules.list_modules()]
@@ -52,7 +57,7 @@ setup(
     python_requires='>=3.11.0',
     install_requires=requirements,
     extras_require={'dev_env': dev_requirements},
-    license='Apache 2',
+    license='Apache-2.0',
     description=description,
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -62,7 +67,6 @@ setup(
         "Intended Audience :: Developers",
         "Intended Audience :: Education",
         "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: Apache Software License",
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: Microsoft :: Windows",
         "Operating System :: POSIX :: Linux",
@@ -70,6 +74,7 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
         "Topic :: Scientific/Engineering :: Quantum Computing",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Typing :: Typed",

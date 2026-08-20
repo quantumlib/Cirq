@@ -22,7 +22,8 @@ from __future__ import annotations
 
 import abc
 import datetime
-from typing import Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import cirq
@@ -157,17 +158,42 @@ class AbstractProgram(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_circuit(self) -> cirq.Circuit:
+    def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the program. This is only
         supported if the program was created with the V2 protos.
+
+        Args:
+            circuit_num: if this is a multi-circuit program, the index of the circuit
+                to return.  This argument is zero-indexed. Negative values
+                indexing from the end of the list.
 
         Returns:
             The program's cirq Circuit.
         """
 
     @abc.abstractmethod
+    def get_circuits(self) -> Sequence[cirq.Circuit]:
+        """Returns all the cirq Circuits for the program.
+
+        Returns:
+            A list of the program's cirq Circuits.
+        """
+
+    @abc.abstractmethod
+    def is_batch(self) -> bool:
+        """Returns True if the program is a batch program."""
+
+    @abc.abstractmethod
     def batch_size(self) -> int:
         """Returns the number of programs in a batch program.
+
+        Raises:
+            ValueError: if the program created was not a batch program.
+        """
+
+    @abc.abstractmethod
+    def batch_keys(self) -> Sequence[str]:
+        """Returns the keys for circuits in a batch program.
 
         Raises:
             ValueError: if the program created was not a batch program.

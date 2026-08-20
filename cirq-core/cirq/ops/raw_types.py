@@ -18,22 +18,11 @@ from __future__ import annotations
 
 import abc
 import functools
+from collections.abc import Callable, Collection, Hashable, Iterable, Mapping, Sequence, Set
 from types import NotImplementedType
-from typing import (
-    AbstractSet,
-    Any,
-    Callable,
-    cast,
-    Collection,
-    Hashable,
-    Iterable,
-    Mapping,
-    Sequence,
-    TYPE_CHECKING,
-)
+from typing import Any, cast, overload, TYPE_CHECKING
 
 import numpy as np
-from typing_extensions import Self
 
 from cirq import protocols, value
 from cirq._compat import __cirq_debug__, _method_cache_name, cached_method
@@ -483,10 +472,18 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def _mul_with_qubits(self, qubits: tuple[cirq.Qid, ...], other):
         """cirq.GateOperation.__mul__ delegates to this method."""
+        from cirq.ops.pauli_string import _try_interpret_as_pauli_string
+
+        if (as_pauli_string := _try_interpret_as_pauli_string(self.on(*qubits))) is not None:
+            return as_pauli_string * other
         return NotImplemented
 
     def _rmul_with_qubits(self, qubits: tuple[cirq.Qid, ...], other):
         """cirq.GateOperation.__rmul__ delegates to this method."""
+        from cirq.ops.pauli_string import _try_interpret_as_pauli_string
+
+        if (as_pauli_string := _try_interpret_as_pauli_string(self.on(*qubits))) is not None:
+            return other * as_pauli_string
         return NotImplemented
 
     def _json_dict_(self) -> dict[str, Any]:
@@ -520,8 +517,11 @@ class Operation(metaclass=abc.ABCMeta):
     def _qid_shape_(self) -> tuple[int, ...]:
         return protocols.qid_shape(self.qubits)
 
+    def __pow__(self, exponent: Any) -> Operation:
+        return NotImplemented  # pragma: no cover
+
     @abc.abstractmethod
-    def with_qubits(self, *new_qubits: cirq.Qid) -> Self:
+    def with_qubits(self, *new_qubits: cirq.Qid) -> cirq.Operation:
         """Returns the same operation, but applied to different qubits.
 
         Args:
@@ -567,7 +567,7 @@ class Operation(metaclass=abc.ABCMeta):
 
     def transform_qubits(
         self, qubit_map: dict[cirq.Qid, cirq.Qid] | Callable[[cirq.Qid], cirq.Qid]
-    ) -> Self:
+    ) -> cirq.Operation:
         """Returns the same operation, but with different qubits.
 
         This function will return a new operation with the same gate but
@@ -680,9 +680,17 @@ class Operation(metaclass=abc.ABCMeta):
         """The classical controls gating this operation."""
         return frozenset()
 
+    @overload
+    def with_classical_controls(self) -> cirq.Operation:
+        pass
+
+    @overload
     def with_classical_controls(
         self, *conditions: str | cirq.MeasurementKey | cirq.Condition | sympy.Expr
-    ) -> cirq.Operation:
+    ) -> cirq.ClassicallyControlledOperation:
+        pass
+
+    def with_classical_controls(self, *conditions):
         """Returns a classically controlled version of this operation.
 
         An operation that is classically controlled is executed iff all
@@ -769,7 +777,7 @@ class TaggedOperation(Operation):
     def gate(self) -> cirq.Gate | None:
         return self.sub_operation.gate
 
-    def with_qubits(self, *new_qubits: cirq.Qid):
+    def with_qubits(self, *new_qubits: cirq.Qid) -> TaggedOperation:
         return TaggedOperation(self.sub_operation.with_qubits(*new_qubits), *self._tags)
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
@@ -828,12 +836,7 @@ class TaggedOperation(Operation):
     def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['sub_operation', 'tags'])
 
-    def _decompose_(self) -> cirq.OP_TREE:
-        return self._decompose_with_context_()
-
-    def _decompose_with_context_(
-        self, context: cirq.DecompositionContext | None = None
-    ) -> cirq.OP_TREE:
+    def _decompose_with_context_(self, *, context: cirq.DecompositionContext) -> cirq.OP_TREE:
         return protocols.decompose_once(
             self.sub_operation, default=None, flatten=False, context=context
         )
@@ -898,7 +901,7 @@ class TaggedOperation(Operation):
         return NotImplemented
 
     @cached_method
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}
         return protocols.parameter_names(self.sub_operation) | tag_params
 
@@ -913,13 +916,14 @@ class TaggedOperation(Operation):
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         sub_op_info = protocols.circuit_diagram_info(self.sub_operation, args, NotImplemented)
-        if sub_op_info is not NotImplemented and sub_op_info.wire_symbols:
-            visible_tags = args.tags_to_include(self._tags)
-            if visible_tags:
-                sub_op_info.wire_symbols = (
-                    sub_op_info.wire_symbols[0] + f"[{', '.join(map(str, visible_tags))}]",
-                ) + sub_op_info.wire_symbols[1:]
-        return sub_op_info
+        if sub_op_info is NotImplemented or not sub_op_info.wire_symbols:
+            return sub_op_info
+        tag_text = args.format_tags(self._tags)
+        if not tag_text:
+            return sub_op_info
+        return sub_op_info.with_wire_symbols(
+            (sub_op_info.wire_symbols[0] + tag_text, *sub_op_info.wire_symbols[1:])
+        )
 
     @cached_method
     def _trace_distance_bound_(self) -> float:
@@ -955,9 +959,17 @@ class TaggedOperation(Operation):
         new_sub_operation = self.sub_operation.without_classical_controls()
         return self if new_sub_operation is self.sub_operation else new_sub_operation
 
+    @overload
+    def with_classical_controls(self) -> cirq.Operation:
+        pass
+
+    @overload
     def with_classical_controls(
         self, *conditions: str | cirq.MeasurementKey | cirq.Condition | sympy.Expr
-    ) -> cirq.Operation:
+    ) -> cirq.ClassicallyControlledOperation:
+        pass
+
+    def with_classical_controls(self, *conditions):
         if not conditions:
             return self
         return self.sub_operation.with_classical_controls(*conditions)
@@ -983,11 +995,8 @@ class _InverseCompositeGate(Gate):
             return self._original
         return NotImplemented
 
-    def _decompose_(self, qubits):
-        return self._decompose_with_context_(qubits)
-
     def _decompose_with_context_(
-        self, qubits: Sequence[cirq.Qid], context: cirq.DecompositionContext | None = None
+        self, qubits: Sequence[cirq.Qid], *, context: cirq.DecompositionContext
     ) -> cirq.OP_TREE:
         return protocols.inverse(
             protocols.decompose_once_with_qubits(self._original, qubits, context=context)
@@ -1007,7 +1016,7 @@ class _InverseCompositeGate(Gate):
         return protocols.is_parameterized(self._original)
 
     @cached_method
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self._original)
 
     def _resolve_parameters_(

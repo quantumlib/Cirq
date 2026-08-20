@@ -31,7 +31,7 @@ All modules should depend on `cirq-core`, which is the central, core library for
 Each package gets published to PyPI as a separate package. To build all the wheel files locally, use
 
 ```bash
-dev_tools/packaging/produce-package.sh ./dist `./dev_tools/packaging/generate-dev-version-id.sh`
+dev_tools/packaging/produce-package.sh ./dist "$(./dev_tools/packaging/generate-dev-version-id.sh)"
 ```
 
 Packages are versioned together, share the same version number, and are released together.

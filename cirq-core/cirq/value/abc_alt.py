@@ -18,7 +18,8 @@ from __future__ import annotations
 
 import abc
 import functools
-from typing import Callable, cast, TypeVar
+from collections.abc import Callable
+from typing import cast, TypeVar
 
 T = TypeVar('T')
 
@@ -73,7 +74,7 @@ def alternative(*, requires: str, implementation: T) -> Callable[[T], T]:
 class ABCMetaImplementAnyOneOf(abc.ABCMeta):
     """A metaclass extending `abc.ABCMeta` for defining flexible abstract base classes
 
-    This metadata allows the declaration of an abstract base classe (ABC)
+    This metadata allows the declaration of an abstract base class (ABC)
     with more flexibility in which methods must be overridden.
 
     Use this metaclass in the same way as `abc.ABCMeta` to create an ABC.
@@ -97,6 +98,7 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
                     'implementation alternative but it does not exist in the '
                     f'definition of {cls!r}.'
                 )
+            # ruff: disable[SIM103]
             if getattr(value, '__isabstractmethod__', False):
                 return False
             if hasattr(value, '_abstract_alternatives_'):
@@ -120,12 +122,10 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
 
         # Find all abstract methods (methods that haven't been implemented or
         # don't have an implemented alternative).
-        all_names = set(alt_name for alt_name in namespace.keys() if hasattr(cls, alt_name))
+        all_names = {alt_name for alt_name in namespace.keys() if hasattr(cls, alt_name)}
         for base in bases:
             all_names.update(getattr(base, '__abstractmethods__', set()))
-            all_names.update(
-                alt_name for alt_name, _ in getattr(base, '_implemented_by_', {}).items()
-            )
+            all_names.update(getattr(base, '_implemented_by_', {}).keys())
         while find_next_implementations(all_names):
             pass
         abstracts = frozenset(name for name in all_names if not has_some_implementation(name))

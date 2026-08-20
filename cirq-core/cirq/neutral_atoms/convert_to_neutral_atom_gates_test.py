@@ -40,6 +40,7 @@ Q, Q2, Q3 = cirq.LineQubit.range(3)
         (cirq.ParallelGate(cirq.X, num_copies=3)(Q, Q2, Q3), True),
         (cirq.ParallelGate(cirq.Y, num_copies=3)(Q, Q2, Q3), True),
         (cirq.ParallelGate(cirq.Z, num_copies=3)(Q, Q2, Q3), True),
+        (cirq.UniformSuperpositionGate(m_value=3, num_qubits=2)(Q, Q2), False),
         (cirq.X(Q).controlled_by(Q2, Q3), True),
         (cirq.Z(Q).controlled_by(Q2, Q3), True),
         (cirq.ZPowGate(exponent=0.5)(Q).controlled_by(Q2, Q3), False),

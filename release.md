@@ -211,7 +211,7 @@ Test PyPI will fail:
 ```
 
 Once this runs, you can create a virtual environment to perform
-manual verification as a sanity check and to check version number and
+manual verification as a quick check and to verify the version number and
 any high-risk features that have changed this release.
 
 ```bash

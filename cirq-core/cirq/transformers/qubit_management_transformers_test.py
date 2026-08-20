@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import cirq
 
 
@@ -57,8 +59,10 @@ class GateAllocAndBorrowInDecompose(cirq.Gate):
         qm.qfree(qa + qb)
 
 
-def get_decompose_func(gate_type, qm):
-    def decompose_func(op: cirq.Operation, _):
+def get_decompose_func(
+    gate_type: type[cirq.Gate], qm: cirq.QubitManager
+) -> Callable[[cirq.Operation, int], cirq.OP_TREE]:
+    def decompose_func(op: cirq.Operation, _: int) -> cirq.OP_TREE:
         return (
             cirq.decompose_once(op, context=cirq.DecompositionContext(qm))
             if isinstance(op.gate, gate_type)
@@ -249,4 +253,52 @@ a_1: ───X───Y───Z───
 
 q: ─────X───────────
 ''',
+    )
+
+
+def test_map_clean_and_borrowable_qubits_nested_circuit_op() -> None:
+    # Create a sub-circuit with a CleanQubit placeholder
+    clean_qubit = cirq.ops.CleanQubit(0)
+    sub_circuit = cirq.Circuit(cirq.X(clean_qubit))
+
+    # Wrap in a CircuitOperation
+    main_circuit = cirq.Circuit(cirq.CircuitOperation(sub_circuit.freeze()))
+
+    # Apply the transformer
+    result = cirq.map_clean_and_borrowable_qubits(main_circuit)
+
+    # Verify using diagram
+    cirq.testing.assert_has_diagram(
+        result,
+        """
+ancilla_0: ───[ ancilla_0: ───X─── ]───
+""",
+    )
+
+
+def test_map_clean_and_borrowable_qubits_deeply_nested() -> None:
+    # Level 2: innermost circuit with CleanQubit
+    inner_clean = cirq.ops.CleanQubit(0)
+    inner_circuit = cirq.Circuit(cirq.H(inner_clean))
+
+    # Level 1: middle circuit wrapping the inner one, with its own CleanQubit
+    mid_clean = cirq.ops.CleanQubit(1)
+    mid_circuit = cirq.Circuit(cirq.X(mid_clean), cirq.CircuitOperation(inner_circuit.freeze()))
+
+    # Level 0: outermost circuit
+    main_circuit = cirq.Circuit(cirq.CircuitOperation(mid_circuit.freeze()))
+
+    # Apply the transformer
+    result = cirq.map_clean_and_borrowable_qubits(main_circuit)
+
+    # Verify using diagram
+    cirq.testing.assert_has_diagram(
+        result,
+        """
+              [ ancilla_0: ───X──────────────────────── ]
+ancilla_0: ───[                                         ]───
+              [ ancilla_1: ───[ ancilla_1: ───H─── ]─── ]
+              │
+ancilla_1: ───#2────────────────────────────────────────────
+""",
     )

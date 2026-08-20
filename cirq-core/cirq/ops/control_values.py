@@ -16,8 +16,9 @@ from __future__ import annotations
 
 import abc
 import itertools
+from collections.abc import Collection, Iterator, Sequence
 from functools import cached_property
-from typing import Any, Collection, Iterator, Sequence, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 from cirq import protocols, value
 
@@ -242,9 +243,7 @@ class SumOfProducts(AbstractControlValues):
     """
 
     def __init__(self, data: Collection[Sequence[int]], *, name: str | None = None):
-        self._conjunctions: tuple[tuple[int, ...], ...] = tuple(
-            sorted(set(tuple(cv) for cv in data))
-        )
+        self._conjunctions: tuple[tuple[int, ...], ...] = tuple(sorted({tuple(cv) for cv in data}))
         self._name = name
         if not len(self._conjunctions):
             raise ValueError("SumOfProducts can't be empty.")

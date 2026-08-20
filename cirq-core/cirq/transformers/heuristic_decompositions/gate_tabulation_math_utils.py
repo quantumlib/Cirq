@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -133,7 +133,7 @@ def _kak_equivalent_vectors(kak_vec) -> np.ndarray:
     out = out[..., np.newaxis, :, :, :] + _offsets[:, np.newaxis, np.newaxis, :]
 
     # Merge indices
-    return np.reshape(out, out.shape[:-4] + (192, 3))
+    return np.reshape(out, (*out.shape[:-4], 192, 3))
 
 
 def kak_vector_infidelity(

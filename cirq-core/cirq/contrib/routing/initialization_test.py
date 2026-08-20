@@ -24,7 +24,7 @@ import cirq
 import cirq.contrib.routing as ccr
 
 
-def get_seeded_initial_mapping(graph_seed, init_seed):
+def get_seeded_initial_mapping(graph_seed, init_seed) -> dict[cirq.Qid, cirq.Qid]:
     logical_graph = nx.erdos_renyi_graph(10, 0.5, seed=graph_seed)
     logical_graph = nx.relabel_nodes(logical_graph, cirq.LineQubit)
     device_graph = ccr.get_grid_device_graph(4, 4)

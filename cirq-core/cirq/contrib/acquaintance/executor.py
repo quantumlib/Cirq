@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import abc
 from collections import defaultdict
-from typing import Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Iterator, Sequence
+from typing import TYPE_CHECKING
 
 from cirq import circuits, devices, ops, protocols, transformers
 from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate
@@ -66,10 +67,8 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
         """
         if len(args) < 1 or not isinstance(args[0], circuits.AbstractCircuit):
             raise ValueError(
-                (
-                    "To call ExecutionStrategy, an argument of type "
-                    "circuits.AbstractCircuit must be passed in as the first non-keyword argument"
-                )
+                "To call ExecutionStrategy, an argument of type "
+                "circuits.AbstractCircuit must be passed in as the first non-keyword argument"
             )
         input_circuit = args[0]
         strategy = StrategyExecutorTransformer(self)
@@ -187,7 +186,7 @@ class GreedyExecutionStrategy(ExecutionStrategy):
             NotImplementedError: If not all gates are of the same arity.
         """
 
-        if len(set(len(indices) for indices in gates)) > 1:
+        if len({len(indices) for indices in gates}) > 1:
             raise NotImplementedError(
                 'Can only implement greedy strategy if all gates are of the same arity.'
             )
@@ -224,7 +223,4 @@ class GreedyExecutionStrategy(ExecutionStrategy):
         for indices, gate in gates.items():
             indices = tuple(indices)
             canonicalized_gates[frozenset(indices)][indices] = gate
-        return {
-            canonical_indices: dict(list(gates.items()))
-            for canonical_indices, gates in canonicalized_gates.items()
-        }
+        return dict(canonicalized_gates)

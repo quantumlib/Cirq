@@ -54,8 +54,8 @@ def sample_noise_properties(
     # Known false positive: https://github.com/PyCQA/pylint/issues/5857
     return GoogleNoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
-        t1_ns={q: 1e5 for q in system_qubits},
-        tphi_ns={q: 2e5 for q in system_qubits},
+        t1_ns=dict.fromkeys(system_qubits, 1e5),
+        tphi_ns=dict.fromkeys(system_qubits, 2e5),
         readout_errors={q: [SINGLE_QUBIT_ERROR, TWO_QUBIT_ERROR] for q in system_qubits},
         gate_pauli_errors={
             **{

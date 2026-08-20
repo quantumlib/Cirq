@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 
 import cirq
@@ -50,40 +52,40 @@ class EmptyOp(cirq.Operation):
         self.q = q
 
     @property
-    def qubits(self):
+    def qubits(self) -> tuple[cirq.Qid, ...]:
         return (self.q,)
 
-    def with_qubits(self, *new_qubits):  # pragma: no cover
+    def with_qubits(self, *new_qubits) -> cirq.Operation:  # pragma: no cover
         return self
 
 
 class NoOp(EmptyOp):
     @property
-    def gate(self):
+    def gate(self) -> Any:
         return No()
 
 
 class NoOp1(EmptyOp):
     @property
-    def gate(self):
+    def gate(self) -> Any:
         return No1()
 
 
 class NoOp2(EmptyOp):
     @property
-    def gate(self):
+    def gate(self) -> Any:
         return No2()
 
 
 class NoOp3(EmptyOp):
     @property
-    def gate(self):
+    def gate(self) -> Any:
         return No3()
 
 
 class YesOp(EmptyOp):
     @property
-    def gate(self):
+    def gate(self) -> Any:
         return Yes()
 
 
@@ -95,8 +97,8 @@ class OpWithUnitary(EmptyOp):
         return self.unitary
 
     @property
-    def qubits(self):
-        return cirq.LineQubit.range(self.unitary.shape[0].bit_length() - 1)
+    def qubits(self) -> tuple[cirq.Qid, ...]:
+        return tuple(cirq.LineQubit.range(self.unitary.shape[0].bit_length() - 1))
 
 
 class GateDecomposes(cirq.Gate):

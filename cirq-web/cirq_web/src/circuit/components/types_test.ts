@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {expect} from 'chai';
+import {expect} from 'vitest';
 import {Symbol3D, SymbolInformation} from './types';
 import {BoxGate3DSymbol, Control3DSymbol, X3DSymbol} from './meshes';
 
@@ -42,19 +42,19 @@ describe('Symbol3D', () => {
     it('handles the X gate special case', () => {
       const symbolObj = new Symbol3D(symbols[0]);
       const xSymbol = symbolObj.children[0];
-      expect(xSymbol instanceof X3DSymbol).to.equal(true);
+      expect(xSymbol instanceof X3DSymbol).toBe(true);
     });
 
     it('handles the control symbol special case', () => {
       const symbolObj = new Symbol3D(symbols[1]);
       const ctrlSymbol = symbolObj.children[0];
-      expect(ctrlSymbol instanceof Control3DSymbol).to.equal(true);
+      expect(ctrlSymbol instanceof Control3DSymbol).toBe(true);
     });
 
     it('handles an arbitrary symbol with a box', () => {
       const symbolObj = new Symbol3D(symbols[2]);
       const boxSymbol = symbolObj.children[0];
-      expect(boxSymbol instanceof BoxGate3DSymbol).to.equal(true);
+      expect(boxSymbol instanceof BoxGate3DSymbol).toBe(true);
     });
 
     it('builds every symbol in the correct location on the scene', () => {
@@ -63,9 +63,9 @@ describe('Symbol3D', () => {
       const expectedMoments = [1, 3, 7];
       symbols.forEach((value, index) => {
         const symbol = new Symbol3D(value).children[0];
-        expect(symbol.position.x).to.equal(expectedRows[index]);
-        expect(symbol.position.y).to.equal(expectedMoments[index]);
-        expect(symbol.position.z).to.equal(expectedCols[index]);
+        expect(symbol.position.x).toBe(expectedRows[index]);
+        expect(symbol.position.y).toBe(expectedMoments[index]);
+        expect(symbol.position.z).toBe(expectedCols[index]);
       });
     });
   });
@@ -117,22 +117,22 @@ describe('Symbol3D', () => {
       const ctrlSymbol = symbolObj.children.find(
         child => child.constructor.name === 'Control3DSymbol',
       );
-      expect(ctrlSymbol).to.not.equal(undefined);
-      expect(ctrlSymbol?.position.x).to.equal(0);
-      expect(ctrlSymbol?.position.z).to.equal(0);
-      expect(ctrlSymbol?.position.y).to.equal(1);
+      expect(ctrlSymbol).not.toBe(undefined);
+      expect(ctrlSymbol?.position.x).toBe(0);
+      expect(ctrlSymbol?.position.z).toBe(0);
+      expect(ctrlSymbol?.position.y).toBe(1);
 
       const xSymbol = symbolObj.children.find(child => child.constructor.name === 'X3DSymbol');
-      expect(xSymbol).to.not.equal(undefined);
-      expect(xSymbol?.position.x).to.equal(0);
-      expect(xSymbol?.position.z).to.equal(1);
-      expect(xSymbol?.position.y).to.equal(1);
+      expect(xSymbol).not.toBe(undefined);
+      expect(xSymbol?.position.x).toBe(0);
+      expect(xSymbol?.position.z).toBe(1);
+      expect(xSymbol?.position.y).toBe(1);
 
       const connectionLine = symbolObj.children.find(
         child => child.constructor.name === 'ConnectionLine',
       );
 
-      expect(connectionLine).to.not.equal(undefined);
+      expect(connectionLine).not.toBe(undefined);
     });
 
     it('handles a two Swap3DSymbol objects correctly (SWAP)', () => {
@@ -141,20 +141,20 @@ describe('Symbol3D', () => {
       const boxSymbols = symbolObj.children.filter(
         child => child.constructor.name === 'Swap3DSymbol',
       );
-      expect(boxSymbols.length).to.equal(2);
+      expect(boxSymbols.length).toBe(2);
 
       const expectedRows = [0, 0];
       const expectedCols = [0, 1];
       boxSymbols.forEach((value, index) => {
-        expect(value.position.x).to.equal(expectedRows[index]);
-        expect(value.position.z).to.equal(expectedCols[index]);
-        expect(value.position.y).to.equal(3);
+        expect(value.position.x).toBe(expectedRows[index]);
+        expect(value.position.z).toBe(expectedCols[index]);
+        expect(value.position.y).toBe(3);
       });
 
       const connectionLine = symbolObj.children.find(
         child => child.constructor.name === 'ConnectionLine',
       );
-      expect(connectionLine).to.not.equal(undefined);
+      expect(connectionLine).not.toBe(undefined);
     });
 
     it('handles a two BoxGate3DSymbol objects correctly (iSWAP)', () => {
@@ -163,7 +163,7 @@ describe('Symbol3D', () => {
       const boxSymbols = symbolObj.children.filter(
         child => child.constructor.name === 'BoxGate3DSymbol',
       );
-      expect(boxSymbols.length).to.equal(2);
+      expect(boxSymbols.length).toBe(2);
 
       const expectedRows = [3, 3];
       const expectedCols = [2, 3];
@@ -188,20 +188,20 @@ describe('Symbol3D', () => {
       expect(boxSymbols.length).to.equal(2);
 
       const xSymbol = symbolObj.children.find(child => child.constructor.name === 'X3DSymbol');
-      expect(xSymbol).to.not.equal(undefined);
+      expect(xSymbol).not.toBe(undefined);
 
       const expectedRows = [0, 0, 0];
       const expectedCols = [0, 1, 2];
       boxSymbols.forEach((value, index) => {
-        expect(value.position.x).to.equal(expectedRows[index]);
-        expect(value.position.z).to.equal(expectedCols[index]);
-        expect(value.position.y).to.equal(1);
+        expect(value.position.x).toBe(expectedRows[index]);
+        expect(value.position.z).toBe(expectedCols[index]);
+        expect(value.position.y).toBe(1);
       });
 
       const connectionLines = symbolObj.children.filter(
         child => child.constructor.name === 'ConnectionLine',
       );
-      expect(connectionLines.length).to.equal(2);
+      expect(connectionLines.length).toBe(2);
     });
   });
 });

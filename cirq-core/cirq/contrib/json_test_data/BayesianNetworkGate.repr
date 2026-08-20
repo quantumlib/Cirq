@@ -1,0 +1,3 @@
+cirq.contrib.bayesian_network.BayesianNetworkGate(
+    init_probs=[('q0', 0.125), ('q1', None)], arc_probs=[('q1', ('q0',), [0.25, 0.5])]
+)

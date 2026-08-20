@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import time
-from typing import Any, cast, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import Any, cast, TYPE_CHECKING
 
 import numpy as np
 import scipy.optimize
@@ -112,7 +113,7 @@ class TensoredConfusionMatrices:
         self._repetitions = repetitions
         self._confusion_matrices = tuple(confusion_matrices)
         self._measure_qubits = tuple(tuple(q) for q in measure_qubits)
-        self._qubits = tuple(sorted(set(q for ql in measure_qubits for q in ql)))
+        self._qubits = tuple(sorted({q for ql in measure_qubits for q in ql}))
         self._qubits_to_idx = {q: i for i, q in enumerate(self._qubits)}
         self._cache: dict[tuple[cirq.Qid, ...], np.ndarray] = {}
         if sum(len(q) for q in self._measure_qubits) != len(self._qubits):

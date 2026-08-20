@@ -17,10 +17,9 @@
 from __future__ import annotations
 
 from types import NotImplementedType
-from typing import Any, overload, TypeVar
+from typing import Any, overload, Protocol, TypeVar
 
 import numpy as np
-from typing_extensions import Protocol
 
 from cirq import linalg
 from cirq._doc import doc_private
@@ -56,7 +55,7 @@ class SupportsCommutes(Protocol):
                 error is being tolerated is not specified. It could be the
                 maximum angle between rotation axes in the Bloch sphere, or the
                 maximum trace of the absolute value of the commutator, or
-                some other value convenient to the implementor of the method.
+                some other value convenient to the implementer of the method.
 
         Returns:
             Whether or not the values commute.

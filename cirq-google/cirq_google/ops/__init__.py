@@ -20,6 +20,8 @@ from cirq_google.ops.analog_detune_gates import AnalogDetuneCouplerOnly as Analo
 
 from cirq_google.ops.calibration_tag import CalibrationTag as CalibrationTag
 
+from cirq_google.ops.compress_duration_tag import CompressDurationTag as CompressDurationTag
+
 from cirq_google.ops.coupler import Coupler as Coupler
 
 from cirq_google.ops.fsim_gate_family import FSimGateFamily as FSimGateFamily
@@ -29,6 +31,8 @@ from cirq_google.ops.fsim_via_model_tag import FSimViaModelTag as FSimViaModelTa
 from cirq_google.ops.physical_z_tag import PhysicalZTag as PhysicalZTag
 
 from cirq_google.ops.sycamore_gate import SycamoreGate as SycamoreGate, SYC as SYC
+
+from cirq_google.ops.two_pulse_fsim_tag import TwoPulseFSimTag as TwoPulseFSimTag
 
 from cirq_google.ops.internal_gate import InternalGate as InternalGate
 
@@ -41,3 +45,11 @@ from cirq_google.ops.dynamical_decoupling_tag import (
 from cirq_google.ops.wait_gate import WaitGateWithUnit as WaitGateWithUnit
 
 from cirq_google.ops.willow_gate import WillowGate as WillowGate, WILLOW as WILLOW
+
+from cirq_google.ops.lzs_reset import LZSResetViaResonator as LZSResetViaResonator
+
+from cirq_google.ops.multi_level_reset import (
+    MultilevelResetViaResonator as MultilevelResetViaResonator,
+)
+
+from cirq_google.ops.leakage_iswap import LeakageISWAP as LeakageISWAP

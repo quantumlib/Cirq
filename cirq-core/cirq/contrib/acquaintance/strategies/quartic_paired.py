@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import cast, Iterable, Sequence, TYPE_CHECKING
+from collections.abc import Iterable, Sequence
+from typing import cast, TYPE_CHECKING
 
 from cirq import circuits
 from cirq.contrib.acquaintance.gates import acquaint, SwapNetworkGate
@@ -32,7 +33,7 @@ def qubit_pairs_to_qubit_order(qubit_pairs: Sequence[Sequence[cirq.Qid]]) -> lis
     (1a, 2a, 1b, 2b, 3a, 4a, 3b, 4b, ...).
     """
 
-    if set(len(qubit_pair) for qubit_pair in qubit_pairs) != set((2,)):
+    if {len(qubit_pair) for qubit_pair in qubit_pairs} != {2}:
         raise ValueError('set(len(qubit_pair) for qubit_pair in qubit_pairs) != set((2,))')
     n_pairs = len(qubit_pairs)
     qubits: list[cirq.Qid] = []

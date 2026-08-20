@@ -23,7 +23,8 @@ from __future__ import annotations
 
 import itertools
 import random
-from typing import Sequence, TypeVar
+from collections.abc import Sequence
+from typing import TypeVar
 
 import cirq
 import cirq.contrib.acquaintance as cca
@@ -58,7 +59,7 @@ def get_phase_sep_circuit(
     acquaintance_opportunities = cca.get_logical_acquaintance_opportunities(
         circuit, initial_mapping
     )
-    assert set(frozenset(edge) for edge in gates) <= acquaintance_opportunities
+    assert {frozenset(edge) for edge in gates} <= acquaintance_opportunities
 
     cca.expose_acquaintance_gates(circuit)
     if verbose:
@@ -121,7 +122,7 @@ def get_max_cut_qaoa_circuit(
     n_vertices = len(vertices)
 
     # G_{i,j} ∝ exp(i gamma (|01><01| + |10><10|))
-    phase_sep_gates: LogicalMapping = {edge: cirq.ZZ**gamma for edge in edges}
+    phase_sep_gates: LogicalMapping = dict.fromkeys(edges, cirq.ZZ**gamma)
 
     # Physical qubits
     qubits = cirq.LineQubit.range(n_vertices)

@@ -20,14 +20,14 @@ import gzip
 import json
 import numbers
 import pathlib
+from collections.abc import Callable, Iterable, Sequence
 from types import NotImplementedType
-from typing import Any, Callable, cast, IO, Iterable, overload, Sequence
+from typing import Any, cast, IO, overload, Protocol
 
 import attrs
 import numpy as np
 import pandas as pd
 import sympy
-from typing_extensions import Protocol
 
 from cirq._doc import doc_private
 
@@ -113,7 +113,7 @@ class SupportsJSON(Protocol):
     """
 
     @doc_private
-    def _json_dict_(self) -> None | NotImplementedType | dict[Any, Any]:
+    def _json_dict_(self) -> None | NotImplementedType | dict[str, Any]:
         pass
 
 
@@ -177,7 +177,7 @@ def attrs_json_dict(obj: Any) -> dict[str, Any]:
     return obj_to_dict_helper(obj, attribute_names)
 
 
-def _json_dict_with_cirq_type(obj: Any):
+def _json_dict_with_cirq_type(obj: Any) -> dict[str, Any]:
     base_dict = obj._json_dict_()
     if 'cirq_type' in base_dict:
         raise ValueError(
@@ -217,19 +217,24 @@ class CirqEncoder(json.JSONEncoder):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._memo: dict[Any, dict] = {}
+        self._cache: dict[int, Any] = {}
 
-    def default(self, o):
+    def default(self, o) -> dict[str, Any] | list[Any] | float | bool:
+        oid = id(o)
+        if (val := self._cache.get(oid)) is not None:
+            return val
         # Object with custom method?
         if hasattr(o, '_json_dict_'):
-            json_dict = _json_dict_with_cirq_type(o)
             if isinstance(o, SerializableByKey):
                 if ref := self._memo.get(o):
                     return ref
                 key = len(self._memo)
                 ref = {"cirq_type": "REF", "key": key}
                 self._memo[o] = ref
-                return {"cirq_type": "VAL", "key": key, "val": json_dict}
-            return json_dict
+                self._cache[oid] = ref
+                return {"cirq_type": "VAL", "key": key, "val": _json_dict_with_cirq_type(o)}
+            val = self._cache[oid] = _json_dict_with_cirq_type(o)
+            return val
 
         # Sympy object? (Must come before general number checks.)
         # TODO: More support for sympy
@@ -520,7 +525,7 @@ def read_json(
     *,
     json_text: str | None = None,
     resolvers: Sequence[JsonResolver] | None = None,
-):
+) -> Any:
     """Read a JSON file that optionally contains cirq objects.
 
     Args:
@@ -535,7 +540,7 @@ def read_json(
             the serialized `cirq_type` string into a constructable class.
             By default, top-level cirq objects that implement the SupportsJSON
             protocol are supported. You can extend the list of supported types
-            by pre-pending custom resolvers. Each resolver should return `None`
+            by prepending custom resolvers. Each resolver should return `None`
             to indicate that it cannot resolve the given cirq_type and that
             the next resolver should be tried.
 
@@ -606,7 +611,7 @@ def read_json_gzip(
     *,
     gzip_raw: bytes | None = None,
     resolvers: Sequence[JsonResolver] | None = None,
-):
+) -> Any:
     """Read a gzipped JSON file that optionally contains cirq objects.
 
     Args:
@@ -621,7 +626,7 @@ def read_json_gzip(
             the serialized `cirq_type` string into a constructable class.
             By default, top-level cirq objects that implement the SupportsJSON
             protocol are supported. You can extend the list of supported types
-            by pre-pending custom resolvers. Each resolver should return `None`
+            by prepending custom resolvers. Each resolver should return `None`
             to indicate that it cannot resolve the given cirq_type and that
             the next resolver should be tried.
 
@@ -636,5 +641,5 @@ def read_json_gzip(
         json_str = gzip.decompress(gzip_raw).decode(encoding='utf-8')
         return read_json(json_text=json_str, resolvers=resolvers)
 
-    with gzip.open(file_or_fn, 'rt') as json_file:  # type: ignore
+    with gzip.open(file_or_fn, 'rt') as json_file:  # type: ignore[arg-type]
         return read_json(cast(IO, json_file), resolvers=resolvers)

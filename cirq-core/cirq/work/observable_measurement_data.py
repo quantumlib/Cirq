@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import dataclasses
 import datetime
-from typing import Any, Iterable, Mapping, TYPE_CHECKING
+from collections.abc import Iterator, Mapping
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -112,7 +113,7 @@ class ObservableMeasuredResult:
     circuit_params: Mapping[str | sympy.Expr, value.Scalar | sympy.Expr]
 
     # unhashable because of the mapping-type circuit_params attribute
-    __hash__ = None  # type: ignore
+    __hash__ = None  # type: ignore[assignment]
 
     def __repr__(self):
         # I wish we could use the default dataclass __repr__ but
@@ -154,7 +155,7 @@ class ObservableMeasuredResult:
         record.update(**circuit_param_dict)
         return record
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.dataclass_json_dict(self)
 
 
@@ -162,7 +163,7 @@ def _setting_to_z_observable(setting: InitObsSetting):
     qubits = setting.observable.qubits
     return InitObsSetting(
         init_state=zeros_state(qubits),
-        observable=ops.PauliString(qubit_pauli_map={q: ops.Z for q in qubits}),
+        observable=ops.PauliString(qubit_pauli_map=dict.fromkeys(qubits, ops.Z)),
     )
 
 
@@ -297,7 +298,7 @@ class BitstringAccumulator:
         return len(self.bitstrings)
 
     @property
-    def results(self) -> Iterable[ObservableMeasuredResult]:
+    def results(self) -> Iterator[ObservableMeasuredResult]:
         """Yield individual setting results as `ObservableMeasuredResult`
         objects."""
         for setting in self._simul_settings:
@@ -319,7 +320,7 @@ class BitstringAccumulator:
         for result in self.results:
             yield result.as_dict()
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         from cirq.study.result import _pack_digits
 
         def ndarray_to_hex_str(a):
@@ -365,6 +366,7 @@ class BitstringAccumulator:
         if not isinstance(other, BitstringAccumulator):
             return NotImplemented
 
+        # ruff: disable[SIM103]
         if (
             self.max_setting != other.max_setting
             or self.simul_settings != other.simul_settings

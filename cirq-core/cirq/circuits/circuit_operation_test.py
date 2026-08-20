@@ -576,28 +576,20 @@ def test_string_format() -> None:
         op0_global_phase_inner, cirq.global_phase_operation(1j)
     )
     op0_global_phase_outer = cirq.CircuitOperation(fc0_global_phase_outer)
-    assert (
-        str(op0_global_phase_outer)
-        == """\
+    assert str(op0_global_phase_outer) == """\
 [                       ]
 [                       ]
 [ global phase:   -0.5π ]"""
-    )
 
     fc1 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, z), cirq.measure(x, y, z, key='m'))
     op1 = cirq.CircuitOperation(fc1)
-    assert (
-        str(op1)
-        == """\
+    assert str(op1) == """\
 [ 0: ───X───────M('m')─── ]
 [               │         ]
 [ 1: ───H───@───M──────── ]
 [           │   │         ]
 [ 2: ───────X───M──────── ]"""
-    )
-    assert (
-        repr(op1)
-        == """\
+    assert repr(op1) == """\
 cirq.CircuitOperation(
     circuit=cirq.FrozenCircuit([
         cirq.Moment(
@@ -612,7 +604,6 @@ cirq.CircuitOperation(
         ),
     ]),
 )"""  # noqa: E501
-    )
 
     fc2 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, x))
     op2 = cirq.CircuitOperation(
@@ -622,17 +613,12 @@ cirq.CircuitOperation(
         parent_path=('outer', 'inner'),
         repetition_ids=['a', 'b', 'c'],
     )
-    assert (
-        str(op2)
-        == """\
+    assert str(op2) == """\
 [ 0: ───X───X─── ]
 [           │    ]
 [ 1: ───H───@─── ](qubit_map={q(1): q(2)}, parent_path=('outer', 'inner'),\
  repetition_ids=['a', 'b', 'c'])"""
-    )
-    assert (
-        repr(op2)
-        == """\
+    assert repr(op2) == """\
 cirq.CircuitOperation(
     circuit=cirq.FrozenCircuit([
         cirq.Moment(
@@ -648,7 +634,6 @@ cirq.CircuitOperation(
     parent_path=('outer', 'inner'),
     repetition_ids=['a', 'b', 'c'],
 )"""
-    )
 
     fc3 = cirq.FrozenCircuit(cirq.X(x) ** sympy.Symbol('b'), cirq.measure(x, key='m'))
     op3 = cirq.CircuitOperation(
@@ -658,30 +643,22 @@ cirq.CircuitOperation(
         param_resolver={sympy.Symbol('b'): 2},
     )
     indented_fc3_repr = repr(fc3).replace('\n', '\n    ')
-    assert (
-        str(op3)
-        == """\
+    assert str(op3) == """\
 [ 0: ───X^b───M('m')─── ](qubit_map={q(0): q(1)}, \
 key_map={m: p}, params={b: 2})"""
-    )
-    assert (
-        repr(op3)
-        == f"""\
+    assert repr(op3) == f"""\
 cirq.CircuitOperation(
     circuit={indented_fc3_repr},
     qubit_map={{cirq.LineQubit(0): cirq.LineQubit(1)}},
     measurement_key_map={{'m': 'p'}},
     param_resolver=cirq.ParamResolver({{sympy.Symbol('b'): 2}}),
 )"""
-    )
 
     fc4 = cirq.FrozenCircuit(cirq.X(y))
     op4 = cirq.CircuitOperation(fc4)
     fc5 = cirq.FrozenCircuit(cirq.X(x), op4)
     op5 = cirq.CircuitOperation(fc5)
-    assert (
-        repr(op5)
-        == """\
+    assert repr(op5) == """\
 cirq.CircuitOperation(
     circuit=cirq.FrozenCircuit([
         cirq.Moment(
@@ -696,11 +673,8 @@ cirq.CircuitOperation(
         ),
     ]),
 )"""
-    )
     op6 = cirq.CircuitOperation(fc5, use_repetition_ids=False)
-    assert (
-        repr(op6)
-        == """\
+    assert repr(op6) == """\
 cirq.CircuitOperation(
     circuit=cirq.FrozenCircuit([
         cirq.Moment(
@@ -715,15 +689,12 @@ cirq.CircuitOperation(
         ),
     ]),
 )"""
-    )
     op7 = cirq.CircuitOperation(
         cirq.FrozenCircuit(cirq.measure(x, key='a')),
         use_repetition_ids=False,
         repeat_until=cirq.KeyCondition(cirq.MeasurementKey('a')),
     )
-    assert (
-        repr(op7)
-        == """\
+    assert repr(op7) == """\
 cirq.CircuitOperation(
     circuit=cirq.FrozenCircuit([
         cirq.Moment(
@@ -732,7 +703,6 @@ cirq.CircuitOperation(
     ]),
     repeat_until=cirq.KeyCondition(cirq.MeasurementKey(name='a')),
 )"""
-    )
 
 
 def test_json_dict() -> None:
@@ -1253,22 +1223,27 @@ def test_repeat_until_protocols() -> None:
     # Ensure the _repeat_until has been mapped, the measurement has been mapped to the same key,
     # and the control keys of the subcircuit is empty (because the control key of the condition is
     # bound to the measurement).
+    assert scoped._mapped_repeat_until is not None
     assert scoped._mapped_repeat_until.keys == (cirq.MeasurementKey('a', ('0',)),)
     assert cirq.measurement_key_objs(scoped) == {cirq.MeasurementKey('a', ('0',))}
     assert not cirq.control_keys(scoped)
     mapped = cirq.with_measurement_key_mapping(scoped, {'a': 'b'})
+    assert mapped._mapped_repeat_until is not None
     assert mapped._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('0',)),)
     assert cirq.measurement_key_objs(mapped) == {cirq.MeasurementKey('b', ('0',))}
     assert not cirq.control_keys(mapped)
     prefixed = cirq.with_key_path_prefix(mapped, ('1',))
+    assert prefixed._mapped_repeat_until is not None
     assert prefixed._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('1', '0')),)
     assert cirq.measurement_key_objs(prefixed) == {cirq.MeasurementKey('b', ('1', '0'))}
     assert not cirq.control_keys(prefixed)
     setpath = cirq.with_key_path(prefixed, ('2',))
+    assert setpath._mapped_repeat_until is not None
     assert setpath._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('2',)),)
     assert cirq.measurement_key_objs(setpath) == {cirq.MeasurementKey('b', ('2',))}
     assert not cirq.control_keys(setpath)
     resolved = cirq.resolve_parameters(setpath, {'p': 1})
+    assert resolved._mapped_repeat_until is not None
     assert resolved._mapped_repeat_until.keys == (cirq.MeasurementKey('b', ('2',)),)
     assert cirq.measurement_key_objs(resolved) == {cirq.MeasurementKey('b', ('2',))}
     assert not cirq.control_keys(resolved)
@@ -1324,3 +1299,30 @@ def test_has_unitary_protocol_returns_true_if_all_params_resolve() -> None:
     exp = sympy.Symbol('exp')
     op = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q) ** exp), param_resolver={exp: 0.5})
     assert protocols.has_unitary(op)
+
+
+def test_unitary_of_single_qubit_circuit_op() -> None:
+    q0 = cirq.LineQubit(0)
+
+    c = cirq.FrozenCircuit(cirq.X(q0))
+    op = cirq.CircuitOperation(c, repetitions=2)
+    u = protocols.unitary(op)
+    np.testing.assert_array_equal(u, np.eye(2))
+
+    c1 = cirq.FrozenCircuit(cirq.measure(q0))
+    with pytest.raises(TypeError, match="cirq.unitary failed.*"):
+        protocols.unitary(cirq.CircuitOperation(c1))
+
+
+def test_control_keys_respects_internal_measurement_order() -> None:
+    q = cirq.LineQubit(0)
+
+    # Control BEFORE measurement inside the subcircuit: external key required
+    fc_before = cirq.FrozenCircuit(cirq.X(q).with_classical_controls('a'), cirq.measure(q, key='a'))
+    op_before = cirq.CircuitOperation(fc_before)
+    assert cirq.control_keys(op_before) == {cirq.MeasurementKey('a')}
+
+    # Measurement BEFORE control inside the subcircuit: no external key required
+    fc_after = cirq.FrozenCircuit(cirq.measure(q, key='a'), cirq.X(q).with_classical_controls('a'))
+    op_after = cirq.CircuitOperation(fc_after)
+    assert cirq.control_keys(op_after) == set()

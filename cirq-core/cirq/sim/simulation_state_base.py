@@ -17,12 +17,11 @@
 from __future__ import annotations
 
 import abc
+from collections.abc import Iterator, Mapping, Sequence
 from types import NotImplementedType
-from typing import Any, Generic, Iterator, Mapping, Sequence, TYPE_CHECKING, TypeVar
+from typing import Any, Generic, Self, TYPE_CHECKING, TypeVar
 
-from typing_extensions import Self
-
-from cirq import protocols, value
+from cirq import protocols, study, value
 
 if TYPE_CHECKING:
     import numpy as np
@@ -37,7 +36,11 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
     """An interface for quantum states as targets for operations."""
 
     def __init__(
-        self, *, qubits: Sequence[cirq.Qid], classical_data: cirq.ClassicalDataStore | None = None
+        self,
+        *,
+        qubits: Sequence[cirq.Qid],
+        classical_data: cirq.ClassicalDataStore | None = None,
+        param_resolver: cirq.ParamResolver | None = None,
     ):
         """Initializes the class.
 
@@ -45,9 +48,19 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
             qubits: The canonical ordering of qubits.
             classical_data: The shared classical data container for this
                 simulation.
+            param_resolver: The parameter resolver for the simulation.
         """
         self._set_qubits(tuple(qubits))
         self._classical_data = classical_data or value.ClassicalDataDictionaryStore()
+        self._param_resolver = study.ParamResolver({}) if param_resolver is None else param_resolver
+
+    @property
+    def param_resolver(self) -> cirq.ParamResolver:
+        return self._param_resolver
+
+    @param_resolver.setter
+    def param_resolver(self, resolver: cirq.ParamResolver):
+        self._param_resolver = resolver
 
     @property
     def qubits(self) -> tuple[cirq.Qid, ...]:
@@ -83,7 +96,7 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
         Returns:
             True if the fallback applies, else NotImplemented."""
 
-    def apply_operation(self, op: cirq.Operation):
+    def apply_operation(self, op: cirq.Operation) -> None:
         protocols.act_on(op, self)
 
     @abc.abstractmethod

@@ -97,7 +97,7 @@ def _strat_has_stabilizer_effect_from_unitary(val: Any) -> bool | None:
             ps = DensePauliString(pauli_string)
             p = ps._unitary_()
             if not pauli_string_decomposition.unitary_to_pauli_string(
-                (unitary @ p @ unitary.T.conj())
+                unitary @ p @ unitary.T.conj()
             ):
                 return False
     return True

@@ -19,7 +19,7 @@ import {Vector3, Sprite, Texture, SpriteMaterial, Group} from 'three';
  * labels for dedicated visualizations.
  */
 export class Labels extends Group {
-  readonly labels: Object;
+  readonly labels: Record<string, Vector3>;
 
   /**
    * Class constructor.
@@ -27,7 +27,7 @@ export class Labels extends Group {
    * @returns an instance of the class containing all of the generated labels. All labels can
    * be added to the Bloch sphere instance as well as the scene.
    */
-  constructor(labels: Object) {
+  constructor(labels: Record<string, Vector3>) {
     super();
     this.labels = labels;
 
@@ -35,7 +35,7 @@ export class Labels extends Group {
     return this;
   }
 
-  private generateLabels(labels: Object) {
+  private generateLabels(labels: Record<string, Vector3>) {
     for (const [text, location] of Object.entries(labels)) {
       this.add(new Label(text, location));
     }

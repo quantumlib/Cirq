@@ -15,12 +15,12 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable, Sequence
 from fractions import Fraction
-from typing import Any, Iterable, overload, Sequence, TYPE_CHECKING, TypeVar, Union
+from typing import Any, overload, Protocol, Self, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 import sympy
-from typing_extensions import Protocol
 
 from cirq import protocols, value
 from cirq._doc import doc_private
@@ -76,7 +76,7 @@ class CircuitDiagramInfo:
         self.exponent_qubit_index = exponent_qubit_index
         self.auto_exponent_parens = auto_exponent_parens
 
-    def with_wire_symbols(self, new_wire_symbols: Iterable[str]):
+    def with_wire_symbols(self, new_wire_symbols: Iterable[str]) -> CircuitDiagramInfo:
         return CircuitDiagramInfo(
             wire_symbols=new_wire_symbols,
             exponent=self.exponent,
@@ -134,7 +134,7 @@ class CircuitDiagramInfo:
             if args.precision is not None:
                 # funky behavior of fraction, cast to str in constructor helps.
                 approx_frac = Fraction(self.exponent).limit_denominator(16)
-                if approx_frac.denominator not in [2, 4, 5, 10]:
+                if approx_frac.denominator not in [1, 2, 4, 5, 10]:
                     if abs(float(approx_frac) - self.exponent) < 10**-args.precision:
                         return f'({approx_frac})'
 
@@ -261,6 +261,28 @@ class CircuitDiagramInfoArgs:
             return list(tags) if self.include_tags else []
         return [t for t in tags if any(isinstance(t, cls) for cls in self.include_tags)]
 
+    def _tag_diagram_str(self, tag: Any) -> str:
+        """Text used for a single tag in a circuit diagram.
+
+        If the tag implements the `_circuit_diagram_info_` protocol, the first
+        wire symbol from that info is used. Otherwise falls back to `str(tag)`.
+        """
+        info = circuit_diagram_info(tag, self, default=None)
+        if info is not None and info.wire_symbols:
+            return info.wire_symbols[0]
+        return str(tag)
+
+    def format_tags(self, tags: Iterable[Any]) -> str:
+        """Formats tags for inclusion in a circuit diagram label.
+
+        Returns a string like `'[tag1, tag2]'`, or `''` if no tags are visible
+        under `include_tags`.
+        """
+        visible_tags = self.tags_to_include(tags)
+        if not visible_tags:
+            return ''
+        return f"[{', '.join(self._tag_diagram_str(tag) for tag in visible_tags)}]"
+
     def format_real(self, val: sympy.Basic | int | float) -> str:
         if isinstance(val, sympy.Basic):
             return str(val)
@@ -300,7 +322,7 @@ class CircuitDiagramInfoArgs:
             return str(radians)
         return repr(radians)
 
-    def copy(self):
+    def copy(self) -> Self:
         return self.__class__(
             known_qubits=self.known_qubits,
             known_qubit_count=self.known_qubit_count,
@@ -311,7 +333,7 @@ class CircuitDiagramInfoArgs:
             transpose=self.transpose,
         )
 
-    def with_args(self, **kwargs):
+    def with_args(self, **kwargs) -> Self:
         args = self.copy()
         for arg_name, val in kwargs.items():
             setattr(args, arg_name, val)
@@ -377,11 +399,10 @@ def _op_info_with_fallback(
         name = name[: -len(redundant_tail)]
 
     # Add tags onto the representation, if they exist
-    if op.tags:
-        name += f"[{', '.join(map(str, op.tags))}]"
+    name += args.format_tags(op.tags)
 
     # Include ordering in the qubit labels.
-    symbols = (name,) + tuple(f'#{i + 1}' for i in range(1, len(op.qubits)))
+    symbols = (name, *(f'#{i + 1}' for i in range(1, len(op.qubits))))
 
     return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 

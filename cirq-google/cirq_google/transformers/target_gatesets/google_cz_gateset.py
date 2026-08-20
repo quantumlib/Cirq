@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 import cirq
 
@@ -67,14 +68,12 @@ class GoogleCZTargetGateset(cirq.CZTargetGateset):
         ]
 
         if self.eject_paulis:
-            return (
-                transformers[:1]
-                + [
-                    cirq.create_transformer_with_kwargs(cirq.eject_phased_paulis, atol=self.atol),
-                    cirq.create_transformer_with_kwargs(cirq.eject_z, atol=self.atol),
-                ]
-                + transformers[1:]
-            )
+            return [
+                *transformers[:1],
+                cirq.create_transformer_with_kwargs(cirq.eject_phased_paulis, atol=self.atol),
+                cirq.create_transformer_with_kwargs(cirq.eject_z, atol=self.atol),
+                *transformers[1:],
+            ]
         return transformers
 
     def __repr__(self) -> str:

@@ -15,10 +15,12 @@
 from __future__ import annotations
 
 import os
+import pathlib
 import re
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 from cirq.circuits.qasm_output import QasmTwoQubitGate, QasmUGate
@@ -27,6 +29,17 @@ from cirq.testing import consistent_qasm as cq
 
 def _make_qubits(n):
     return [cirq.NamedQubit(f'q{i}') for i in range(n)]
+
+
+def _qiskit_ugate_unitary(gate: QasmUGate) -> np.ndarray:
+    # Ref: https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.circuit.library.U3Gate#u3gate
+    th, ph, lm = np.pi * np.array([gate.theta, gate.phi, gate.lmda])
+    return np.array(
+        [
+            [np.cos(th / 2), -np.exp(1j * lm) * np.sin(th / 2)],
+            [np.exp(1j * ph) * np.sin(th / 2), np.exp(1j * (ph + lm)) * np.cos(th / 2)],
+        ]
+    )
 
 
 def test_u_gate_repr() -> None:
@@ -43,6 +56,42 @@ def test_u_gate_eq() -> None:
     cirq.approx_eq(gate4, gate3, atol=1e-16)
 
 
+@pytest.mark.parametrize("_", range(10))
+def test_u_gate_from_qiskit_ugate_unitary(_) -> None:
+    # QasmUGate at (theta, phi, lmda) is the same as QasmUGate at
+    # (2 - theta, phi + 1, lmda + 1) and a global phase factor of -1.
+    # QasmUGate.from_matrix resolves theta at [0, 1] and ignores possible global
+    # phase.  To avoid phase discrepancy we limit theta to the [0, 1] interval.
+    theta = np.random.uniform(0, 1)
+    phi = np.random.uniform(0, 2)
+    lmda = np.random.uniform(0, 2)
+    u = _qiskit_ugate_unitary(QasmUGate(theta, phi, lmda))
+    g = QasmUGate.from_matrix(u)
+    np.testing.assert_allclose(cirq.unitary(g), u, atol=1e-7)
+
+
+def test_u_gate_params() -> None:
+    q = cirq.LineQubit(0)
+    a, b, c = sympy.symbols('a b c')
+    u_gate = QasmUGate(a, b, c)
+    assert u_gate == QasmUGate(a, b + 2, c - 2)
+    assert u_gate != QasmUGate(a, b + 1, c - 1)
+    assert cirq.is_parameterized(u_gate)
+    assert cirq.parameter_names(u_gate) == {'a', 'b', 'c'}
+    assert not cirq.has_unitary(u_gate)
+    cirq.testing.assert_equivalent_repr(u_gate)
+    cirq.testing.assert_implements_consistent_protocols(u_gate)
+    u_gate_caps = cirq.resolve_parameters(u_gate, {'a': 'A', 'b': 'B', 'c': 'C'})
+    assert u_gate_caps == QasmUGate(*sympy.symbols('A B C'))
+    resolver = {'A': 0.1, 'B': 2.2, 'C': -1.7}
+    resolved = cirq.resolve_parameters(u_gate_caps, resolver)
+    assert cirq.approx_eq(resolved, QasmUGate(0.1, 0.2, 0.3))
+    resolved_then_decomposed = cirq.decompose_once_with_qubits(resolved, [q])
+    decomposed = cirq.decompose_once_with_qubits(u_gate_caps, [q])
+    decomposed_then_resolved = [cirq.resolve_parameters(g, resolver) for g in decomposed]
+    assert resolved_then_decomposed == decomposed_then_resolved
+
+
 def test_qasm_two_qubit_gate_repr() -> None:
     cirq.testing.assert_equivalent_repr(
         QasmTwoQubitGate.from_matrix(cirq.testing.random_unitary(4))
@@ -53,13 +102,14 @@ def test_qasm_u_qubit_gate_unitary() -> None:
     u = cirq.testing.random_unitary(2)
     g = QasmUGate.from_matrix(u)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(g), u, atol=1e-7)
-
     cirq.testing.assert_implements_consistent_protocols(g)
+    np.testing.assert_allclose(cirq.unitary(g), _qiskit_ugate_unitary(g), atol=1e-7)
 
     u = cirq.unitary(cirq.Y)
     g = QasmUGate.from_matrix(u)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(g), u, atol=1e-7)
     cirq.testing.assert_implements_consistent_protocols(g)
+    np.testing.assert_allclose(cirq.unitary(g), _qiskit_ugate_unitary(g), atol=1e-7)
 
 
 def test_qasm_two_qubit_gate_unitary() -> None:
@@ -71,29 +121,23 @@ def test_qasm_two_qubit_gate_unitary() -> None:
 def test_empty_circuit_one_qubit() -> None:
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput((), (q0,))
-    assert (
-        str(output)
-        == """OPENQASM 2.0;
+    assert str(output) == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
 // Qubits: [q0]
 qreg q[1];
 """
-    )
 
 
 def test_empty_circuit_no_qubits() -> None:
     output = cirq.QasmOutput((), ())
-    assert (
-        str(output)
-        == """OPENQASM 2.0;
+    assert str(output) == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
 // Qubits: []
 """
-    )
 
 
 def test_header() -> None:
@@ -104,9 +148,7 @@ def test_header() -> None:
         header="""My test circuit
 Device: Bristlecone""",
     )
-    assert (
-        str(output)
-        == """// My test circuit
+    assert str(output) == """// My test circuit
 // Device: Bristlecone
 
 OPENQASM 2.0;
@@ -116,7 +158,6 @@ include "qelib1.inc";
 // Qubits: [q0]
 qreg q[1];
 """
-    )
 
     output = cirq.QasmOutput(
         (),
@@ -126,9 +167,7 @@ My test circuit
 Device: Bristlecone
 """,
     )
-    assert (
-        str(output)
-        == """//
+    assert str(output) == """//
 // My test circuit
 // Device: Bristlecone
 //
@@ -140,15 +179,12 @@ include "qelib1.inc";
 // Qubits: [q0]
 qreg q[1];
 """
-    )
 
 
 def test_single_gate_no_parameter() -> None:
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput((cirq.X(q0),), (q0,))
-    assert (
-        str(output)
-        == """OPENQASM 2.0;
+    assert str(output) == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -158,15 +194,12 @@ qreg q[1];
 
 x q[0];
 """
-    )
 
 
 def test_single_gate_with_parameter() -> None:
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput((cirq.X(q0) ** 0.25,), (q0,))
-    assert (
-        str(output)
-        == """OPENQASM 2.0;
+    assert str(output) == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -176,15 +209,12 @@ qreg q[1];
 
 rx(pi*0.25) q[0];
 """
-    )
 
 
 def test_h_gate_with_parameter() -> None:
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput((cirq.H(q0) ** 0.25,), (q0,))
-    assert (
-        str(output)
-        == """OPENQASM 2.0;
+    assert str(output) == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -197,28 +227,22 @@ ry(pi*0.25) q[0];
 rx(pi*0.25) q[0];
 ry(pi*-0.25) q[0];
 """
-    )
 
 
-def test_qasm_global_pahse() -> None:
+def test_qasm_global_phase() -> None:
     output = cirq.QasmOutput((cirq.global_phase_operation(np.exp(1j * 5))), ())
-    assert (
-        str(output)
-        == """OPENQASM 2.0;
+    assert str(output) == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
 // Qubits: []
 """
-    )
 
 
 def test_precision() -> None:
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput((cirq.X(q0) ** 0.1234567,), (q0,), precision=3)
-    assert (
-        str(output)
-        == """OPENQASM 2.0;
+    assert str(output) == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -228,7 +252,6 @@ qreg q[1];
 
 rx(pi*0.123) q[0];
 """
-    )
 
 
 def test_version() -> None:
@@ -243,18 +266,14 @@ def test_save_to_file(tmpdir) -> None:
     (q0,) = _make_qubits(1)
     output = cirq.QasmOutput((), (q0,))
     output.save(file_path)
-    with open(file_path, 'r') as f:
-        file_content = f.read()
-    assert (
-        file_content
-        == """OPENQASM 2.0;
+    file_content = pathlib.Path(file_path).read_text()
+    assert file_content == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
 // Qubits: [q0]
 qreg q[1];
 """
-    )
 
 
 def test_unsupported_operation() -> None:
@@ -580,9 +599,7 @@ def test_reset() -> None:
         header='Generated from Cirq!',
         precision=5,
     )
-    assert (
-        str(output).strip()
-        == """
+    assert str(output).strip() == """
 // Generated from Cirq!
 
 OPENQASM 2.0;
@@ -598,7 +615,6 @@ cx q[0],q[1];
 reset q[0];
 reset q[1];
     """.strip()
-    )
 
 
 def test_different_sized_registers() -> None:
@@ -607,9 +623,7 @@ def test_different_sized_registers() -> None:
     output = cirq.QasmOutput(
         c.all_operations(), tuple(sorted(c.all_qubits())), header='Generated from Cirq!'
     )
-    assert (
-        str(output)
-        == """// Generated from Cirq!
+    assert str(output) == """// Generated from Cirq!
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -626,7 +640,6 @@ measure q[0] -> m_c[0];
 measure q[0] -> m_c[0];
 measure q[1] -> m_c[1];
 """
-    )
     # OPENQASM 3.0
     output3 = cirq.QasmOutput(
         c.all_operations(),
@@ -634,9 +647,7 @@ measure q[1] -> m_c[1];
         header='Generated from Cirq!',
         version='3.0',
     )
-    assert (
-        str(output3)
-        == """// Generated from Cirq!
+    assert str(output3) == """// Generated from Cirq!
 
 OPENQASM 3.0;
 include "stdgates.inc";
@@ -653,4 +664,3 @@ m_c[0] = measure q[0];
 m_c[0] = measure q[0];
 m_c[1] = measure q[1];
 """
-    )

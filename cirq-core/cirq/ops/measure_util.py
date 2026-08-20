@@ -14,12 +14,13 @@
 
 from __future__ import annotations
 
-from typing import Callable, Iterable, overload, TYPE_CHECKING
+from collections.abc import Callable, Iterable
+from typing import cast, overload, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import protocols
-from cirq.ops import pauli_string, raw_types
+from cirq.ops import gate_operation, pauli_string, raw_types
 from cirq.ops.measurement_gate import MeasurementGate
 from cirq.ops.pauli_measurement_gate import PauliMeasurementGate
 
@@ -32,7 +33,9 @@ def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
 
 
 def measure_single_paulistring(
-    pauli_observable: pauli_string.PauliString, key: str | cirq.MeasurementKey | None = None
+    pauli_observable: pauli_string.PauliString,
+    key: str | cirq.MeasurementKey | None = None,
+    confusion_matrix: np.ndarray | None = None,
 ) -> raw_types.Operation:
     """Returns a single PauliMeasurementGate which measures the pauli observable
 
@@ -41,6 +44,8 @@ def measure_single_paulistring(
         key: Optional `str` or `cirq.MeasurementKey` that gate should use.
             If none provided, it defaults to a comma-separated list of
             `str(qubit)` for each of the target qubits.
+        confusion_matrix: A 2x2 numpy array representing the confusion matrix
+            for the measured observable.
 
     Returns:
         An operation measuring the pauli observable.
@@ -60,9 +65,11 @@ def measure_single_paulistring(
 
     if key is None:
         key = _default_measurement_key(pauli_observable)
-    return PauliMeasurementGate(pauli_observable.dense(list(pauli_observable.keys())), key).on(
-        *pauli_observable.keys()
-    )
+    return PauliMeasurementGate(
+        pauli_observable.dense(list(pauli_observable.keys())),
+        key,
+        confusion_matrix=confusion_matrix,
+    ).on(*pauli_observable.keys())
 
 
 def measure_paulistring_terms(
@@ -95,7 +102,8 @@ def measure(
     *target: raw_types.Qid,
     key: str | cirq.MeasurementKey | None = None,
     invert_mask: tuple[bool, ...] = (),
-) -> raw_types.Operation:
+    confusion_map: dict[tuple[int, ...], np.ndarray] | None = None,
+) -> gate_operation.GateOperation:
     pass
 
 
@@ -105,7 +113,8 @@ def measure(
     *,
     key: str | cirq.MeasurementKey | None = None,
     invert_mask: tuple[bool, ...] = (),
-) -> raw_types.Operation:
+    confusion_map: dict[tuple[int, ...], np.ndarray] | None = None,
+) -> gate_operation.GateOperation:
     pass
 
 
@@ -114,7 +123,7 @@ def measure(
     key: str | cirq.MeasurementKey | None = None,
     invert_mask: tuple[bool, ...] = (),
     confusion_map: dict[tuple[int, ...], np.ndarray] | None = None,
-) -> raw_types.Operation:
+) -> gate_operation.GateOperation:
     """Returns a single MeasurementGate applied to all the given qubits.
 
     The qubits are measured in the computational basis. This can also be
@@ -159,7 +168,8 @@ def measure(
     if key is None:
         key = _default_measurement_key(targets)
     qid_shape = protocols.qid_shape(targets)
-    return MeasurementGate(len(targets), key, invert_mask, qid_shape, confusion_map).on(*targets)
+    gate = MeasurementGate(len(targets), key, invert_mask, qid_shape, confusion_map)
+    return cast(gate_operation.GateOperation, gate.on(*targets))
 
 
 M = measure

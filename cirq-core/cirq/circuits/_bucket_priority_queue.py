@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Generic, Iterable, Iterator, TypeVar
+from collections.abc import Iterable, Iterator
+from typing import Any, Generic, TypeVar
 
 TItem = TypeVar('TItem')
 
@@ -167,7 +168,7 @@ class BucketPriorityQueue(Generic[TItem]):
             f'drop_duplicate_entries={drop_duplicate_entries})'
         )
 
-    __hash__ = None  # type: ignore
+    __hash__ = None  # type: ignore[assignment]
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):

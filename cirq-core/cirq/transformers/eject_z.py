@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Iterable, Iterator, TYPE_CHECKING
+from collections.abc import Iterable, Iterator
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -29,11 +30,11 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _is_integer(n):
+def _is_integer(n) -> bool:
     return np.isclose(n, np.round(n))
 
 
-def _is_swaplike(gate: cirq.Gate):
+def _is_swaplike(gate: cirq.Gate) -> bool:
     if isinstance(gate, ops.SwapPowGate):
         return gate.exponent == 1
 
@@ -88,7 +89,7 @@ def eject_z(
                 phased_xz_replacements[key] = phased_xz_replacements[key].with_z_exponent(p * 2)
 
     def map_func(op: cirq.Operation, moment_index: int) -> cirq.OP_TREE:
-        last_phased_xz_op.update({q: None for q in op.qubits})
+        last_phased_xz_op.update(dict.fromkeys(op.qubits))
 
         if tags_to_ignore & set(op.tags):
             # Op marked with no-compile, dump phases and do not cross.
@@ -119,6 +120,7 @@ def eject_z(
             return []
 
         # Try to move the tracked phases over the operation via protocols.phase_by(op)
+        phased_op: cirq.Operation | None
         phased_op = op
         for i, p in enumerate([qubit_phase[q] for q in op.qubits]):
             if not single_qubit_decompositions.is_negligible_turn(p, atol):

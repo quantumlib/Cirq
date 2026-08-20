@@ -18,8 +18,9 @@ from __future__ import annotations
 
 import abc
 import dataclasses
+from collections.abc import Callable, Hashable
 from functools import lru_cache
-from typing import Any, Callable, Hashable, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import cirq
 from cirq import _compat
@@ -179,13 +180,12 @@ class HardcodedQubitPlacer(QubitPlacer):
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         d = obj_to_dict_helper(self, attribute_names=[])
 
         # Nested dict: turn both levels to list(key_value_pair)
         mapping = {topo: list(placement.items()) for topo, placement in self._mapping.items()}
-        mapping = list(mapping.items())
-        d['mapping'] = mapping
+        d['mapping'] = list(mapping.items())
         return d
 
     @classmethod

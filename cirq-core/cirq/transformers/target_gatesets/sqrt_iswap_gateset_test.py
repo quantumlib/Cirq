@@ -22,10 +22,7 @@ import cirq
 
 
 def all_gates_of_type(m: cirq.Moment, g: cirq.Gateset):
-    for op in m:
-        if op not in g:
-            return False
-    return True
+    return all(op in g for op in m)
 
 
 def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit, **kwargs):
@@ -308,7 +305,7 @@ def test_optimizes_single_iswap() -> None:
     c = cirq.optimize_for_target_gateset(
         c, gateset=cirq.SqrtIswapTargetGateset(), ignore_failures=False
     )
-    assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
+    assert sum(1 for op in c.all_operations() if len(op.qubits) == 2) == 2
 
 
 def test_optimizes_single_inv_sqrt_iswap() -> None:
@@ -318,7 +315,7 @@ def test_optimizes_single_inv_sqrt_iswap() -> None:
     c = cirq.optimize_for_target_gateset(
         c, gateset=cirq.SqrtIswapTargetGateset(), ignore_failures=False
     )
-    assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 1
+    assert sum(1 for op in c.all_operations() if len(op.qubits) == 2) == 1
 
 
 def test_optimizes_single_iswap_require0() -> None:
@@ -328,7 +325,7 @@ def test_optimizes_single_iswap_require0() -> None:
     c = cirq.optimize_for_target_gateset(
         c, gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=0), ignore_failures=False
     )
-    assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 0
+    assert sum(1 for op in c.all_operations() if len(op.qubits) == 2) == 0
 
 
 def test_optimizes_single_iswap_require0_raises() -> None:
@@ -349,7 +346,7 @@ def test_optimizes_single_iswap_require1() -> None:
     c = cirq.optimize_for_target_gateset(
         c, gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=1), ignore_failures=False
     )
-    assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 1
+    assert sum(1 for op in c.all_operations() if len(op.qubits) == 2) == 1
 
 
 def test_optimizes_single_iswap_require1_raises() -> None:
@@ -370,7 +367,7 @@ def test_optimizes_single_iswap_require2() -> None:
     c = cirq.optimize_for_target_gateset(
         c, gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=2), ignore_failures=False
     )
-    assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
+    assert sum(1 for op in c.all_operations() if len(op.qubits) == 2) == 2
 
 
 def test_optimizes_single_iswap_require2_raises() -> None:
@@ -391,7 +388,7 @@ def test_optimizes_single_iswap_require3() -> None:
     c = cirq.optimize_for_target_gateset(
         c, gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=3), ignore_failures=False
     )
-    assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 3
+    assert sum(1 for op in c.all_operations() if len(op.qubits) == 2) == 3
 
 
 def test_optimizes_single_inv_sqrt_iswap_require3() -> None:
@@ -401,4 +398,4 @@ def test_optimizes_single_inv_sqrt_iswap_require3() -> None:
     c = cirq.optimize_for_target_gateset(
         c, gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=3), ignore_failures=False
     )
-    assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 3
+    assert sum(1 for op in c.all_operations() if len(op.qubits) == 2) == 3

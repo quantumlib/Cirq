@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import collections
-from typing import cast, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import cast, TYPE_CHECKING
 
 from cirq import circuits, ops, transformers
 from cirq.contrib.acquaintance.devices import get_acquaintance_size
@@ -83,7 +84,7 @@ def replace_acquaintance_with_swap_network(
     """
     rectify_acquaintance_strategy(circuit)
     reflected = False
-    reverse_map = {q: r for q, r in zip(qubit_order, reversed(qubit_order))}
+    reverse_map = dict(zip(qubit_order, reversed(qubit_order)))
     for moment_index, moment in enumerate(circuit):
         if reflected:
             moment = moment.transform_qubits(reverse_map.__getitem__)

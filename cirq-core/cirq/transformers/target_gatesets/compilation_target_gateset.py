@@ -17,7 +17,8 @@
 from __future__ import annotations
 
 import abc
-from typing import Hashable, TYPE_CHECKING
+from collections.abc import Hashable
+from typing import TYPE_CHECKING
 
 from cirq import circuits, ops, protocols, transformers
 from cirq.transformers import merge_k_qubit_gates, merge_single_qubit_gates
@@ -157,7 +158,7 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
     @property
     def preprocess_transformers(self) -> list[cirq.TRANSFORMER]:
         """List of transformers which should be run before decomposing individual operations."""
-        reorder_transfomers = (
+        reorder_transformers = (
             [transformers.insertion_sort_transformer] if self._reorder_operations else []
         )
         return [
@@ -165,7 +166,7 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
                 transformers.expand_composite,
                 no_decomp=lambda op: protocols.num_qubits(op) <= self.num_qubits,
             ),
-            *reorder_transfomers,
+            *reorder_transformers,
             create_transformer_with_kwargs(
                 merge_k_qubit_gates.merge_k_qubit_unitaries,
                 k=self.num_qubits,

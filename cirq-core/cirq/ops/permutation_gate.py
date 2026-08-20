@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterator, Sequence, TYPE_CHECKING
+from collections.abc import Iterator, Sequence
+from typing import Any, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq.ops import raw_types, swap_gates
@@ -69,14 +70,14 @@ class QubitPermutationGate(raw_types.Gate):
     def _value_equality_values_(self):
         return self.permutation
 
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         return len(self.permutation)
 
     def _has_unitary_(self):
         return True
 
     def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
-        permutation = [p for p in self.permutation]
+        permutation = list(self.permutation)
 
         for i in range(len(permutation)):
 

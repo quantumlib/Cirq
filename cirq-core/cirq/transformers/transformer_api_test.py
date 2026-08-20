@@ -79,7 +79,7 @@ def make_transformer_func_with_defaults() -> cirq.TRANSFORMER:
         my_mock(circuit, context, atol, custom_arg)
         return circuit.freeze()
 
-    func.mock = my_mock  # type: ignore
+    func.mock = my_mock  # type: ignore[attr-defined]
     return func
 
 
@@ -93,7 +93,7 @@ def make_transformer_func(add_deep_support: bool = False) -> cirq.TRANSFORMER:
         my_mock(circuit, context)
         return circuit.unfreeze()
 
-    mock_tranformer_func.mock = my_mock  # type: ignore
+    mock_tranformer_func.mock = my_mock  # type: ignore[attr-defined]
     return mock_tranformer_func
 
 
@@ -274,9 +274,7 @@ def test_transformer_stats_logger_linear_and_nested(capfd):
     circuit = t3(circuit, context=context)
     context.logger.show(LogLevel.ALL)
     out, _ = capfd.readouterr()
-    assert (
-        out.strip()
-        == '''
+    assert out.strip() == '''
 Transformer-1: T1
 Initial Circuit:
 0: ───H───@───
@@ -352,4 +350,3 @@ Final Circuit:
         1: ───H───X───X───H───H───X───X───H───H───X───X───H───H───X───X───H───
 ----------------------------------------
 '''.strip()
-    )

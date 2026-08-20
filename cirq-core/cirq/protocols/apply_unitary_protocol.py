@@ -17,11 +17,11 @@
 from __future__ import annotations
 
 import warnings
+from collections.abc import Iterable, Sequence
 from types import EllipsisType, NotImplementedType
-from typing import Any, cast, Iterable, Sequence, TYPE_CHECKING, TypeVar
+from typing import Any, cast, Protocol, TYPE_CHECKING, TypeVar
 
 import numpy as np
-from typing_extensions import Protocol
 
 from cirq import linalg, qis
 from cirq._doc import doc_private

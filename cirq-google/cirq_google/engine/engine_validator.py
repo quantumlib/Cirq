@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Callable, Sequence, TYPE_CHECKING
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING
 
 from google.protobuf import any_pb2
 
@@ -29,7 +30,8 @@ MAX_MOMENTS = 10000
 MAX_TOTAL_REPETITIONS = 5_000_000
 
 PROGRAM_VALIDATOR_TYPE = Callable[
-    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int, 'Serializer'], None
+    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int | Sequence[int], 'Serializer'],
+    None,
 ]
 
 
@@ -51,9 +53,9 @@ def _verify_reps(
     total_reps = 0
     for idx, sweep in enumerate(sweeps):
         if not isinstance(repetitions, int):
-            total_reps += len(list(cirq.to_resolvers(sweep))) * repetitions[idx]
+            total_reps += sum(1 for _ in cirq.to_resolvers(sweep)) * repetitions[idx]
         else:
-            total_reps += len(list(cirq.to_resolvers(sweep))) * repetitions
+            total_reps += sum(1 for _ in cirq.to_resolvers(sweep)) * repetitions
     if total_reps > max_repetitions:
         raise RuntimeError(
             'No requested processors currently support the number of requested total repetitions.'
@@ -75,7 +77,7 @@ def _verify_measurements(circuits):
 def validate_program(
     circuits: Sequence[cirq.AbstractCircuit],
     sweeps: Sequence[cirq.Sweepable],
-    repetitions: int,
+    repetitions: int | Sequence[int],
     serializer: Serializer,
     max_size: int = MAX_MESSAGE_SIZE,
 ) -> None:
@@ -112,10 +114,10 @@ def create_program_validator(max_size: int = MAX_MESSAGE_SIZE) -> PROGRAM_VALIDA
     def _validator(
         circuits: Sequence[cirq.AbstractCircuit],
         sweeps: Sequence[cirq.Sweepable],
-        repetitions: int,
+        repetitions: int | Sequence[int],
         serializer: Serializer,
-    ):
-        return validate_program(circuits, sweeps, repetitions, serializer, max_size)
+    ) -> None:
+        validate_program(circuits, sweeps, repetitions, serializer, max_size)
 
     return _validator
 

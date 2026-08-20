@@ -49,7 +49,7 @@ def _gaussian_elimination(
 ) -> int:
     """Gaussian elimination for standard form.
 
-    Performs a Gaussian elemination of the input matrix and transforms it into its reduced row
+    Performs a Gaussian elimination of the input matrix and transforms it into its reduced row
     echelon form. The elimination is done only on a sub-section of the matrix (specified) by
     ranges of rows and columns. The matrix elements are integers {0, 1} interpreted as elements
     of GF(2).
@@ -164,7 +164,7 @@ def _transfer_to_standard_form(
     return M, X, Z, r
 
 
-class StabilizerCode(object):
+class StabilizerCode:
     def __init__(self, group_generators: list[str], correctable_errors: list[str]):
         n = len(group_generators[0])
         k = n - len(group_generators)
@@ -322,7 +322,7 @@ class StabilizerCode(object):
         return circuit
 
     def decode(self, qubits: list[cirq.Qid], ancillas: list[cirq.Qid], state_vector) -> list[int]:
-        """Computes the output of the circuit by projecting onto the \bar{Z}.
+        r"""Computes the output of the circuit by projecting onto the \bar{Z}.
 
         Args:
             qubits: the qubits where the (now corrected) code words are stored.

@@ -1,2 +1,2 @@
 # for linting
-pylint~=3.3.1
+pylint~=4.0.2

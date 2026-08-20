@@ -1,19 +1,21 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
+
+import runpy
+
 from setuptools import find_packages, setup
 
-# This reads the __version__ variable from cirq/_version.py
-__version__ = ''
-exec(open('pack1/_version.py').read())
+__version__ = runpy.run_path('pack1/_version.py')['__version__']
 
 name = 'module1'
 
 
 # Read in requirements
-requirements = open('requirements.txt').readlines()
-requirements = [r.strip() for r in requirements]
+with open('requirements.txt', encoding='utf-8') as file:
+    requirements = [r.strip() for r in file]
 
 pack1_packages = ['pack1'] + ['pack1.' + package for package in find_packages(where='pack1')]
 
-# Sanity check
+# Verify version is set
 assert __version__, 'Version string cannot be empty'
 
 setup(

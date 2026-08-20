@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import cast, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import cast, TYPE_CHECKING
 
 from cirq_google import get_engine, ProcessorSampler
 from cirq_google.engine import (
@@ -32,7 +33,7 @@ if TYPE_CHECKING:
 
 @dataclasses.dataclass
 class QCSObjectsForNotebook:
-    """All the objects you might need to run a notbook with QCS.
+    """All the objects you might need to run a notebook with QCS.
 
     Contains an (Abstract) Engine, Processor, Device, and Sampler,
     as well as associated meta-data signed_in, processor_id, and project_id.

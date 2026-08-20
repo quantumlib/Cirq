@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {expect} from 'chai';
+import {expect} from 'vitest';
 import {Line} from 'three';
 import {GridQubit} from './grid_qubit';
 import {QubitLabel} from './meshes';
@@ -30,13 +30,13 @@ describe('GridQubit with 5 default moments', () => {
     line.computeLineDistances();
     const distancePoints = line.geometry.attributes.lineDistance.array;
 
-    expect(distancePoints[0]).to.equal(0);
-    expect(distancePoints[1]).to.equal(DEFAULT_MOMENTS);
+    expect(distancePoints[0]).toBe(0);
+    expect(distancePoints[1]).toBe(DEFAULT_MOMENTS);
   });
 
   it('has a three.js sprite label', () => {
     const sprite = children.find(child => child.type === 'Sprite') as QubitLabel;
-    expect(sprite.text).to.equal(`(${DEFAULT_ROW}, ${DEFAULT_COL})`);
+    expect(sprite.text).toBe(`(${DEFAULT_ROW}, ${DEFAULT_COL})`);
   });
 
   it('handles adding a basic Symbol3D object', () => {
@@ -51,6 +51,6 @@ describe('GridQubit with 5 default moments', () => {
     gridQubit.addSymbol(symbol);
 
     const symbol3D = children.find(child => child.constructor.name === 'Symbol3D')!;
-    expect(symbol3D.children[0].constructor.name).to.equal('X3DSymbol');
+    expect(symbol3D.children[0].constructor.name).toBe('X3DSymbol');
   });
 });

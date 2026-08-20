@@ -19,9 +19,10 @@ from __future__ import annotations
 import abc
 import functools
 import itertools
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from numbers import Real
-from typing import Callable, Sequence, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -170,8 +171,10 @@ class TwoQubitGateSymbolizer:
         return self.symbolizer_fn(two_qubit_gate, symbols)
 
 
-def _select(choices: Sequence[Gauge], probabilites: np.ndarray, prng: np.random.Generator) -> Gauge:
-    return choices[prng.choice(len(choices), p=probabilites)]
+def _select(
+    choices: Sequence[Gauge], probabilities: np.ndarray, prng: np.random.Generator
+) -> Gauge:
+    return choices[prng.choice(len(choices), p=probabilities)]
 
 
 @dataclass(frozen=True)
@@ -260,7 +263,7 @@ class GaugeTransformer:
         N: int,
         context: transformer_api.TransformerContext | None = None,
         prng: np.random.Generator | None = None,
-    ) -> tuple[circuits.AbstractCircuit, cirq.Sweepable]:
+    ) -> tuple[circuits.AbstractCircuit, cirq.Sweep]:
         """Generates a parameterized circuit with *N* sets of sweepable parameters.
 
         Args:
@@ -434,7 +437,7 @@ def _gate_sequence_to_phxz_params(
         if not has_unitary(gate) or gate.num_qubits() != 1:
             raise ValueError(
                 "Invalid gate sequence to be converted to PhasedXZGate."
-                f"Found incompatiable gate {gate} in sequence."
+                f"Found incompatible gate {gate} in sequence."
             )
     phxz = (
         single_qubit_decompositions.single_qubit_matrix_to_phxz(

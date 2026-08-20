@@ -87,7 +87,7 @@ def main():
     circuit_sample_count = 10
 
     # Set up input and output qubits.
-    (input_qubits, output_qubit) = set_io_qubits(qubit_count)
+    input_qubits, output_qubit = set_io_qubits(qubit_count)
 
     # Choose the x' and make an oracle which can recognize it.
     x_bits = [random.randint(0, 1) for _ in range(qubit_count)]

@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 import random
-from typing import cast, Sequence
+from collections.abc import Sequence
+from typing import cast
 
 import numpy as np
 import pytest
@@ -72,7 +73,7 @@ def _cases_for_random_circuit():
 
 
 @pytest.mark.parametrize(
-    'n_qubits,n_moments,op_density,gate_domain,pass_qubits', _cases_for_random_circuit()
+    'n_qubits,n_moments,op_density,gate_domain,pass_qubits', list(_cases_for_random_circuit())
 )
 def test_random_circuit(
     n_qubits: int | Sequence[cirq.Qid],
@@ -89,7 +90,7 @@ def test_random_circuit(
     assert len(circuit) == n_moments
     if gate_domain is None:
         gate_domain = cirq.testing.DEFAULT_GATE_DOMAIN
-    assert set(cast(cirq.GateOperation, op).gate for op in circuit.all_operations()).issubset(
+    assert {cast(cirq.GateOperation, op).gate for op in circuit.all_operations()}.issubset(
         gate_domain
     )
 
@@ -136,8 +137,8 @@ def test_random_circuit_reproducible_between_runs() -> None:
 
 
 def test_random_two_qubit_circuit_with_czs() -> None:
-    num_czs = lambda circuit: len(
-        [o for o in circuit.all_operations() if isinstance(o.gate, cirq.CZPowGate)]
+    num_czs = lambda circuit: sum(
+        1 for o in circuit.all_operations() if isinstance(o.gate, cirq.CZPowGate)
     )
 
     c = cirq.testing.random_two_qubit_circuit_with_czs()

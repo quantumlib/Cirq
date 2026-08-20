@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterator, TYPE_CHECKING
+from collections.abc import Iterator
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -37,7 +38,7 @@ def _all_pauli_strings_commute(pauli_sum: cirq.PauliSum) -> bool:
 class PauliSumExponential:
     """Represents an operator defined by the exponential of a PauliSum.
 
-    Given a hermitian/anti-hermitian PauliSum PS_1 + PS_2 + ... + PS_N, this
+    Given a Hermitian/anti-Hermitian PauliSum PS_1 + PS_2 + ... + PS_N, this
     class returns an operation which is equivalent to
     exp(j * exponent * (PS_1 + PS_2 + ... + PS_N)).
 
@@ -60,7 +61,7 @@ class PauliSumExponential:
                 abs(coeff.real) > atol and abs(coeff.imag) > atol
             ) or curr_multiplier != self._multiplier:
                 raise ValueError(
-                    pauli_sum, "PauliSum should be either hermitian or anti-hermitian."
+                    pauli_sum, "PauliSum should be either Hermitian or anti-Hermitian."
                 )
         if not self._multiplier:
             self._multiplier = 1.0

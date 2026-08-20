@@ -17,6 +17,7 @@ from __future__ import annotations
 from unittest import mock
 
 import duet
+import numpy as np
 import pytest
 
 import cirq
@@ -31,7 +32,7 @@ from cirq_google.engine.engine_job import EngineJob
     [('run_name', 'device_config_alias', ''), ('', '', '')],
 )
 def test_run_circuit(circuit, run_name, device_config_name, snapshot_id):
-    processor = mock.create_autospec(AbstractProcessor)
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
     sampler = cg.ProcessorSampler(
         processor=processor, run_name=run_name, device_config_name=device_config_name
     )
@@ -52,7 +53,7 @@ def test_run_circuit(circuit, run_name, device_config_name, snapshot_id):
     [('run_name', 'device_config_alias', ''), ('', '', ''), ('', 'config_name', 'snapshot_id')],
 )
 def test_run_batch(run_name, device_config_name, snapshot_id):
-    processor = mock.create_autospec(AbstractProcessor)
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
     sampler = cg.ProcessorSampler(
         processor=processor,
         run_name=run_name,
@@ -95,7 +96,7 @@ def test_run_batch(run_name, device_config_name, snapshot_id):
     [('run_name', 'device_config_alias', ''), ('', '', '')],
 )
 def test_run_batch_identical_repetitions(run_name, device_config_name, snapshot_id):
-    processor = mock.create_autospec(AbstractProcessor)
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
     sampler = cg.ProcessorSampler(
         processor=processor, run_name=run_name, device_config_name=device_config_name
     )
@@ -131,7 +132,7 @@ def test_run_batch_identical_repetitions(run_name, device_config_name, snapshot_
 
 
 def test_run_batch_bad_number_of_repetitions():
-    processor = mock.create_autospec(AbstractProcessor)
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
     sampler = cg.ProcessorSampler(processor=processor)
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
@@ -145,7 +146,7 @@ def test_run_batch_bad_number_of_repetitions():
 
 
 def test_run_batch_differing_repetitions():
-    processor = mock.create_autospec(AbstractProcessor)
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
     run_name = "RUN_NAME"
     device_config_name = "DEVICE_CONFIG_NAME"
     sampler = cg.ProcessorSampler(
@@ -173,9 +174,161 @@ def test_run_batch_differing_repetitions():
     )
 
 
+def test_run_batch_with_jobs_per_batch():
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
+    sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=2)
+    a = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.X(a))
+    circuit2 = cirq.Circuit(cirq.Y(a))
+    circuit3 = cirq.Circuit(cirq.Z(a))
+
+    sampler.run_batch([circuit1, circuit2, circuit3], repetitions=5)
+
+    assert processor.run_sweep_async.call_count == 2
+    processor.run_sweep_async.assert_any_call(
+        program=[circuit1, circuit2],
+        params=None,
+        repetitions=5,
+        run_name='',
+        snapshot_id='',
+        device_config_name='',
+    )
+    processor.run_sweep_async.assert_any_call(
+        program=[circuit3],
+        params=None,
+        repetitions=5,
+        run_name='',
+        snapshot_id='',
+        device_config_name='',
+    )
+
+
+def test_run_batch_ordering():
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
+    sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=2)
+
+    a = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.X(a), cirq.X(a), cirq.measure(a, key='m'))
+    circuit2 = cirq.Circuit(cirq.Y(a), cirq.measure(a, key='m'))
+
+    # 2 sweep points
+    sweep = cirq.Points('v', [0, 1])
+
+    # Mock job and results
+    mock_job = mock.AsyncMock(EngineJob)
+
+    # Engine returns results grouped by program:
+    # P1_S1, P1_S2, P2_S1, P2_S2
+    r1_s1 = cg.EngineResult(
+        params=cirq.ParamResolver({'v': 0}), measurements={'m': np.array([[0]])}, job_id='job'
+    )
+    r1_s2 = cg.EngineResult(
+        params=cirq.ParamResolver({'v': 1}), measurements={'m': np.array([[0]])}, job_id='job'
+    )
+    r2_s1 = cg.EngineResult(
+        params=cirq.ParamResolver({'v': 0}), measurements={'m': np.array([[1]])}, job_id='job'
+    )
+    r2_s2 = cg.EngineResult(
+        params=cirq.ParamResolver({'v': 1}), measurements={'m': np.array([[1]])}, job_id='job'
+    )
+
+    results_grouped = [r1_s1, r1_s2, r2_s1, r2_s2]
+    mock_job.results_async.return_value = results_grouped
+    processor.run_sweep_async.return_value = mock_job
+
+    # Run batch
+    results = sampler.run_batch([circuit1, circuit2], [sweep, sweep], repetitions=1)
+
+    # results[0] should be for circuit1: [r1_s1, r1_s2]
+    # results[1] should be for circuit2: [r2_s1, r2_s2]
+    assert results[0] == [r1_s1, r1_s2]
+    assert results[1] == [r2_s1, r2_s2]
+
+
+@pytest.mark.parametrize('use_mapping', [True, False])
+def test_run_batch_with_jobs_per_batch_and_params(use_mapping: bool):
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
+    sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=2)
+    a = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.X(a))
+    circuit2 = cirq.Circuit(cirq.Y(a))
+    params1 = [cirq.ParamResolver({'t': 1})]
+
+    batch = {'a': circuit1, 'b': circuit2} if use_mapping else [circuit1, circuit2]
+
+    sampler.run_batch(batch, [params1, params1], repetitions=5)
+
+    processor.run_sweep_async.assert_called_once_with(
+        program=batch,
+        params=params1,
+        repetitions=5,
+        run_name='',
+        snapshot_id='',
+        device_config_name='',
+    )
+
+
+def test_run_batch_with_jobs_per_batch_different_params():
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
+    sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=2)
+    a = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.X(a))
+    circuit2 = cirq.Circuit(cirq.Y(a))
+    params1 = [cirq.ParamResolver({'t': 1})]
+    params2 = [cirq.ParamResolver({'t': 2})]
+
+    sampler.run_batch([circuit1, circuit2], [params1, params2], repetitions=5)
+
+    assert processor.run_sweep_async.call_count == 2
+    processor.run_sweep_async.assert_any_call(
+        program=[circuit1],
+        params=params1,
+        repetitions=5,
+        run_name='',
+        snapshot_id='',
+        device_config_name='',
+    )
+    processor.run_sweep_async.assert_any_call(
+        program=[circuit2],
+        params=params2,
+        repetitions=5,
+        run_name='',
+        snapshot_id='',
+        device_config_name='',
+    )
+
+
+def test_run_batch_with_jobs_per_batch_different_repetitions():
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
+    sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=2)
+    a = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.X(a))
+    circuit2 = cirq.Circuit(cirq.Y(a))
+
+    sampler.run_batch([circuit1, circuit2], repetitions=[5, 10])
+
+    assert processor.run_sweep_async.call_count == 2
+    processor.run_sweep_async.assert_any_call(
+        program=[circuit1],
+        params=None,
+        repetitions=5,
+        run_name='',
+        snapshot_id='',
+        device_config_name='',
+    )
+    processor.run_sweep_async.assert_any_call(
+        program=[circuit2],
+        params=None,
+        repetitions=10,
+        run_name='',
+        snapshot_id='',
+        device_config_name='',
+    )
+
+
 @duet.sync
 async def test_sampler_with_full_job_queue_blocks():
-    processor = mock.create_autospec(AbstractProcessor)
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
     sampler = cg.ProcessorSampler(processor=processor, max_concurrent_jobs=2)
 
     async def wait_forever(**kwargs):
@@ -195,7 +348,7 @@ async def test_sampler_with_full_job_queue_blocks():
 
 @duet.sync
 async def test_sampler_with_job_queue_availability_runs_all():
-    processor = mock.create_autospec(AbstractProcessor)
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
     sampler = cg.ProcessorSampler(processor=processor, max_concurrent_jobs=3)
 
     async def wait_forever(**kwargs):
@@ -215,7 +368,7 @@ async def test_sampler_with_job_queue_availability_runs_all():
 
 @duet.sync
 async def test_sampler_with_full_job_queue_unblocks_when_available():
-    processor = mock.create_autospec(AbstractProcessor)
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
     sampler = cg.ProcessorSampler(processor=processor, max_concurrent_jobs=2)
 
     job = mock.AsyncMock(EngineJob)
@@ -230,7 +383,7 @@ async def test_sampler_with_full_job_queue_unblocks_when_available():
 
 
 def test_processor_sampler_processor_property():
-    processor = mock.create_autospec(AbstractProcessor)
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
     sampler = cg.ProcessorSampler(processor=processor)
     assert sampler.processor is processor
 
@@ -249,10 +402,31 @@ def test_with_local_processor():
     'run_name, device_config_name', [('run_name', ''), ('', 'device_config_name')]
 )
 def test_processor_sampler_with_invalid_configuration_throws(run_name, device_config_name):
-    processor = mock.create_autospec(AbstractProcessor)
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
     with pytest.raises(
         ValueError, match='Cannot specify only one of `run_name` and `device_config_name`'
     ):
         cg.ProcessorSampler(
             processor=processor, run_name=run_name, device_config_name=device_config_name
         )
+
+
+@duet.sync
+async def test_run_batch_error_divisible():
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
+    sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=2)
+
+    a = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.X(a))
+    circuit2 = cirq.Circuit(cirq.Y(a))
+
+    job = mock.create_autospec(EngineJob, instance=True)
+    # Return 3 results for 2 programs. 3 % 2 != 0.
+    job.results_async.return_value = [mock.Mock()] * 3
+
+    processor.run_sweep_async.return_value = job
+
+    with pytest.raises(
+        ValueError, match="Engine returned 3 results, which is not divisible by 2 programs."
+    ):
+        await sampler.run_batch_async([circuit1, circuit2], [{}, {}], 5)

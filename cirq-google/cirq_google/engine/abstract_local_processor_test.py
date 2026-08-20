@@ -19,7 +19,6 @@ import datetime
 import pytest
 from google.protobuf.timestamp_pb2 import Timestamp
 
-import cirq
 from cirq_google.cloud import quantum
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
 
@@ -35,15 +34,6 @@ class NothingProcessor(AbstractLocalProcessor):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def get_calibration(self, *args, **kwargs):
-        pass
-
-    def get_latest_calibration(self, *args, **kwargs):
-        pass
-
-    def get_current_calibration(self, *args, **kwargs):
-        pass
-
     def get_device(self, *args, **kwargs):
         pass
 
@@ -51,9 +41,6 @@ class NothingProcessor(AbstractLocalProcessor):
         pass
 
     def health(self, *args, **kwargs):
-        pass
-
-    def list_calibrations(self, *args, **kwargs):
         pass
 
     async def run_sweep_async(self, *args, **kwargs):
@@ -123,16 +110,6 @@ def test_reservations():
 
     with pytest.raises(ValueError, match='does not exist'):
         p.update_reservation(reservation_id='invalid', allowlisted_users=users)
-
-    day = datetime.timedelta(hours=24)
-    with cirq.testing.assert_deprecated('Change whitelisted_users', deadline='v1.7'):
-        _ = p.create_reservation(
-            start_time=start_reservation + day,
-            end_time=end_reservation + day,
-            whitelisted_users=users,
-        )
-    with cirq.testing.assert_deprecated('Change whitelisted_users', deadline='v1.7'):
-        p.update_reservation(reservation_id=reservation.name, whitelisted_users=users)
 
 
 def test_list_reservations():

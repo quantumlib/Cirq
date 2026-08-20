@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import dataclasses
 import numbers
-from typing import Iterable, Mapping, TYPE_CHECKING
+from collections.abc import Iterable, Iterator, Mapping
+from typing import Any, TYPE_CHECKING
 
 import sympy
 
@@ -60,7 +61,7 @@ class InitObsSetting:
             f'observable={self.observable!r})'
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.dataclass_json_dict(self)
 
 
@@ -117,12 +118,12 @@ def _max_weight_state(states: Iterable[value.ProductState]) -> value.ProductStat
 
 def zeros_state(qubits: Iterable[cirq.Qid]):
     """Return the ProductState that is |00..00> on all qubits."""
-    return value.ProductState({q: value.KET_ZERO for q in qubits})
+    return value.ProductState(dict.fromkeys(qubits, value.KET_ZERO))
 
 
 def observables_to_settings(
     observables: Iterable[cirq.PauliString], qubits: Iterable[cirq.Qid]
-) -> Iterable[InitObsSetting]:
+) -> Iterator[InitObsSetting]:
     """Transform an observable to an InitObsSetting initialized in the
     all-zeros state.
     """
@@ -180,5 +181,5 @@ class _MeasurementSpec:
             f'circuit_params={self.circuit_params!r})'
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.dataclass_json_dict(self)

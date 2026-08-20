@@ -16,7 +16,8 @@
 from __future__ import annotations
 
 import collections
-from typing import Counter, Sequence
+from collections import Counter
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -102,7 +103,7 @@ class QPUResult:
                 'circuit that produced these results.'
             )
         result: Counter[int] = collections.Counter()
-        result.update([bit_value for bit_value in self.ordered_results(key)])
+        result.update(self.ordered_results(key))
         return result
 
     def measurement_dict(self) -> dict[str, Sequence[int]]:
@@ -138,7 +139,7 @@ class QPUResult:
         for key, targets in self.measurement_dict().items():
             qpu_results = self.ordered_results(key)
             measurements[key] = np.array(
-                list(cirq.big_endian_int_to_bits(x, bit_count=len(targets)) for x in qpu_results)
+                [cirq.big_endian_int_to_bits(x, bit_count=len(targets)) for x in qpu_results]
             )
         return cirq.ResultDict(params=params or cirq.ParamResolver({}), measurements=measurements)
 
@@ -215,7 +216,7 @@ class SimulatorResult:
                 'circuit that produced these results.'
             )
         targets = self._measurement_dict[key]
-        result: dict[int, float] = dict()
+        result: dict[int, float] = {}
         for value, probability in self._probabilities.items():
             bits = [(value >> (self.num_qubits() - target - 1)) & 1 for target in targets]
             bit_value = sum(bit * (1 << i) for i, bit in enumerate(bits[::-1]))
@@ -266,13 +267,13 @@ class SimulatorResult:
             )
         rand = cirq.value.parse_random_state(seed)
         measurements = {}
-        values, weights = zip(*list(self.probabilities().items()))
+        values, weights = zip(*self.probabilities().items())
 
         # normalize weights to sum to 1 if within tolerance because
         # IonQ's pauliexp gates results are not extremely precise
         total = sum(weights)
         if np.isclose(total, 1.0, rtol=0, atol=1e-5):
-            weights = tuple((w / total for w in weights))
+            weights = tuple(w / total for w in weights)
 
         indices = rand.choice(
             range(len(values)), p=weights, size=override_repetitions or self.repetitions()

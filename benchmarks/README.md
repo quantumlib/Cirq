@@ -1,36 +1,58 @@
 # Cirq Performance Benchmarks
 
-This directory concerns doing Cirq performance benchmarks with [Airspeed
-Velocity](https://asv.readthedocs.io/en/stable/index.html).
+This directory contains Cirq performance benchmarks established using the
+[pytest-benchmark] plugin for pytest.
 
 ## Overview
 
-The benchmark files (`bench_*.py`) stored in the current package
-(`benchmarks/*`) are used by ASV to run benchmark tests for Cirq. For more
-information on how to write new benchmarks, please refer [Writing benchmarks
-guide by ASV](https://asv.readthedocs.io/en/stable/writing_benchmarks.html)
+The benchmarks are defined by the `*_perf.py` files provided in this
+`benchmarks` package and its sub-folders.  The benchmark definitions are
+very similar to common pytest test functions, but they use an extra features
+from the pytest-benchmark plugin to collect code execution times and statistics.
+For more information on how to write new benchmarks, please refer to
+existing benchmark files and to the [pytest-benchmark] documentation
 
 ## Usage
 
-To run all benchmarks, navigate to the root Cirq directory at the command line
-and execute the following command:
+To run all benchmarks, navigate to the root Cirq directory in
+a shell and execute the following command:
 
 ```bash
-./check/asv_run
+pytest -p no:randomly --override-ini="python_files=*_perf.py" \
+    --benchmark-enable ./benchmarks
 ```
 
-You can also pass arguments to the `asv_run` script, which will be forwarded to
-the `asv run` command. Here's an example:
+This will run the entire benchmark suite which takes approximately
+30 minutes.  Note that it is important to pass the `--benchmark-enable`
+option as otherwise the code would run as a standard one-shot
+pytest and would not collect timing statistics (this may be preferable
+for benchmark development).  Some of the benchmarks are labeled with
+the `slow` marker and are by default deselected in a standard benchmark
+session.  The `slow` marker is applied for larger sizes of parametrized
+benchmarks, which are also covered at smaller computational scales, and
+are thus not critical for assessing performance trends.
+That said, to execute all benchmarks including the `slow` ones, use
 
 ```bash
-./check/asv_run --quick --bench bench_examples --python 3.11
+pytest -p no:randomly --override-ini="python_files=*_perf.py" \
+    --benchmark-enable --enable-slow-tests ./benchmarks
 ```
 
-Please refer to [Running Benchmarks guide by
-ASV](https://asv.readthedocs.io/en/stable/using.html#running-benchmarks) for
-more information.
+Finally, to run a single specific benchmark and save its results
+for later comparison, use the `--benchmark-autosave` option together
+with the pytest identifier of the benchmark, for example,
+
+```bash
+pytest -p no:randomly --benchmark-enable \
+    --benchmark-enable --benchmark-autosave \
+    "benchmarks/linalg_decompositions_perf.py::test_kak_decomposition[CNOT]"
+```
+
+Please refer to the [pytest-benchmark] documentation for further instructions
+on comparing and visualizing benchmark results.
 
 ## Results Database
 
-TODO([#3838](https://github.com/quantumlib/Cirq/issues/3838)): Add details
-regarding GCP setup.
+TODO: b/393456969 - provide pointers to the internal results database
+
+[pytest-benchmark]: https://pytest-benchmark.readthedocs.io/en/latest

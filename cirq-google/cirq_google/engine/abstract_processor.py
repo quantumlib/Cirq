@@ -13,15 +13,15 @@
 # limitations under the License.
 """Abstract interface for a quantum processor.
 
-This interface can run circuits, sweeps, batches, or calibration
-requests.  Inheritors of this interface should implement all
-methods.
+This interface can run circuits, sweeps and batches.
+Inheritors of this interface should implement all methods.
 """
 
 from __future__ import annotations
 
 import abc
 import datetime
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING
 
 import duet
@@ -34,7 +34,6 @@ if TYPE_CHECKING:
     import cirq_google.cloud.quantum as quantum
     import cirq_google.engine.abstract_engine as abstract_engine
     import cirq_google.engine.abstract_job as abstract_job
-    import cirq_google.engine.calibration as calibration
 
 
 class AbstractProcessor(abc.ABC):
@@ -42,14 +41,11 @@ class AbstractProcessor(abc.ABC):
 
     This quantum processor has the ability to execute single circuits
     (via the run method), parameter sweeps (via run_sweep), batched
-    lists of circuits (via run_batch), and calibration
-    requests (via run_calibration).  Running circuits can also be
+    lists of circuits (via run_batch).  Running circuits can also be
     done using the `cirq.Sampler` by calling get_sampler.
 
     The processor interface also includes methods to create, list,
     and remove reservations on the processor for dedicated access.
-    The processor can also list calibration metrics for the processor
-    given a time period.
 
     This is an abstract class.  Inheritors should implement abstract methods.
     """
@@ -126,7 +122,11 @@ class AbstractProcessor(abc.ABC):
     @abc.abstractmethod
     async def run_sweep_async(
         self,
-        program: cirq.AbstractCircuit,
+        program: (
+            cirq.AbstractCircuit
+            | Sequence[cirq.AbstractCircuit]
+            | Mapping[str, cirq.AbstractCircuit]
+        ),
         *,
         device_config_name: str,
         run_name: str = "",
@@ -180,17 +180,8 @@ class AbstractProcessor(abc.ABC):
     run_sweep = duet.sync(run_sweep_async)
 
     @abc.abstractmethod
-    def get_sampler(self, run_name: str = "", device_config_name: str = "") -> cg.ProcessorSampler:
-        """Returns a sampler backed by the processor.
-
-        Args:
-            run_name: A unique identifier representing an automation run for the
-                processor. An Automation Run contains a collection of device
-                configurations for the processor.
-            device_config_name: An identifier used to select the processor configuration
-                utilized to run the job. A configuration identifies the set of
-                available qubits, couplers, and supported gates in the processor.
-        """
+    def get_sampler(self) -> cg.ProcessorSampler:
+        """Returns a sampler backed by the processor."""
 
     @abc.abstractmethod
     def engine(self) -> abstract_engine.AbstractEngine | None:
@@ -238,45 +229,7 @@ class AbstractProcessor(abc.ABC):
             gate_sets: An iterable of serializers that can be used in the device.
 
         Returns:
-            A `cirq.Devive` representing the processor.
-        """
-
-    @abc.abstractmethod
-    def list_calibrations(
-        self,
-        earliest_timestamp: datetime.datetime | datetime.date | int | None = None,
-        latest_timestamp: datetime.datetime | datetime.date | int | None = None,
-    ) -> list[calibration.Calibration]:
-        """Retrieve metadata about a specific calibration run.
-
-        Args:
-            earliest_timestamp: The earliest timestamp of a calibration
-                to return in UTC.
-            latest_timestamp: The latest timestamp of a calibration to
-                return in UTC.
-
-        Returns:
-            The list of calibration data with the most recent first.
-        """
-
-    @abc.abstractmethod
-    def get_calibration(self, calibration_timestamp_seconds: int) -> calibration.Calibration:
-        """Retrieve metadata about a specific calibration run.
-
-        Args:
-            calibration_timestamp_seconds: The timestamp of the calibration in
-                seconds since epoch.
-
-        Returns:
-            The calibration data.
-        """
-
-    @abc.abstractmethod
-    def get_current_calibration(self) -> calibration.Calibration | None:
-        """Returns metadata about the current calibration for a processor.
-
-        Returns:
-            The calibration data or None if there is no current calibration.
+            A `cirq.Device` representing the processor.
         """
 
     @abc.abstractmethod

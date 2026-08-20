@@ -8,9 +8,6 @@
 -r packaging.txt
 -r ruff.txt
 
-# For testing and analyzing code.
-asv
-
 # For verifying behavior of qasm output.
 qiskit-aer~=0.17.0
 

@@ -33,6 +33,7 @@ def test_repr() -> None:
         cirq.InsertStrategy.NEW_THEN_INLINE,
         cirq.InsertStrategy.INLINE,
         cirq.InsertStrategy.EARLIEST,
+        cirq.InsertStrategy.LATEST,
     ],
     ids=lambda strategy: strategy.name,
 )

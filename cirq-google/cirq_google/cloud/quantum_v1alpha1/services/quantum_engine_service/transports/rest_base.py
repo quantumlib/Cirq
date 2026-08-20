@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2025 Google LLC
+# Copyright 2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,14 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import json
+import json  # type: ignore
 import re
-from typing import Any, Optional
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
+import google.protobuf.empty_pb2 as empty_pb2  # type: ignore
 from google.api_core import gapic_v1, path_template
 from google.protobuf import json_format
 
-from cirq_google.cloud.quantum_v1alpha1.types import engine
+from cirq_google.cloud.quantum_v1alpha1.types import engine, quantum
 
 from .base import DEFAULT_CLIENT_INFO, QuantumEngineServiceTransport
 
@@ -90,8 +91,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {
                     'method': 'post',
                     'uri': '/v1alpha1/{name=projects/*/programs/*/jobs/*}:cancel',
@@ -131,8 +132,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {
                     'method': 'post',
                     'uri': '/v1alpha1/{name=projects/*/processors/*/reservations/*}:cancel',
@@ -167,13 +168,54 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
 
+    class _BaseCompileQecProgram:
+        def __hash__(self):  # pragma: NO COVER
+            return NotImplementedError("__hash__ must be implemented.")
+
+        @staticmethod
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
+                {
+                    'method': 'post',
+                    'uri': '/v1alpha1/{name=projects/*}/programs:compileQecProgram',
+                    'body': '*',
+                }
+            ]
+            return http_options
+
+        @staticmethod
+        def _get_transcoded_request(http_options, request):
+            pb_request = engine.CompileQecProgramRequest.pb(request)
+            transcoded_request = path_template.transcode(http_options, pb_request)
+            return transcoded_request
+
+        @staticmethod
+        def _get_request_body_json(transcoded_request):
+            # Jsonify the request body
+
+            body = json_format.MessageToJson(
+                transcoded_request['body'], use_integers_for_enums=True
+            )
+            return body
+
+        @staticmethod
+        def _get_query_params_json(transcoded_request):
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
+
+            query_params["$alt"] = "json;enum-encoding=int"
+            return query_params
+
     class _BaseCreateQuantumJob:
         def __hash__(self):  # pragma: NO COVER
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {
                     'method': 'post',
                     'uri': '/v1alpha1/{parent=projects/*/programs/*}/jobs',
@@ -213,8 +255,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {
                     'method': 'post',
                     'uri': '/v1alpha1/{parent=projects/*}/programs',
@@ -254,8 +296,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {
                     'method': 'post',
                     'uri': '/v1alpha1/{parent=projects/*/processors/*}/reservations',
@@ -295,8 +337,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {'method': 'delete', 'uri': '/v1alpha1/{name=projects/*/programs/*/jobs/*}'}
             ]
             return http_options
@@ -323,8 +365,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {'method': 'delete', 'uri': '/v1alpha1/{name=projects/*/programs/*}'}
             ]
             return http_options
@@ -351,8 +393,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {
                     'method': 'delete',
                     'uri': '/v1alpha1/{name=projects/*/processors/*/reservations/*}',
@@ -382,8 +424,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {'method': 'get', 'uri': '/v1alpha1/{name=projects/*/processors/*/calibrations/*}'}
             ]
             return http_options
@@ -410,8 +452,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {'method': 'get', 'uri': '/v1alpha1/{name=projects/*/programs/*/jobs/*}'}
             ]
             return http_options
@@ -438,8 +480,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {'method': 'get', 'uri': '/v1alpha1/{name=projects/*/processors/*}'}
             ]
             return http_options
@@ -465,7 +507,7 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
         def __hash__(self):  # pragma: NO COVER
             return NotImplementedError("__hash__ must be implemented.")
 
-        __REQUIRED_FIELDS_DEFAULT_VALUES: dict[str, Any] = {}
+        __REQUIRED_FIELDS_DEFAULT_VALUES: Dict[str, Any] = {}
 
         @classmethod
         def _get_unset_required_fields(cls, message_dict):
@@ -476,15 +518,15 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             }
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {
                     'method': 'get',
                     'uri': '/v1alpha1/{name=projects/*/processors/*/configSnapshots/*/configs/*}',
                 },
                 {
                     'method': 'get',
-                    'uri': '/v1alpha1/{name=projects/*/processors/*/configAutomationRuns/*/configs/*}',  # noqa E501
+                    'uri': '/v1alpha1/{name=projects/*/processors/*/configAutomationRuns/*/configs/*}',
                 },
             ]
             return http_options
@@ -516,8 +558,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {'method': 'get', 'uri': '/v1alpha1/{name=projects/*/programs/*}'}
             ]
             return http_options
@@ -544,8 +586,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {'method': 'get', 'uri': '/v1alpha1/{name=projects/*/processors/*/reservations/*}'}
             ]
             return http_options
@@ -572,8 +614,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {'method': 'get', 'uri': '/v1alpha1/{parent=projects/*/programs/*/jobs/*}/result'}
             ]
             return http_options
@@ -600,8 +642,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {'method': 'get', 'uri': '/v1alpha1/{parent=projects/*/processors/*}/calibrations'}
             ]
             return http_options
@@ -628,8 +670,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {'method': 'get', 'uri': '/v1alpha1/{parent=projects/*/programs/*/jobs/*}/events'}
             ]
             return http_options
@@ -656,8 +698,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {'method': 'get', 'uri': '/v1alpha1/{parent=projects/*/programs/*}/jobs'}
             ]
             return http_options
@@ -679,13 +721,94 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             query_params["$alt"] = "json;enum-encoding=int"
             return query_params
 
+    class _BaseListQuantumProcessorAutomationRunHistory:
+        def __hash__(self):  # pragma: NO COVER
+            return NotImplementedError("__hash__ must be implemented.")
+
+        @staticmethod
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
+                {
+                    'method': 'get',
+                    'uri': '/v1alpha1/{parent=projects/*/processors/*/configAutomationRuns/*}/history',
+                }
+            ]
+            return http_options
+
+        @staticmethod
+        def _get_transcoded_request(http_options, request):
+            pb_request = engine.ListQuantumProcessorAutomationRunHistoryRequest.pb(request)
+            transcoded_request = path_template.transcode(http_options, pb_request)
+            return transcoded_request
+
+        @staticmethod
+        def _get_query_params_json(transcoded_request):
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
+
+            query_params["$alt"] = "json;enum-encoding=int"
+            return query_params
+
+    class _BaseListQuantumProcessorConfigs:
+        def __hash__(self):  # pragma: NO COVER
+            return NotImplementedError("__hash__ must be implemented.")
+
+        __REQUIRED_FIELDS_DEFAULT_VALUES: Dict[str, Any] = {}
+
+        @classmethod
+        def _get_unset_required_fields(cls, message_dict):
+            return {
+                k: v
+                for k, v in cls.__REQUIRED_FIELDS_DEFAULT_VALUES.items()
+                if k not in message_dict
+            }
+
+        @staticmethod
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
+                {
+                    'method': 'get',
+                    'uri': '/v1alpha1/{parent=projects/*/processors/*/configSnapshots/*}/configs',
+                },
+                {
+                    'method': 'get',
+                    'uri': '/v1alpha1/{parent=projects/*/processors/*/configAutomationRuns/*}/configs',
+                },
+            ]
+            return http_options
+
+        @staticmethod
+        def _get_transcoded_request(http_options, request):
+            pb_request = engine.ListQuantumProcessorConfigsRequest.pb(request)
+            transcoded_request = path_template.transcode(http_options, pb_request)
+            return transcoded_request
+
+        @staticmethod
+        def _get_query_params_json(transcoded_request):
+            query_params = json.loads(
+                json_format.MessageToJson(
+                    transcoded_request['query_params'], use_integers_for_enums=True
+                )
+            )
+            query_params.update(
+                _BaseQuantumEngineServiceRestTransport._BaseListQuantumProcessorConfigs._get_unset_required_fields(
+                    query_params
+                )
+            )
+
+            query_params["$alt"] = "json;enum-encoding=int"
+            return query_params
+
     class _BaseListQuantumProcessors:
         def __hash__(self):  # pragma: NO COVER
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {'method': 'get', 'uri': '/v1alpha1/{parent=projects/*}/processors'}
             ]
             return http_options
@@ -712,8 +835,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {'method': 'get', 'uri': '/v1alpha1/{parent=projects/*}/programs'}
             ]
             return http_options
@@ -740,8 +863,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {'method': 'get', 'uri': '/v1alpha1/{parent=projects/*}/reservationBudgets'}
             ]
             return http_options
@@ -768,8 +891,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {'method': 'get', 'uri': '/v1alpha1/{parent=projects/*}/reservationGrant'}
             ]
             return http_options
@@ -796,8 +919,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {'method': 'get', 'uri': '/v1alpha1/{parent=projects/*/processors/*}/reservations'}
             ]
             return http_options
@@ -824,8 +947,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {'method': 'get', 'uri': '/v1alpha1/{parent=projects/*/processors/*}/timeSlots'}
             ]
             return http_options
@@ -856,8 +979,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {
                     'method': 'post',
                     'uri': '/v1alpha1/{name=projects/*/reservationGrant/*}:reallocate',
@@ -897,8 +1020,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {
                     'method': 'patch',
                     'uri': '/v1alpha1/{name=projects/*/programs/*/jobs/*}',
@@ -938,8 +1061,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {
                     'method': 'patch',
                     'uri': '/v1alpha1/{name=projects/*/programs/*}',
@@ -979,8 +1102,8 @@ class _BaseQuantumEngineServiceRestTransport(QuantumEngineServiceTransport):
             return NotImplementedError("__hash__ must be implemented.")
 
         @staticmethod
-        def _get_http_options() -> list[dict[str, str]]:
-            http_options: list[dict[str, str]] = [
+        def _get_http_options():
+            http_options: List[Dict[str, str]] = [
                 {
                     'method': 'patch',
                     'uri': '/v1alpha1/{name=projects/*/processors/*/reservations/*}',

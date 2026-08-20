@@ -67,7 +67,7 @@ def test_tilted_square_methods() -> None:
 
 
 def test_tilted_square_lattice_n_nodes() -> None:
-    for width, height in itertools.product(list(range(1, 4 + 1)), repeat=2):
+    for width, height in itertools.product(range(1, 4 + 1), repeat=2):
         topo = TiltedSquareLattice(width, height)
         assert topo.n_nodes == topo.graph.number_of_nodes()
 
@@ -108,7 +108,7 @@ def test_draw_gridlike(tilted) -> None:
     ax = MagicMock()
     pos = draw_gridlike(graph, tilted=tilted, ax=ax)
     ax.scatter.assert_called()
-    for (row, column), _ in pos.items():
+    for row, column in pos.keys():  # type: ignore[misc]
         assert 0 <= row < 3
         assert 0 <= column < 3
 
@@ -120,7 +120,8 @@ def test_draw_gridlike_qubits(tilted) -> None:
     ax = MagicMock()
     pos = draw_gridlike(graph, tilted=tilted, ax=ax)
     ax.scatter.assert_called()
-    for q, _ in pos.items():
+    for q in pos.keys():
+        assert isinstance(q, cirq.GridQubit)
         assert 0 <= q.row < 3
         assert 0 <= q.col < 3
 

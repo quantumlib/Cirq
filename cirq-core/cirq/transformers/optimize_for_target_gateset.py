@@ -16,7 +16,8 @@
 
 from __future__ import annotations
 
-from typing import Callable, Hashable, Sequence, TYPE_CHECKING
+from collections.abc import Callable, Hashable, Sequence
+from typing import TYPE_CHECKING
 
 from cirq import circuits
 from cirq.protocols import decompose_protocol as dp

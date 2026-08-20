@@ -16,9 +16,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, overload
-
-from typing_extensions import Protocol
+from collections.abc import Callable
+from typing import Any, overload, Protocol
 
 from cirq import _compat, protocols
 

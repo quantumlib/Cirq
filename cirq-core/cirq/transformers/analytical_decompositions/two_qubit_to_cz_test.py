@@ -95,7 +95,7 @@ def _random_double_full_cz_effect():
     )
 
 
-def assert_cz_depth_below(operations, threshold, must_be_full):
+def assert_cz_depth_below(operations, threshold, must_be_full) -> None:
     total_cz = 0
 
     for op in operations:
@@ -110,7 +110,7 @@ def assert_cz_depth_below(operations, threshold, must_be_full):
     assert total_cz <= threshold
 
 
-def assert_ops_implement_unitary(q0, q1, operations, intended_effect, atol=0.01):
+def assert_ops_implement_unitary(q0, q1, operations, intended_effect, atol=0.01) -> None:
     actual_effect = _operations_to_matrix(operations, (q0, q1))
     assert cirq.allclose_up_to_global_phase(actual_effect, intended_effect, atol=atol)
 
@@ -273,7 +273,7 @@ def test_decompose_to_diagonal_and_circuit(v) -> None:
 )
 def test_decompose_to_diagonal_and_circuit_returns_circuit_with_expected_number_of_czs(
     mat, num_czs
-):
+) -> None:
     b, c = cirq.LineQubit.range(2)
     _, ops = two_qubit_matrix_to_diagonal_and_cz_operations(b, c, mat, atol=1e-8)
     circuit = cirq.Circuit(ops)

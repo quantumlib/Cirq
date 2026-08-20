@@ -21,7 +21,8 @@ from __future__ import annotations
 
 import dataclasses
 import math
-from typing import Any, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 import quimb.tensor as qtn
@@ -42,7 +43,7 @@ class MPSOptions:
 
     # How to split the tensor. Refer to the Quimb documentation for the exact meaning.
     method: str = 'svds'
-    # If integer, the maxmimum number of singular values to keep, regardless of ``cutoff``.
+    # If integer, the maximum number of singular values to keep, regardless of ``cutoff``.
     max_bond: int | None = None
     # Method with which to apply the cutoff threshold. Refer to the Quimb documentation.
     cutoff_mode: str = 'rsum2'
@@ -142,7 +143,7 @@ class MPSSimulator(
 
 
 class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState']):
-    """A single trial reult"""
+    """A single trial result"""
 
     def __init__(
         self,
@@ -183,7 +184,7 @@ class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState']):
         super().__init__(sim_state)
 
     @property
-    def state(self):
+    def state(self) -> MPSState:
         return self._merged_sim_state
 
     def __str__(self) -> str:
@@ -390,7 +391,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         """
 
         old_inds = tuple(map(self.i_str, axes))
-        new_inds = tuple(['new_' + old_ind for old_ind in old_inds])
+        new_inds = tuple('new_' + old_ind for old_ind in old_inds)
 
         if protocols.has_unitary(op):
             U = protocols.unitary(op)
@@ -426,7 +427,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
 
                 T = U @ self._M[n] @ self._M[p]
 
-                left_inds = tuple(set(T.inds) & set(self._M[n].inds)) + (new_inds[0],)
+                left_inds = (*set(T.inds).intersection(self._M[n].inds), new_inds[0])
                 X, Y = T.split(
                     left_inds,
                     method=self._simulation_options.method,
@@ -465,8 +466,8 @@ class _MPSHandler(qis.QuantumStateRepresentation):
     def estimation_stats(self):  # pragma: no cover
         """Returns some statistics about the memory usage and quality of the approximation."""
 
-        num_coefs_used = sum([Mi.data.size for Mi in self._M])
-        memory_bytes = sum([Mi.data.nbytes for Mi in self._M])
+        num_coefs_used = sum(Mi.data.size for Mi in self._M)
+        memory_bytes = sum(Mi.data.nbytes for Mi in self._M)
 
         # The computation below is done for numerical stability, instead of directly using the
         # formula:
@@ -646,10 +647,10 @@ class MPSState(SimulationState[_MPSHandler]):
         """Delegates the action to self.apply_op"""
         return self._state.apply_op(action, self.get_axes(qubits), self.prng)
 
-    def estimation_stats(self):
+    def estimation_stats(self) -> dict[str, float]:
         """Returns some statistics about the memory usage and quality of the approximation."""
         return self._state.estimation_stats()
 
     @property
-    def M(self):
+    def M(self) -> list[qtn.Tensor]:
         return self._state._M

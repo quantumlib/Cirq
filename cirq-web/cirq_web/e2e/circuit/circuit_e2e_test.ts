@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import puppeteer from 'puppeteer';
-import {expect} from 'chai';
+import {beforeAll, describe, it, expect} from 'vitest';
 import {readFileSync} from 'fs';
 import pixelmatch from 'pixelmatch';
 import * as PNG from 'pngjs';
@@ -49,55 +49,53 @@ function htmlContent(clientCode: string) {
 temp.track();
 
 describe('Circuit', () => {
-  temp.mkdir('tmp', (err, dirPath) => {
-    const outputPath = path.join(dirPath, 'circuit');
+  const dirPath = temp.mkdirSync('tmp');
+  const outputPath = path.join(dirPath, 'circuit');
 
-    before(async () => {
-      const browser = await puppeteer.launch({args: ['--app']});
-      const page = await browser.newPage();
+  beforeAll(async () => {
+    const browser = await puppeteer.launch({args: ['--app']});
+    const page = await browser.newPage();
 
-      // Take a screenshot of the first image
-      await page.setContent(
-        htmlContent(`
+    await page.setContent(
+      htmlContent(`
       const circuit = createGridCircuit(
         [
             {
-                'wire_symbols': ['Z'], 
-                'location_info': [{'row': 2, 'col': 3}], 
-                'color_info': ['cyan'], 
+                'wire_symbols': ['Z'],
+                'location_info': [{'row': 2, 'col': 3}],
+                'color_info': ['cyan'],
                 'moment': 0
             },
-            {   
-                'wire_symbols': ['X'], 
-                'location_info': [{'row': 2, 'col': 3}], 
-                'color_info': ['black'], 
+            {
+                'wire_symbols': ['X'],
+                'location_info': [{'row': 2, 'col': 3}],
+                'color_info': ['black'],
                 'moment': 1
             },
-            {   
-                'wire_symbols': ['@', 'X'], 
-                'location_info': [{'row': 3, 'col': 0}, {'row': 0, 'col': 0}], 
-                'color_info': ['black', 'black'], 
+            {
+                'wire_symbols': ['@', 'X'],
+                'location_info': [{'row': 3, 'col': 0}, {'row': 0, 'col': 0}],
+                'color_info': ['black', 'black'],
                 'moment': 0
             },
         ], 5, 'mycircuitdiv'
         );
       `),
-      );
-      await page.screenshot({path: `${outputPath}.png`});
-      await browser.close();
+    );
+    await page.screenshot({path: `${outputPath}.png`});
+    await browser.close();
+  });
+
+  it('with limited gates matches the gold copy', () => {
+    const expected = PNG.PNG.sync.read(readFileSync('e2e/circuit/circuit_expected.png'));
+    const actual = PNG.PNG.sync.read(readFileSync(`${outputPath}.png`));
+    const {width, height} = expected;
+    const diff = new PNG.PNG({width, height});
+
+    const pixels = pixelmatch(expected.data, actual.data, diff.data, width, height, {
+      threshold: 0.1,
     });
 
-    it('with limited gates matches the gold copy', () => {
-      const expected = PNG.PNG.sync.read(readFileSync('e2e/circuit/circuit_expected.png'));
-      const actual = PNG.PNG.sync.read(readFileSync(`${outputPath}.png`));
-      const {width, height} = expected;
-      const diff = new PNG.PNG({width, height});
-
-      const pixels = pixelmatch(expected.data, actual.data, diff.data, width, height, {
-        threshold: 0.1,
-      });
-
-      expect(pixels).to.equal(0);
-    });
+    expect(pixels).toBe(0);
   });
 });
