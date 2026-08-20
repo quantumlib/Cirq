@@ -177,7 +177,6 @@ jobs:
     name: YAML lint
     runs-on: ubuntu-slim
     timeout-minutes: 5
-    continue-on-error: true
     steps:
       - name: Check out source repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -186,7 +185,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --no-install-recommends -y yamllint
       - name: Run yamllint
-        run: yamllint -f github . CITATION.cff
+        run: yamllint . CITATION.cff
   isolated-modules:
     if: github.repository_owner == 'quantumlib'
     name: Isolated pytest Ubuntu
