@@ -22,6 +22,8 @@ import cirq
 from cirq import value
 from cirq.testing import assert_has_consistent_trace_distance_bound
 
+_NUMPY_SCALAR_TYPES = (np.float32, np.float64, np.double, np.int32, np.int64, np.short)
+
 
 class CExpZinGate(cirq.EigenGate, cirq.testing.TwoQubitGate):
     """Two-qubit gate for the following matrix:
@@ -344,9 +346,15 @@ def test_is_parameterized() -> None:
     assert not cirq.is_parameterized(CExpZinGate(0))
     assert not cirq.is_parameterized(CExpZinGate(1))
     assert not cirq.is_parameterized(CExpZinGate(3))
-    assert not cirq.is_parameterized(CExpZinGate(np.double(1)))
-    assert not cirq.is_parameterized(CExpZinGate(np.int64(1)))
     assert cirq.is_parameterized(CExpZinGate(sympy.Symbol('a')))
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_SCALAR_TYPES)
+def test_is_parameterized_numpy(dtype) -> None:
+    gate = CExpZinGate(dtype(1))
+    assert not cirq.is_parameterized(gate)
+    assert isinstance(gate.exponent, np.number)
+    assert type(gate.exponent) is dtype
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
@@ -354,26 +362,28 @@ def test_resolve_parameters(resolve_fn) -> None:
     assert resolve_fn(
         CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': 0.5})
     ) == CExpZinGate(0.5)
-    assert resolve_fn(
-        CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': np.double(0.5)})
-    ) == CExpZinGate(0.5)
-    assert resolve_fn(
-        CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': np.float64(0.5)})
-    ) == CExpZinGate(0.5)
-    assert resolve_fn(
-        CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': np.int64(1)})
-    ) == CExpZinGate(1)
-    assert resolve_fn(
-        CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': np.short(1)})
-    ) == CExpZinGate(1)
 
     assert resolve_fn(CExpZinGate(0.25), cirq.ParamResolver({})) == CExpZinGate(0.25)
-    assert resolve_fn(CExpZinGate(np.double(0.25)), cirq.ParamResolver({})) == CExpZinGate(
-        np.double(0.25)
-    )
 
     with pytest.raises(ValueError, match='Complex exponent'):
         resolve_fn(CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': 0.5j}))
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_SCALAR_TYPES)
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve_parameters_numpy(resolve_fn, dtype) -> None:
+    resolved = resolve_fn(CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': dtype(1)}))
+    assert resolved == CExpZinGate(1)
+    identity = resolve_fn(CExpZinGate(dtype(1)), cirq.ParamResolver({}))
+    assert identity == CExpZinGate(dtype(1))
+    assert type(identity.exponent) is dtype
+
+
+@pytest.mark.parametrize('dtype', (np.float32, np.float64, np.double))
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve_parameters_numpy_half(resolve_fn, dtype) -> None:
+    resolved = resolve_fn(CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': dtype(0.5)}))
+    assert resolved == CExpZinGate(0.5)
 
 
 class WeightedZPowGate(cirq.EigenGate, cirq.testing.SingleQubitGate):

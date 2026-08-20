@@ -20,8 +20,16 @@ import sympy
 
 import cirq
 
-_NUMPY_FLOAT_TYPES = (np.float64, np.double)
-_NUMPY_INT_TYPES = (np.int64, np.short)
+_NUMPY_FLOAT_TYPES = (np.float32, np.float64, np.double)
+_NUMPY_INT_TYPES = (np.int32, np.int64, np.short)
+_NUMPY_NUMBER_SAMPLES = (
+    np.float32(0.5),
+    np.float64(0.5),
+    np.double(1.5),
+    np.int32(1),
+    np.int64(3),
+    np.short(-1),
+)
 
 
 def test_canonicalize_half_turns() -> None:
@@ -50,7 +58,21 @@ def _assert_canonical_numpy(original, result, expected) -> None:
 @pytest.mark.parametrize('dtype', _NUMPY_FLOAT_TYPES)
 @pytest.mark.parametrize(
     'value,expected',
-    [(0.0, 0.0), (1.0, 1.0), (-1.0, 1.0), (0.5, 0.5), (1.5, -0.5), (-0.5, -0.5), (101.5, -0.5)],
+    [
+        (0.0, 0.0),
+        (1.0, 1.0),
+        (-1.0, 1.0),
+        (0.5, 0.5),
+        (1.5, -0.5),
+        (-0.5, -0.5),
+        (101.5, -0.5),
+        (2.0, 0.0),
+        (2.5, 0.5),
+        (-1.5, 0.5),
+        (-2.0, 0.0),
+        (3.0, 1.0),
+        (-3.0, 1.0),
+    ],
 )
 def test_canonicalize_half_turns_numpy_floats(dtype, value, expected) -> None:
     original = dtype(value)
@@ -58,10 +80,51 @@ def test_canonicalize_half_turns_numpy_floats(dtype, value, expected) -> None:
 
 
 @pytest.mark.parametrize('dtype', _NUMPY_INT_TYPES)
-@pytest.mark.parametrize('value,expected', [(0, 0), (1, 1), (-1, 1), (2, 0), (3, 1)])
+@pytest.mark.parametrize(
+    'value,expected', [(0, 0), (1, 1), (-1, 1), (2, 0), (3, 1), (4, 0), (5, 1), (-2, 0), (-3, 1)]
+)
 def test_canonicalize_half_turns_numpy_ints(dtype, value, expected) -> None:
     original = dtype(value)
     _assert_canonical_numpy(original, cirq.canonicalize_half_turns(original), expected)
+
+
+@pytest.mark.parametrize('val', _NUMPY_NUMBER_SAMPLES)
+def test_canonicalize_half_turns_numpy_number_instances(val) -> None:
+    assert isinstance(val, np.number)
+    result = cirq.canonicalize_half_turns(val)
+    assert isinstance(result, np.number)
+    assert type(result) is type(val)
+    assert -1 < result <= 1
+    assert (float(result) - float(val)) % 2 == pytest.approx(0)
+
+
+def test_tparamval_includes_numpy_number() -> None:
+    assert np.number in cirq.TParamVal.__args__
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_FLOAT_TYPES + _NUMPY_INT_TYPES)
+def test_tparamval_numpy_scalar_as_gate_exponent(dtype) -> None:
+    val = dtype(1)
+    assert isinstance(val, np.number)
+    gate = cirq.XPowGate(exponent=val)
+    stored: cirq.TParamVal = gate.exponent
+    assert stored == val
+    assert type(stored) is dtype
+    assert not cirq.is_parameterized(gate)
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_FLOAT_TYPES)
+def test_chosen_angle_to_canonical_half_turns_numpy_floats(dtype) -> None:
+    original = dtype(1.5)
+    result = cirq.chosen_angle_to_canonical_half_turns(half_turns=original)
+    _assert_canonical_numpy(original, result, -0.5)
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_INT_TYPES)
+def test_chosen_angle_to_canonical_half_turns_numpy_ints(dtype) -> None:
+    original = dtype(3)
+    result = cirq.chosen_angle_to_canonical_half_turns(half_turns=original)
+    _assert_canonical_numpy(original, result, 1)
 
 
 def test_chosen_angle_to_half_turns() -> None:

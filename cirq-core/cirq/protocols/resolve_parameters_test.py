@@ -20,7 +20,7 @@ import sympy
 
 import cirq
 
-_NUMPY_SCALAR_TYPES = (np.float64, np.double, np.int64, np.short)
+_NUMPY_SCALAR_TYPES = (np.float32, np.float64, np.double, np.int32, np.int64, np.short)
 _EIGEN_GATES = (
     cirq.XPowGate,
     cirq.YPowGate,
@@ -28,6 +28,9 @@ _EIGEN_GATES = (
     cirq.HPowGate,
     cirq.CZPowGate,
     cirq.CXPowGate,
+    cirq.SwapPowGate,
+    cirq.ISwapPowGate,
+    cirq.ZZPowGate,
 )
 
 
@@ -178,21 +181,75 @@ def test_numpy_exponent_is_not_parameterized(dtype) -> None:
 
 
 def test_numpy_double_exponent_float_isinstance_back_compat() -> None:
-    # Issue 5758 (Dax Fohl): users may treat np.double exponents as Python floats.
+    # https://github.com/quantumlib/Cirq/issues/5758#issuecomment-3608357176
     gate = cirq.XPowGate(exponent=np.double(0.5))
     is_parameterized = not isinstance(gate.exponent, float)
     assert is_parameterized is False
     assert not cirq.is_parameterized(gate)
     assert gate.exponent == 0.5
+    assert type(gate.exponent) is np.float64
 
 
+@pytest.mark.parametrize('dtype', (np.float32, np.int32, np.int64, np.short))
+def test_numpy_nonfloat64_exponent_cirq_is_parameterized(dtype) -> None:
+    gate = cirq.XPowGate(exponent=dtype(1))
+    assert not cirq.is_parameterized(gate)
+    assert isinstance(gate.exponent, np.number)
+    assert type(gate.exponent) is dtype
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_SCALAR_TYPES)
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
-def test_resolve_numpy_values_on_operations(resolve_fn) -> None:
+def test_resolve_numpy_values_on_operations(resolve_fn, dtype) -> None:
     q = cirq.LineQubit(0)
     a = sympy.Symbol('a')
     op = cirq.XPowGate(exponent=a).on(q)
-    resolved = resolve_fn(op, {'a': np.double(1)})
+    resolved = resolve_fn(op, {'a': dtype(1)})
     assert not cirq.is_parameterized(resolved)
     assert resolved == cirq.X(q)
-    half = resolve_fn(op, {'a': np.float64(0.5)})
+
+
+@pytest.mark.parametrize('dtype', (np.float32, np.float64, np.double))
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve_numpy_half_exponent_on_operations(resolve_fn, dtype) -> None:
+    q = cirq.LineQubit(0)
+    a = sympy.Symbol('a')
+    op = cirq.XPowGate(exponent=a).on(q)
+    half = resolve_fn(op, {'a': dtype(0.5)})
     assert half == cirq.XPowGate(exponent=0.5).on(q)
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_SCALAR_TYPES)
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve_numpy_values_on_phased_x(resolve_fn, dtype) -> None:
+    a = sympy.Symbol('a')
+    gate = cirq.PhasedXPowGate(phase_exponent=a, exponent=a)
+    resolved = resolve_fn(gate, {a: dtype(1)})
+    assert not cirq.is_parameterized(resolved)
+    assert resolved.exponent == 1.0
+    assert resolved.phase_exponent == 1
+
+
+@pytest.mark.parametrize('dtype', (np.float32, np.float64, np.double))
+def test_phased_x_numpy_phase_exponent_canonicalize(dtype) -> None:
+    gate = cirq.PhasedXPowGate(phase_exponent=dtype(1.5))
+    assert gate.phase_exponent == -0.5
+    assert type(gate.phase_exponent) is dtype
+    assert isinstance(gate.phase_exponent, np.number)
+
+
+@pytest.mark.parametrize('dtype', (np.int32, np.int64, np.short))
+def test_phased_x_numpy_int_phase_exponent_canonicalize(dtype) -> None:
+    gate = cirq.PhasedXPowGate(phase_exponent=dtype(3))
+    assert gate.phase_exponent == 1
+    assert type(gate.phase_exponent) is dtype
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_SCALAR_TYPES)
+def test_resolve_numpy_values_on_circuit(dtype) -> None:
+    q = cirq.LineQubit(0)
+    a = sympy.Symbol('a')
+    circuit = cirq.Circuit(cirq.XPowGate(exponent=a).on(q), cirq.HPowGate(exponent=a).on(q))
+    resolved = cirq.resolve_parameters(circuit, {a: dtype(1)})
+    assert not cirq.is_parameterized(resolved)
+    assert resolved == cirq.Circuit(cirq.X(q), cirq.H(q))
