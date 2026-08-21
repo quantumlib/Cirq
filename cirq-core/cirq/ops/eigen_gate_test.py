@@ -347,6 +347,8 @@ def test_is_parameterized() -> None:
     assert not cirq.is_parameterized(CExpZinGate(1))
     assert not cirq.is_parameterized(CExpZinGate(3))
     assert cirq.is_parameterized(CExpZinGate(sympy.Symbol('a')))
+    for dtype in _NUMPY_SCALAR_TYPES:
+        assert not cirq.is_parameterized(CExpZinGate(dtype(1)))
 
 
 @pytest.mark.parametrize('dtype', _NUMPY_SCALAR_TYPES)
@@ -367,6 +369,15 @@ def test_resolve_parameters(resolve_fn) -> None:
 
     with pytest.raises(ValueError, match='Complex exponent'):
         resolve_fn(CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': 0.5j}))
+
+    for dtype in _NUMPY_SCALAR_TYPES:
+        assert resolve_fn(
+            CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': dtype(1)})
+        ) == CExpZinGate(1)
+    for dtype in (np.float32, np.float64, np.double):
+        assert resolve_fn(
+            CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': dtype(0.5)})
+        ) == CExpZinGate(0.5)
 
 
 @pytest.mark.parametrize('dtype', _NUMPY_SCALAR_TYPES)

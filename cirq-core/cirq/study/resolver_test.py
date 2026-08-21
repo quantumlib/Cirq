@@ -140,10 +140,37 @@ def test_value_of_calculations() -> None:
     assert r.value_of(sympy.Symbol('b') / 0.1 - sympy.Symbol('a')) == 0.5
 
 
+@pytest.mark.parametrize(
+    'a_val,b_val',
+    [
+        (np.float32(0.5), np.float32(0.1)),
+        (np.float64(0.5), np.float64(0.1)),
+        (np.double(0.5), np.double(0.1)),
+        (np.int32(2), np.int32(4)),
+        (np.int64(2), np.int64(4)),
+        (np.short(2), np.short(4)),
+    ],
+)
+def test_value_of_calculations_numpy(a_val, b_val) -> None:
+    r = cirq.ParamResolver({'a': a_val, 'b': b_val})
+    a = sympy.Symbol('a')
+    b = sympy.Symbol('b')
+    assert r.value_of(a + b) == a_val + b_val
+    assert r.value_of(b - a) == b_val - a_val
+    assert r.value_of(a * b) == a_val * b_val
+
+
 def test_resolve_integer_division() -> None:
     r = cirq.ParamResolver({'a': 1, 'b': 2})
     resolved = r.value_of(sympy.Symbol('a') / sympy.Symbol('b'))
     assert resolved == 0.5
+
+
+@pytest.mark.parametrize('dtype', (np.float32, np.float64, np.double, np.int32, np.int64, np.short))
+def test_resolve_integer_division_numpy(dtype) -> None:
+    r = cirq.ParamResolver({'a': dtype(1), 'b': dtype(2)})
+    resolved = r.value_of(sympy.Symbol('a') / sympy.Symbol('b'))
+    assert resolved == pytest.approx(0.5)
 
 
 def test_resolve_symbol_division() -> None:
