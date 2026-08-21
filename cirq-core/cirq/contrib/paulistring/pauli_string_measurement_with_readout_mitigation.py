@@ -1206,6 +1206,9 @@ def generate_trex_and_readout_circuits(
 
         readout_circuits = [
             circuits.Circuit.from_moments(
+                # Note: An empty moment may be inserted here if readout_choices_i contains
+                # all false values. This is intentional to ensure the depth and measurement 
+                # timing of all readout circuits remain consistent and uniform.
                 circuits.Moment(
                     ops.X.on_each(
                         q for q, flip in zip(joint_basis_pauli, readout_choices_i) if flip
