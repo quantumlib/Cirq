@@ -23,8 +23,10 @@ from collections.abc import Iterable
 
 import cirq
 from cirq.protocols.circuit_diagram_info_protocol import CircuitDiagramInfoArgs
+from cirq_web.deprecation import deprecated_cirq_web_class, deprecated_cirq_web_function
 
 
+@deprecated_cirq_web_class
 @dataclasses.dataclass
 class SymbolInfo:
     """Organizes information about a symbol."""
@@ -59,6 +61,7 @@ class SymbolResolver(metaclass=abc.ABCMeta):
         """Converts cirq.Operation objects into SymbolInfo objects for serialization."""
 
 
+@deprecated_cirq_web_class
 class DefaultResolver(SymbolResolver):
     """Default symbol resolver implementation. Takes information
     from circuit_diagram_info, if unavailable, returns information representing
@@ -103,6 +106,7 @@ class DefaultResolver(SymbolResolver):
 DEFAULT_SYMBOL_RESOLVERS: Iterable[SymbolResolver] = (DefaultResolver(),)
 
 
+@deprecated_cirq_web_function
 def resolve_operation(operation: cirq.Operation, resolvers: Iterable[SymbolResolver]) -> SymbolInfo:
     """Builds a SymbolInfo object based off of a designated operation
     and list of resolvers. The latest resolver takes precedent.
@@ -126,6 +130,7 @@ def resolve_operation(operation: cirq.Operation, resolvers: Iterable[SymbolResol
     return symbol_info
 
 
+@deprecated_cirq_web_class
 class Operation3DSymbol:
     def __init__(self, wire_symbols, location_info, color_info, moment):
         """Gathers symbol information from an operation and builds an
