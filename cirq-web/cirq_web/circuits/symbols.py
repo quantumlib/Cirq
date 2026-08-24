@@ -19,9 +19,11 @@ from __future__ import annotations
 
 import abc
 import dataclasses
+import os
 from collections.abc import Iterable
 
 import cirq
+from cirq._compat import ALLOW_DEPRECATION_IN_TEST
 from cirq.protocols.circuit_diagram_info_protocol import CircuitDiagramInfoArgs
 from cirq_web.deprecation import deprecated_cirq_web_class, deprecated_cirq_web_function
 
@@ -103,7 +105,16 @@ class DefaultResolver(SymbolResolver):
         return symbol_info
 
 
+# This module may be imported during test discovery.
+# Allow call to the deprecated DefaultResolver below.
+_SAVE_ENVIRON = {k: os.environ[k] for k in [ALLOW_DEPRECATION_IN_TEST] if k in os.environ}
+os.environ[ALLOW_DEPRECATION_IN_TEST] = "True"
+
 DEFAULT_SYMBOL_RESOLVERS: Iterable[SymbolResolver] = (DefaultResolver(),)
+
+# restore os.environ as before and clean up extra variable
+del os.environ[ALLOW_DEPRECATION_IN_TEST]
+os.environ.update(_SAVE_ENVIRON)
 
 
 @deprecated_cirq_web_function
