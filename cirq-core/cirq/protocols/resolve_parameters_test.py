@@ -292,6 +292,34 @@ def test_numpy_nonfloat64_exponent_cirq_is_parameterized(dtype) -> None:
 
 
 @pytest.mark.parametrize('dtype', _NUMPY_SCALAR_TYPES)
+def test_numpy_exponent_float_isinstance_matrix(dtype) -> None:
+    """Records the `isinstance(gate.exponent, float)` outcome for each NumPy scalar type.
+
+    `EigenGate` stores the exponent object it is given, so this predicate holds exactly
+    when the NumPy scalar type subclasses Python `float` -- true for `np.float64` /
+    `np.double`, false for `np.float32` and the integer types. That is a property of
+    NumPy's type hierarchy and is the same before and after `TParamVal` was widened,
+    since widening the alias is an annotation-only change. See
+    https://github.com/quantumlib/Cirq/issues/5758#issuecomment-3608357176
+    """
+    gate = cirq.XPowGate(exponent=dtype(1))
+    assert type(gate.exponent) is dtype
+    assert isinstance(gate.exponent, float) == issubclass(dtype, float)
+    # cirq.is_parameterized reports correctly for every dtype.
+    assert not cirq.is_parameterized(gate)
+    assert cirq.parameter_names(gate) == set()
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_SCALAR_TYPES)
+def test_numpy_exponent_is_float_after_resolution(dtype) -> None:
+    """Resolving a symbol to a NumPy scalar normalizes the stored exponent to `float`."""
+    a = sympy.Symbol('a')
+    resolved = cirq.resolve_parameters(cirq.XPowGate(exponent=a), {a: dtype(1)})
+    assert type(resolved.exponent) is float
+    assert isinstance(resolved.exponent, float)
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_SCALAR_TYPES)
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
 def test_resolve_numpy_values_on_operations(resolve_fn, dtype) -> None:
     q0, q1, q2 = cirq.LineQubit.range(3)
