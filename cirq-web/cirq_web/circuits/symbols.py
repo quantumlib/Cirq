@@ -20,6 +20,7 @@ from __future__ import annotations
 import abc
 import dataclasses
 import os
+import warnings
 from collections.abc import Iterable
 
 import cirq
@@ -110,11 +111,19 @@ class DefaultResolver(SymbolResolver):
 _SAVE_ENVIRON = {k: os.environ[k] for k in [ALLOW_DEPRECATION_IN_TEST] if k in os.environ}
 os.environ[ALLOW_DEPRECATION_IN_TEST] = "True"
 
-DEFAULT_SYMBOL_RESOLVERS: Iterable[SymbolResolver] = (DefaultResolver(),)
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        message="(.|\n)*cirq-web is deprecated.",
+        category=DeprecationWarning,
+        module=__name__,
+    )
+    DEFAULT_SYMBOL_RESOLVERS: Iterable[SymbolResolver] = (DefaultResolver(),)
 
 # restore os.environ as before and clean up extra variable
 del os.environ[ALLOW_DEPRECATION_IN_TEST]
 os.environ.update(_SAVE_ENVIRON)
+del _SAVE_ENVIRON
 
 
 @deprecated_cirq_web_function
