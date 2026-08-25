@@ -18,6 +18,7 @@ import pytest
 
 import cirq
 import cirq_web
+from cirq_web.deprecation import assert_deprecated_cirq_web_warning
 
 
 class MockGateNoDiagramInfo(cirq.testing.SingleQubitGate):
@@ -30,6 +31,7 @@ class MockGateUnimplementedDiagramInfo(cirq.testing.SingleQubitGate):
         return NotImplemented
 
 
+@assert_deprecated_cirq_web_warning
 def test_Operation3DSymbol_basic() -> None:
     wire_symbols = ['X']
     location_info = [{'row': 0, 'col': 0}]
@@ -50,6 +52,7 @@ def test_Operation3DSymbol_basic() -> None:
     assert actual == expected
 
 
+@assert_deprecated_cirq_web_warning
 def test_resolve_operation_hadamard() -> None:
     mock_qubit = cirq.NamedQubit('mock')
     operation = cirq.H(mock_qubit)
@@ -64,6 +67,7 @@ def test_resolve_operation_hadamard() -> None:
     assert symbol_info.colors == expected_colors
 
 
+@assert_deprecated_cirq_web_warning
 def test_resolve_operation_x_pow() -> None:
     mock_qubit = cirq.NamedQubit('mock')
     operation = cirq.X(mock_qubit) ** 0.5
@@ -78,6 +82,7 @@ def test_resolve_operation_x_pow() -> None:
     assert symbol_info.colors == expected_colors
 
 
+@assert_deprecated_cirq_web_warning
 @pytest.mark.parametrize('custom_gate', [MockGateNoDiagramInfo, MockGateUnimplementedDiagramInfo])
 def test_resolve_operation_invalid_diagram_info(custom_gate) -> None:
     mock_qubit = cirq.NamedQubit('mock')
@@ -94,6 +99,7 @@ def test_resolve_operation_invalid_diagram_info(custom_gate) -> None:
     assert symbol_info.colors == expected_colors
 
 
+@assert_deprecated_cirq_web_warning
 def test_unresolvable_operation_() -> None:
     mock_qubit = cirq.NamedQubit('mock')
     operation = cirq.X(mock_qubit)

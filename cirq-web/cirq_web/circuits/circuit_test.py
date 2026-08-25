@@ -20,12 +20,14 @@ import pytest
 
 import cirq
 import cirq_web
+from cirq_web.deprecation import assert_deprecated_cirq_web_warning
 
 
 def strip_ws(string):
     return "".join(string.split())
 
 
+@assert_deprecated_cirq_web_warning
 def test_circuit_init_type() -> None:
     qubits = [cirq.GridQubit(x, y) for x in range(2) for y in range(2)]
     moment = cirq.Moment(cirq.H(qubits[0]))
@@ -35,6 +37,7 @@ def test_circuit_init_type() -> None:
     assert isinstance(circuit3d, cirq_web.Circuit3D)
 
 
+@assert_deprecated_cirq_web_warning
 @pytest.mark.parametrize('qubit', [cirq.GridQubit(0, 0), cirq.LineQubit(0)])
 def test_circuit_client_code(qubit) -> None:
     moment = cirq.Moment(cirq.H(qubit))
@@ -90,6 +93,7 @@ def test_circuit_client_code(qubit) -> None:
     assert strip_ws(circuit.get_client_code()) == strip_ws(expected_client_code)
 
 
+@assert_deprecated_cirq_web_warning
 def test_circuit_client_code_unsupported_qubit_type() -> None:
     moment = cirq.Moment(cirq.H(cirq.NamedQubit('q0')))
     circuit = cirq_web.Circuit3D(cirq.Circuit(moment))
@@ -98,6 +102,7 @@ def test_circuit_client_code_unsupported_qubit_type() -> None:
         circuit.get_client_code()
 
 
+@assert_deprecated_cirq_web_warning
 def test_circuit_client_code_escapes_wire_symbols() -> None:
     key = "</script><img src=x onerror=alert(1)>"
     circuit = cirq_web.Circuit3D(cirq.Circuit(cirq.measure(cirq.LineQubit(0), key=key)))
@@ -109,6 +114,7 @@ def test_circuit_client_code_escapes_wire_symbols() -> None:
     assert client_code.count('</script>') == 1
 
 
+@assert_deprecated_cirq_web_warning
 def test_circuit_default_bundle_name() -> None:
     qubits = [cirq.GridQubit(x, y) for x in range(2) for y in range(2)]
     moment = cirq.Moment(cirq.H(qubits[0]))

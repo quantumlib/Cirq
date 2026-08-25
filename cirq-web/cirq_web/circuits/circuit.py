@@ -25,8 +25,10 @@ from cirq_web.circuits.symbols import (
     resolve_operation,
     SymbolResolver,
 )
+from cirq_web.deprecation import deprecated_cirq_web_class
 
 
+@deprecated_cirq_web_class
 class Circuit3D(widget.Widget):
     """Takes cirq.Circuit objects and displays them in 3D."""
 

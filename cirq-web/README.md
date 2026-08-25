@@ -1,4 +1,12 @@
 <div align="center">
+
+| ⚠️ WARNING |
+|:----------:|
+| cirq-web is deprecated.  For more details or to provide feedback see https://github.com/quantumlib/Cirq/issues/8168 |
+
+</div>
+
+<div align="center">
 <img width="200px" alt="Cirq logo"
 src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color.svg">
 </div>
