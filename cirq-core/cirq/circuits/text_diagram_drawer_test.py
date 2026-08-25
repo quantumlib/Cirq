@@ -384,7 +384,7 @@ AB D
 
 
 def test_drawer_eq() -> None:
-    assert TextDiagramDrawer().__eq__(23) == NotImplemented
+    assert TextDiagramDrawer().__eq__(23) is NotImplemented
 
     eq = ct.EqualsTester()
 
