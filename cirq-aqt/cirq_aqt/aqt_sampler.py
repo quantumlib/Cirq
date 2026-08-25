@@ -405,7 +405,11 @@ class AQTSampler(cirq.Sampler):
         return measurements
 
     def run_sweep(
-        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+        self,
+        program: cirq.AbstractCircuit,
+        params: cirq.Sweepable,
+        repetitions: int = 1,
+        prng: np.random.Generator | None = None,
     ) -> Sequence[cirq.Result]:
         """Samples from the given Circuit.
 

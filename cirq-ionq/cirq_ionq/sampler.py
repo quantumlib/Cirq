@@ -22,6 +22,8 @@ import cirq
 from cirq_ionq import results
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq_ionq
 
 
@@ -69,7 +71,11 @@ class Sampler(cirq.Sampler):
         self._timeout_seconds = timeout_seconds
 
     def run_sweep(
-        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+        self,
+        program: cirq.AbstractCircuit,
+        params: cirq.Sweepable,
+        repetitions: int = 1,
+        prng: np.random.Generator | None = None,
     ) -> Sequence[cirq.Result]:
         """Samples from the given Circuit.
 

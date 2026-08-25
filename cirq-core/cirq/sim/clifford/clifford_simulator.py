@@ -76,6 +76,7 @@ class CliffordSimulator(
         initial_state: int | cirq.StabilizerChFormSimulationState,
         qubits: Sequence[cirq.Qid],
         classical_data: cirq.ClassicalDataStore,
+        prng: np.random.Generator | None = None,
     ) -> cirq.StabilizerChFormSimulationState:
         """Creates the StabilizerChFormSimulationState for a circuit.
 
@@ -97,7 +98,7 @@ class CliffordSimulator(
             return initial_state  # pragma: no cover
 
         return clifford.StabilizerChFormSimulationState(
-            prng=self._prng,
+            prng=prng if prng is not None else self._prng,
             classical_data=classical_data,
             qubits=qubits,
             initial_state=initial_state,
@@ -257,7 +258,7 @@ class CliffordState:
         self,
         op: cirq.Operation,
         measurements: dict[str, list[int]],
-        prng: np.random.RandomState,
+        prng: np.random.RandomState | np.random.Generator,
         collapse_state_vector=True,
     ) -> None:
         if not isinstance(op.gate, cirq.MeasurementGate):

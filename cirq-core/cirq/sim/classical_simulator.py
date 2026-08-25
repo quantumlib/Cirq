@@ -252,6 +252,7 @@ class ClassicalStateSimulator(
         initial_state: Any,
         qubits: Sequence[cirq.Qid],
         classical_data: cirq.ClassicalDataStore,
+        prng: np.random.Generator | None = None,
     ) -> ClassicalBasisSimState:
         """Creates a partial simulation state for the simulator.
 

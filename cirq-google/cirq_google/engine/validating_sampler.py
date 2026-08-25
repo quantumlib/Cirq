@@ -15,10 +15,14 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING
 
 import duet
 
 import cirq
+
+if TYPE_CHECKING:
+    import numpy as np
 
 VALIDATOR_TYPE = Callable[
     [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int | Sequence[int]], None
@@ -64,19 +68,24 @@ class ValidatingSampler(cirq.Sampler):
             self._validator(circuits, sweeps, repetitions)
 
     def run_sweep(
-        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+        self,
+        program: cirq.AbstractCircuit,
+        params: cirq.Sweepable,
+        repetitions: int = 1,
+        prng: np.random.Generator | None = None,
     ) -> Sequence[cirq.Result]:
         self._validate_circuit([program], [params], repetitions)
-        return self._sampler.run_sweep(program, params, repetitions)
+        return self._sampler.run_sweep(program, params, repetitions, prng)
 
     async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
         params_list: Sequence[cirq.Sweepable] | None = None,
         repetitions: int | Sequence[int] = 1,
+        prng: np.random.Generator | None = None,
     ) -> Sequence[Sequence[cirq.Result]]:
         params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
         self._validate_circuit(programs, params_list, repetitions)
-        return await self._sampler.run_batch_async(programs, params_list, repetitions)
+        return await self._sampler.run_batch_async(programs, params_list, repetitions, prng)
 
     run_batch = duet.sync(run_batch_async)

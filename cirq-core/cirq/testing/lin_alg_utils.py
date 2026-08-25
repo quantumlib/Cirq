@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from cirq import linalg, value
+from cirq.value import random_state as rs
 
 if TYPE_CHECKING:
     import cirq
@@ -42,8 +43,8 @@ def random_superposition(
     """
     random_state = value.parse_random_state(random_state)
 
-    state_vector = random_state.randn(dim).astype(complex)
-    state_vector += 1j * random_state.randn(dim)
+    state_vector = rs.get_random_normal_array(random_state, [dim]).astype(complex)
+    state_vector += 1j * rs.get_random_normal_array(random_state, [dim])
     state_vector /= np.linalg.norm(state_vector)
     return state_vector
 
@@ -66,7 +67,9 @@ def random_density_matrix(
     """
     random_state = value.parse_random_state(random_state)
 
-    mat = random_state.randn(dim, dim) + 1j * random_state.randn(dim, dim)
+    mat = rs.get_random_normal_array(random_state, (dim, dim)) + 1j * rs.get_random_normal_array(
+        random_state, (dim, dim)
+    )
     mat = mat @ mat.T.conj()
     return mat / np.trace(mat)
 
@@ -87,7 +90,9 @@ def random_unitary(dim: int, *, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = N
     """
     random_state = value.parse_random_state(random_state)
 
-    z = random_state.randn(dim, dim) + 1j * random_state.randn(dim, dim)
+    z = rs.get_random_normal_array(random_state, (dim, dim)) + 1j * rs.get_random_normal_array(
+        random_state, (dim, dim)
+    )
     q, r = np.linalg.qr(z)
     d = np.diag(r)
     return q * (d / abs(d))
@@ -113,14 +118,14 @@ def random_orthogonal(
     """
     random_state = value.parse_random_state(random_state)
 
-    m = random_state.randn(dim, dim)
+    m = rs.get_random_normal_array(random_state, (dim, dim))
     q, r = np.linalg.qr(m)
     d = np.diag(r)
     return q * (d / abs(d))
 
 
 def random_special_unitary(
-    dim: int, *, random_state: np.random.RandomState | None = None
+    dim: int, *, random_state: np.random.RandomState | np.random.Generator | None = None
 ) -> np.ndarray:
     """Returns a random special unitary distributed with Haar measure.
 

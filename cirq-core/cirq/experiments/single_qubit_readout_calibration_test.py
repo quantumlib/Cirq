@@ -47,7 +47,11 @@ class NoisySingleQubitReadoutSampler(cirq.Sampler):
         self.simulator = cirq.Simulator(seed=self.prng, split_untangled_states=False)
 
     def run_sweep(
-        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+        self,
+        program: cirq.AbstractCircuit,
+        params: cirq.Sweepable,
+        repetitions: int = 1,
+        prng: np.random.Generator | None = None,
     ) -> Sequence[cirq.Result]:
         results = self.simulator.run_sweep(program, params, repetitions)
         for result in results:

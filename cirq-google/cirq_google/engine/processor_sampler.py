@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import itertools
 from collections.abc import Mapping, Sequence
 from typing import cast, TYPE_CHECKING
 
@@ -22,6 +23,8 @@ import duet
 import cirq
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq_google as cg
 
 
@@ -82,6 +85,7 @@ class ProcessorSampler(cirq.Sampler):
         program: cirq.AbstractCircuit,
         params: cirq.Sweepable | Sequence[cirq.Sweepable],
         repetitions: int = 1,
+        prng: np.random.Generator | None = None,
     ) -> Sequence[cg.EngineResult]:
         return await self._run_sweep_async(program, params, repetitions)
 
@@ -115,6 +119,7 @@ class ProcessorSampler(cirq.Sampler):
         programs: Sequence[cirq.AbstractCircuit] | Mapping[str, cirq.AbstractCircuit],
         params_list: Sequence[cirq.Sweepable] | None = None,
         repetitions: int | Sequence[int] = 1,
+        prng: np.random.Generator | None = None,
     ) -> Sequence[Sequence[cg.EngineResult]]:
         if self._jobs_per_batch > 1:
             # Treat programs as a sequence for iteration, but keep keys if it's a mapping
@@ -153,7 +158,10 @@ class ProcessorSampler(cirq.Sampler):
                 repetition_batches.append(batch_reps)
 
             all_batch_results = await duet.pstarmap_async(
-                self.run_sweep_async, zip(program_batches, params_list_batches, repetition_batches)
+                self.run_sweep_async,
+                zip(
+                    program_batches, params_list_batches, repetition_batches, itertools.repeat(prng)
+                ),
             )
             final_results = []
             for batch_res, batch_progs in zip(all_batch_results, program_batches):

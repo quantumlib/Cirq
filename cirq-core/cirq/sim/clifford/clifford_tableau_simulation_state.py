@@ -35,7 +35,7 @@ class CliffordTableauSimulationState(StabilizerSimulationState[clifford_tableau.
     def __init__(
         self,
         tableau: cirq.CliffordTableau,
-        prng: np.random.RandomState | None = None,
+        prng: np.random.RandomState | np.random.Generator | None = None,
         qubits: Sequence[cirq.Qid] | None = None,
         classical_data: cirq.ClassicalDataStore | None = None,
     ):

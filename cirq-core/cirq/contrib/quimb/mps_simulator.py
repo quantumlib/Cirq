@@ -90,6 +90,7 @@ class MPSSimulator(
         initial_state: int | MPSState,
         qubits: Sequence[cirq.Qid],
         classical_data: cirq.ClassicalDataStore,
+        prng: np.random.Generator | None = None,
     ) -> MPSState:
         """Creates MPSState args for simulating the Circuit.
 
@@ -110,7 +111,7 @@ class MPSSimulator(
 
         return MPSState(
             qubits=qubits,
-            prng=self._prng,
+            prng=prng if prng is not None else self._prng,
             simulation_options=self.simulation_options,
             grouping=self.grouping,
             initial_state=initial_state,
@@ -382,7 +383,9 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         """An alias for the state vector."""
         return self.state_vector()
 
-    def apply_op(self, op: Any, axes: Sequence[int], prng: np.random.RandomState):
+    def apply_op(
+        self, op: Any, axes: Sequence[int], prng: np.random.RandomState | np.random.Generator
+    ):
         """Applies a unitary operation, mutating the object to represent the new state.
 
         op:
@@ -484,7 +487,10 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         }
 
     def _measure(
-        self, axes: Sequence[int], prng: np.random.RandomState, collapse_state_vector=True
+        self,
+        axes: Sequence[int],
+        prng: np.random.RandomState | np.random.Generator,
+        collapse_state_vector=True,
     ) -> list[int]:
         results: list[int] = []
 
@@ -565,7 +571,7 @@ class MPSState(SimulationState[_MPSHandler]):
         self,
         *,
         qubits: Sequence[cirq.Qid],
-        prng: np.random.RandomState,
+        prng: np.random.RandomState | np.random.Generator,
         simulation_options: MPSOptions = MPSOptions(),
         grouping: dict[cirq.Qid, int] | None = None,
         initial_state: int = 0,

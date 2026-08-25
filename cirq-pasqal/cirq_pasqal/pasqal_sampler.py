@@ -15,11 +15,15 @@
 from __future__ import annotations
 
 import time
+from typing import TYPE_CHECKING
 
 import requests
 
 import cirq
 import cirq_pasqal
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 class PasqalSampler(cirq.work.Sampler):
@@ -103,7 +107,11 @@ class PasqalSampler(cirq.work.Sampler):
         return result
 
     def run_sweep(
-        self, program: cirq.AbstractCircuit, params: cirq.study.Sweepable, repetitions: int = 1
+        self,
+        program: cirq.AbstractCircuit,
+        params: cirq.study.Sweepable,
+        repetitions: int = 1,
+        prng: np.random.Generator | None = None,
     ) -> list[cirq.study.Result]:
         """Samples from the given Circuit.
         In contrast to run, this allows for sweeping over different parameter

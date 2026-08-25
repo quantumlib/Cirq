@@ -80,6 +80,7 @@ class SimulatesIntermediateStateImpl(
         qubits: tuple[cirq.Qid, ...],
         initial_state: Any,
         param_resolver: cirq.ParamResolver | None = None,
+        prng: np.random.Generator | None = None,
     ) -> Iterator[TStepResult]:
         raise NotImplementedError
 
@@ -497,6 +498,7 @@ def test_iter_definitions() -> None:
             params: study.Sweepable,
             qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
             initial_state: Any = None,
+            prng: np.random.Generator | None = None,
         ) -> list[SimulationTrialResult]:
             return [mock_trial_result]
 

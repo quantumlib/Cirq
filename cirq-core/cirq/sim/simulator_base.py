@@ -110,6 +110,7 @@ class SimulatorBase(
         initial_state: Any,
         qubits: Sequence[cirq.Qid],
         classical_data: cirq.ClassicalDataStore,
+        prng: np.random.Generator | None = None,
     ) -> TSimulationState:
         """Creates an instance of the TSimulationState class for the simulator.
 
@@ -165,9 +166,10 @@ class SimulatorBase(
         qubits: tuple[cirq.Qid, ...],
         initial_state: Any,
         param_resolver: cirq.ParamResolver | None = None,
+        prng: np.random.Generator | None = None,
     ) -> Iterator[TStepResultBase]:
         sim_state = self._create_simulation_state(
-            initial_state, qubits, param_resolver=param_resolver
+            initial_state, qubits, param_resolver=param_resolver, prng=prng
         )
         return self._core_iterator(circuit, sim_state)
 
@@ -229,12 +231,18 @@ class SimulatorBase(
             yield self._create_step_result(sim_state)
 
     def _run(
-        self, circuit: cirq.AbstractCircuit, param_resolver: cirq.ParamResolver, repetitions: int
+        self,
+        circuit: cirq.AbstractCircuit,
+        param_resolver: cirq.ParamResolver,
+        repetitions: int,
+        prng: np.random.Generator | None = None,
     ) -> dict[str, np.ndarray]:
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = study.ParamResolver({}) if param_resolver is None else param_resolver
         qubits = tuple(sorted(circuit.all_qubits()))
-        sim_state = self._create_simulation_state(0, qubits, param_resolver=param_resolver)
+        sim_state = self._create_simulation_state(
+            0, qubits, param_resolver=param_resolver, prng=prng
+        )
 
         def can_run_prefix(op: cirq.Operation) -> bool:
             resolved_op = protocols.resolve_parameters(op, param_resolver)
@@ -262,7 +270,10 @@ class SimulatorBase(
             assert step_result is not None
             measurement_ops = [cast(ops.GateOperation, op) for op in general_ops]
             return step_result.sample_measurement_ops(
-                measurement_ops, repetitions, seed=self._prng, _allow_repeated=True
+                measurement_ops,
+                repetitions,
+                seed=prng if prng is not None else self._prng,
+                _allow_repeated=True,
             )
 
         records: dict[cirq.MeasurementKey, list[Sequence[Sequence[int]]]] = {}
@@ -298,6 +309,7 @@ class SimulatorBase(
         params: cirq.Sweepable,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
+        prng: np.random.Generator | None = None,
     ) -> Iterator[TSimulationTrialResult]:
         """Simulates the supplied Circuit.
 
@@ -326,7 +338,7 @@ class SimulatorBase(
 
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(program.all_qubits())
         initial_state = 0 if initial_state is None else initial_state
-        sim_state = self._create_simulation_state(initial_state, qubits)
+        sim_state = self._create_simulation_state(initial_state, qubits, prng=prng)
         prefix, suffix = (
             split_into_matching_protocol_then_general(program, sweep_prefixable)
             if self._can_be_in_run_prefix(self.noise)
@@ -337,13 +349,14 @@ class SimulatorBase(
             pass
         assert step_result is not None
         sim_state = step_result._sim_state
-        yield from super().simulate_sweep_iter(suffix, params, qubit_order, sim_state)
+        yield from super().simulate_sweep_iter(suffix, params, qubit_order, sim_state, prng)
 
     def _create_simulation_state(
         self,
         initial_state: Any,
         qubits: Sequence[cirq.Qid],
         param_resolver: cirq.ParamResolver | None = None,
+        prng: np.random.Generator | None = None,
     ) -> SimulationStateBase[TSimulationState]:
         if isinstance(initial_state, SimulationStateBase):
             if param_resolver is not None:
@@ -359,15 +372,19 @@ class SimulatorBase(
                         initial_state=initial_state % q.dimension,
                         qubits=[q],
                         classical_data=classical_data,
+                        prng=prng,
                     )
                     initial_state = int(initial_state / q.dimension)
             else:
                 args = self._create_partial_simulation_state(
-                    initial_state=initial_state, qubits=qubits, classical_data=classical_data
+                    initial_state=initial_state,
+                    qubits=qubits,
+                    classical_data=classical_data,
+                    prng=prng,
                 )
                 for q in qubits:
                     args_map[q] = args
-            args_map[None] = self._create_partial_simulation_state(0, (), classical_data)
+            args_map[None] = self._create_partial_simulation_state(0, (), classical_data, prng)
             return SimulationProductState(
                 args_map,
                 qubits,
@@ -377,7 +394,7 @@ class SimulatorBase(
             )
         else:
             state = self._create_partial_simulation_state(
-                initial_state=initial_state, qubits=qubits, classical_data=classical_data
+                initial_state=initial_state, qubits=qubits, classical_data=classical_data, prng=prng
             )
             state.param_resolver = (
                 study.ParamResolver({}) if param_resolver is None else param_resolver

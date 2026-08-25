@@ -39,7 +39,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         self,
         *,
         state: TState,
-        prng: np.random.RandomState | None = None,
+        prng: np.random.RandomState | np.random.Generator | None = None,
         qubits: Sequence[cirq.Qid] | None = None,
         classical_data: cirq.ClassicalDataStore | None = None,
         param_resolver: cirq.ParamResolver | None = None,
@@ -69,7 +69,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         self._state = state
 
     @property
-    def prng(self) -> np.random.RandomState:
+    def prng(self) -> np.random.RandomState | np.random.Generator:
         return self._prng
 
     def measure(

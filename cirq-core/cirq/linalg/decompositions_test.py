@@ -22,6 +22,7 @@ import pytest
 import cirq
 from cirq import unitary_eig, value
 from cirq.linalg.decompositions import MAGIC, MAGIC_CONJ_T
+from cirq.value import random_state as rs
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -590,7 +591,7 @@ def _random_two_qubit_unitaries(num_samples: int, random_state: cirq.RANDOM_STAT
 
     prng = value.parse_random_state(random_state)
     # Generate the non-local part by explicit matrix exponentiation.
-    kak_vecs = prng.rand(num_samples, 3) * np.pi
+    kak_vecs = rs.get_random_array(prng, (num_samples, 3)) * np.pi
     gens = np.einsum('...a,abc->...bc', kak_vecs, _kak_gens)
     evals, evecs = np.linalg.eigh(gens)
     A = np.einsum('...ab,...b,...cb', evecs, np.exp(1j * evals), evecs.conj())
