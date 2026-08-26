@@ -22,7 +22,7 @@ import sympy
 if TYPE_CHECKING:
     from cirq.value import type_alias
 
-TNumpyNumber = TypeVar('TNumpyNumber', bound=np.number)
+TNumpyReal = TypeVar('TNumpyReal', bound=np.integer | np.floating)
 
 
 def chosen_angle_to_half_turns(
@@ -90,7 +90,7 @@ def chosen_angle_to_canonical_half_turns(
 
 
 @overload
-def canonicalize_half_turns(half_turns: TNumpyNumber) -> TNumpyNumber:
+def canonicalize_half_turns(half_turns: TNumpyReal) -> TNumpyReal:
     pass
 
 

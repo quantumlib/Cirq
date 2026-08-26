@@ -98,8 +98,10 @@ def test_canonicalize_half_turns_numpy_number_instances(val) -> None:
     assert (float(result) - float(val)) % 2 == pytest.approx(0)
 
 
-def test_tparamval_includes_numpy_number() -> None:
-    assert np.number in cirq.TParamVal.__args__
+def test_tparamval_includes_real_numpy_numbers_only() -> None:
+    assert np.integer in cirq.TParamVal.__args__
+    assert np.floating in cirq.TParamVal.__args__
+    assert np.complexfloating not in cirq.TParamVal.__args__
 
 
 @pytest.mark.parametrize('dtype', _NUMPY_FLOAT_TYPES + _NUMPY_INT_TYPES)
