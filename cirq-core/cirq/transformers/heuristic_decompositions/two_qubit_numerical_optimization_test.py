@@ -135,13 +135,28 @@ def test_noise_adaptive_compilation_prefers_higher_overall_fidelity() -> None:
     assert overall > 0.94**3  # Beats the exact 3-CZ decomposition.
 
 
-def test_noise_adaptive_compilation_single_qubit_error_rate() -> None:
+def test_noise_adaptive_compilation_single_qubit_error_rates() -> None:
     target = random_special_unitary(4, random_state=value.parse_random_state(5))
     result = two_qubit_gate_numerical_compilation(
-        target, _CZ, base_gate_error_rates=[0.06], single_qubit_error_rate=0.001, random_state=15
+        target, _CZ, base_gate_error_rates=[0.06], single_qubit_error_rates=0.001, random_state=15
     )
     num_1q_gates = 2 * (result.num_base_gates + 1)
     expected_fh = 0.94**result.num_base_gates * 0.999**num_1q_gates
+    assert result.hardware_fidelity == pytest.approx(expected_fh)
+
+
+def test_noise_adaptive_compilation_per_qubit_error_rates() -> None:
+    """A (q0_rate, q1_rate) pair folds per-qubit calibration data into Fh."""
+    target = random_special_unitary(4, random_state=value.parse_random_state(5))
+    result = two_qubit_gate_numerical_compilation(
+        target,
+        _CZ,
+        base_gate_error_rates=[0.06],
+        single_qubit_error_rates=(0.01, 0.02),
+        random_state=15,
+    )
+    n = result.num_base_gates
+    expected_fh = 0.94**n * (0.99 * 0.98) ** (n + 1)
     assert result.hardware_fidelity == pytest.approx(expected_fh)
 
 
@@ -227,6 +242,10 @@ def test_numerical_compiler_json_roundtrip() -> None:
     cirq.testing.assert_json_roundtrip_works(compiler)
     compiler_no_rates = TwoQubitNumericalCompiler(base_gates=(_CZ,))
     cirq.testing.assert_json_roundtrip_works(compiler_no_rates)
+    compiler_pair = TwoQubitNumericalCompiler(
+        base_gates=(_CZ,), single_qubit_error_rates=(0.01, 0.02), random_state=5
+    )
+    cirq.testing.assert_json_roundtrip_works(compiler_pair)
 
 
 def test_numerical_compiler_json_rejects_live_rng() -> None:
@@ -257,12 +276,18 @@ def test_input_validation() -> None:
         two_qubit_gate_numerical_compilation(target, _CZ, base_gate_error_rates=[1.5])
     with pytest.raises(ValueError, match='base_gate_error_rates must be in'):
         two_qubit_gate_numerical_compilation(target, _CZ, base_gate_error_rates=[-0.1])
-    with pytest.raises(ValueError, match='single_qubit_error_rate must be in'):
+    with pytest.raises(ValueError, match='single_qubit_error_rates must be in'):
         two_qubit_gate_numerical_compilation(
-            target, _CZ, base_gate_error_rates=[0.06], single_qubit_error_rate=np.nan
+            target, _CZ, base_gate_error_rates=[0.06], single_qubit_error_rates=np.nan
         )
-    with pytest.raises(ValueError, match='single_qubit_error_rate must be in'):
-        two_qubit_gate_numerical_compilation(target, _CZ, single_qubit_error_rate=2.0)
+    with pytest.raises(ValueError, match='single_qubit_error_rates must be in'):
+        two_qubit_gate_numerical_compilation(target, _CZ, single_qubit_error_rates=2.0)
+    with pytest.raises(ValueError, match='single rate or a pair'):
+        two_qubit_gate_numerical_compilation(
+            target, _CZ, single_qubit_error_rates=(0.01, 0.02, 0.03)  # type: ignore[arg-type]
+        )
+    with pytest.raises(ValueError, match='single_qubit_error_rates must be in'):
+        two_qubit_gate_numerical_compilation(target, _CZ, single_qubit_error_rates=(0.01, 1.5))
 
 
 def test_non_finite_inputs_raise_runtime_error() -> None:

@@ -188,7 +188,7 @@
   ],
   "target_fidelity": 0.99999999,
   "max_layers": 3,
-  "single_qubit_error_rate": 0.0,
+  "single_qubit_error_rates": 0.0,
   "num_restarts": 3,
   "maxiter": 1000,
   "random_state": 5

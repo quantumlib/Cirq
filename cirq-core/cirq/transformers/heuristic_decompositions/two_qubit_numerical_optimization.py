@@ -227,7 +227,7 @@ def two_qubit_gate_numerical_compilation(
     target_fidelity: float = 1 - 1e-8,
     max_layers: int = 3,
     base_gate_error_rates: Sequence[float] | None = None,
-    single_qubit_error_rate: float = 0.0,
+    single_qubit_error_rates: float | tuple[float, float] = 0.0,
     num_restarts: int = 3,
     maxiter: int = 1000,
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
@@ -278,9 +278,11 @@ def two_qubit_gate_numerical_compilation(
             the overall fidelity $F_u = F_d \cdot F_h$ over all (base gate,
             layer count) combinations instead of stopping at the first
             decomposition meeting `target_fidelity`.
-        single_qubit_error_rate: Optional hardware error rate of each
+        single_qubit_error_rates: Optional hardware error rate of each
             single-qubit gate, folded into the hardware fidelity $F_h$ when
-            `base_gate_error_rates` is given.
+            `base_gate_error_rates` is given. Either a single rate applied to
+            both qubits, or a pair of rates (one per qubit the two-qubit gate
+            acts on), e.g. from per-qubit calibration data.
         num_restarts: Number of random restarts of the BFGS optimizer per
             (base gate, layer count) pair. Higher values improve accuracy at
             the cost of runtime.
@@ -295,7 +297,7 @@ def two_qubit_gate_numerical_compilation(
         ValueError: If `target_unitary` is not 4x4, `base_gates` is empty or
             malformed, `base_gate_error_rates` does not match `base_gates`,
             or `target_fidelity`, `max_layers`, `num_restarts`, `maxiter`,
-            `base_gate_error_rates` or `single_qubit_error_rate` are out of
+            `base_gate_error_rates` or `single_qubit_error_rates` are out of
             range.
         RuntimeError: If every optimization run produced a non-finite
             objective value, e.g. because of non-finite inputs.
@@ -329,9 +331,19 @@ def two_qubit_gate_numerical_compilation(
             raise ValueError(
                 f'base_gate_error_rates must be in [0, 1], got {base_gate_error_rates}'
             )
-    if not 0 <= single_qubit_error_rate <= 1:
+    sqe = np.atleast_1d(np.asarray(single_qubit_error_rates, dtype=float))
+    if sqe.size == 1:
+        single_qubit_error_rate_pair = (sqe[0], sqe[0])
+    elif sqe.size == 2:
+        single_qubit_error_rate_pair = (sqe[0], sqe[1])
+    else:
         raise ValueError(
-            f'single_qubit_error_rate must be in [0, 1], got {single_qubit_error_rate}'
+            'single_qubit_error_rates must be a single rate or a pair of rates '
+            f'(one per qubit), got {single_qubit_error_rates}'
+        )
+    if any(not 0 <= p <= 1 for p in single_qubit_error_rate_pair):
+        raise ValueError(
+            f'single_qubit_error_rates must be in [0, 1], got {single_qubit_error_rates}'
         )
 
     rng = value.parse_random_state(random_state)
@@ -364,7 +376,9 @@ def two_qubit_gate_numerical_compilation(
                     target, base_gate, num_layers, rng, num_restarts, maxiter
                 )
                 hardware_fidelity = (1 - base_gate_error_rates[gate_ind]) ** num_layers
-                hardware_fidelity *= (1 - single_qubit_error_rate) ** (2 * (num_layers + 1))
+                hardware_fidelity *= (
+                    (1 - single_qubit_error_rate_pair[0]) * (1 - single_qubit_error_rate_pair[1])
+                ) ** (num_layers + 1)
                 if fidelity * hardware_fidelity > best_overall:
                     best_overall = fidelity * hardware_fidelity
                     best = _result_from_angles(
@@ -398,7 +412,7 @@ class TwoQubitNumericalCompiler:
     base_gate_error_rates: tuple[float, ...] | None = None
     target_fidelity: float = 1 - 1e-8
     max_layers: int = 3
-    single_qubit_error_rate: float = 0.0
+    single_qubit_error_rates: float | tuple[float, float] = 0.0
     num_restarts: int = 3
     maxiter: int = 1000
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None
@@ -411,7 +425,7 @@ class TwoQubitNumericalCompiler:
             target_fidelity=self.target_fidelity,
             max_layers=self.max_layers,
             base_gate_error_rates=self.base_gate_error_rates,
-            single_qubit_error_rate=self.single_qubit_error_rate,
+            single_qubit_error_rates=self.single_qubit_error_rates,
             num_restarts=self.num_restarts,
             maxiter=self.maxiter,
             random_state=self.random_state,
@@ -429,7 +443,7 @@ class TwoQubitNumericalCompiler:
             'base_gate_error_rates': self.base_gate_error_rates,
             'target_fidelity': self.target_fidelity,
             'max_layers': self.max_layers,
-            'single_qubit_error_rate': self.single_qubit_error_rate,
+            'single_qubit_error_rates': self.single_qubit_error_rates,
             'num_restarts': self.num_restarts,
             'maxiter': self.maxiter,
             'random_state': self.random_state,
@@ -442,7 +456,7 @@ class TwoQubitNumericalCompiler:
         base_gate_error_rates,
         target_fidelity,
         max_layers,
-        single_qubit_error_rate,
+        single_qubit_error_rates,
         num_restarts,
         maxiter,
         random_state,
@@ -455,7 +469,11 @@ class TwoQubitNumericalCompiler:
             ),
             target_fidelity=target_fidelity,
             max_layers=max_layers,
-            single_qubit_error_rate=single_qubit_error_rate,
+            single_qubit_error_rates=(
+                tuple(single_qubit_error_rates)
+                if isinstance(single_qubit_error_rates, list)
+                else single_qubit_error_rates
+            ),
             num_restarts=num_restarts,
             maxiter=maxiter,
             random_state=random_state,
@@ -470,7 +488,7 @@ class TwoQubitNumericalCompiler:
             f'base_gate_error_rates={proper_repr(self.base_gate_error_rates)}, '
             f'target_fidelity={self.target_fidelity!r}, '
             f'max_layers={self.max_layers!r}, '
-            f'single_qubit_error_rate={self.single_qubit_error_rate!r}, '
+            f'single_qubit_error_rates={self.single_qubit_error_rates!r}, '
             f'num_restarts={self.num_restarts!r}, '
             f'maxiter={self.maxiter!r}, '
             f'random_state={self.random_state!r})'
@@ -488,7 +506,7 @@ class TwoQubitNumericalCompiler:
             and self.base_gate_error_rates == other.base_gate_error_rates
             and self.target_fidelity == other.target_fidelity
             and self.max_layers == other.max_layers
-            and self.single_qubit_error_rate == other.single_qubit_error_rate
+            and self.single_qubit_error_rates == other.single_qubit_error_rates
             and self.num_restarts == other.num_restarts
             and self.maxiter == other.maxiter
             and self.random_state == other.random_state
