@@ -38,7 +38,7 @@ def test_isolated_packages(cloned_env, module, tmp_path) -> None:
     if module.name != "cirq-core":
         assert f'cirq-core=={module.version}' in module.install_requires or (
             module.name == "cirq-web"
-            and f"cirq-core>={module.version},<2.0dev" in module.install_requires
+            and f"cirq-core>={module.version},<2.0.dev" in module.install_requires
         )
 
     env = cloned_env("isolated_packages", *PACKAGES)
