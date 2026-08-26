@@ -273,9 +273,7 @@ class ControlledOperation(raw_types.Operation):
         self, resolver: cirq.ParamResolver, recursive: bool
     ) -> ControlledOperation:
         new_sub_op = protocols.resolve_parameters(self.sub_operation, resolver, recursive)
-        resolved_controls = [
-            protocols.resolve_parameters(c, resolver, recursive) for c in self.controls
-        ]
+        resolved_controls = protocols.resolve_parameters(self.controls, resolver, recursive)
         return ControlledOperation(resolved_controls, new_sub_op, self.control_values)
 
     def _trace_distance_bound_(self) -> float | None:

@@ -1,1 +1,4 @@
-[cirq.VariableLineQid(sympy.Symbol('x'), dimension=2), cirq.VariableLineQid(sympy.Add(sympy.Symbol('x'), sympy.Symbol('y')), dimension=3)]
+[
+    cirq.VariableLineQid(sympy.Symbol('x'), dimension=2),
+    cirq.VariableLineQid(sympy.Symbol('x') + sympy.Symbol('y'), dimension=3),
+]

@@ -267,9 +267,7 @@ class GateOperation(raw_types.Operation):
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> cirq.Operation:
         resolved_gate = protocols.resolve_parameters(self.gate, resolver, recursive)
-        resolved_qubits = [
-            protocols.resolve_parameters(q, resolver, recursive) for q in self.qubits
-        ]
+        resolved_qubits = protocols.resolve_parameters(self.qubits, resolver, recursive)
         return resolved_gate.on(*resolved_qubits)
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
