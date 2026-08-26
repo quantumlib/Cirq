@@ -86,6 +86,9 @@ class ValidatingSampler(cirq.Sampler):
     ) -> Sequence[Sequence[cirq.Result]]:
         params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
         self._validate_circuit(programs, params_list, repetitions)
-        return await self._sampler.run_batch_async(programs, params_list, repetitions, prng)
+        if prng is None:
+            return await self._sampler.run_batch_async(programs, params_list, repetitions)
+        else:
+            return await self._sampler.run_batch_async(programs, params_list, repetitions, prng)
 
     run_batch = duet.sync(run_batch_async)

@@ -156,13 +156,25 @@ class ProcessorSampler(cirq.Sampler):
                 program_batches.append(batch_programs)
                 params_list_batches.append(batch_sweep)
                 repetition_batches.append(batch_reps)
-
-            all_batch_results = await duet.pstarmap_async(
-                self.run_sweep_async,
-                zip(
-                    program_batches, params_list_batches, repetition_batches, itertools.repeat(prng)
-                ),
-            )
+            if prng is None:
+                all_batch_results = await duet.pstarmap_async(
+                    self.run_sweep_async,
+                    zip(
+                        program_batches,
+                        params_list_batches,
+                        repetition_batches
+                    ),
+                )
+            else:
+                all_batch_results = await duet.pstarmap_async(
+                    self.run_sweep_async,
+                    zip(
+                        program_batches,
+                        params_list_batches,
+                        repetition_batches,
+                        prng.spawn(len(program_batches))
+                    ),
+                )
             final_results = []
             for batch_res, batch_progs in zip(all_batch_results, program_batches):
                 num_progs = len(batch_progs)

@@ -168,9 +168,14 @@ class SimulatorBase(
         param_resolver: cirq.ParamResolver | None = None,
         prng: np.random.Generator | None = None,
     ) -> Iterator[TStepResultBase]:
-        sim_state = self._create_simulation_state(
-            initial_state, qubits, param_resolver=param_resolver, prng=prng
-        )
+        if prng is None:
+            sim_state = self._create_simulation_state(
+                initial_state, qubits, param_resolver=param_resolver
+            )
+        else:
+            sim_state = self._create_simulation_state(
+                initial_state, qubits, param_resolver=param_resolver, prng=prng
+            )
         return self._core_iterator(circuit, sim_state)
 
     def _core_iterator(
@@ -240,9 +245,12 @@ class SimulatorBase(
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = study.ParamResolver({}) if param_resolver is None else param_resolver
         qubits = tuple(sorted(circuit.all_qubits()))
-        sim_state = self._create_simulation_state(
-            0, qubits, param_resolver=param_resolver, prng=prng
-        )
+        if prng is None:
+            sim_state = self._create_simulation_state(0, qubits, param_resolver=param_resolver)
+        else:
+            sim_state = self._create_simulation_state(
+                0, qubits, param_resolver=param_resolver, prng=prng
+            )
 
         def can_run_prefix(op: cirq.Operation) -> bool:
             resolved_op = protocols.resolve_parameters(op, param_resolver)
@@ -327,6 +335,7 @@ class SimulatorBase(
                 either a raw state or an `SimulationStateBase`. The form of the
                 raw state depends on the simulation implementation. See
                 documentation of the implementing class for details.
+            prng: An `np.random.Generator` to draw from for this call instead of the internal random state.
 
         Returns:
             List of SimulationTrialResults for this run, one for each
@@ -338,7 +347,10 @@ class SimulatorBase(
 
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(program.all_qubits())
         initial_state = 0 if initial_state is None else initial_state
-        sim_state = self._create_simulation_state(initial_state, qubits, prng=prng)
+        if prng is None:
+            sim_state = self._create_simulation_state(initial_state, qubits)
+        else:
+            sim_state = self._create_simulation_state(initial_state, qubits, prng=prng)
         prefix, suffix = (
             split_into_matching_protocol_then_general(program, sweep_prefixable)
             if self._can_be_in_run_prefix(self.noise)
@@ -349,7 +361,10 @@ class SimulatorBase(
             pass
         assert step_result is not None
         sim_state = step_result._sim_state
-        yield from super().simulate_sweep_iter(suffix, params, qubit_order, sim_state, prng)
+        if prng is None:
+            yield from super().simulate_sweep_iter(suffix, params, qubit_order, sim_state)
+        else:
+            yield from super().simulate_sweep_iter(suffix, params, qubit_order, sim_state, prng)
 
     def _create_simulation_state(
         self,
@@ -368,20 +383,32 @@ class SimulatorBase(
             args_map: dict[cirq.Qid | None, TSimulationState] = {}
             if isinstance(initial_state, int):
                 for q in reversed(qubits):
-                    args_map[q] = self._create_partial_simulation_state(
-                        initial_state=initial_state % q.dimension,
-                        qubits=[q],
+                    if prng is None:
+                        args_map[q] = self._create_partial_simulation_state(
+                            initial_state=initial_state % q.dimension,
+                            qubits=[q],
+                            classical_data=classical_data,
+                        )
+                    else:
+                        args_map[q] = self._create_partial_simulation_state(
+                            initial_state=initial_state % q.dimension,
+                            qubits=[q],
+                            classical_data=classical_data,
+                            prng=prng,
+                        )
+                    initial_state = int(initial_state / q.dimension)
+            else:
+                if prng is None:
+                    args = self._create_partial_simulation_state(
+                        initial_state=initial_state, qubits=qubits, classical_data=classical_data
+                    )
+                else:
+                    args = self._create_partial_simulation_state(
+                        initial_state=initial_state,
+                        qubits=qubits,
                         classical_data=classical_data,
                         prng=prng,
                     )
-                    initial_state = int(initial_state / q.dimension)
-            else:
-                args = self._create_partial_simulation_state(
-                    initial_state=initial_state,
-                    qubits=qubits,
-                    classical_data=classical_data,
-                    prng=prng,
-                )
                 for q in qubits:
                     args_map[q] = args
             args_map[None] = self._create_partial_simulation_state(0, (), classical_data, prng)
@@ -393,9 +420,17 @@ class SimulatorBase(
                 param_resolver=param_resolver,
             )
         else:
-            state = self._create_partial_simulation_state(
-                initial_state=initial_state, qubits=qubits, classical_data=classical_data, prng=prng
-            )
+            if prng is None:
+                state = self._create_partial_simulation_state(
+                    initial_state=initial_state, qubits=qubits, classical_data=classical_data
+                )
+            else:
+                state = self._create_partial_simulation_state(
+                    initial_state=initial_state,
+                    qubits=qubits,
+                    classical_data=classical_data,
+                    prng=prng,
+                )
             state.param_resolver = (
                 study.ParamResolver({}) if param_resolver is None else param_resolver
             )

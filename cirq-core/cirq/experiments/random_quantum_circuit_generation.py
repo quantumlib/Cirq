@@ -24,7 +24,6 @@ import numpy as np
 
 from cirq import circuits, devices, ops, protocols, value
 from cirq._doc import document
-from cirq.value import random_state as rs
 
 if TYPE_CHECKING:
     import networkx as nx
@@ -344,7 +343,7 @@ def _get_random_combinations(
 
     combinations_by_layer = []
     for pairs, layer in pair_gen:
-        combinations = rs.get_random_int(
+        combinations = value.get_random_int(
             parsed_rs, 0, n_library_circuits, size=(n_combinations, len(pairs))
         )
         combinations_by_layer.append(
@@ -656,11 +655,11 @@ class _RandomSingleQubitLayerFactory:
             excluded_op = previous_single_qubit_layer.operation_at(qubit)
             excluded_gate = excluded_op.gate if excluded_op is not None else None
             g = self.single_qubit_gates[
-                rs.get_random_int(self.prng, 0, len(self.single_qubit_gates))
+                value.get_random_int(self.prng, 0, len(self.single_qubit_gates))
             ]
             while g is excluded_gate:
                 g = self.single_qubit_gates[
-                    rs.get_random_int(self.prng, 0, len(self.single_qubit_gates))
+                    value.get_random_int(self.prng, 0, len(self.single_qubit_gates))
                 ]
             return g
 

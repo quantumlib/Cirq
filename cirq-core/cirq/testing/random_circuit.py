@@ -19,7 +19,6 @@ from typing import TYPE_CHECKING
 
 from cirq import circuits, ops, value
 from cirq._doc import document
-from cirq.value import random_state as rs
 
 if TYPE_CHECKING:
     import cirq
@@ -116,10 +115,10 @@ def random_circuit(
         operations = []
         free_qubits = set(qubits)
         while len(free_qubits) >= max_arity:
-            gate, arity = gate_arity_pairs[rs.get_random_int(prng, num_gates)]
+            gate, arity = gate_arity_pairs[value.get_random_int(prng, num_gates)]
             op_qubits = prng.choice(sorted(free_qubits), size=arity, replace=False)
             free_qubits.difference_update(op_qubits)
-            if rs.get_random_array(prng) <= op_density:
+            if value.get_random_array(prng) <= op_density:
                 operations.append(gate(*op_qubits))
         moments.append(circuits.Moment(operations))
 
@@ -151,7 +150,7 @@ def random_two_qubit_circuit_with_czs(
 
     def random_one_qubit_gate():
         return ops.PhasedXPowGate(
-            phase_exponent=rs.get_random_array(prng), exponent=rs.get_random_array(prng)
+            phase_exponent=value.get_random_array(prng), exponent=value.get_random_array(prng)
         )
 
     def one_cz():

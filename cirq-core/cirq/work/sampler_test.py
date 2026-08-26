@@ -52,9 +52,7 @@ async def test_run_sweep_async() -> None:
 @duet.sync
 async def test_sampler_async_fail() -> None:
     class FailingSampler(cirq.Sampler):
-        def run_sweep(
-            self, program, params, repetitions: int = 1, prng: np.random.Generator | None = None
-        ):
+        def run_sweep(self, program, params, repetitions: int = 1):
             raise ValueError('test')
 
     with pytest.raises(ValueError, match='test'):
@@ -68,11 +66,9 @@ def test_run_sweep_impl() -> None:
     """Test run_sweep implemented in terms of run_sweep_async."""
 
     class AsyncSampler(cirq.Sampler):
-        async def run_sweep_async(
-            self, program, params, repetitions: int = 1, prng: np.random.Generator | None = None
-        ):
+        async def run_sweep_async(self, program, params, repetitions: int = 1):
             await duet.sleep(0.001)
-            return cirq.Simulator().run_sweep(program, params, repetitions, prng)
+            return cirq.Simulator().run_sweep(program, params, repetitions)
 
     results = AsyncSampler().run_sweep(
         cirq.Circuit(cirq.measure(cirq.GridQubit(0, 0), key='m')),
@@ -89,9 +85,7 @@ async def test_run_sweep_async_impl() -> None:
     """Test run_sweep_async implemented in terms of run_sweep."""
 
     class SyncSampler(cirq.Sampler):
-        def run_sweep(
-            self, program, params, repetitions: int = 1, prng: np.random.Generator | None = None
-        ):
+        def run_sweep(self, program, params, repetitions: int = 1):
             return cirq.Simulator().run_sweep(program, params, repetitions)
 
     results = await SyncSampler().run_sweep_async(
@@ -233,12 +227,7 @@ async def test_run_batch_async_calls_run_sweep_asynchronously() -> None:
 
     class AsyncSampler(cirq.Sampler):
         async def run_sweep_async(
-            self,
-            program,
-            params,
-            repetitions: int = 1,
-            prng: np.random.Generator | None = None,
-            unused: duet.Limiter = duet.Limiter(None),
+            self, program, params, repetitions: int = 1, unused: duet.Limiter = duet.Limiter(None)
         ):
             if params == params1:
                 await duet.sleep(0.001)
@@ -300,11 +289,7 @@ def test_sampler_sample_expectation_values_calculation() -> None:
         """
 
         def run_sweep(
-            self,
-            program: cirq.AbstractCircuit,
-            params: cirq.Sweepable,
-            repetitions: int = 1,
-            prng: np.random.Generator | None = None,
+            self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
         ) -> Sequence[cirq.Result]:
             results = np.zeros((repetitions, 1), dtype=bool)
             for idx in range(repetitions // 4):

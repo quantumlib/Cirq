@@ -23,13 +23,17 @@ from cirq.value import random_state
 def test_parse_random_state() -> None:
     global_state = np.random.get_state()
 
+    def rand(prng):
+        np.random.set_state(global_state)
+        return random_state.get_random_array(prng)
+
     prngs = [
         np.random,
         cirq.value.parse_random_state(np.random),
         cirq.value.parse_random_state(None),
     ]
 
-    vals = [prng.rand() if (isinstance(prng, np.random.RandomState) or isinstance(prng, np.random)) else 0 for prng in prngs]
+    vals = [rand(prng) for prng in prngs]
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(*vals)
 

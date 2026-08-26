@@ -38,11 +38,7 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
         self.device = device
 
     def run_sweep(
-        self,
-        program: cirq.AbstractCircuit,
-        params: study.Sweepable,
-        repetitions: int = 1,
-        prng: np.random.Generator | None = None,
+        self, program: cirq.AbstractCircuit, params: study.Sweepable, repetitions: int = 1
     ) -> list[study.Result]:
         """Samples circuit as if every measurement resulted in zero.
 

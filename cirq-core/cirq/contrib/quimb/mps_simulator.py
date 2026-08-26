@@ -102,6 +102,7 @@ class MPSSimulator(
                 ordering of the computational basis states.
             classical_data: The shared classical data container for this
                 simulation.
+            prng: An `np.random.Generator` to draw from for this call instead of the internal random state.
 
         Returns:
             MPSState args for simulating the Circuit.
@@ -391,6 +392,8 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         op:
             The operation that mutates the object. Note that currently, only 1-
             and 2- qubit operations are currently supported.
+        prng:
+            An `np.random.Generator` to draw from for this call instead of the internal random state.
         """
 
         old_inds = tuple(map(self.i_str, axes))

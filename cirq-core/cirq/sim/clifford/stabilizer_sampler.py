@@ -42,16 +42,12 @@ class StabilizerSampler(sampler.Sampler):
         program: cirq.AbstractCircuit,
         params: cirq.Sweepable,
         repetitions: int = 1,
-        prng: np.random.RandomState | np.random.Generator | None = None,
+        prng: np.random.Generator | None = None,
     ) -> Sequence[cirq.Result]:
         results: list[cirq.Result] = []
         for param_resolver in cirq.to_resolvers(params):
             resolved_circuit = cirq.resolve_parameters(program, param_resolver)
-            measurements = self._run(
-                resolved_circuit,
-                repetitions=repetitions,
-                prng=prng if prng is not None else self._prng,
-            )
+            measurements = self._run(resolved_circuit, repetitions=repetitions, prng=prng)
             results.append(cirq.ResultDict(params=param_resolver, measurements=measurements))
         return results
 
@@ -59,7 +55,7 @@ class StabilizerSampler(sampler.Sampler):
         self,
         circuit: cirq.AbstractCircuit,
         repetitions: int,
-        prng: np.random.RandomState | np.random.Generator | None = None,
+        prng: np.random.Generator | None = None,
     ) -> dict[str, np.ndarray]:
 
         measurements: dict[str, list[np.ndarray]] = {

@@ -127,7 +127,6 @@ class CountingSimulator(
         initial_state: Any,
         qubits: Sequence[cirq.Qid],
         classical_data: cirq.ClassicalDataStore,
-        prng: np.random.Generator | None = None,
     ) -> CountingSimulationState:
         return CountingSimulationState(
             qubits=qubits, state=initial_state, classical_data=classical_data
@@ -158,7 +157,6 @@ class SplittableCountingSimulator(CountingSimulator):
         initial_state: Any,
         qubits: Sequence[cirq.Qid],
         classical_data: cirq.ClassicalDataStore,
-        prng: np.random.Generator | None = None,
     ) -> CountingSimulationState:
         return SplittableCountingSimulationState(
             qubits=qubits, state=initial_state, classical_data=classical_data

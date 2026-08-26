@@ -22,10 +22,6 @@ import requests
 import cirq
 import cirq_pasqal
 
-if TYPE_CHECKING:
-    import numpy as np
-
-
 class PasqalSampler(cirq.work.Sampler):
     def __init__(
         self,
@@ -107,11 +103,7 @@ class PasqalSampler(cirq.work.Sampler):
         return result
 
     def run_sweep(
-        self,
-        program: cirq.AbstractCircuit,
-        params: cirq.study.Sweepable,
-        repetitions: int = 1,
-        prng: np.random.Generator | None = None,
+        self, program: cirq.AbstractCircuit, params: cirq.study.Sweepable, repetitions: int = 1
     ) -> list[cirq.study.Result]:
         """Samples from the given Circuit.
         In contrast to run, this allows for sweeping over different parameter
