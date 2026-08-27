@@ -850,9 +850,9 @@ class CircuitOperation(ops.Operation):
         resolved_repetitions = resolver.value_of(
             cast('cirq.TParamVal', self.repetitions), recursive
         )
-        resolved_qubit_map = {
-            k: protocols.resolve_parameters(v, resolver, recursive)
-            for k, v in self._qubit_map.items()
-        }
-
-        return resolved.replace(repetitions=resolved_repetitions, qubit_map=resolved_qubit_map)
+        if self._are_qubits_parameterized():
+            resolved_qubits = protocols.resolve_parameters(self.qubits, resolver, recursive)
+            if len(set(resolved_qubits)) != len(resolved_qubits):
+                raise ValueError("Duplicate qubit mapping upon resolution.")
+            return resolved.replace(repetitions=resolved_repetitions).with_qubits(*resolved_qubits)
+        return resolved.replace(repetitions=resolved_repetitions)

@@ -1090,12 +1090,10 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return self.before(all_ops[::-1])
 
     def _is_parameterized_(self) -> bool:
-        return protocols.is_parameterized(self.coefficient) or protocols.is_parameterized(
-            self.qubits
-        )
+        return protocols.is_parameterized(self.coefficient) or self._are_qubits_parameterized()
 
     def _parameter_names_(self) -> Set[str]:
-        return protocols.parameter_names(self.coefficient) | protocols.parameter_names(self.qubits)
+        return protocols.parameter_names(self.coefficient) | self._qubit_parameter_names()
 
     def _resolve_parameters_(
         self, resolver: cirq.ParamResolver, recursive: bool

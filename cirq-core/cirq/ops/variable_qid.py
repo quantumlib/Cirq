@@ -18,6 +18,7 @@ import abc
 from collections.abc import Set
 from typing import Any, TYPE_CHECKING
 
+import numpy as np
 import sympy
 
 from cirq import protocols
@@ -52,9 +53,9 @@ class VariableQid(raw_types.Qid, metaclass=abc.ABCMeta):
 
 
 def _to_int(val: Any) -> int | None:
-    if isinstance(val, int) and not isinstance(val, bool):
-        return val
-    if isinstance(val, float) and val.is_integer():
+    if isinstance(val, (int, np.integer)):
+        return int(val)
+    if isinstance(val, (float, np.floating)) and val.is_integer():
         return int(val)
     return None
 
@@ -127,7 +128,7 @@ class VariableLineQid(VariableQid):
         return f'cirq.VariableLineQid({proper_repr(self._x)}, dimension={self._dimension})'
 
     def __str__(self) -> str:
-        return f'varq({self._x}) (d={self._dimension})'
+        return f'v({self._x}) (d={self._dimension})'
 
 
 class VariableGridQid(VariableQid):
@@ -219,4 +220,4 @@ class VariableGridQid(VariableQid):
         )
 
     def __str__(self) -> str:
-        return f'varq({self._row}, {self._col}) (d={self._dimension})'
+        return f'v({self._row}, {self._col}) (d={self._dimension})'

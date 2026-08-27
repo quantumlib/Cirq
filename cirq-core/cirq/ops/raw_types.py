@@ -741,13 +741,21 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return self
 
+    @cached_method
+    def _qubit_parameter_names(self) -> Set[str]:
+        return protocols.parameter_names(self.qubits)
+
+    @cached_method
+    def _are_qubits_parameterized(self) -> bool:
+        return bool(self._qubit_parameter_names())
+
     def _is_parameterized_(self) -> bool:
         """Returns true if qubits are parameterized, false otherwise."""
-        return protocols.is_parameterized(self.qubits) or bool(self._parameter_names_())
+        return self._are_qubits_parameterized() or bool(self._parameter_names_())
 
     def _parameter_names_(self) -> Set[str]:
         """Returns the names of the qubit parameters."""
-        return protocols.parameter_names(self.qubits)
+        return self._qubit_parameter_names()
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Operation:
         """Attempts to resolve any parameters in the operation.

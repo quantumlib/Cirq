@@ -257,13 +257,11 @@ class GateOperation(raw_types.Operation):
 
     @_compat.cached_method
     def _is_parameterized_(self) -> bool:
-        return protocols.is_parameterized(self.gate) or protocols.is_parameterized(self.qubits)
+        return protocols.is_parameterized(self.gate) or self._are_qubits_parameterized()
 
     @_compat.cached_method
     def _parameter_names_(self) -> Set[str]:
-        return frozenset(
-            protocols.parameter_names(self.gate) | protocols.parameter_names(self.qubits)
-        )
+        return frozenset(protocols.parameter_names(self.gate) | self._qubit_parameter_names())
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> cirq.Operation:
         resolved_gate = protocols.resolve_parameters(self.gate, resolver, recursive)

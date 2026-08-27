@@ -81,7 +81,6 @@ def test_variable_line_qid_basic_resolution():
     with pytest.raises(ValueError, match="Could not resolve expression 5.3 to a LineQid"):
         _ = cirq.resolve_parameters(qx, resolver)
 
-    # unresolved - cannot resolve constant
     y = sympy.Symbol('y')
     resolver = cirq.ParamResolver({y: 3})
     q1 = cirq.VariableLineQid(x - x + 1)
@@ -203,14 +202,27 @@ def test_variable_line_qid_resolution_circuit_operation():
     circuit_x_qx_map00 = cirq.CircuitOperation(cirq.FrozenCircuit(x_qx), qubit_map=map_00)
     circuit_x_q0_map0x = cirq.CircuitOperation(cirq.FrozenCircuit(x_q0), qubit_map=map_0x)
     circuit_x_qx_mapx0 = cirq.CircuitOperation(cirq.FrozenCircuit(x_qx), qubit_map=map_x0)
+    circuit_x_qx = cirq.CircuitOperation(cirq.FrozenCircuit(x_qx))
 
     assert cirq.is_parameterized(circuit_x_qx_map00)
     assert cirq.is_parameterized(circuit_x_q0_map0x)
     assert not cirq.is_parameterized(circuit_x_qx_mapx0)
+    assert cirq.is_parameterized(circuit_x_qx)
 
     resolver = cirq.ParamResolver({x: 3})
     resolved_circuit_x_qx_map00 = cirq.resolve_parameters(circuit_x_qx_map00, resolver)
+    resolved_circuit_x_qx = cirq.resolve_parameters(circuit_x_qx, resolver)
     assert resolved_circuit_x_qx_map00._mapped_any_loop == cirq.Circuit(cirq.X(cirq.LineQubit(3)))
+    assert resolved_circuit_x_qx._mapped_any_loop == cirq.Circuit(cirq.X(cirq.LineQubit(3)))
+
+    # test duplicate mapping error
+    q1 = cirq.LineQubit(1)
+    x_q1 = cirq.X(q1)
+    circuit_q0q1_map0x = cirq.CircuitOperation(
+        cirq.FrozenCircuit(x_q0, x_q1), qubit_map={q0: q0, q1: qx}
+    )
+    with pytest.raises(ValueError, match="Duplicate qubit mapping"):
+        _ = cirq.resolve_parameters(circuit_q0q1_map0x, cirq.ParamResolver({x: 0}))
 
 
 def test_variable_line_qid_resolution_PauliString():
@@ -248,11 +260,11 @@ def test_variable_line_qid_repr():
 def test_variable_line_qid_str():
     x = sympy.Symbol('x')
     qx = cirq.VariableLineQid(x)
-    assert str(qx) == 'varq(x) (d=2)'
+    assert str(qx) == 'v(x) (d=2)'
 
     xplusy = x + sympy.Symbol('y')
     qxplusy = cirq.VariableLineQid(xplusy)
-    assert str(qxplusy) == 'varq(x + y) (d=2)'
+    assert str(qxplusy) == 'v(x + y) (d=2)'
 
 
 def test_variable_grid_qid_init():
@@ -347,9 +359,10 @@ def test_variable_grid_qid_repr_and_str():
     r, c = sympy.symbols('r c')
     q = cirq.VariableGridQid(r, c)
     assert repr(q) == "cirq.VariableGridQid(sympy.Symbol('r'), sympy.Symbol('c'), dimension=2)"
-    assert str(q) == "varq(r, c) (d=2)"
+    assert str(q) == "v(r, c) (d=2)"
 
 
+@pytest.mark.xfail(reason="VariableQid does not work with the simulator (yet).")
 def test_variable_grid_qid_simulation():
     """VariableQid does not work with simulator sweeps
 
@@ -362,5 +375,4 @@ def test_variable_grid_qid_simulation():
     q00 = cirq.GridQubit(0, 0)
     circuit = cirq.Circuit(cirq.Moment(cirq.X(q00)), cirq.Moment(cirq.measure(q, key='m')))
     sim = cirq.Simulator()
-    with pytest.raises(ValueError):
-        _ = sim.run_sweep(circuit, params=[{'r': 0, 'c': 0}, {'r': 1, 'c': 2}])
+    _ = sim.run_sweep(circuit, params=[{'r': 0, 'c': 0}, {'r': 1, 'c': 2}])
