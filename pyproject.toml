@@ -321,6 +321,7 @@ select = [
     "TC001",  # typing-only-first-party-import
     "TC002",  # typing-only-third-party-import
     # "TC003",  # typing-only-standard-library-import
+    "TC004",  # runtime-import-in-type-checking-block
     "TID251",  # banned-api
     "UP004",  # useless-object-inheritance
     "UP006",  # non-pep585-annotation
