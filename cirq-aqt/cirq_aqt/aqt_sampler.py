@@ -405,7 +405,11 @@ class AQTSampler(cirq.Sampler):
         return measurements
 
     def run_sweep(
-        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+        self,
+        program: cirq.AbstractCircuit,
+        params: cirq.Sweepable,
+        repetitions: int = 1,
+        prng: np.random.Generator | None = None,
     ) -> Sequence[cirq.Result]:
         """Samples from the given Circuit.
 
@@ -417,11 +421,14 @@ class AQTSampler(cirq.Sampler):
             Should be generated using AQTSampler.generate_circuit_from_list
             params: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
+            prng: Not supported for this class as no client-side RNG, must be None.
 
         Returns:
             Result list for this run; one for each possible parameter
             resolver.
         """
+        if prng is not None:
+            raise ValueError("AQTSampler has no client-side RNG.")
         # TODO: Use measurement name from circuit.
         # Github issue: https://github.com/quantumlib/Cirq/issues/2199
         meas_name = 'm'

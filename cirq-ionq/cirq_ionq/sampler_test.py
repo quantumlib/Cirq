@@ -16,7 +16,9 @@ from __future__ import annotations
 
 from unittest import mock
 
+import numpy as np
 import pandas as pd
+import pytest
 import sympy as sp
 
 import cirq
@@ -189,3 +191,14 @@ def test_sampler_run_sweep_batched_job_results():
         # result1 counts={0: 4}, so we expect four 0s.
         # measurements is (repetitions, qubits), so [[0], [0], [0], [0]]
         assert results[0].measurements['a'].tolist() == [[0], [0], [0], [0]]
+
+
+def test_ionq_sampler_rejects_prng() -> None:
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.H(a), cirq.measure(a, key='m'))
+
+    mock_service = mock.MagicMock()
+    sampler = ionq.Sampler(service=mock_service, target='qpu')
+
+    with pytest.raises(ValueError, match='RNG'):
+        sampler.run_sweep(circuit, None, 1, prng=np.random.default_rng(0))

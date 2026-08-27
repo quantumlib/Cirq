@@ -74,7 +74,7 @@ class SimulatesIntermediateStateImpl(
 ):
     """A SimulatesIntermediateState that uses the default SimulationTrialResult type."""
 
-    def _base_iterator(
+    def _base_iterator(  # type: ignore[override]
         self,
         circuit: cirq.AbstractCircuit,
         qubits: tuple[cirq.Qid, ...],
@@ -491,7 +491,7 @@ def test_iter_definitions() -> None:
         ) -> list[list[float]]:
             return [[1.0]]
 
-        def simulate_sweep(
+        def simulate_sweep(  # type: ignore[override]
             self,
             program: cirq.AbstractCircuit,
             params: study.Sweepable,
@@ -557,3 +557,37 @@ def test_trial_result_initializer() -> None:
     assert x._final_simulator_state == 3
     x = SimulationTrialResult(resolver, {}, final_simulator_state=state)
     assert x._final_simulator_state == 3
+
+
+def test_sampler_uses_prng_param() -> None:
+    """Tests that `np.random.Generator` passed in to `run` bypasses sampler internal state."""
+
+    a = cirq.LineQubit(0)
+    sampler1 = cirq.Simulator(seed=1)
+    sampler2 = cirq.Simulator(seed=2)
+    circuit = cirq.Circuit(cirq.H(a), cirq.measure(a, key='m'))
+
+    # reuse the sampler so when res1 == res2 it must be because of the prng argument
+    res1 = sampler1.run(circuit, repetitions=50, prng=np.random.default_rng(0)).records['m']
+    res2 = sampler1.run(circuit, repetitions=50, prng=np.random.default_rng(0)).records['m']
+    res3 = sampler1.run(circuit, repetitions=50, prng=np.random.default_rng(1)).records['m']
+    # sampler with different seed will have identical output to previous run as prng is the same
+    res4 = sampler2.run(circuit, repetitions=50, prng=np.random.default_rng(1)).records['m']
+
+    assert np.array_equal(res1, res2)
+    assert not np.array_equal(res1, res3)
+    assert np.array_equal(res3, res4)
+
+
+def test_sampler_without_prng_uses_internal_state() -> None:
+    """Tests that if no prng argument is given, the internal state is used."""
+
+    a = cirq.LineQubit(0)
+    sampler = cirq.Simulator(seed=1)
+    circuit = cirq.Circuit(cirq.H(a), cirq.measure(a, key='m'))
+
+    # since the same sampler is being used twice, the outputs can't be equal
+    res1 = sampler.run(circuit, repetitions=50).records['m']
+    res2 = sampler.run(circuit, repetitions=50).records['m']
+
+    assert not np.array_equal(res1, res2)

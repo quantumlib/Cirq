@@ -102,7 +102,8 @@ class MPSSimulator(
                 ordering of the computational basis states.
             classical_data: The shared classical data container for this
                 simulation.
-            prng: An `np.random.Generator` to draw from for this call instead of the internal random state.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             MPSState args for simulating the Circuit.

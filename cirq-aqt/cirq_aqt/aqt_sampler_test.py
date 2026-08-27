@@ -459,3 +459,12 @@ def test_aqt_sampler_fetch_resources_returns_retrieved_resources() -> None:
     assert workspaces[0]["resources"][0]["id"] == "rid"
     assert workspaces[0]["resources"][0]["name"] == "Resource"
     assert workspaces[0]["resources"][0]["type"] == "device"
+
+
+def test_aqt_sampler_rejects_prng() -> None:
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.H(a), cirq.measure(a, key='m'))
+
+    sampler = AQTSampler("default", "test", "testkey")
+    with pytest.raises(ValueError, match='RNG'):
+        sampler.run_sweep(circuit, None, 1, prng=np.random.default_rng(0))

@@ -14,7 +14,6 @@
 
 from __future__ import annotations
 
-import itertools
 from collections.abc import Mapping, Sequence
 from typing import cast, TYPE_CHECKING
 
@@ -159,11 +158,7 @@ class ProcessorSampler(cirq.Sampler):
             if prng is None:
                 all_batch_results = await duet.pstarmap_async(
                     self.run_sweep_async,
-                    zip(
-                        program_batches,
-                        params_list_batches,
-                        repetition_batches
-                    ),
+                    zip(program_batches, params_list_batches, repetition_batches),
                 )
             else:
                 all_batch_results = await duet.pstarmap_async(
@@ -172,7 +167,7 @@ class ProcessorSampler(cirq.Sampler):
                         program_batches,
                         params_list_batches,
                         repetition_batches,
-                        prng.spawn(len(program_batches))
+                        prng.spawn(len(program_batches)),
                     ),
                 )
             final_results = []

@@ -52,7 +52,7 @@ async def test_run_sweep_async() -> None:
 @duet.sync
 async def test_sampler_async_fail() -> None:
     class FailingSampler(cirq.Sampler):
-        def run_sweep(self, program, params, repetitions: int = 1):
+        def run_sweep(self, program, params, repetitions: int = 1):  # type: ignore[override]
             raise ValueError('test')
 
     with pytest.raises(ValueError, match='test'):
@@ -66,7 +66,7 @@ def test_run_sweep_impl() -> None:
     """Test run_sweep implemented in terms of run_sweep_async."""
 
     class AsyncSampler(cirq.Sampler):
-        async def run_sweep_async(self, program, params, repetitions: int = 1):
+        async def run_sweep_async(self, program, params, repetitions: int = 1):  # type: ignore[override]
             await duet.sleep(0.001)
             return cirq.Simulator().run_sweep(program, params, repetitions)
 
@@ -85,7 +85,7 @@ async def test_run_sweep_async_impl() -> None:
     """Test run_sweep_async implemented in terms of run_sweep."""
 
     class SyncSampler(cirq.Sampler):
-        def run_sweep(self, program, params, repetitions: int = 1):
+        def run_sweep(self, program, params, repetitions: int = 1):  # type: ignore[override]
             return cirq.Simulator().run_sweep(program, params, repetitions)
 
     results = await SyncSampler().run_sweep_async(
@@ -226,7 +226,7 @@ async def test_run_batch_async_calls_run_sweep_asynchronously() -> None:
     params_list = [params1, params2]
 
     class AsyncSampler(cirq.Sampler):
-        async def run_sweep_async(
+        async def run_sweep_async(  # type: ignore[override]
             self, program, params, repetitions: int = 1, unused: duet.Limiter = duet.Limiter(None)
         ):
             if params == params1:
@@ -288,7 +288,7 @@ def test_sampler_sample_expectation_values_calculation() -> None:
         probabilities of the |0) and |1) state.
         """
 
-        def run_sweep(
+        def run_sweep(  # type: ignore[override]
             self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
         ) -> Sequence[cirq.Result]:
             results = np.zeros((repetitions, 1), dtype=bool)
@@ -393,3 +393,28 @@ def test_sampler_simple_sample_expectation_requirements() -> None:
     circuit.append(cirq.measure(a, key='out'))
     with pytest.raises(ValueError, match='permit_terminal_measurements'):
         _ = sampler.sample_expectation_values(circuit, [obs], num_samples=1)
+
+
+def test_run_batch_uses_independent_generators() -> None:
+    """Tests that `run_batch` uses `spawn` on the prng argument to generate independent generators,
+    so all results will also be independent."""
+
+    a = cirq.LineQubit(0)
+    sampler = cirq.Simulator(seed=1)
+    circuit = cirq.Circuit(cirq.H(a), cirq.measure(a, key='m'))
+
+    batch = [
+        r[0].records['m']
+        for r in sampler.run_batch([circuit] * 3, repetitions=50, prng=np.random.default_rng(0))
+    ]
+
+    expected = [
+        sampler.run(circuit, repetitions=50, prng=prng).records['m']
+        for prng in np.random.default_rng(0).spawn(3)
+    ]
+
+    for b, e in zip(batch, expected):
+        assert np.array_equal(b, e)
+
+    assert not np.array_equal(batch[0], batch[1])
+

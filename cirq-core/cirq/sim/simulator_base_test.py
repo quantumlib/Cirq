@@ -122,7 +122,7 @@ class CountingSimulator(
     def __init__(self, noise=None, split_untangled_states=False):
         super().__init__(noise=noise, split_untangled_states=split_untangled_states)
 
-    def _create_partial_simulation_state(
+    def _create_partial_simulation_state(  # type: ignore[override]
         self,
         initial_state: Any,
         qubits: Sequence[cirq.Qid],
@@ -152,7 +152,7 @@ class SplittableCountingSimulator(CountingSimulator):
     def __init__(self, noise=None, split_untangled_states=True):
         super().__init__(noise=noise, split_untangled_states=split_untangled_states)
 
-    def _create_partial_simulation_state(
+    def _create_partial_simulation_state(  # type: ignore[override]
         self,
         initial_state: Any,
         qubits: Sequence[cirq.Qid],

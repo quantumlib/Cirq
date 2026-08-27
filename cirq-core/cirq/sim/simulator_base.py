@@ -335,7 +335,8 @@ class SimulatorBase(
                 either a raw state or an `SimulationStateBase`. The form of the
                 raw state depends on the simulation implementation. See
                 documentation of the implementing class for details.
-            prng: An `np.random.Generator` to draw from for this call instead of the internal random state.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             List of SimulationTrialResults for this run, one for each
@@ -411,7 +412,10 @@ class SimulatorBase(
                     )
                 for q in qubits:
                     args_map[q] = args
-            args_map[None] = self._create_partial_simulation_state(0, (), classical_data, prng)
+            if prng is None:
+                args_map[None] = self._create_partial_simulation_state(0, (), classical_data)
+            else:
+                args_map[None] = self._create_partial_simulation_state(0, (), classical_data, prng)
             return SimulationProductState(
                 args_map,
                 qubits,

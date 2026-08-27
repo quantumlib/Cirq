@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 import collections
-import itertools
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, TypeVar
 
@@ -66,7 +65,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
             program: The circuit to sample from.
             param_resolver: Parameters to run with the program.
             repetitions: The number of times to sample.
-            prng: An `np.random.Generator` to draw from for this call instead of the internal random state.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             `cirq.Result` that contains all the measurements for a run.
@@ -92,7 +92,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
             program: The circuit to sample from.
             param_resolver: Parameters to run with the program.
             repetitions: The number of times to sample.
-            prng: An `np.random.Generator` to draw from for this call instead of the internal random state.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             Result for a run.
@@ -123,7 +124,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
                 a dictionary, a list of dictionaries, a `cirq.Sweep`, a list of
                 `cirq.Sweep`, etc. The program will be sampled `repetition`
                 times for each mapping. Defaults to a single empty mapping.
-            prng: An `np.random.Generator` to draw from for this call instead of the internal random state.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             A `pandas.DataFrame` with a row for each sample, and a column for
@@ -246,7 +248,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
             program: The circuit to sample from.
             params: Parameters to run with the program.
             repetitions: The number of times to sample.
-            prng: An `np.random.Generator` to draw from for this call instead of the internal random state.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             Result list for this run; one for each possible parameter resolver.
@@ -271,7 +274,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
             program: The circuit to sample from.
             params: Parameters to run with the program.
             repetitions: The number of times to sample.
-            prng: An `np.random.Generator` to draw from for this call instead of the internal random state.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             Result list for this run; one for each possible parameter resolver.
@@ -312,7 +316,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
             repetitions: Number of circuit repetitions to run. Can be specified
                 as a single value to use for all runs, or as a list of values,
                 one for each circuit.
-            prng: An `np.random.Generator` to draw from for this call instead of the internal random state.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             A list of lists of TrialResults. The outer list corresponds to
@@ -327,22 +332,12 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
         if prng is None:
             return await duet.pstarmap_async(
-                self.run_sweep_async,
-                zip(
-                    programs,
-                    params_list,
-                    repetitions
-                ),
+                self.run_sweep_async, zip(programs, params_list, repetitions)
             )
         else:
             return await duet.pstarmap_async(
                 self.run_sweep_async,
-                zip(
-                    programs,
-                    params_list,
-                    repetitions,
-                    prng.spawn(len(programs))
-                ),
+                zip(programs, params_list, repetitions, prng.spawn(len(programs))),
             )
 
     run_batch = duet.sync(run_batch_async)

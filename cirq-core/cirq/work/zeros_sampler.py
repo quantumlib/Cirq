@@ -38,7 +38,11 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
         self.device = device
 
     def run_sweep(
-        self, program: cirq.AbstractCircuit, params: study.Sweepable, repetitions: int = 1
+        self,
+        program: cirq.AbstractCircuit,
+        params: study.Sweepable,
+        repetitions: int = 1,
+        prng: np.random.Generator | None = None,
     ) -> list[study.Result]:
         """Samples circuit as if every measurement resulted in zero.
 
@@ -46,6 +50,7 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
             program: The circuit to sample from.
             params: Parameters to run with the program.
             repetitions: The number of times to sample.
+            prng: Not supported for this class as no client-side RNG, must be None.
 
         Returns:
             Result list for this run; one for each possible parameter
@@ -55,6 +60,8 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
             ValueError: circuit is not valid for the sampler, due to invalid
             repeated keys or incompatibility with the sampler's device.
         """
+        if prng is not None:
+            raise ValueError("ZerosSampler has no client-side RNG.")
         if self.device:
             self.device.validate_circuit(program)
         shapes = self._get_measurement_shapes(program)

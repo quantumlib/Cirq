@@ -81,7 +81,8 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
             program: The circuit to simulate.
             params: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
-            prng: An `np.random.Generator` to draw from for this call instead of the internal random state.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             Result list for this run; one for each possible parameter
@@ -103,12 +104,13 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
                     records = self._run(
                         circuit=program, param_resolver=param_resolver, repetitions=repetitions
                     )
-                records = self._run(
-                    circuit=program,
-                    param_resolver=param_resolver,
-                    repetitions=repetitions,
-                    prng=prng,
-                )
+                else:
+                    records = self._run(
+                        circuit=program,
+                        param_resolver=param_resolver,
+                        repetitions=repetitions,
+                        prng=prng,
+                    )
             yield study.ResultDict(params=param_resolver, records=records)
 
     @abc.abstractmethod
@@ -497,7 +499,8 @@ class SimulatesFinalState(
             initial_state: The initial state for the simulation. The form of
                 this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
-            prng: An `np.random.Generator` to draw from for this call instead of the internal random state.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             SimulationTrialResults for the simulation. Includes the final state.
@@ -538,7 +541,8 @@ class SimulatesFinalState(
             raise RecursionError("Must define either simulate_sweep or simulate_sweep_iter.")
         if prng is None:
             yield from self.simulate_sweep(program, params, qubit_order, initial_state)
-        yield from self.simulate_sweep(program, params, qubit_order, initial_state, prng)
+        else:
+            yield from self.simulate_sweep(program, params, qubit_order, initial_state, prng)
 
     @value.alternative(requires='simulate_sweep', implementation=_simulate_sweep_to_iter)
     def simulate_sweep_iter(
@@ -564,7 +568,8 @@ class SimulatesFinalState(
             initial_state: The initial state for the simulation. The form of
                 this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
-            prng: An `np.random.Generator` to draw from for this call instead of the internal random state.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             Iterator over SimulationTrialResults for this run, one for each
@@ -615,7 +620,8 @@ class SimulatesIntermediateState(
                 either a raw state or an `SimulationStateBase`. The form of the
                 raw state depends on the simulation implementation. See
                 documentation of the implementing class for details.
-            prng: An `np.random.Generator` to draw from for this call instead of the internal random state.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             List of SimulationTrialResults for this run, one for each
@@ -670,7 +676,8 @@ class SimulatesIntermediateState(
                 either a raw state or a `TSimulationState`. The form of the
                 raw state depends on the simulation implementation. See
                 documentation of the implementing class for details.
-            prng: An `np.random.Generator` to draw from for this call instead of the internal random state.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             Iterator that steps through the simulation, simulating each
