@@ -502,9 +502,7 @@ def _deserialize_to_proto(code: any_pb2.Any) -> v2.program_pb2.Program:
     raise ValueError(f'unsupported program type: {code_type}')
 
 
-def _deserialize_program(
-    code: any_pb2.Any, circuit_num: int | str | None = None
-) -> cirq.Circuit:
+def _deserialize_program(code: any_pb2.Any, circuit_num: int | str | None = None) -> cirq.Circuit:
     program = _deserialize_to_proto(code)
     serializer = circuit_serializer.CIRCUIT_SERIALIZER
     if circuit_num is not None:
