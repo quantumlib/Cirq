@@ -17,6 +17,7 @@ from __future__ import annotations
 import itertools
 import random
 from collections.abc import Sequence
+from unittest import mock
 
 import numpy as np
 import pytest
@@ -864,9 +865,6 @@ def test_postselection_symmetry_validation_and_logic() -> None:
 @pytest.mark.parametrize("use_sweep", [False, True])
 def test_sampler_receives_correct_circuits(use_sweep: bool) -> None:
     """Test that the sampler receives circuits with correct measurement qubits."""
-
-    from unittest.mock import MagicMock
-
     from cirq.study.result import ResultDict
 
     qubits = cirq.LineQubit.range(5)
@@ -876,7 +874,7 @@ def test_sampler_receives_correct_circuits(use_sweep: bool) -> None:
 
     # Test standard Pauli String without Symmetries
     circuits_to_pauli = {circuit: [pauli_str]}
-    mock_sampler = MagicMock()
+    mock_sampler = mock.MagicMock()
 
     mock_res = ResultDict(params=cirq.ParamResolver({}), measurements={"result": np.zeros((1, 3))})
     mock_sampler.run_batch.return_value = [[mock_res]]
@@ -909,7 +907,7 @@ def test_sampler_receives_correct_circuits(use_sweep: bool) -> None:
         postselection_symmetries=[(cirq.PauliString(cirq.Z(sym_qubit)), 1)],
     )
 
-    mock_sampler_sym = MagicMock()
+    mock_sampler_sym = mock.MagicMock()
     mock_res_sym = ResultDict(
         params=cirq.ParamResolver({}), measurements={"result": np.zeros((1, 4))}
     )
