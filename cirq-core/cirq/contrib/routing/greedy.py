@@ -97,10 +97,9 @@ class _GreedyRouter:
         max_search_radius: int = 1,
         max_num_empty_steps: int = 5,
         initial_mapping: dict[ops.Qid, ops.Qid] | None = None,
-        can_reorder: Callable[[ops.Operation, ops.Operation], bool] = lambda op1, op2: not set(
+        can_reorder: Callable[[ops.Operation, ops.Operation], bool] = lambda op1, op2: set(
             op1.qubits
-        )
-        & set(op2.qubits),
+        ).isdisjoint(op2.qubits),
         random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ):
 

@@ -52,7 +52,7 @@ def ops_are_consistent_with_device_graph(
     ops: Iterable[ops.Operation], device_graph: nx.Graph
 ) -> bool:
     for op in ops:
-        if not set(op.qubits).issubset(device_graph):
+        if any(q not in device_graph for q in op.qubits):
             return False
         if len(op.qubits) >= 2 and not device_graph.has_edge(*op.qubits):
             return False
@@ -64,7 +64,7 @@ def is_valid_routing(
     swap_network: SwapNetwork,
     *,
     equals: BINARY_OP_PREDICATE = operator.eq,
-    can_reorder: BINARY_OP_PREDICATE = lambda op1, op2: not set(op1.qubits) & set(op2.qubits),
+    can_reorder: BINARY_OP_PREDICATE = lambda op1, op2: set(op1.qubits).isdisjoint(op2.qubits),
 ) -> bool:
     """Determines whether a swap network is consistent with a given circuit.
 

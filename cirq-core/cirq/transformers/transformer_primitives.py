@@ -1014,7 +1014,7 @@ def toggle_tags(circuit: CIRCUIT_TYPE, tags: Sequence[Hashable], *, deep: bool =
         return (
             op
             if deep and isinstance(op, circuits.CircuitOperation)
-            else op.untagged.with_tags(*(set(op.tags) ^ tags_to_xor))
+            else op.untagged.with_tags(*tags_to_xor.symmetric_difference(op.tags))
         )
 
     return map_operations(circuit, map_func, deep=deep)
