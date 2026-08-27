@@ -316,8 +316,7 @@ def merge_single_qubit_gates_to_phxz_symbolized(
             merge_tags_fn=lambda circuit_op: (
                 [symbolized_single_tag]
                 if any(
-                    symbolized_single_tag in set(op.tags)
-                    for op in circuit_op.circuit.all_operations()
+                    symbolized_single_tag in op.tags for op in circuit_op.circuit.all_operations()
                 )
                 else []
             ),
