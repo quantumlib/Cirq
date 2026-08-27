@@ -1326,3 +1326,39 @@ def test_control_keys_respects_internal_measurement_order() -> None:
     fc_after = cirq.FrozenCircuit(cirq.measure(q, key='a'), cirq.X(q).with_classical_controls('a'))
     op_after = cirq.CircuitOperation(fc_after)
     assert cirq.control_keys(op_after) == set()
+
+
+def test_variable_qid_resolution():
+    x = sympy.Symbol('x')
+    q0 = cirq.LineQubit(0)
+    qx = cirq.VariableLineQid(x)
+
+    x_qx = cirq.X(qx)
+    x_q0 = cirq.X(q0)
+    map_00 = {q0: q0}
+    map_0x = {q0: qx}
+    map_x0 = {qx: q0}
+    circuit_x_qx_map00 = cirq.CircuitOperation(cirq.FrozenCircuit(x_qx), qubit_map=map_00)
+    circuit_x_q0_map0x = cirq.CircuitOperation(cirq.FrozenCircuit(x_q0), qubit_map=map_0x)
+    circuit_x_qx_mapx0 = cirq.CircuitOperation(cirq.FrozenCircuit(x_qx), qubit_map=map_x0)
+    circuit_x_qx = cirq.CircuitOperation(cirq.FrozenCircuit(x_qx))
+
+    assert cirq.is_parameterized(circuit_x_qx_map00)
+    assert cirq.is_parameterized(circuit_x_q0_map0x)
+    assert not cirq.is_parameterized(circuit_x_qx_mapx0)
+    assert cirq.is_parameterized(circuit_x_qx)
+
+    resolver = cirq.ParamResolver({x: 3})
+    resolved_circuit_x_qx_map00 = cirq.resolve_parameters(circuit_x_qx_map00, resolver)
+    resolved_circuit_x_qx = cirq.resolve_parameters(circuit_x_qx, resolver)
+    assert resolved_circuit_x_qx_map00._mapped_any_loop == cirq.Circuit(cirq.X(cirq.LineQubit(3)))
+    assert resolved_circuit_x_qx._mapped_any_loop == cirq.Circuit(cirq.X(cirq.LineQubit(3)))
+
+    # test duplicate mapping error
+    q1 = cirq.LineQubit(1)
+    x_q1 = cirq.X(q1)
+    circuit_q0q1_map0x = cirq.CircuitOperation(
+        cirq.FrozenCircuit(x_q0, x_q1), qubit_map={q0: q0, q1: qx}
+    )
+    with pytest.raises(ValueError, match="Duplicate qubit mapping"):
+        _ = cirq.resolve_parameters(circuit_q0q1_map0x, cirq.ParamResolver({x: 0}))
