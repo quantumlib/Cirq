@@ -1360,5 +1360,5 @@ def test_variable_qid_resolution():
     circuit_q0q1_map0x = cirq.CircuitOperation(
         cirq.FrozenCircuit(x_q0, x_q1), qubit_map={q0: q0, q1: qx}
     )
-    with pytest.raises(ValueError, match="Duplicate qubit mapping"):
+    with pytest.raises(ValueError, match="Collision in qubit map"):
         _ = cirq.resolve_parameters(circuit_q0q1_map0x, cirq.ParamResolver({x: 0}))

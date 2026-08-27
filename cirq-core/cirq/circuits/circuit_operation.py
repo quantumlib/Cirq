@@ -852,7 +852,5 @@ class CircuitOperation(ops.Operation):
         )
         if self._are_qubits_parameterized():
             resolved_qubits = protocols.resolve_parameters(self.qubits, resolver, recursive)
-            if len(set(resolved_qubits)) != len(resolved_qubits):
-                raise ValueError("Duplicate qubit mapping upon resolution.")
             return resolved.replace(repetitions=resolved_repetitions).with_qubits(*resolved_qubits)
         return resolved.replace(repetitions=resolved_repetitions)
