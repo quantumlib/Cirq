@@ -135,6 +135,58 @@ constants {
     )
 )
 
+_BATCH_PROGRAM_V2_UNKEYED = util.pack_any(
+    Merge(
+        """language {
+  gate_set: "v2_5"
+  arg_function_language: "exp"
+}
+keyed_circuits {
+  circuit {
+    scheduling_strategy: MOMENT_BY_MOMENT
+    moments {
+      operations {
+        qubit_constant_index: 0
+        phasedxpowgate {
+          phase_exponent {
+            float_value: 0.0
+          }
+          exponent {
+            float_value: 0.5
+          }
+        }
+      }
+    }
+  }
+}
+keyed_circuits {
+  circuit {
+    scheduling_strategy: MOMENT_BY_MOMENT
+    moments {
+      operations {
+        qubit_constant_index: 0
+        phasedxpowgate {
+          phase_exponent {
+            float_value: 0.0
+          }
+          exponent {
+            float_value: 0.5
+          }
+        }
+      }
+    }
+  }
+}
+constants {
+  qubit {
+    id: "5_2"
+  }
+}
+""",
+        v2.program_pb2.Program(),
+    )
+)
+
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
 def test_run_sweeps_delegation(create_job_async):
@@ -379,7 +431,10 @@ def test_get_circuit_v2(get_program_async, include_empty_program: bool) -> None:
     ) as deserialize_multi_program:
         deserialize_multi_program.return_value = [('key0', (), circuit), ('key1', (), circuit)]
         assert program_batch.get_circuit(circuit_num=1) is circuit
-        deserialize_multi_program.assert_called_once()
+        assert program_batch.get_circuit('key1') is circuit
+        assert program_batch.get_circuit('key0') is circuit
+        with pytest.raises(KeyError, match="not found"):
+            program_batch.get_circuit('key2')
 
 
 @duet.sync
@@ -404,6 +459,10 @@ async def test_get_circuit_async():
         get_program_async.return_value = quantum.QuantumProgram(code=_BATCH_PROGRAM_V2)
         c = await program_batch.get_circuit_async(1)
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(c, circuit)
+        c_str = await program_batch.get_circuit_async('c2')
+        cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(c_str, circuit)
+        with pytest.raises(KeyError, match="not found"):
+            await program_batch.get_circuit_async('c3')
 
 
 def test_deserialize_program():
@@ -416,11 +475,17 @@ def test_deserialize_program():
         cg.engine.engine_program._deserialize_program(code, circuit_num=1)
         mock_serializer.deserialize_multi_program.assert_called_once()
 
+    c = cg.engine.engine_program._deserialize_program(_BATCH_PROGRAM_V2, circuit_num='c1')
+    assert isinstance(c, cirq.Circuit)
+
 
 def test_deserialize_program_errors():
     # Index out of range
     with pytest.raises(IndexError, match="Index 2 out of range"):
         cg.engine.engine_program._deserialize_program(_BATCH_PROGRAM_V2, circuit_num=2)
+    # Key not found
+    with pytest.raises(KeyError, match="Circuit key 'c3' not found"):
+        cg.engine.engine_program._deserialize_program(_BATCH_PROGRAM_V2, circuit_num='c3')
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -490,21 +555,38 @@ def test_get_circuits(get_program_async):
     program = cg.EngineProgram('a', 'b', EngineContext())
     get_program_async.return_value = quantum.QuantumProgram(code=_PROGRAM_V2)
     circuits = program.get_circuits()
+    assert isinstance(circuits, list)
     assert len(circuits) == 1
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(circuits[0], circuit)
 
-    # Batch program
+    # Batch program without keys (list)
+    program_batch_unkeyed = cg.EngineProgram('a', 'b', EngineContext())
+    get_program_async.reset_mock()
+    get_program_async.return_value = quantum.QuantumProgram(code=_BATCH_PROGRAM_V2_UNKEYED)
+    circuits_unkeyed = program_batch_unkeyed.get_circuits()
+    assert isinstance(circuits_unkeyed, list)
+    assert len(circuits_unkeyed) == 2
+    expected_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(5, 2)) ** 0.5)
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+        circuits_unkeyed[0], expected_circuit
+    )
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+        circuits_unkeyed[1], expected_circuit
+    )
+
+    # Batch program with keys (dict)
     program_batch = cg.EngineProgram('a', 'b', EngineContext())
     get_program_async.reset_mock()
     get_program_async.return_value = quantum.QuantumProgram(code=_BATCH_PROGRAM_V2)
-    circuits = program_batch.get_circuits()
-    assert len(circuits) == 2
-    expected_circuit = cirq.Circuit(cirq.X(cirq.GridQubit(5, 2)) ** 0.5)
+    circuits_dict = program_batch.get_circuits()
+    assert isinstance(circuits_dict, dict)
+    assert len(circuits_dict) == 2
+    assert list(circuits_dict.keys()) == ['c1', 'c2']
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuits[0], expected_circuit
+        circuits_dict['c1'], expected_circuit
     )
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuits[1], expected_circuit
+        circuits_dict['c2'], expected_circuit
     )
 
 
@@ -520,6 +602,10 @@ def test_get_circuit_error_cases(get_program_async):
     with pytest.raises(IndexError, match="Index 2 out of range"):
         _ = program_batch.get_circuit(2)
 
+    # Batch program, key not found
+    with pytest.raises(KeyError, match="not found"):
+        _ = program_batch.get_circuit('nonexistent')
+
     # Single circuit program, indexing not allowed (except 0 and -1)
     program_single = cg.EngineProgram('a', 'b', EngineContext())
     get_program_async.reset_mock()
@@ -529,6 +615,8 @@ def test_get_circuit_error_cases(get_program_async):
     assert program_single.get_circuit(-1) is not None
     with pytest.raises(IndexError, match="is not a batch program, cannot index 1"):
         _ = program_single.get_circuit(1)
+    with pytest.raises(KeyError, match="is not a batch program"):
+        _ = program_single.get_circuit('key')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')

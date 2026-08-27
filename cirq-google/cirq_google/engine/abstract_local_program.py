@@ -56,6 +56,8 @@ class AbstractLocalProgram(AbstractProgram):
         self._engine = engine
         self._jobs: dict[str, AbstractLocalJob] = {}
         if isinstance(circuits, Mapping):
+            if any(not key for key in circuits.keys()):
+                raise ValueError("Empty key provided in program.")
             self._batch_keys: list[str] | None = list(circuits.keys())
             self._circuits: list[cirq.Circuit] = list(circuits.values())
         else:
@@ -211,14 +213,15 @@ class AbstractLocalProgram(AbstractProgram):
             del self._labels[key]
         return self
 
-    def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:
+    def get_circuit(self, circuit_num: int | str | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the program. This is only
         supported if the program was created with the V2 protos.
 
         Args:
-            circuit_num: if this is a multi-circuit program, the index of the circuit
-                to return.  This argument is zero-indexed. Negative values
-                indexing from the end of the list.
+            circuit_num: if this is a multi-circuit program, the index or key of the circuit
+                to return. For integer indices, this argument is zero-indexed with negative
+                values indexing from the end of the list. For string keys, this looks up
+                the circuit by its key in a mapped program.
 
         Returns:
             The program's cirq Circuit.
@@ -231,6 +234,10 @@ class AbstractLocalProgram(AbstractProgram):
                     "or use `get_circuits()` to get all of them."
                 )
             return self._circuits[0]
+        if isinstance(circuit_num, str):
+            if self._batch_keys is not None and circuit_num in self._batch_keys:
+                return self._circuits[self._batch_keys.index(circuit_num)]
+            raise KeyError(f"Circuit key '{circuit_num}' not found in program.")
         try:
             return self._circuits[circuit_num]
         except IndexError:
@@ -238,9 +245,11 @@ class AbstractLocalProgram(AbstractProgram):
                 f"Index {circuit_num} out of range for batch program of size {len(self._circuits)}."
             )
 
-    def get_circuits(self) -> list[cirq.Circuit]:
+    def get_circuits(self) -> list[cirq.Circuit] | dict[str, cirq.Circuit]:
         """Returns all the cirq Circuits for the program."""
-        return self._circuits
+        if self._batch_keys is not None:
+            return dict(zip(self._batch_keys, self._circuits))
+        return self._circuits.copy()
 
     def is_batch(self) -> bool:
         """Returns True if the program is a batch program."""

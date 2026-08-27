@@ -165,13 +165,14 @@ class AbstractJob(abc.ABC):
         """Returns the configuration used for the job, if available, else None."""
 
     @abc.abstractmethod
-    def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:
+    def get_circuit(self, circuit_num: int | str | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the job.
 
         Args:
-            circuit_num: if this is a multi-circuit job, the index of the circuit
-                to return.  This argument is zero-indexed. Negative values
-                index from the end of the list.  Ignored if not multi-circuit.
+            circuit_num: if this is a multi-circuit job, the index or key of the circuit
+                to return. For integer indices, this argument is zero-indexed with negative
+                values indexing from the end of the list. For string keys, this looks up
+                the circuit by its key in a mapped program. Ignored if not multi-circuit.
 
         Returns:
             The job's cirq Circuit.

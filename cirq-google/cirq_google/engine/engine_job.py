@@ -337,13 +337,14 @@ class EngineJob(abstract_job.AbstractJob):
             config_name=device_config_key.config_alias,
         )
 
-    async def get_circuit_async(self, circuit_num: int | None = None) -> cirq.Circuit:
+    async def get_circuit_async(self, circuit_num: int | str | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the Quantum Engine job.
 
         Args:
-            circuit_num: if this is a multi-circuit job, the index of the circuit
-                to return.  This argument is zero-indexed. Negative values
-                indexing from the end of the list.
+            circuit_num: if this is a multi-circuit job, the index or key of the circuit
+                to return.  For integer indices, this argument is zero-indexed with negative
+                values indexing from the end of the list. For string keys, this looks up
+                the circuit by its key in a mapped program.
 
         Returns:
             The job's cirq Circuit.
