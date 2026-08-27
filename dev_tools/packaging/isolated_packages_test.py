@@ -35,10 +35,13 @@ PACKAGES = ["-r", "dev_tools/requirements/isolated-base.env.txt"]
 @mock.patch.dict(os.environ, {"PYTHONPATH": ""})
 @pytest.mark.parametrize('module', list_modules(), ids=[m.name for m in list_modules()])
 def test_isolated_packages(cloned_env, module, tmp_path) -> None:
-    env = cloned_env("isolated_packages", *PACKAGES)
-
     if module.name != "cirq-core":
-        assert f'cirq-core=={module.version}' in module.install_requires
+        assert f'cirq-core=={module.version}' in module.install_requires or (
+            module.name == "cirq-web"
+            and f"cirq-core>={module.version},<2.0.dev" in module.install_requires
+        )
+
+    env = cloned_env("isolated_packages", *PACKAGES)
 
     # Create per-worker copy of cirq-core sources so that parallel builds
     # of cirq-core wheel do not conflict.

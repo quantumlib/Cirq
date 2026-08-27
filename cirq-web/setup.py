@@ -31,7 +31,7 @@ long_description = pathlib.Path('README.md').read_text(encoding='utf-8')
 # Read in requirements
 with open('requirements.txt', encoding='utf-8') as file:
     requirements = [r.strip() for r in file]
-requirements += [f'cirq-core=={__version__}']
+requirements += [f'cirq-core>={__version__},<2.0.dev']
 
 packs = ['cirq_web'] + ['cirq_web.' + package for package in find_packages(where='cirq_web')]
 
