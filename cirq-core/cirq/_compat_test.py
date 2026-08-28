@@ -17,6 +17,7 @@ from __future__ import annotations
 import collections
 import dataclasses
 import importlib.metadata
+import importlib.util
 import inspect
 import logging
 import multiprocessing
@@ -518,9 +519,6 @@ def _new_module_in_different_parent():
 
 def _find_spec_deprecated_multiple_times():
     """to ensure the idempotency of the aliasing loader change"""
-    # sets up the DeprecationFinders
-    import importlib.util
-
     # first import, the loader is the regular loader on the spec
     assert importlib.util.find_spec('cirq.testing._compat_test_data.fake_a')
     # second import it might be the aliasing loader already
@@ -709,8 +707,6 @@ def test_deprecated_module(outdated_method, deprecation_messages):
 
 def _test_deprecated_module_inner(outdated_method, deprecation_messages):
     # ensure that both packages are initialized exactly once
-    import cirq
-
     with cirq.testing.assert_logs(
         'init:compat_test_data',
         'init:module_a',
