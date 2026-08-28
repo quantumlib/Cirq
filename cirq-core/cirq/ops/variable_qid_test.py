@@ -35,6 +35,9 @@ def test_variable_line_qid_init():
     with pytest.raises(TypeError, match="Only sympy expressions are supported for VariableLineQid"):
         _ = cirq.VariableLineQid([1, 2])
 
+    with pytest.raises(ValueError, match=r"VariableLineQid \(1\) is fully resolved already."):
+        _ = cirq.VariableLineQid(sympy.Integer(1))
+
 
 def test_variable_line_qid_comparison():
     x = sympy.Symbol('x')
@@ -80,11 +83,6 @@ def test_variable_line_qid_basic_resolution():
     resolver = cirq.ParamResolver({x: 5.3})
     with pytest.raises(ValueError, match="Could not resolve expression 5.3 to a LineQid"):
         _ = cirq.resolve_parameters(qx, resolver)
-
-    y = sympy.Symbol('y')
-    resolver = cirq.ParamResolver({y: 3})
-    q1 = cirq.VariableLineQid(x - x + 1)
-    assert cirq.resolve_parameters(q1, resolver) == cirq.LineQubit(1)
 
     # partial resolution
     resolver = cirq.ParamResolver({x: 3})
@@ -194,6 +192,9 @@ def test_variable_grid_qid_init():
 
     with pytest.raises(ValueError, match=r"VariableGridQid \(1, 2\) is fully resolved already."):
         _ = cirq.VariableGridQid(1, 2)
+
+    with pytest.raises(ValueError, match=r"VariableGridQid \(1, 2\) is fully resolved already."):
+        _ = cirq.VariableGridQid(sympy.Integer(1), sympy.Float(2))
 
     q_d3 = cirq.VariableGridQid(r, c, dimension=3)
     assert q_d3.dimension == 3

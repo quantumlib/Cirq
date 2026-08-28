@@ -53,9 +53,9 @@ class VariableQid(raw_types.Qid, metaclass=abc.ABCMeta):
 
 
 def _to_int(val: Any) -> int | None:
-    if isinstance(val, (int, np.integer)):
+    if isinstance(val, (int, np.integer, sympy.Integer)):
         return int(val)
-    if isinstance(val, (float, np.floating)) and val.is_integer():
+    if isinstance(val, (float, np.floating, sympy.Float)) and float(val).is_integer():
         return int(val)
     return None
 
@@ -81,6 +81,8 @@ class VariableLineQid(VariableQid):
         self.validate_dimension(dimension)
         if not isinstance(x, sympy.Expr):
             raise TypeError("Only sympy expressions are supported for VariableLineQid")
+        if not _to_int(x) is None:
+            raise ValueError(f"VariableLineQid ({x}) is fully resolved already.")
         self._x = x
         self._dimension = dimension
 
@@ -152,12 +154,16 @@ class VariableGridQid(VariableQid):
             ValueError: If row and col are both ints (i.e. fully resolved)
         """
         self.validate_dimension(dimension)
-        if not isinstance(row, (sympy.Expr, int)) or not isinstance(col, (sympy.Expr, int)):
+        rowint = _to_int(row)
+        colint = _to_int(col)
+        if (not isinstance(row, sympy.Expr) and rowint is None) or (
+            not isinstance(col, sympy.Expr) and colint is None
+        ):
             raise TypeError(
                 "Only sympy expressions or ints are supported for VariableGridQid row/col."
             )
-        if isinstance(row, int) and isinstance(col, int):
-            raise ValueError(f"VariableGridQid ({row}, {col}) is fully resolved already.")
+        if not (rowint is None or colint is None):
+            raise ValueError(f"VariableGridQid ({rowint}, {colint}) is fully resolved already.")
 
         self._row = row
         self._col = col
