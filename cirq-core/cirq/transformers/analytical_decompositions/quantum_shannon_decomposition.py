@@ -59,8 +59,8 @@ def quantum_shannon_decomposition(
     https://arxiv.org/abs/quant-ph/0406176
 
     Note: Shannon decomposition is sensitive to the numerical accuracy of doing eigendecomposition.
-        Eigendecomposition is obtained using `np.linalg.eig` and the resulting difference between
-        the input and output unitary is heavily affected by the accuracy of `np.linalg.eig`.
+        Eigendecomposition is obtained using `cirq.linalg.unitary_eig` and the resulting difference
+        between the input and output unitary is affected by the accuracy of the eigendecomposition.
 
 
     Args:
@@ -300,17 +300,7 @@ def _msb_demuxer(
     u1 = u1.astype(np.complex128)
     u2 = u2.astype(np.complex128)
     u = u1 @ u2.T.conjugate()
-    if predicates.is_hermitian(u):
-        # If `u` is Hermitian, use the more accurate `eigh` method.
-        dsquared, V = np.linalg.eigh(u)
-    else:
-        dsquared, V = np.linalg.eig(u)
-        # Use Gram–Schmidt to obtain orthonormal eigenvectors for each of the subspaces.
-        for i in range(V.shape[0]):
-            for j in range(i):
-                if np.abs(dsquared[i] - dsquared[j]) < 1e-9:
-                    V[:, i] -= np.dot(V[:, j].conj(), V[:, i]) * V[:, j]
-            V[:, i] /= np.linalg.norm(V[:, i])  # normalize.
+    dsquared, V = decompositions.unitary_eig(u, check_preconditions=False)
     dsquared = dsquared.astype(np.complex128)
     d = np.sqrt(dsquared)
     D = np.diag(d)

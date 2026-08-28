@@ -68,7 +68,7 @@ class IonQAPIDevice(cirq.Device):
             )
         if not self.is_api_gate(operation):
             raise ValueError(f'IonQAPIDevice has unsupported gate {operation.gate}.')
-        if not set(operation.qubits).intersection(self.metadata.qubit_set):
+        if self.metadata.qubit_set.isdisjoint(operation.qubits):
             raise ValueError(f'Operation with qubits not on the device. Qubits: {operation.qubits}')
 
     def is_api_gate(self, operation: cirq.Operation) -> bool:

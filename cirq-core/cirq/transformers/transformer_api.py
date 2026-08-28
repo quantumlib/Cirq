@@ -393,12 +393,13 @@ def _run_transformer_on_circuit(
 ) -> cirq.AbstractCircuit:
     mutable_circuit = None
     if extracted_context and extracted_context.deep and add_deep_support:
+        tags_to_ignore_set = frozenset(extracted_context.tags_to_ignore)
         batch_replace = []
         for i, op in circuit.findall_operations(
             lambda o: isinstance(o.untagged, circuits.CircuitOperation)
         ):
             op_untagged = cast(circuits.CircuitOperation, op.untagged)
-            if not set(op.tags).isdisjoint(extracted_context.tags_to_ignore):
+            if not tags_to_ignore_set.isdisjoint(op.tags):
                 continue
             op_untagged = op_untagged.replace(
                 circuit=_run_transformer_on_circuit(

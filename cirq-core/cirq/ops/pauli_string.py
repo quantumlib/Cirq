@@ -1013,7 +1013,11 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             conjugated = _calc_conjugation(ps, op)
             # The pauli string on the remaining qubits
             remain: PauliString = PauliString(
-                *(pauli(q) for q in all_qubits - set(op.qubits) if (pauli := ps.get(q)) is not None)
+                *(
+                    pauli(q)
+                    for q in all_qubits.difference(op.qubits)
+                    if (pauli := ps.get(q)) is not None
+                )
             )
             ps = remain * conjugated
         return ps

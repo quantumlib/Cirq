@@ -52,8 +52,8 @@ class Unique(Generic[T]):
 
 
 def _disjoint_qubits(op1: cirq.Operation, op2: cirq.Operation) -> bool:
-    """Returns true only if the operations have qubits in common."""
-    return not set(op1.qubits) & set(op2.qubits)
+    """Returns true only if the operations have no qubits in common."""
+    return set(op1.qubits).isdisjoint(op2.qubits)
 
 
 class CircuitDag(networkx.DiGraph):

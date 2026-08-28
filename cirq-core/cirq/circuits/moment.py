@@ -591,12 +591,9 @@ class Moment:
                 raise KeyError("Moment doesn't act on given qubit")
             return self._qubit_to_op[key]
         elif isinstance(key, Iterable):
-            qubits_to_keep = frozenset(key)
-            ops_to_keep = []
-            for q in qubits_to_keep:
-                if q in self._qubit_to_op:
-                    ops_to_keep.append(self._qubit_to_op[q])
-            return Moment(frozenset(ops_to_keep))
+            ops_to_keep = frozenset(op for q in key if (op := self._qubit_to_op.get(q)) is not None)
+            # preserve the order of operations
+            return Moment.from_ops(*(op for op in self if op in ops_to_keep))
 
     def to_text_diagram(
         self: cirq.Moment,

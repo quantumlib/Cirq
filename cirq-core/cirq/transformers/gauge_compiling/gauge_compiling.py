@@ -226,6 +226,7 @@ class GaugeTransformer:
         rng = np.random.default_rng() if prng is None else prng
         if context is None:
             context = transformer_api.TransformerContext(deep=False)
+        tags_to_ignore_set = frozenset(context.tags_to_ignore)
         if context.deep:
             raise ValueError('GaugeTransformer cannot be used with deep=True')
         new_moments = []
@@ -236,9 +237,7 @@ class GaugeTransformer:
             right.clear()
             center: list[ops.Operation] = []
             for op in moment:
-                if isinstance(op, ops.TaggedOperation) and set(op.tags).intersection(
-                    context.tags_to_ignore
-                ):
+                if not tags_to_ignore_set.isdisjoint(op.tags):
                     center.append(op)
                     continue
                 if op.gate is not None and len(op.qubits) == 2 and op in self.target:
@@ -279,6 +278,7 @@ class GaugeTransformer:
             context = transformer_api.TransformerContext(deep=False)
         if context.deep:
             raise ValueError('GaugeTransformer cannot be used with deep=True')
+        tags_to_ignore_set = frozenset(context.tags_to_ignore)
         new_moments: list[list[ops.Operation]] = []  # Store parameterized circuits.
         phxz_sid = itertools.count()
         two_qubit_gate_sid = itertools.count()
@@ -305,9 +305,7 @@ class GaugeTransformer:
             left_moment: list[ops.Operation] = []
             right_moment: list[ops.Operation] = []
             for op in moment:
-                if isinstance(op, ops.TaggedOperation) and set(op.tags).intersection(
-                    context.tags_to_ignore
-                ):
+                if not tags_to_ignore_set.isdisjoint(op.tags):
                     center_moment.append(op)
                     continue
                 if op.gate is not None and op in self.target:
@@ -362,9 +360,7 @@ class GaugeTransformer:
         for _ in range(N):
             for moment_id, moment in enumerate(circuit):
                 for op in moment:
-                    if isinstance(op, ops.TaggedOperation) and set(op.tags).intersection(
-                        context.tags_to_ignore
-                    ):
+                    if not tags_to_ignore_set.isdisjoint(op.tags):
                         continue
                     if op.gate is not None and len(op.qubits) == 2 and op in self.target:
                         gauge = self.gauge_selector(rng).sample(op.gate, rng)

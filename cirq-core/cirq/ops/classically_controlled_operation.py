@@ -112,7 +112,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
 
     @property
     def classical_controls(self) -> frozenset[cirq.Condition]:
-        return frozenset(self._conditions).union(self._sub_operation.classical_controls)
+        return self._sub_operation.classical_controls.union(self._conditions)
 
     def without_classical_controls(self) -> cirq.Operation:
         return self._sub_operation.without_classical_controls()
