@@ -81,7 +81,7 @@ class VariableLineQid(VariableQid):
         self.validate_dimension(dimension)
         if not isinstance(x, sympy.Expr):
             raise TypeError("Only sympy expressions are supported for VariableLineQid")
-        if not _to_int(x) is None:
+        if _to_int(x) is not None:
             raise ValueError(f"VariableLineQid ({x}) is fully resolved already.")
         self._x = x
         self._dimension = dimension
@@ -162,7 +162,7 @@ class VariableGridQid(VariableQid):
             raise TypeError(
                 "Only sympy expressions or ints are supported for VariableGridQid row/col."
             )
-        if not (rowint is None or colint is None):
+        if rowint is not None and colint is not None:
             raise ValueError(f"VariableGridQid ({rowint}, {colint}) is fully resolved already.")
 
         self._row = row

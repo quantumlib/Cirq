@@ -850,7 +850,10 @@ class CircuitOperation(ops.Operation):
         resolved_repetitions = resolver.value_of(
             cast('cirq.TParamVal', self.repetitions), recursive
         )
+        # avoid unnecessary copy when self.repetitions is resolved as is
+        if resolved_repetitions is not self.repetitions:
+            resolved = resolved.replace(repetitions=resolved_repetitions)
         if self._are_qubits_parameterized():
             resolved_qubits = protocols.resolve_parameters(self.qubits, resolver, recursive)
-            return resolved.replace(repetitions=resolved_repetitions).with_qubits(*resolved_qubits)
-        return resolved.replace(repetitions=resolved_repetitions)
+            resolved = resolved.with_qubits(*resolved_qubits)
+        return resolved
