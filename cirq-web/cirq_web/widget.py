@@ -22,17 +22,20 @@ from enum import Enum
 from pathlib import Path
 
 import cirq_web
+from cirq_web.deprecation import deprecated_cirq_web_class
 
 # Resolve the path so the bundle file can be accessed properly
 _DIST_PATH = Path(cirq_web.__file__).parents[1] / "cirq_web" / "dist"
 
 
+@deprecated_cirq_web_class
 class Env(Enum):
     JUPYTER = 1
     COLAB = 2
     OTHER = 3
 
 
+@deprecated_cirq_web_class
 class Widget(ABC):
     """Abstract class for all widgets."""
 

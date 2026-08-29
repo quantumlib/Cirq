@@ -160,7 +160,7 @@ def test_identity_pow() -> None:
 
 
 def test_pauli_expansion_notimplemented() -> None:
-    assert cirq.IdentityGate(1, (3,))._pauli_expansion_() == NotImplemented
+    assert cirq.IdentityGate(1, (3,))._pauli_expansion_() is NotImplemented
 
 
 @pytest.mark.parametrize(

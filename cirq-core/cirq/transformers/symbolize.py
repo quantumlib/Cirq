@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Hashable
 from typing import TYPE_CHECKING
 
 import attrs
@@ -75,26 +74,29 @@ def symbolize_single_qubit_gates_by_indexed_tags(
         Copy of the transformed input circuit.
     """
 
+    symbolize_tag_pattern = re.compile(f"{re.escape(symbolize_tag.prefix)}_(\\d+)")
+
     def _map_func(op: cirq.Operation, _):
         """Maps an op with tag `{tag_prefix}_i` to a symbolized `PhasedXZGate(xi,zi,ai)`."""
-        tags: set[Hashable] = set(op.tags)
         tag_id: None | int = None
-        for tag in tags:
-            if re.fullmatch(f"{symbolize_tag.prefix}_\\d+", str(tag)):
+        tag_index_to_drop = len(op.tags)
+        for idx, tag in enumerate(op.tags):
+            if match := symbolize_tag_pattern.fullmatch(str(tag)):
                 if tag_id is None:
-                    tag_id = int(str(tag).rsplit("_", maxsplit=-1)[-1])
+                    tag_id = int(match.group(1))
+                    tag_index_to_drop = idx
                 else:
                     raise ValueError(f"Multiple tags are prefixed with {symbolize_tag.prefix}.")
         if tag_id is None:
             return op
-        tags.remove(f"{symbolize_tag.prefix}_{tag_id}")
         phxz_params = {
             "x_exponent": sympy.Symbol(f"x{tag_id}"),
             "z_exponent": sympy.Symbol(f"z{tag_id}"),
             "axis_phase_exponent": sympy.Symbol(f"a{tag_id}"),
         }
 
-        return ops.PhasedXZGate(**phxz_params).on(*op.qubits).with_tags(*tags)
+        new_tags = (*op.tags[:tag_index_to_drop], *op.tags[tag_index_to_drop + 1 :])
+        return ops.PhasedXZGate(**phxz_params).on(*op.qubits).with_tags(*new_tags)
 
     return transformer_primitives.map_operations(
         circuit.freeze(),

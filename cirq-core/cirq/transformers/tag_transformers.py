@@ -48,13 +48,10 @@ def index_tags(
     tag_iter_by_tags = {tag: itertools.count(start=0, step=1) for tag in target_tags}
 
     def _map_func(op: cirq.Operation, _) -> cirq.OP_TREE:
-        tag_set = set(op.tags)
-        nonlocal tag_iter_by_tags
-        for tag in target_tags.intersection(op.tags):
-            tag_set.remove(tag)
-            tag_set.add(f"{tag}_{next(tag_iter_by_tags[tag])}")
-
-        return op.untagged.with_tags(*tag_set)
+        new_tags = (
+            f"{tag}_{next(tag_iter_by_tags[tag])}" if tag in target_tags else tag for tag in op.tags
+        )
+        return op.untagged.with_tags(*new_tags)
 
     return transformer_primitives.map_operations(
         circuit, _map_func, deep=context.deep if context else False

@@ -26,7 +26,7 @@ import numpy as np
 import sympy
 
 import cirq.contrib.shuffle_circuits.shuffle_circuits_with_readout_benchmarking as sc_readout
-from cirq import circuits, ops, study, work
+from cirq import circuits, ops, study, transformers, work
 from cirq.experiments.readout_confusion_matrix import TensoredConfusionMatrices
 
 if TYPE_CHECKING:
@@ -1155,7 +1155,8 @@ def generate_trex_and_readout_circuits(
     num_twirls: int,
     num_readout_circuits: int,
     rng: np.random.Generator,
-) -> tuple[list[circuits.Circuit], TRexMetadata]:
+    insert_strategy: circuits.InsertStrategy = circuits.InsertStrategy.INLINE,
+) -> list[tuple[list[circuits.Circuit], TRexMetadata]]:
     """Generates a list of circuits for TREX benchmarking and readout calibration.
 
     This function generates `num_twirls` circuits by applying random Pauli twirls
@@ -1165,17 +1166,70 @@ def generate_trex_and_readout_circuits(
 
     Args:
         circuit_to_pauli: A CircuitToPauliStringsParameters object containing the original
-            circuit and its associated Pauli strings.
+            circuit and the Pauli strings that the user wishes to measure on the output
+            of the circuit.
         num_twirls: The number of twirled circuits to generate for each original circuit.
         num_readout_circuits: The number of readout calibration circuits to generate.
         rng: A NumPy random number generator for generating random Pauli twirls.
+        insert_strategy: The strategy for inserting measurement operations into the circuit.
+            Defaults to circuits.InsertStrategy.INLINE.
 
     Returns:
-        A tuple containing:
-            - A combined list of the twirled Pauli circuits followed by the readout circuits.
+        A list of tuples, one for each Pauli group in `circuit_to_pauli.pauli_strings`.
+        Each tuple contains:
+            - A list of the generated circuits (twirled circuits followed by readout circuits).
             - A TRexMetadata object containing the random choices needed for post-processing.
     """
-    raise NotImplementedError("T-REX error mitigation is not yet implemented.")
+    results: list[tuple[list[circuits.Circuit], TRexMetadata]] = []
+
+    circuit = transformers.drop_terminal_measurements(circuit_to_pauli.circuit.unfreeze())
+
+    for pauli_group in circuit_to_pauli.pauli_strings:
+
+        qubit_pauli_dict_unsorted: dict[ops.Qid, ops.Pauli] = {}
+        for pauli_str in pauli_group:
+            qubit_pauli_dict_unsorted.update(pauli_str)
+
+        qubit_pauli_dict = {
+            q: qubit_pauli_dict_unsorted[q] for q in sorted(qubit_pauli_dict_unsorted)
+        }
+
+        joint_basis_pauli: ops.PauliString = ops.PauliString(qubit_pauli_dict)
+        num_qubits = len(qubit_pauli_dict)
+
+        twirl_choices = _generate_random_boolean_choices(num_twirls, num_qubits, rng)
+        pauli_circuits = _build_trex_twirled_pauli_circuits(
+            circuit, joint_basis_pauli, twirl_choices, insert_strategy
+        )
+
+        readout_choices = _generate_random_boolean_choices(num_readout_circuits, num_qubits, rng)
+
+        readout_circuits = [
+            circuits.Circuit.from_moments(
+                # Note: An empty moment may be inserted here if readout_choices_i contains
+                # all false values. This is intentional to ensure the depth and measurement
+                # timing of all readout circuits remain consistent and uniform.
+                circuits.Moment(
+                    ops.X.on_each(
+                        q for q, flip in zip(joint_basis_pauli, readout_choices_i) if flip
+                    )
+                ),
+                circuits.Moment(ops.M(*joint_basis_pauli.qubits, key='result')),
+            )
+            for readout_choices_i in readout_choices
+        ]
+
+        # Bundle the circuits and their corresponding metadata together
+        group_circuits = pauli_circuits + readout_circuits
+        group_metadata = TRexMetadata(
+            pauli_str=joint_basis_pauli,
+            twirl_choices=twirl_choices,
+            readout_choices=readout_choices,
+        )
+
+        results.append((group_circuits, group_metadata))
+
+    return results
 
 
 def measure_pauli_strings(

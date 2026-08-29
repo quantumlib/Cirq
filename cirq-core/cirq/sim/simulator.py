@@ -1029,12 +1029,15 @@ def split_into_matching_protocol_then_general(
         matching_part = []
         general_part = []
         for op in moment:
-            qs = set(op.qubits)
             keys = protocols.measurement_keys_touched(op)
-            if predicate(op) and qs.isdisjoint(blocked_qubits) and keys.isdisjoint(blocked_keys):
+            if (
+                predicate(op)
+                and blocked_qubits.isdisjoint(op.qubits)
+                and keys.isdisjoint(blocked_keys)
+            ):
                 matching_part.append(op)
             else:
-                blocked_qubits |= qs
+                blocked_qubits.update(op.qubits)
                 blocked_keys |= keys
                 general_part.append(op)
         if matching_part:

@@ -71,12 +71,14 @@ def _decompose_operations_to_target_gateset(
         ValueError: If any input operation fails to convert and `ignore_failures` is False.
     """
 
+    tags_to_decompose_set = frozenset(tags_to_decompose)
+
     def map_func(op: cirq.Operation, moment_index: int):
         if (
             context
             and context.deep
             and isinstance(op.untagged, circuits.CircuitOperation)
-            and set(op.tags).isdisjoint(tags_to_decompose)
+            and tags_to_decompose_set.isdisjoint(op.tags)
         ):
             return op
         return dp.decompose(

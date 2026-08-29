@@ -43,7 +43,7 @@ def test_apply_gate() -> None:
     state.apply_x.assert_called_with(1, 2.0, 1.3)
 
     state.reset_mock()
-    assert args._strat_apply_gate(cirq.X**1.4, [q0]) == NotImplemented
+    assert args._strat_apply_gate(cirq.X**1.4, [q0]) is NotImplemented
     state.apply_x.assert_not_called()
 
     state.reset_mock()
@@ -87,7 +87,7 @@ def test_apply_gate() -> None:
     state.apply_cx.assert_has_calls([mock.call(0, 1), mock.call(1, 0, 2.0, 1.3), mock.call(0, 1)])
 
     state.reset_mock()
-    assert args._strat_apply_gate(cirq.BitFlipChannel(0.5), [q0]) == NotImplemented
+    assert args._strat_apply_gate(cirq.BitFlipChannel(0.5), [q0]) is NotImplemented
     state.apply_x.assert_not_called()
 
 

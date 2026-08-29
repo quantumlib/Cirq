@@ -17,6 +17,7 @@ from __future__ import annotations
 import itertools
 import random
 from collections.abc import Sequence
+from unittest import mock
 
 import numpy as np
 import pytest
@@ -24,9 +25,8 @@ import pytest
 import cirq
 from cirq.contrib.paulistring import CircuitToPauliStringsParameters, measure_pauli_strings
 from cirq.contrib.paulistring.pauli_string_measurement_with_readout_mitigation import (
-    _build_trex_twirled_pauli_circuits,
+    generate_trex_and_readout_circuits,
     PostFilteringSymmetryCalibrationResult as PostFilteringSymmetryCalibrationResult,
-    TRexMetadata,
 )
 from cirq.experiments import SingleQubitReadoutCalibrationResult
 from cirq.experiments.single_qubit_readout_calibration_test import NoisySingleQubitReadoutSampler
@@ -865,9 +865,6 @@ def test_postselection_symmetry_validation_and_logic() -> None:
 @pytest.mark.parametrize("use_sweep", [False, True])
 def test_sampler_receives_correct_circuits(use_sweep: bool) -> None:
     """Test that the sampler receives circuits with correct measurement qubits."""
-
-    from unittest.mock import MagicMock
-
     from cirq.study.result import ResultDict
 
     qubits = cirq.LineQubit.range(5)
@@ -877,7 +874,7 @@ def test_sampler_receives_correct_circuits(use_sweep: bool) -> None:
 
     # Test standard Pauli String without Symmetries
     circuits_to_pauli = {circuit: [pauli_str]}
-    mock_sampler = MagicMock()
+    mock_sampler = mock.MagicMock()
 
     mock_res = ResultDict(params=cirq.ParamResolver({}), measurements={"result": np.zeros((1, 3))})
     mock_sampler.run_batch.return_value = [[mock_res]]
@@ -910,7 +907,7 @@ def test_sampler_receives_correct_circuits(use_sweep: bool) -> None:
         postselection_symmetries=[(cirq.PauliString(cirq.Z(sym_qubit)), 1)],
     )
 
-    mock_sampler_sym = MagicMock()
+    mock_sampler_sym = mock.MagicMock()
     mock_res_sym = ResultDict(
         params=cirq.ParamResolver({}), measurements={"result": np.zeros((1, 4))}
     )
@@ -939,71 +936,110 @@ def test_sampler_receives_correct_circuits(use_sweep: bool) -> None:
         assert measured == expected_qubits
 
 
-def test_build_trex_twirled_pauli_circuits_multiple_twirls():
-    """Test generating multiple circuits from a multi-row twirl_choices array."""
-    q0, q1, q2 = cirq.LineQubit.range(3)
-    base_circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1), cirq.CNOT(q0, q2))
-    basis_ps = cirq.X(q0) * cirq.Y(q1) * cirq.Z(q2)
+@pytest.mark.parametrize(
+    "insert_strategy, expected_ops_in_moment_3",
+    [(cirq.InsertStrategy.INLINE, 1), (cirq.InsertStrategy.EARLIEST, 2)],
+)
+def test_generate_trex_and_readout_circuits(
+    insert_strategy: cirq.InsertStrategy, expected_ops_in_moment_3: int
+) -> None:
+    """Test the generation of TRex twirled circuits and readout calibration circuits."""
+    q0, q1 = cirq.LineQubit.range(2)
+    base_circuit = cirq.FrozenCircuit(cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1), cirq.H(q1)))
 
-    # 3 different twirl choices
-    twirl_choices = np.array(
-        [
-            [False, True, True],  # q0(no flip), q1(flip), q2(flip)]
-            [True, False, False],  # q0(flip), q1(no flip), q2(no flip)]
-            [False, False, False],  # q0(no flip), q1(no flip), q2(no flip)]
-        ]
+    pauli_group_1: list[cirq.PauliString] = [cirq.PauliString(cirq.Z(q0) * cirq.Z(q1))]
+    # Qubits in group 2 are unsorted.
+    pauli_group_2: list[cirq.PauliString] = [
+        cirq.PauliString(cirq.X(q1)),
+        cirq.PauliString(cirq.X(q0)),
+    ]
+
+    pauli_strings = [pauli_group_1, pauli_group_2]
+
+    params = CircuitToPauliStringsParameters(circuit=base_circuit, pauli_strings=pauli_strings)
+
+    num_twirls = 3
+    num_readout_circuits = 2
+    rng = np.random.default_rng(seed=42)
+
+    results = generate_trex_and_readout_circuits(
+        circuit_to_pauli=params,
+        num_twirls=num_twirls,
+        num_readout_circuits=num_readout_circuits,
+        rng=rng,
+        insert_strategy=insert_strategy,
     )
 
-    circuits = _build_trex_twirled_pauli_circuits(base_circuit, basis_ps, twirl_choices)
+    # We have 2 Pauli groups, so we should get 2 tuples of (circuits, metadata).
+    assert len(results) == 2
 
-    assert len(circuits) == 3
+    # Verify Group 1 Metadata and Circuits
+    group1_circuits, meta1 = results[0]
 
-    q0_no_flip = cirq.Ry(rads=-np.pi / 2)(q0)
-    q0_flip = cirq.Ry(rads=np.pi / 2)(q0)
+    # We should get (3 twirls + 2 readouts) = 5 circuits
+    assert len(group1_circuits) == 5
 
-    q1_no_flip = cirq.Rx(rads=np.pi / 2)(q1)
-    q1_flip = cirq.Rx(rads=-np.pi / 2)(q1)
+    # Verify metadata.
+    assert meta1.pauli_str == cirq.Z(q0) * cirq.Z(q1)
+    assert meta1.twirl_choices.shape == (num_twirls, 2)
+    assert meta1.readout_choices.shape == (num_readout_circuits, 2)
 
-    q2_no_flip = cirq.I(q2)
-    q2_flip = cirq.X(q2)
+    # Indices 0, 1, 2 belong to the twirled circuits of group 1
+    for i in range(3):
+        # Check how many operations are in the 3rd moment
+        # EARLIEST packs 2 ops, while INLINE leaves it at 1 op
+        assert len(group1_circuits[i].moments[2].operations) == expected_ops_in_moment_3
 
-    # Verify Circuit 0: row [False, True, True]
-    assert q0_no_flip in circuits[0].moments[-2].operations
-    assert q1_flip in circuits[0].moments[-2].operations
-    assert q2_flip in circuits[0].moments[-2].operations
-
-    # Verify Circuit 1: row [True, False, False]
-    assert q0_flip in circuits[1].moments[-2].operations
-    assert q1_no_flip in circuits[1].moments[-2].operations
-    assert q2_no_flip in circuits[1].moments[-2].operations
-
-    # Verify Circuit 2: row [False, False, False]
-    assert q0_no_flip in circuits[2].moments[-2].operations
-    assert q1_no_flip in circuits[2].moments[-2].operations
-    assert q2_no_flip in circuits[2].moments[-2].operations
-
-    # Verify that every generated circuit ends with the correct joint measurement
-    for circuit in circuits:
-        meas_op = circuit.moments[-1].operations[0]
+        meas_op = group1_circuits[i].moments[-1].operations[0]
         assert isinstance(meas_op.gate, cirq.MeasurementGate)
-        assert meas_op.qubits == (q0, q1, q2)
+        assert set(meas_op.qubits) == {q0, q1}
         assert meas_op.gate.key == 'result'
 
+    # Indices 3, 4 belong to the readout circuits of group 1
+    for i in range(3, 5):
+        readout_circuit = group1_circuits[i]
+        # Readout circuits have exactly 2 moments: Optional X gates, then Measurement
+        assert len(readout_circuit.moments) == 2
 
-def test_trex_metadata_instantiation() -> None:
-    """Test the instantiation and attributes of TRexMetadata."""
-    q0, q1 = cirq.LineQubit.range(2)
-    pauli_str = cirq.X(q0) * cirq.Z(q1)
+        # Check first moment (State preparation via X gates)
+        for op in readout_circuit.moments[0].operations:
+            assert op.gate == cirq.X
 
-    # 2D boolean arrays of shape (num_readout_circuits, num_qubits)
-    twirl_choices = np.array([[True, False], [False, True], [True, True]])
+        # Check second moment (Measurement)
+        meas_op = readout_circuit.moments[-1].operations[0]
+        assert isinstance(meas_op.gate, cirq.MeasurementGate)
+        assert set(meas_op.qubits) == {q0, q1}
+        assert meas_op.gate.key == 'result'
 
-    readout_choices = np.array([[False, False], [True, True], [False, True]])
+    # Verify Group 2 Metadata and Circuits
+    group2_circuits, meta2 = results[1]
 
-    metadata = TRexMetadata(
-        pauli_str=pauli_str, twirl_choices=twirl_choices, readout_choices=readout_choices
-    )
+    # We should get (3 twirls + 2 readouts) = 5 circuits
+    assert len(group2_circuits) == 5
 
-    assert metadata.pauli_str == pauli_str
-    np.testing.assert_array_equal(metadata.twirl_choices, twirl_choices)
-    np.testing.assert_array_equal(metadata.readout_choices, readout_choices)
+    # Verify metadata.
+    # The two X Paulis should have been combined into a joint X0*X1 string
+    assert meta2.pauli_str == cirq.X(q0) * cirq.X(q1)
+    assert meta2.twirl_choices.shape == (num_twirls, 2)
+    assert meta2.readout_choices.shape == (num_readout_circuits, 2)
+    # The qubits order are sorted.
+    assert meta2.pauli_str.qubits == (q0, q1)
+
+    # Indices 0, 1, 2 belong to the twirled circuits of group 2
+    for i in range(3):
+        # Check how many operations are in the 3rd moment
+        # EARLIEST packs 2 ops, while INLINE leaves it at 1 op
+        assert len(group2_circuits[i].moments[2].operations) == expected_ops_in_moment_3
+
+        meas_op = group2_circuits[i].moments[-1].operations[0]
+        assert isinstance(meas_op.gate, cirq.MeasurementGate)
+        assert set(meas_op.qubits) == {q0, q1}
+        assert meas_op.gate.key == 'result'
+
+    # Indices 3, 4 belong to the readout circuits of group 2
+    for i in range(3, 5):
+        readout_circuit = group2_circuits[i]
+        assert len(readout_circuit.moments) == 2
+        meas_op = readout_circuit.moments[-1].operations[0]
+        assert isinstance(meas_op.gate, cirq.MeasurementGate)
+        assert set(meas_op.qubits) == {q0, q1}
