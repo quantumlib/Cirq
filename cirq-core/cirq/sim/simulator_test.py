@@ -591,3 +591,178 @@ def test_sampler_without_prng_uses_internal_state() -> None:
     res2 = sampler.run(circuit, repetitions=50).records['m']
 
     assert not np.array_equal(res1, res2)
+
+
+class _BackCompatSimulatesSamples(SimulatesSamples):
+    """SimulatesSamples before `_run` got the `prng` param."""
+
+    def _run(  # type: ignore[override]
+        self, circuit: cirq.AbstractCircuit, param_resolver: cirq.ParamResolver, repetitions: int
+    ) -> dict[str, np.ndarray]:
+        return {'m': np.ones((repetitions, 1, 1), dtype=np.uint8)}
+
+
+class _BackCompatRunSweepIter(_BackCompatSimulatesSamples):
+    """SimulatesSamples overriding `run_sweep_iter` before it got the `prng` param."""
+
+    def run_sweep_iter(  # type: ignore[override]
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+    ) -> Iterator[cirq.Result]:
+        return super().run_sweep_iter(program, params, repetitions)
+
+
+@pytest.mark.parametrize('simulator', [_BackCompatSimulatesSamples(), _BackCompatRunSweepIter()])
+def test_simulates_samples_without_prng_no_forwarding(simulator: SimulatesSamples) -> None:
+    """`run_sweep` and `run_sweep_iter` shouldn't forward `prng` when the caller didn't pass one in."""
+
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(a), cirq.measure(a, key='m'))
+    expected = np.ones((2, 1, 1))
+
+    np.testing.assert_equal(simulator.run(circuit, repetitions=2).records['m'], expected)
+    np.testing.assert_equal(simulator.run_sweep(circuit, None, 2)[0].records['m'], expected)
+    np.testing.assert_equal(next(simulator.run_sweep_iter(circuit, None, 2)).records['m'], expected)
+
+
+@pytest.mark.parametrize('simulator', [_BackCompatSimulatesSamples(), _BackCompatRunSweepIter()])
+def test_passing_prng_to_simulates_samples_without_prng_fails(simulator: SimulatesSamples) -> None:
+    """Simulators that don't use `prng` should throw an error upon receiving it."""
+
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(a), cirq.measure(a, key='m'))
+
+    with pytest.raises(TypeError, match='_run|run_sweep_iter'):
+        simulator.run(circuit, repetitions=2, prng=np.random.default_rng(0))
+
+
+class _BackCompatSimulateSweep(SimulatesFinalState):
+    """SimulatesFinalState before `simulate_sweep` got the `prng` param."""
+
+    def simulate_sweep(  # type: ignore[override]
+        self,
+        program: cirq.AbstractCircuit,
+        params: study.Sweepable,
+        qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
+        initial_state: Any = None,
+    ) -> list[SimulationTrialResult]:
+        return [
+            SimulationTrialResult(
+                params=cirq.ParamResolver(), measurements={}, final_simulator_state=[]
+            )
+        ]
+
+
+class _BackCompatSimulateSweepIter(SimulatesFinalState):
+    """SimulatesFinalState before `simulate_sweep_iter` got the `prng` param."""
+
+    def simulate_sweep_iter(  # type: ignore[override]
+        self,
+        program: cirq.AbstractCircuit,
+        params: study.Sweepable,
+        qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
+        initial_state: Any = None,
+    ) -> Iterator[SimulationTrialResult]:
+        yield SimulationTrialResult(
+            params=cirq.ParamResolver(), measurements={}, final_simulator_state=[]
+        )
+
+
+@pytest.mark.parametrize('simulator', [_BackCompatSimulateSweep(), _BackCompatSimulateSweepIter()])
+def test_simulates_final_state_without_prng_no_forwarding(simulator: SimulatesFinalState) -> None:
+    """`simulate` and `simulate_sweep` shouldn't forward `prng` when the caller didn't pass one in."""
+
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(a))
+
+    assert simulator.simulate(circuit) == SimulationTrialResult(
+        params=cirq.ParamResolver(), measurements={}, final_simulator_state=[]
+    )
+    assert simulator.simulate_sweep(circuit, None) == [
+        SimulationTrialResult(
+            params=cirq.ParamResolver(), measurements={}, final_simulator_state=[]
+        )
+    ]
+    assert next(simulator.simulate_sweep_iter(circuit, None)) == SimulationTrialResult(
+        params=cirq.ParamResolver(), measurements={}, final_simulator_state=[]
+    )
+
+
+@pytest.mark.parametrize('simulator', [_BackCompatSimulateSweep(), _BackCompatSimulateSweepIter()])
+def test_passing_prng_to_simulates_final_state_without_prng_fails(
+    simulator: SimulatesFinalState,
+) -> None:
+    """Simulators that don't use `prng` should throw an error upon receiving it."""
+
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(a))
+
+    with pytest.raises(TypeError, match='simulate_sweep'):
+        simulator.simulate(circuit, prng=np.random.default_rng(0))
+
+
+class _BackCompatStepResult(cirq.StepResult):
+    """StepResult for the below intermediate state simulator."""
+
+    def __init__(self) -> None:
+        self._measurements: dict[str, np.ndarray] = {'m': np.ones(1, dtype=np.uint8)}
+
+    def _simulator_state(self) -> None:
+        return None
+
+    def sample(self, qubits, repetitions=1, seed=None) -> np.ndarray:
+        return np.ones((repetitions, len(qubits)), dtype=np.uint8)  # pragma: no cover
+
+
+class _BackCompatIntermediateState(SimulatesIntermediateStateImpl):
+    """SimulatesIntermediateState before `_base_iterator` got the `prng` param."""
+
+    def _base_iterator(  # type: ignore[override]
+        self,
+        circuit: cirq.AbstractCircuit,
+        qubits: tuple[cirq.Qid, ...],
+        initial_state: Any,
+        param_resolver: cirq.ParamResolver | None = None,
+    ) -> Iterator[_BackCompatStepResult]:
+        yield _BackCompatStepResult()
+
+
+class _BackCompatMomentSteps(_BackCompatIntermediateState):
+    """SimulatesIntermediateState overriding `simulate_moment_steps` before `prng`."""
+
+    def simulate_moment_steps(  # type: ignore[override]
+        self,
+        circuit: cirq.AbstractCircuit,
+        param_resolver: cirq.ParamResolverOrSimilarType = None,
+        qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
+        initial_state: Any = None,
+    ) -> Iterator[_BackCompatStepResult]:
+        return super().simulate_moment_steps(circuit, param_resolver, qubit_order, initial_state)
+
+
+@pytest.mark.parametrize('simulator', [_BackCompatIntermediateState(), _BackCompatMomentSteps()])
+def test_simulates_intermediate_state_without_prng_no_forwarding(simulator) -> None:
+    """`simulate_sweep_iter` and `simulate_moment_steps` shouldn't forward `prng` either."""
+
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(a))
+    expected = {'m': np.ones(1, dtype=np.uint8)}
+
+    np.testing.assert_equal(simulator.simulate(circuit).measurements, expected)
+    np.testing.assert_equal(simulator.simulate_sweep(circuit, None)[0].measurements, expected)
+    np.testing.assert_equal(
+        next(simulator.simulate_sweep_iter(circuit, None)).measurements, expected
+    )
+    np.testing.assert_equal(next(simulator.simulate_moment_steps(circuit)).measurements, expected)
+
+
+@pytest.mark.parametrize('simulator', [_BackCompatIntermediateState(), _BackCompatMomentSteps()])
+def test_passing_prng_to_simulates_intermediate_state_without_prng_fails(simulator) -> None:
+    """Simulators that don't use `prng` should throw an error upon receiving it."""
+
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(a))
+
+    with pytest.raises(TypeError, match='_base_iterator|simulate_moment_steps'):
+        simulator.simulate(circuit, prng=np.random.default_rng(0))
+    with pytest.raises(TypeError, match='_base_iterator|simulate_moment_steps'):
+        next(simulator.simulate_moment_steps(circuit, prng=np.random.default_rng(0)))

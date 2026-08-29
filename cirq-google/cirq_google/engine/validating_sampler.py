@@ -75,7 +75,10 @@ class ValidatingSampler(cirq.Sampler):
         prng: np.random.Generator | None = None,
     ) -> Sequence[cirq.Result]:
         self._validate_circuit([program], [params], repetitions)
-        return self._sampler.run_sweep(program, params, repetitions, prng)
+        if prng is None:
+            return self._sampler.run_sweep(program, params, repetitions)
+        else:
+            return self._sampler.run_sweep(program, params, repetitions, prng)
 
     async def run_batch_async(
         self,

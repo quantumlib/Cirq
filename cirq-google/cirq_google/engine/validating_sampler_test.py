@@ -13,6 +13,8 @@
 # limitations under the License.
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import numpy as np
 import pytest
 import sympy
@@ -103,3 +105,37 @@ def test_batch_default_sweeps():
     results = sampler.run_batch(circuits, None, repetitions=100)
     assert np.all(results[0][0].measurements['m'] == 1)
     assert np.all(results[1][0].measurements['m2'] == 0)
+
+
+class _BackCompatSampler(cirq.Sampler):
+    """Sampler before run_sweep got the `prng` param."""
+
+    def run_sweep(  # type: ignore[override]
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+    ) -> Sequence[cirq.Result]:
+        return cirq.Simulator().run_sweep(program, params, repetitions)
+
+
+def test_validating_sampler_without_prng_no_forwarding() -> None:
+    """`run_sweep` and `run_batch` shouldn't forward `prng` when the caller didn't pass one in."""
+
+    sampler = cg.ValidatingSampler(sampler=_BackCompatSampler())
+    q = cirq.GridQubit(2, 2)
+    circuit = cirq.Circuit(cirq.X(q), cirq.measure(q, key='m'))
+    expected = np.ones((2, 1, 1))
+
+    np.testing.assert_equal(sampler.run_sweep(circuit, None, 2)[0].records['m'], expected)
+    np.testing.assert_equal(sampler.run_batch([circuit], None, 2)[0][0].records['m'], expected)
+
+
+def test_passing_prng_to_validating_sampler_without_prng_fails() -> None:
+    """Samplers that don't use `prng` should throw an error upon receiving it."""
+
+    sampler = cg.ValidatingSampler(sampler=_BackCompatSampler())
+    q = cirq.GridQubit(2, 2)
+    circuit = cirq.Circuit(cirq.X(q), cirq.measure(q, key='m'))
+
+    with pytest.raises(TypeError, match='run_sweep'):
+        sampler.run_sweep(circuit, None, 2, prng=np.random.default_rng(0))
+    with pytest.raises(TypeError, match='run_sweep'):
+        sampler.run_batch([circuit], None, 2, prng=np.random.default_rng(0))

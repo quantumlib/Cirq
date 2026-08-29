@@ -362,10 +362,7 @@ class SimulatorBase(
             pass
         assert step_result is not None
         sim_state = step_result._sim_state
-        if prng is None:
-            yield from super().simulate_sweep_iter(suffix, params, qubit_order, sim_state)
-        else:
-            yield from super().simulate_sweep_iter(suffix, params, qubit_order, sim_state, prng)
+        yield from super().simulate_sweep_iter(suffix, params, qubit_order, sim_state, prng)
 
     def _create_simulation_state(
         self,

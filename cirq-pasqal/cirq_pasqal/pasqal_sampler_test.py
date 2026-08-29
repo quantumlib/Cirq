@@ -115,10 +115,8 @@ def test_run_sweep(mock_post, mock_get):
 
 
 def test_pasqal_sampler_rejects_prng() -> None:
-    a = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit(cirq.H(a), cirq.measure(a, key='m'))
-
-    qs = cirq.NamedQubit.range(3, prefix='q')
+    qs = [cirq_pasqal.ThreeDQubit(i, j, 0) for i in range(3) for j in range(3)]
+    circuit = cirq.Circuit(cirq.X(qs[0]), cirq.measure(qs[0], key='m'))
     device = cirq_pasqal.PasqalVirtualDevice(control_radius=1, qubits=qs)
     sampler = _make_sampler(device)
 

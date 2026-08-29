@@ -418,3 +418,62 @@ def test_run_batch_uses_independent_generators() -> None:
 
     assert not np.array_equal(batch[0], batch[1])
 
+
+class _BackCompatSampler(cirq.Sampler):
+    """Sampler before run_sweep got the `prng` param."""
+
+    def run_sweep(  # type: ignore[override]
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+    ) -> Sequence[cirq.Result]:
+        return cirq.Simulator().run_sweep(program, params, repetitions)
+
+
+class _BackCompatAsyncSampler(cirq.Sampler):
+    """Sampler before run_sweep_async got the `prng` param."""
+
+    async def run_sweep_async(  # type: ignore[override]
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+    ) -> Sequence[cirq.Result]:
+        return cirq.Simulator().run_sweep(program, params, repetitions)
+
+
+@pytest.mark.parametrize('sampler', [_BackCompatSampler(), _BackCompatAsyncSampler()])
+def test_sampler_without_prng_no_forwarding(sampler: cirq.Sampler) -> None:
+    """`run` and `run_sweep` shouldn't forward `prng` when the caller didn't pass one in."""
+
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(a), cirq.measure(a, key='m'))
+    expected = np.ones((2, 1, 1))
+    np.testing.assert_equal(sampler.run(circuit, repetitions=2).records['m'], expected)
+    np.testing.assert_equal(sampler.run_sweep(circuit, None, 2)[0].records['m'], expected)
+    assert len(sampler.sample(circuit, repetitions=2)) == 2
+    assert len(sampler.run_batch([circuit], repetitions=2)) == 1
+
+
+@pytest.mark.parametrize('sampler', [_BackCompatSampler(), _BackCompatAsyncSampler()])
+@duet.sync
+async def test_sampler_without_prng_no_forwarding_async(sampler: cirq.Sampler) -> None:
+    """`run_async` and `run_batch_async` shouldn't forward `prng` either."""
+
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(a), cirq.measure(a, key='m'))
+    result = await sampler.run_async(circuit, repetitions=2)
+    np.testing.assert_equal(result.records['m'], np.ones((2, 1, 1)))
+    assert len(await sampler.run_batch_async([circuit], repetitions=2)) == 1
+
+
+@pytest.mark.parametrize('sampler', [_BackCompatSampler(), _BackCompatAsyncSampler()])
+@duet.sync
+async def test_passing_prng_to_sampler_without_prng_fails(sampler: cirq.Sampler) -> None:
+    """Samplers that don't use `prng` should throw an error upon receiving it."""
+
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(a), cirq.measure(a, key='m'))
+    with pytest.raises(TypeError, match='run_sweep'):
+        sampler.run(circuit, repetitions=2, prng=np.random.default_rng(0))
+    with pytest.raises(TypeError, match='run_sweep'):
+        sampler.sample(circuit, repetitions=2, prng=np.random.default_rng(0))
+    with pytest.raises(TypeError, match='run_sweep'):
+        await sampler.run_async(circuit, repetitions=2, prng=np.random.default_rng(0))
+    with pytest.raises(TypeError, match='run_sweep'):
+        await sampler.run_batch_async([circuit], repetitions=2, prng=np.random.default_rng(0))
