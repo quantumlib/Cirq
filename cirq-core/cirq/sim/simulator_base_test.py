@@ -503,3 +503,16 @@ def test_passing_prng_to_simulator_base_without_prng_fails() -> None:
         sim.simulate(circuit, prng=np.random.default_rng(0))
     with pytest.raises(TypeError, match='_create_simulation_state'):
         next(sim.simulate_moment_steps(circuit, prng=np.random.default_rng(0)))
+
+
+@pytest.mark.parametrize('split_untangled_states', [False, True])
+def test_create_simulation_state_forwards_prng(split_untangled_states) -> None:
+    """A `prng` passed in should reach the simulation states built for the run."""
+
+    sim = cirq.Simulator(split_untangled_states=split_untangled_states)
+    prng = np.random.default_rng(0)
+    initial_state = np.array([1, 0, 0, 0], dtype=np.complex64)
+
+    state = sim._create_simulation_state(initial_state, (q0, q1), prng=prng)
+
+    assert state.create_merged_state().prng is prng

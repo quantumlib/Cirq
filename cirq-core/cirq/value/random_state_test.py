@@ -46,3 +46,29 @@ def test_parse_random_state() -> None:
     vals = [random_state.get_random_array(prng) for prng in prngs1]
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(*vals)
+
+
+def test_get_random_helpers_with_generator() -> None:
+    """The helpers should use the `np.random.Generator` spelling of each draw."""
+
+    prng = np.random.default_rng(0)
+
+    assert random_state.get_random_array(prng, (2, 3)).shape == (2, 3)
+    assert isinstance(random_state.get_random_array(prng), float)
+    assert random_state.get_random_normal_array(prng, (2, 3)).shape == (2, 3)
+    assert isinstance(random_state.get_random_normal_array(prng), float)
+    assert random_state.get_random_int(prng, 0, 10, size=(2,)).shape == (2,)
+    assert 0 <= random_state.get_random_int(prng, 10) < 10
+
+
+def test_get_random_helpers_with_random_state() -> None:
+    """The helpers should use the `np.random.RandomState` spelling of each draw."""
+
+    prng = np.random.RandomState(0)
+
+    assert random_state.get_random_array(prng, (2, 3)).shape == (2, 3)
+    assert isinstance(random_state.get_random_array(prng), float)
+    assert random_state.get_random_normal_array(prng, (2, 3)).shape == (2, 3)
+    assert isinstance(random_state.get_random_normal_array(prng), float)
+    assert random_state.get_random_int(prng, 0, 10, size=(2,)).shape == (2,)
+    assert 0 <= random_state.get_random_int(prng, 10) < 10
