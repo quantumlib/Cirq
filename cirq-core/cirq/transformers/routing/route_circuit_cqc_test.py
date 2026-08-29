@@ -430,7 +430,6 @@ def test_repr() -> None:
     ],
 )
 def test_circuit_operations_recursive_routing(test_type, threshold, n_qubits) -> None:
-    """Test recursive routing of circuits containing CircuitOperations."""
     device = cirq.testing.construct_grid_device(4, 4)
     router = cirq.RouteCQC(device.metadata.nx_graph)
     q = cirq.LineQubit.range(n_qubits)
@@ -454,26 +453,131 @@ def test_circuit_operations_recursive_routing(test_type, threshold, n_qubits) ->
         )
         outer_circuit = cirq.Circuit(cirq.H(q[0]), cirq.CircuitOperation(inner_circuit.freeze()))
 
-    routed, _, _ = router.route_circuit(outer_circuit, min_qubit_mapping_threshold=threshold)
+    routed, imap, swap_map = router.route_circuit(
+        outer_circuit, min_qubit_mapping_threshold=threshold
+    )
     device.validate_circuit(routed)
-    assert len(list(routed.all_operations())) > 0
+    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+        routed, outer_circuit.transform_qubits(imap), swap_map
+    )
+
+
+def test_circuit_operation_preserves_operation_order() -> None:
+    device = cirq.testing.construct_grid_device(4, 4)
+    router = cirq.RouteCQC(device.metadata.nx_graph)
+    q = cirq.LineQubit.range(2)
+
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(cirq.Circuit(cirq.X(q[0])).freeze()),
+        cirq.H(q[0]),
+        cirq.CNOT(q[0], q[1]),
+    )
+    routed, imap, swap_map = router.route_circuit(circuit, min_qubit_mapping_threshold=0.5)
+    device.validate_circuit(routed)
+    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+        routed, circuit.transform_qubits(imap), swap_map
+    )
+
+    physical = imap[q[0]]
+    gates_on_q0 = [op.gate for op in routed.all_operations() if op.qubits == (physical,)]
+    assert gates_on_q0 == [cirq.X, cirq.H]
+
+
+@pytest.mark.parametrize('seed', range(5))
+@pytest.mark.parametrize('threshold', [0.0, 0.25, 0.5, 0.75])
+def test_circuit_operations_with_elaborate_subcircuits(seed, threshold) -> None:
+    device = cirq.testing.construct_grid_device(4, 4)
+    router = cirq.RouteCQC(device.metadata.nx_graph)
+    q = cirq.LineQubit.range(5)
+
+    def random_subcircuit(offset: int) -> cirq.CircuitOperation:
+        body = cirq.testing.random_circuit(
+            qubits=q, n_moments=4, op_density=0.8, random_state=seed + offset
+        )
+        return cirq.CircuitOperation(body.freeze())
+
+    circuit = cirq.Circuit(
+        cirq.H(q[0]),
+        cirq.CZ(q[1], q[4]),
+        random_subcircuit(0),
+        cirq.T(q[2]),
+        cirq.ISWAP(q[0], q[3]),
+        random_subcircuit(100),
+        cirq.CNOT(q[4], q[0]),
+    )
+
+    routed, imap, swap_map = router.route_circuit(
+        circuit, min_qubit_mapping_threshold=threshold, tag_inserted_swaps=True
+    )
+    device.validate_circuit(routed)
+    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+        routed, circuit.transform_qubits(imap), swap_map
+    )
+
+
+def test_min_qubit_mapping_threshold_does_not_change_semantics() -> None:
+    device = cirq.testing.construct_grid_device(4, 4)
+    router = cirq.RouteCQC(device.metadata.nx_graph)
+    q = cirq.LineQubit.range(4)
+
+    circuit = cirq.Circuit(
+        cirq.H(q[0]),
+        cirq.CircuitOperation(cirq.Circuit(cirq.CNOT(q[0], q[1]), cirq.CZ(q[1], q[2])).freeze()),
+        cirq.CNOT(q[0], q[3]),
+        cirq.CircuitOperation(cirq.Circuit(cirq.Y(q[3]), cirq.CNOT(q[2], q[3])).freeze()),
+    )
+    for threshold in [0.0, 0.25, 0.5, 0.75]:
+        routed, imap, swap_map = router.route_circuit(
+            circuit, min_qubit_mapping_threshold=threshold
+        )
+        device.validate_circuit(routed)
+        cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+            routed, circuit.transform_qubits(imap), swap_map
+        )
+
+
+def test_circuit_for_initial_mapping_unrolls_only_what_the_threshold_needs() -> None:
+    device = cirq.testing.construct_grid_device(4, 4)
+    router = cirq.RouteCQC(device.metadata.nx_graph)
+    q = cirq.LineQubit.range(7)
+
+    circuit = cirq.Circuit(
+        cirq.CNOT(q[0], q[1]),
+        cirq.CircuitOperation(cirq.Circuit(cirq.CNOT(q[2], q[3]), cirq.CNOT(q[3], q[4])).freeze()),
+        cirq.CircuitOperation(cirq.Circuit(cirq.CNOT(q[4], q[5]), cirq.CNOT(q[5], q[6])).freeze()),
+    )
+
+    def folded_count(threshold: float) -> int:
+        view = router._circuit_for_initial_mapping(circuit, threshold)
+        return sum(isinstance(op.untagged, cirq.CircuitOperation) for op in view.all_operations())
+
+    assert folded_count(0.2) == 2
+    assert folded_count(0.5) == 1
+    assert folded_count(1.0) == 0
+
+
+def test_circuit_for_initial_mapping_on_empty_circuit() -> None:
+    device = cirq.testing.construct_grid_device(4, 4)
+    router = cirq.RouteCQC(device.metadata.nx_graph)
+    empty = cirq.Circuit()
+    assert router._circuit_for_initial_mapping(empty, 0.5) == empty
 
 
 def test_directed_device_recursive_routing() -> None:
-    # Use a directed ring (strongly connected) so LineInitialMapper works
     device = cirq.testing.construct_ring_device(4, directed=True)
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
 
     q = cirq.LineQubit.range(3)
-    # Inner circuit with adjacent gates; outer circuit forces a swap
     inner_circuit = cirq.Circuit(cirq.CNOT(q[0], q[1]))
     outer_circuit = cirq.Circuit(
-        cirq.CNOT(q[0], q[2]),  # non-adjacent: forces a swap
-        cirq.CircuitOperation(inner_circuit.freeze()),
+        cirq.CNOT(q[0], q[2]), cirq.CircuitOperation(inner_circuit.freeze())
     )
 
-    routed, _, _ = router.route_circuit(
+    routed, imap, swap_map = router.route_circuit(
         outer_circuit, min_qubit_mapping_threshold=0.5, tag_inserted_swaps=True
     )
-    assert len(list(routed.all_operations())) > 0
+    device.validate_circuit(routed)
+    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+        routed, outer_circuit.transform_qubits(imap), swap_map
+    )
