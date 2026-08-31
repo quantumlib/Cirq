@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence, Set
+from collections.abc import Mapping, Sequence
 from types import NotImplementedType
 from typing import Any, TYPE_CHECKING
 
@@ -170,12 +170,10 @@ class If(raw_types.Operation):
         ) or protocols.is_parameterized(self._sub_operation)
 
     @_compat.cached_method
-    def _parameter_names_(self) -> Set[str]:
-        names: set[str] = set()
-        for c in self._conditions:
-            names.update(protocols.parameter_names(c))
-        names.update(protocols.parameter_names(self._sub_operation))
-        return names
+    def _parameter_names_(self) -> frozenset[str]:
+        return frozenset(protocols.parameter_names(self._sub_operation)).union(
+            *(protocols.parameter_names(c) for c in self._conditions)
+        )
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> If:
         new_conditions = [
