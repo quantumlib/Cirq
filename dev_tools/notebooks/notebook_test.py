@@ -131,9 +131,7 @@ def test_notebooks_against_cirq_head(
         "bloch_sphere_example.ipynb",
     )
     if notebook_file in notebooks_that_use_cirq_web:
-        env_with_temporary_pip_target = {
-            "ALLOW_DEPRECATION_IN_TEST": "True",
-            **env_with_temporary_pip_target,
+        env_with_temporary_pip_target["ALLOW_DEPRECATION_IN_TEST"] = "True"
         }
 
     REPO_ROOT.joinpath("out", notebook_rel_dir).mkdir(parents=True, exist_ok=True)
