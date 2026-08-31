@@ -742,12 +742,13 @@ class Operation(metaclass=abc.ABCMeta):
         return self
 
     @cached_method
-    def _qubit_parameter_names(self) -> Set[str]:
-        return protocols.parameter_names(self.qubits)
+    def _qubit_parameter_names(self) -> frozenset[str]:
+        return frozenset(protocols.parameter_names(self.qubits))
 
     @cached_method
     def _are_qubits_parameterized(self) -> bool:
         from cirq.ops.variable_qid import VariableQid
+
         return any(isinstance(q, VariableQid) for q in self.qubits)
 
     def _is_parameterized_(self) -> bool:

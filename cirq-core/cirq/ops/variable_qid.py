@@ -23,7 +23,7 @@ import sympy
 
 from cirq import protocols
 from cirq._compat import proper_repr
-from cirq.devices import GridQid, LineQid
+from cirq.devices import GridQid, GridQubit, LineQid, LineQubit
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
@@ -46,6 +46,10 @@ class VariableQid(raw_types.Qid, metaclass=abc.ABCMeta):
 
     def _is_parameterized_(self) -> bool:
         return True
+
+    @abc.abstractmethod
+    def _parameter_names_(self) -> Set[str]:
+        """Returns the parameters of the VariableQid"""
 
     @abc.abstractmethod
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> cirq.Qid:
@@ -103,7 +107,7 @@ class VariableLineQid(VariableQid):
 
     def _resolve_parameters_(
         self, resolver: cirq.ParamResolver, recursive: bool
-    ) -> cirq.LineQid | cirq.VariableLineQid:
+    ) -> LineQubit | LineQid | VariableLineQid:
         """Resolves the VariableLineQid to a physical LineQid.
 
         If the expression can be resolved to an integer, returns the corresponding
@@ -114,6 +118,8 @@ class VariableLineQid(VariableQid):
         val = resolver.value_of(self._x, recursive)
         val_int = _to_int(val)
         if val_int is not None:
+            if self._dimension == 2:
+                return LineQubit(val_int)
             return LineQid(val_int, dimension=self._dimension)
         if isinstance(val, sympy.Expr):
             return VariableLineQid(val, dimension=self._dimension)
@@ -165,8 +171,8 @@ class VariableGridQid(VariableQid):
         if rowint is not None and colint is not None:
             raise ValueError(f"VariableGridQid ({rowint}, {colint}) is fully resolved already.")
 
-        self._row = row
-        self._col = col
+        self._row = row if rowint is None else rowint
+        self._col = col if colint is None else colint
         self._dimension = dimension
 
     @property
@@ -192,7 +198,7 @@ class VariableGridQid(VariableQid):
 
     def _resolve_parameters_(
         self, resolver: cirq.ParamResolver, recursive: bool
-    ) -> cirq.GridQid | cirq.VariableGridQid:
+    ) -> GridQubit | GridQid | VariableGridQid:
         """Resolves the VariableGridQid to a physical GridQid.
 
         If both the row and column expressions can be resolved to an integer,
@@ -206,6 +212,8 @@ class VariableGridQid(VariableQid):
         r_int = _to_int(r_val)
         c_int = _to_int(c_val)
         if r_int is not None and c_int is not None:
+            if self._dimension == 2:
+                return GridQubit(r_int, c_int)
             return GridQid(r_int, c_int, dimension=self._dimension)
         if isinstance(r_val, (sympy.Expr, int)) and isinstance(c_val, (sympy.Expr, int)):
             return VariableGridQid(r_val, c_val, dimension=self._dimension)

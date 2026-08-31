@@ -75,6 +75,9 @@ def test_variable_line_qid_basic_resolution():
     resolver = cirq.ParamResolver({x: 3})
     assert cirq.resolve_parameters(qx, resolver) == cirq.LineQubit(3)
 
+    qx3 = cirq.VariableLineQid(x, dimension=3)
+    assert cirq.resolve_parameters(qx3, resolver) == cirq.LineQid(3, dimension=3)
+
     # Unresolved (not in resolver)
     resolver = cirq.ParamResolver({})
     assert cirq.resolve_parameters(qx, resolver) == qx
@@ -247,6 +250,9 @@ def test_variable_grid_qid_resolution():
 
     resolver = cirq.ParamResolver({r: 1, "c": 2})
     assert cirq.resolve_parameters(q, resolver) == cirq.GridQubit(1, 2)
+
+    q3 = cirq.VariableGridQid(r, c, dimension=3)
+    assert cirq.resolve_parameters(q3, resolver) == cirq.GridQid(1, 2, dimension=3)
 
     resolver = cirq.ParamResolver({r: 1})
     assert cirq.resolve_parameters(q, resolver) == cirq.VariableGridQid(1, c)
