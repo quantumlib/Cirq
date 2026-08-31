@@ -508,11 +508,12 @@ def _deserialize_program(code: any_pb2.Any, circuit_num: int | str | None = None
     if circuit_num is not None:
         deserialized = serializer.deserialize_multi_program(program)
         if isinstance(circuit_num, str):
-            if circuit_num:
-                for key, _, circuit in deserialized:
-                    if key == circuit_num:
-                        return cast(cirq.Circuit, circuit)
-            raise KeyError(f"Circuit key '{circuit_num}' not found.")
+            if not circuit_num:
+                raise KeyError(f"Empty circuit key not found in batch program {program}.")
+            for key, _, circuit in deserialized:
+                if key == circuit_num:
+                    return cast(cirq.Circuit, circuit)
+            raise KeyError(f"Circuit key '{circuit_num}' not found in batch program {program}.")
         try:
             return cast(cirq.Circuit, deserialized[circuit_num][2])
         except IndexError:

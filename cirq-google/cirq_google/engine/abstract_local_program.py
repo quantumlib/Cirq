@@ -56,6 +56,8 @@ class AbstractLocalProgram(AbstractProgram):
         self._engine = engine
         self._jobs: dict[str, AbstractLocalJob] = {}
         if isinstance(circuits, Mapping):
+            if batch_keys is not None:
+                raise ValueError("batch_keys is not used if a circuit mapping is provided.")
             if any(not key for key in circuits.keys()):
                 raise ValueError("Empty key provided in program.")
             self._batch_keys: list[str] | None = list(circuits.keys())
@@ -235,9 +237,12 @@ class AbstractLocalProgram(AbstractProgram):
                 )
             return self._circuits[0]
         if isinstance(circuit_num, str):
-            if self._batch_keys is not None and circuit_num in self._batch_keys:
+            if self._batch_keys is None:
+                raise KeyError("Program has no keys.")
+            try:
                 return self._circuits[self._batch_keys.index(circuit_num)]
-            raise KeyError(f"Circuit key '{circuit_num}' not found in program.")
+            except ValueError:
+                raise KeyError(f"Circuit key '{circuit_num}' not found in program.")
         try:
             return self._circuits[circuit_num]
         except IndexError:

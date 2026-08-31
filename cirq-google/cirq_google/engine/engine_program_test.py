@@ -484,8 +484,11 @@ def test_deserialize_program_errors():
     with pytest.raises(IndexError, match="Index 2 out of range"):
         cg.engine.engine_program._deserialize_program(_BATCH_PROGRAM_V2, circuit_num=2)
     # Key not found
-    with pytest.raises(KeyError, match="Circuit key 'c3' not found"):
+    with pytest.raises(KeyError, match="c3.* not found in batch program"):
         cg.engine.engine_program._deserialize_program(_BATCH_PROGRAM_V2, circuit_num='c3')
+    # Empty key
+    with pytest.raises(KeyError, match="Empty circuit key not found in batch program"):
+        cg.engine.engine_program._deserialize_program(_BATCH_PROGRAM_V2, circuit_num='')
 
 
 @pytest.fixture(scope='module', autouse=True)

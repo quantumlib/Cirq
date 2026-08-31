@@ -53,6 +53,9 @@ def test_init():
     with pytest.raises(ValueError, match='Empty key provided in program.'):
         _ = NothingProgram([circuit1, circuit2], None, batch_keys=['a', ''])
 
+    with pytest.raises(ValueError, match='batch_keys is not used'):
+        _ = NothingProgram({'a': circuit1, 'b': circuit2}, None, batch_keys=['a', ''])
+
 
 def test_jobs():
     program = NothingProgram([cirq.Circuit()], None)
@@ -221,12 +224,12 @@ def test_circuit():
 
     # Non-batch single circuit raises KeyError for string key
     program = NothingProgram([circuit1], None)
-    with pytest.raises(KeyError, match="Circuit key 'a' not found in program."):
+    with pytest.raises(KeyError, match="Program has no keys."):
         _ = program.get_circuit('a')
 
     # Unkeyed multi circuit raises KeyError for string key
     program = NothingProgram([circuit1, circuit2], None)
-    with pytest.raises(KeyError, match="Circuit key 'a' not found in program."):
+    with pytest.raises(KeyError, match="Program has no keys."):
         _ = program.get_circuit('a')
 
     # Empty key in mapping raises ValueError
