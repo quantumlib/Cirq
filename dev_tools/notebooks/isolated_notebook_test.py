@@ -142,11 +142,18 @@ def _rewrite_and_run_notebook(notebook_path, cloned_env, papermill_scheduler):
     # ensure papermill will have CLOUDSDK_CONFIG set per dev_tools/conftest.py
     env = {'CLOUDSDK_CONFIG': os.environ['CLOUDSDK_CONFIG'], 'PIP_CONFIG_FILE': '/dev/null'}
     assert os.path.isdir(env["CLOUDSDK_CONFIG"])
-    notebook_env = cloned_env("isolated_notebook_tests", *PACKAGES)
 
-    notebook_file = os.path.basename(notebook_path)
+    # allow testing of notebooks that import deprecated cirq_web
+    notebooks_that_use_cirq_web = (
+        "circuit_example.ipynb",
+        "qvm_stabilizer_example.ipynb",
+        "bloch_sphere_example.ipynb",
+    )
+    if notebook_file in notebooks_that_use_cirq_web:
+        env["ALLOW_DEPRECATION_IN_TEST"] = "True"
 
     rewritten_notebook_path = rewrite_notebook(notebook_path)
+    notebook_env = cloned_env("isolated_notebook_tests", *PACKAGES)
 
     REPO_ROOT.joinpath("out", notebook_rel_dir).mkdir(parents=True, exist_ok=True)
     cmd = f"""
