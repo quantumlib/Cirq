@@ -126,20 +126,18 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
         the same as those used in the constructor.
 
         Args:
-        gate_times_ns: float or dict[type[`cirq.Gate`], float].
-        t1_ns: float or dict[`cirq.Qid`, float].
-        tphi_ns: float or dict[`cirq.Qid`, float].
-        readout_errors: Sequence or dict[`cirq.Qid`, Sequence]. Converted to
-            list[float] if not provided in that format.
-        gate_pauli_errors: float or dict[`cirq.OpIdentifier`, float].
-            Dict key can also be type[`cirq.Gate`]; this will apply the given
-            error to all placements of that gate that appear in the original
-            object.
-        fsim_errors: `cirq.PhasedFSimGate` or dict[`cirq.OpIdentifier`,
-            `cirq.PhasedFSimGate`] Dict key can also be type[`cirq.Gate`]; this
-            will apply the given error to all placements of that gate that
-            appear in the original object.
-
+            gate_times_ns: float or dict[type[`cirq.Gate`], float].
+            t1_ns: float or dict[`cirq.Qid`, float].
+            tphi_ns: float or dict[`cirq.Qid`, float].
+            readout_errors: Sequence[float] or dict[`cirq.Qid`, Sequence[float]].
+                Converted to list[float] if not provided in that format.
+            gate_pauli_errors: float or dict[`cirq.OpIdentifier`, float].
+                Dict key can also be type[`cirq.Gate`]; this will apply the given
+                error to all placements of that gate that appear in the original
+                object.
+            fsim_errors: `cirq.PhasedFSimGate` or dict[`cirq.OpIdentifier`, `cirq.PhasedFSimGate`].
+                Dict key can also be type[`cirq.Gate`]; this will apply the given error
+                to all placements of that gate that appear in the original object.
         """
         replace_args: dict[str, Any] = {}
         if gate_times_ns is not None:
