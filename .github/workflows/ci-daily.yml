@@ -79,8 +79,7 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        # TODO: quantumlib/qsim#1017 - enable '3.14' when qsimcirq has binary wheel
-        python-version: ['3.11', '3.12', '3.13']
+        python-version: ['3.11', '3.12', '3.13', '3.14']
     runs-on: macos-15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import abc
 import functools
-from collections.abc import Callable, Collection, Hashable, Iterable, Mapping, Sequence, Set
+from collections.abc import Callable, Collection, Hashable, Iterable, Mapping, Sequence
 from types import NotImplementedType
 from typing import Any, cast, overload, TYPE_CHECKING
 
@@ -926,9 +926,10 @@ class TaggedOperation(Operation):
         return NotImplemented
 
     @cached_method
-    def _parameter_names_(self) -> Set[str]:
-        tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}
-        return protocols.parameter_names(self.sub_operation) | tag_params
+    def _parameter_names_(self) -> frozenset[str]:
+        return frozenset(protocols.parameter_names(self.sub_operation)).union(
+            *(protocols.parameter_names(tag) for tag in self.tags)
+        )
 
     def _resolve_parameters_(
         self, resolver: cirq.ParamResolver, recursive: bool
@@ -1041,8 +1042,8 @@ class _InverseCompositeGate(Gate):
         return protocols.is_parameterized(self._original)
 
     @cached_method
-    def _parameter_names_(self) -> Set[str]:
-        return protocols.parameter_names(self._original)
+    def _parameter_names_(self) -> frozenset[str]:
+        return frozenset(protocols.parameter_names(self._original))
 
     def _resolve_parameters_(
         self, resolver: cirq.ParamResolver, recursive: bool

@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import itertools
-from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping, Sequence, Set
+from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping, Sequence
 from functools import cached_property
 from types import NotImplementedType
 from typing import Any, cast, overload, Self, TYPE_CHECKING
@@ -293,8 +293,8 @@ class Moment:
         return any(protocols.is_parameterized(op) for op in self)
 
     @_compat.cached_method()
-    def _parameter_names_(self) -> Set[str]:
-        return {name for op in self for name in protocols.parameter_names(op)}
+    def _parameter_names_(self) -> frozenset[str]:
+        return frozenset().union(*(protocols.parameter_names(op) for op in self))
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> cirq.Moment:
         changed = False
