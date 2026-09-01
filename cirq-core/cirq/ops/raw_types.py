@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import abc
 import functools
-from collections.abc import Callable, Collection, Hashable, Iterable, Mapping, Sequence
+from collections.abc import Callable, Collection, Hashable, Iterable, Mapping, Sequence, Set
 from types import NotImplementedType
 from typing import Any, cast, overload, TYPE_CHECKING
 
@@ -740,6 +740,31 @@ class Operation(metaclass=abc.ABCMeta):
             The operation with all classical controls removed.
         """
         return self
+
+    @cached_method
+    def _qubit_parameter_names(self) -> frozenset[str]:
+        return frozenset(protocols.parameter_names(self.qubits))
+
+    @cached_method
+    def _are_qubits_parameterized(self) -> bool:
+        from cirq.ops.variable_qid import VariableQid
+
+        return any(isinstance(q, VariableQid) for q in self.qubits)
+
+    def _is_parameterized_(self) -> bool:
+        """Returns true if the Operation is parameterized, false otherwise."""
+        return self._are_qubits_parameterized() or NotImplemented
+
+    def _parameter_names_(self) -> Set[str]:
+        """Returns the names of the parameters in the operation."""
+        return self._qubit_parameter_names()
+
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Operation:
+        """Attempts to resolve any parameters in the operation."""
+        resolved_qubits = [
+            protocols.resolve_parameters(q, resolver, recursive) for q in self.qubits
+        ]
+        return self.with_qubits(*resolved_qubits)
 
 
 @value.value_equality

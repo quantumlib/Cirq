@@ -260,16 +260,21 @@ class ControlledOperation(raw_types.Operation):
         )
 
     def _is_parameterized_(self) -> bool:
-        return protocols.is_parameterized(self.sub_operation)
+        return protocols.is_parameterized(self.sub_operation) or protocols.is_parameterized(
+            self.controls
+        )
 
     def _parameter_names_(self) -> Set[str]:
-        return protocols.parameter_names(self.sub_operation)
+        sub_operation_params = protocols.parameter_names(self.sub_operation)
+        control_params = protocols.parameter_names(self.controls)
+        return sub_operation_params | control_params
 
     def _resolve_parameters_(
         self, resolver: cirq.ParamResolver, recursive: bool
     ) -> ControlledOperation:
         new_sub_op = protocols.resolve_parameters(self.sub_operation, resolver, recursive)
-        return ControlledOperation(self.controls, new_sub_op, self.control_values)
+        resolved_controls = protocols.resolve_parameters(self.controls, resolver, recursive)
+        return ControlledOperation(resolved_controls, new_sub_op, self.control_values)
 
     def _trace_distance_bound_(self) -> float | None:
         if self._is_parameterized_():

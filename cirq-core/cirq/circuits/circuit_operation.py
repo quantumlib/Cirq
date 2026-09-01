@@ -286,7 +286,10 @@ class CircuitOperation(ops.Operation):
     def qubits(self) -> tuple[cirq.Qid, ...]:
         """Returns the qubits operated on by this object."""
         ordered_qubits = ops.QubitOrder.DEFAULT.order_for(self.circuit.all_qubits())
-        return tuple(self.qubit_map.get(q, q) for q in ordered_qubits)
+        mapped = tuple(self.qubit_map.get(q, q) for q in ordered_qubits)
+        if self._are_qubits_parameterized() and self.param_resolver:
+            return protocols.resolve_parameters(mapped, self.param_resolver)
+        return mapped
 
     def _default_repetition_ids(self) -> list[str] | None:
         return default_repetition_ids(self.repetitions) if self.use_repetition_ids else None
@@ -362,6 +365,19 @@ class CircuitOperation(ops.Operation):
     def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
         return self._control_keys
 
+    @cached_method
+    def _is_qubit_map_parameterized(self) -> bool:
+        return any(
+            protocols.is_parameterized(k) or protocols.is_parameterized(v)
+            for k, v in self.qubit_map.items()
+        )
+
+    @cached_method
+    def _are_qubits_parameterized(self) -> bool:
+        return self._is_qubit_map_parameterized() or any(
+            op._are_qubits_parameterized() for op in self.circuit.all_operations()
+        )
+
     def _is_parameterized_(self) -> bool:
         return any(self._parameter_names_generator())
 
@@ -372,6 +388,10 @@ class CircuitOperation(ops.Operation):
         yield from protocols.parameter_names(self.repetitions)
         yield from protocols.parameter_names(self._mapped_repeat_until)
         yield from protocols.parameter_names(self._mapped_any_loop)
+        # get variable qubits that are in the map but not circuit
+        mapped_qubits = self.qubit_map.keys() - self.circuit.all_qubits()
+        for k in mapped_qubits:
+            yield from protocols.parameter_names((k, self.qubit_map[k]))
 
     @cached_property
     def _mapped_any_loop(self) -> cirq.Circuit:
@@ -847,6 +867,23 @@ class CircuitOperation(ops.Operation):
         resolved = self.with_params(resolver.param_dict, recursive)
         # repetitions can resolve to a float, but this is ok since constructor converts to
         # nearby int.
-        return resolved.replace(
-            repetitions=resolver.value_of(cast('cirq.TParamVal', self.repetitions), recursive)
+        resolved_repetitions = resolver.value_of(
+            cast('cirq.TParamVal', self.repetitions), recursive
         )
+        # avoid unnecessary copy when self.repetitions is resolved as is
+        if resolved_repetitions is not self.repetitions:
+            resolved = resolved.replace(repetitions=resolved_repetitions)
+        if self._is_qubit_map_parameterized():
+            new_qubit_map = {
+                protocols.resolve_parameters(k, resolver, recursive): protocols.resolve_parameters(
+                    v, resolver, recursive
+                )
+                for k, v in self.qubit_map.items()
+            }
+            resolved = resolved.replace(qubit_map=new_qubit_map)
+            if len(set(resolved.qubits)) != len(set(self.qubits)):
+                raise ValueError(
+                    f'Collision in qubit map composition. Original map:\n{self.qubit_map}'
+                    f'\nMap after changes: {resolved.qubit_map}'
+                )
+        return resolved

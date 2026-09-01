@@ -1094,16 +1094,22 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return self.before(all_ops[::-1])
 
     def _is_parameterized_(self) -> bool:
-        return protocols.is_parameterized(self.coefficient)
+        return protocols.is_parameterized(self.coefficient) or self._are_qubits_parameterized()
 
     def _parameter_names_(self) -> Set[str]:
-        return protocols.parameter_names(self.coefficient)
+        return protocols.parameter_names(self.coefficient) | self._qubit_parameter_names()
 
     def _resolve_parameters_(
         self, resolver: cirq.ParamResolver, recursive: bool
     ) -> cirq.PauliString:
         coefficient = protocols.resolve_parameters(self.coefficient, resolver, recursive)
-        return PauliString(qubit_pauli_map=self._qubit_pauli_map, coefficient=coefficient)
+        resolved_qubit_pauli_map = {
+            protocols.resolve_parameters(k, resolver, recursive): v
+            for k, v in self._qubit_pauli_map.items()
+        }
+        if len(resolved_qubit_pauli_map) != len(self._qubit_pauli_map):
+            raise ValueError("Duplicate qubits during parameter resolution.")
+        return PauliString(qubit_pauli_map=resolved_qubit_pauli_map, coefficient=coefficient)
 
 
 def _validate_qubit_mapping(
