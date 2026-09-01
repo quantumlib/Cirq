@@ -1328,31 +1328,88 @@ def test_control_keys_respects_internal_measurement_order() -> None:
     assert cirq.control_keys(op_after) == set()
 
 
+def test_qubits_parameterized():
+    qx = cirq.VariableLineQid(sympy.Symbol('x'))
+    cop0 = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(cirq.q(0))))
+    assert not cop0._are_qubits_parameterized()
+
+    copx = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(qx)))
+    assert copx._are_qubits_parameterized()
+
+    cop0_mapx = cirq.CircuitOperation(
+        cirq.FrozenCircuit(cirq.X(cirq.q(0))), qubit_map={cirq.q(0): qx}
+    )
+    assert cop0_mapx._are_qubits_parameterized()
+
+
 def test_variable_qid_resolution():
     x = sympy.Symbol('x')
+    y = sympy.Symbol('y')
+    z = sympy.Symbol('z')
+
     q0 = cirq.LineQubit(0)
     qx = cirq.VariableLineQid(x)
+    qz = cirq.VariableLineQid(z)
 
     x_qx = cirq.X(qx)
     x_q0 = cirq.X(q0)
-    map_00 = {q0: q0}
+
+    map_10 = {cirq.q(1): q0}
     map_0x = {q0: qx}
     map_x0 = {qx: q0}
-    circuit_x_qx_map00 = cirq.CircuitOperation(cirq.FrozenCircuit(x_qx), qubit_map=map_00)
-    circuit_x_q0_map0x = cirq.CircuitOperation(cirq.FrozenCircuit(x_q0), qubit_map=map_0x)
-    circuit_x_qx_mapx0 = cirq.CircuitOperation(cirq.FrozenCircuit(x_qx), qubit_map=map_x0)
-    circuit_x_qx = cirq.CircuitOperation(cirq.FrozenCircuit(x_qx))
+    map_03 = {q0: cirq.q(3)}
+    map_5z = {cirq.q(5): qz}
 
-    assert cirq.is_parameterized(circuit_x_qx_map00)
-    assert cirq.is_parameterized(circuit_x_q0_map0x)
-    assert not cirq.is_parameterized(circuit_x_qx_mapx0)
-    assert cirq.is_parameterized(circuit_x_qx)
+    resolver_xy = cirq.ParamResolver({x: y})
+    resolver_yz = cirq.ParamResolver({y: z})
+    resolver_xz = cirq.ParamResolver({x: z})
+    resolver_x3 = cirq.ParamResolver({x: 3})
 
-    resolver = cirq.ParamResolver({x: 3})
-    resolved_circuit_x_qx_map00 = cirq.resolve_parameters(circuit_x_qx_map00, resolver)
-    resolved_circuit_x_qx = cirq.resolve_parameters(circuit_x_qx, resolver)
-    assert resolved_circuit_x_qx_map00._mapped_any_loop == cirq.Circuit(cirq.X(cirq.LineQubit(3)))
-    assert resolved_circuit_x_qx._mapped_any_loop == cirq.Circuit(cirq.X(cirq.LineQubit(3)))
+    circuit_qx = cirq.FrozenCircuit(x_qx)
+    circuit_q0 = cirq.FrozenCircuit(x_q0)
+
+    # circuit parameters are resolved via qubit_map
+    cop_qx_mapx0 = cirq.CircuitOperation(circuit_qx, qubit_map=map_x0)
+    assert not cirq.is_parameterized(cop_qx_mapx0)
+    assert cirq.parameter_names(cop_qx_mapx0) == set()
+
+    # circuit is parameterized
+    cop_qx_map00 = cirq.CircuitOperation(circuit_qx, qubit_map=map_10)
+    resolved_cop = cirq.resolve_parameters(cop_qx_map00, resolver_x3)
+    expected_resolved_cop = cirq.CircuitOperation(
+        circuit_qx, qubit_map=map_10, param_resolver=resolver_x3
+    )
+    assert cirq.is_parameterized(cop_qx_map00)
+    assert cirq.parameter_names(cop_qx_map00) == {'x'}
+    assert resolved_cop == expected_resolved_cop
+
+    # circuit is parameterized, no qubit map
+    cop_qx = cirq.CircuitOperation(circuit_qx)
+    resolved_cop = cirq.resolve_parameters(cop_qx, resolver_x3)
+    expected_resolved_cop = cirq.CircuitOperation(circuit_qx, param_resolver=resolver_x3)
+    assert cirq.is_parameterized(cop_qx)
+    assert cirq.parameter_names(cop_qx) == {'x'}
+    assert resolved_cop == expected_resolved_cop
+
+    # the qubit map is parameterized, the circuit is not
+    cop_q0_map0x = cirq.CircuitOperation(circuit_q0, qubit_map=map_0x)
+    resolved_cop = cirq.resolve_parameters(cop_q0_map0x, resolver_x3)
+    expected_resolved_cop = cirq.CircuitOperation(circuit_q0, qubit_map=map_03)
+    assert cirq.is_parameterized(cop_q0_map0x)
+    assert cirq.parameter_names(cop_qx) == {'x'}
+    assert resolved_cop == expected_resolved_cop
+
+    # the circuit and the qubit map are parameterized, and the resolver has existing parameters
+    cop_qx_map5z_rxy = cirq.CircuitOperation(
+        circuit_qx, qubit_map=map_5z, param_resolver=resolver_xy
+    )
+    resolved_cop = cirq.resolve_parameters(cop_qx_map5z_rxy, resolver_yz)
+    expected_resolved_cop = cirq.CircuitOperation(
+        circuit_qx, qubit_map=map_5z, param_resolver=resolver_xz
+    )
+    assert cirq.is_parameterized(cop_qx_map5z_rxy)
+    assert cirq.parameter_names(cop_qx_map5z_rxy) == {'y', 'z'}
+    assert resolved_cop == expected_resolved_cop
 
     # test duplicate mapping error
     q1 = cirq.LineQubit(1)
