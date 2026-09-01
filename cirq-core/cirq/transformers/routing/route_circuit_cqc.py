@@ -368,14 +368,14 @@ class RouteCQC:
         timestep.
 
         Args:
-          two_qubit_ops: the circuit's two-qubit gates factored into timesteps as defined by the
-            paper.
-          single_qubit_ops: the circuit's single-qubit gates factored into timesteps as defined by
-            the paper.
-          lookahead_radius: the maximum number of times the cost function can be iterated for
-            convergence.
-        tag_inserted_swaps: whether or not a RoutingSwapTag should be attached to inserted swap
-            operations.
+            two_qubit_ops: the circuit's two-qubit gates factored into timesteps as defined by the
+                paper.
+            single_qubit_ops: the circuit's single-qubit gates factored into timesteps as defined
+                by the paper.
+            lookahead_radius: the maximum number of times the cost function can be iterated for
+                convergence.
+            tag_inserted_swaps: whether or not a RoutingSwapTag should be attached to inserted swap
+                operations.
 
         Returns:
             A list of lists corresponding to timesteps of the routed circuit and
