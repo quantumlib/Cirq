@@ -397,6 +397,36 @@ def test_resolve_parameters_numpy_half(resolve_fn, dtype) -> None:
     assert resolved == CExpZinGate(0.5)
 
 
+@pytest.mark.parametrize(
+    'value',
+    [
+        np.float16(0.5),
+        np.float32(0.5),
+        np.float64(0.5),
+        np.int8(1),
+        np.int32(1),
+        np.int64(1),
+        np.uint8(1),
+        np.uint32(1),
+        np.uint64(1),
+    ],
+)
+def test_numpy_exponent_json_round_trip(value) -> None:
+    gate = cirq.XPowGate(exponent=value)
+    restored_gate = cirq.read_json(json_text=cirq.to_json(gate))
+    assert restored_gate == gate
+    assert type(restored_gate.exponent) in (float, int)
+    assert not isinstance(restored_gate.exponent, np.number)
+
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(gate.on(q))
+    restored_circuit = cirq.read_json(json_text=cirq.to_json(circuit))
+    assert restored_circuit == circuit
+    restored_op = next(restored_circuit.all_operations())
+    assert type(restored_op.gate.exponent) in (float, int)
+    assert not isinstance(restored_op.gate.exponent, np.number)
+
+
 class WeightedZPowGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
     def __init__(self, weight, **kwargs):
         self.weight = weight

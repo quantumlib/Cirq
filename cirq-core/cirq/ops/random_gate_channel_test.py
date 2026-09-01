@@ -32,6 +32,27 @@ def test_init() -> None:
         _ = cirq.RandomGateChannel(sub_gate=cirq.X, probability=-1)
 
 
+@pytest.mark.parametrize('dtype', [np.float16, np.float32, np.float64])
+def test_with_probability_accepts_numpy_scalars(dtype) -> None:
+    probability = dtype(0.25)
+    channel = cirq.X.with_probability(probability)
+
+    assert isinstance(channel, cirq.RandomGateChannel)
+    assert channel.probability is probability
+    assert not cirq.is_parameterized(channel)
+    assert cirq.has_mixture(channel)
+
+    with pytest.raises(ValueError, match='probability'):
+        _ = cirq.X.with_probability(dtype(-0.1))
+    with pytest.raises(ValueError, match='probability'):
+        _ = cirq.X.with_probability(dtype(1.1))
+
+
+@pytest.mark.parametrize('dtype', [np.int8, np.int32, np.int64, np.uint8, np.uint64])
+def test_with_probability_numpy_one_returns_gate(dtype) -> None:
+    assert cirq.X.with_probability(dtype(1)) is cirq.X
+
+
 def test_eq() -> None:
     eq = cirq.testing.EqualsTester()
     q = cirq.LineQubit(0)

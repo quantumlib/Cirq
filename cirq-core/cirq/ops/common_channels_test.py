@@ -137,6 +137,22 @@ def test_asymmetric_depolarizing_channel_text_diagram() -> None:
     )
 
 
+@pytest.mark.parametrize('dtype', [np.float16, np.float32, np.float64])
+@pytest.mark.parametrize('factory', [cirq.depolarize, cirq.bit_flip, cirq.phase_flip])
+def test_probability_channels_accept_numpy_scalars(dtype, factory) -> None:
+    probability = dtype(0.25)
+    channel = factory(probability)
+
+    assert not cirq.is_parameterized(channel)
+    assert cirq.has_mixture(channel)
+    assert sum(p for p, _ in cirq.mixture(channel)) == pytest.approx(1.0)
+
+    with pytest.raises(ValueError):
+        _ = factory(dtype(-0.1))
+    with pytest.raises(ValueError):
+        _ = factory(dtype(1.1))
+
+
 def test_depolarizing_channel() -> None:
     d = cirq.depolarize(0.3)
     np.testing.assert_almost_equal(
