@@ -289,7 +289,7 @@ class CircuitOperation(ops.Operation):
         mapped = tuple(self.qubit_map.get(q, q) for q in ordered_qubits)
         if self._are_qubits_parameterized() and self.param_resolver:
             return protocols.resolve_parameters(mapped, self.param_resolver)
-        return tuple(mapped)
+        return mapped
 
     def _default_repetition_ids(self) -> list[str] | None:
         return default_repetition_ids(self.repetitions) if self.use_repetition_ids else None

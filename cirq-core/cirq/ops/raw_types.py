@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import abc
 import functools
-from collections.abc import Callable, Collection, Hashable, Iterable, Mapping, Sequence
+from collections.abc import Callable, Collection, Hashable, Iterable, Mapping, Sequence, Set
 from types import NotImplementedType
 from typing import Any, cast, overload, TYPE_CHECKING
 
