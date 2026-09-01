@@ -140,7 +140,8 @@ def test_asymmetric_depolarizing_channel_text_diagram() -> None:
 @pytest.mark.parametrize('dtype', [np.float16, np.float32, np.float64])
 @pytest.mark.parametrize('factory', [cirq.depolarize, cirq.bit_flip, cirq.phase_flip])
 def test_probability_channels_accept_numpy_scalars(dtype, factory) -> None:
-    probability = dtype(0.25)
+    value = 0.75 if factory is cirq.depolarize else 0.25
+    probability = dtype(value)
     channel = factory(probability)
 
     assert not cirq.is_parameterized(channel)
