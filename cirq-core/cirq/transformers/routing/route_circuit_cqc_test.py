@@ -18,6 +18,7 @@ import collections
 
 import networkx as nx
 import pytest
+import sympy
 
 import cirq
 
@@ -429,7 +430,7 @@ def test_repr() -> None:
         ("threshold_behavior", 0.75, 4),
     ],
 )
-def test_circuit_operations_recursive_routing(test_type, threshold, n_qubits) -> None:
+def test_circuit_operations_routing(test_type, threshold, n_qubits) -> None:
     device = cirq.testing.construct_grid_device(4, 4)
     router = cirq.RouteCQC(device.metadata.nx_graph)
     q = cirq.LineQubit.range(n_qubits)
@@ -526,7 +527,7 @@ def test_min_qubit_mapping_threshold_does_not_change_semantics() -> None:
         cirq.CNOT(q[0], q[3]),
         cirq.CircuitOperation(cirq.Circuit(cirq.Y(q[3]), cirq.CNOT(q[2], q[3])).freeze()),
     )
-    for threshold in [0.0, 0.25, 0.5, 0.75]:
+    for threshold in [0.0, 0.25, 0.5, 0.75, 1.0]:
         routed, imap, swap_map = router.route_circuit(
             circuit, min_qubit_mapping_threshold=threshold
         )
@@ -555,6 +556,15 @@ def test_circuit_for_initial_mapping_unrolls_only_what_the_threshold_needs() -> 
     assert folded_count(0.5) == 1
     assert folded_count(1.0) == 0
 
+    # A threshold of 1.0 goes through the same path: it inspects every `CircuitOperation` when
+    # computing the initial mapping and still routes the unrolled circuit.
+    routed, imap, swap_map = router.route_circuit(circuit, min_qubit_mapping_threshold=1.0)
+    device.validate_circuit(routed)
+    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+        routed, circuit.transform_qubits(imap), swap_map
+    )
+    assert not any(isinstance(op.untagged, cirq.CircuitOperation) for op in routed.all_operations())
+
 
 def test_circuit_for_initial_mapping_on_empty_circuit() -> None:
     device = cirq.testing.construct_grid_device(4, 4)
@@ -563,7 +573,7 @@ def test_circuit_for_initial_mapping_on_empty_circuit() -> None:
     assert router._circuit_for_initial_mapping(empty, 0.5) == empty
 
 
-def test_directed_device_recursive_routing() -> None:
+def test_directed_device_with_circuit_operation() -> None:
     device = cirq.testing.construct_ring_device(4, directed=True)
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
@@ -581,3 +591,135 @@ def test_directed_device_recursive_routing() -> None:
     cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
         routed, outer_circuit.transform_qubits(imap), swap_map
     )
+
+
+@pytest.mark.parametrize('threshold', [-0.1, -1.0, 1.1, 2.0])
+def test_min_qubit_mapping_threshold_out_of_bounds_raises(threshold) -> None:
+    device = cirq.testing.construct_grid_device(4, 4)
+    router = cirq.RouteCQC(device.metadata.nx_graph)
+    q = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.CNOT(q[0], q[1]))
+
+    with pytest.raises(ValueError, match='must be between 0.0 and 1.0'):
+        router.route_circuit(circuit, min_qubit_mapping_threshold=threshold)
+    with pytest.raises(ValueError, match='must be between 0.0 and 1.0'):
+        router(circuit, min_qubit_mapping_threshold=threshold)
+
+
+def test_circuit_operation_with_qubit_map_param_resolver_and_repetitions() -> None:
+    device = cirq.testing.construct_grid_device(4, 4)
+    router = cirq.RouteCQC(device.metadata.nx_graph)
+    q = cirq.LineQubit.range(5)
+    t = sympy.Symbol('t')
+
+    circuit_op = cirq.CircuitOperation(
+        cirq.Circuit(cirq.X(q[0]) ** t, cirq.CNOT(q[0], q[1])).freeze(),
+        repetitions=3,
+        qubit_map={q[0]: q[2], q[1]: q[3]},
+        param_resolver={t: 0.25},
+    )
+    circuit = cirq.Circuit(cirq.H(q[4]), circuit_op, cirq.CZ(q[4], q[2]))
+
+    routed, imap, swap_map = router.route_circuit(circuit, min_qubit_mapping_threshold=0.5)
+    device.validate_circuit(routed)
+    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+        routed, circuit.transform_qubits(imap), swap_map
+    )
+
+
+def test_circuit_operation_tagged_with_tags_to_ignore_is_not_unrolled() -> None:
+    device = cirq.testing.construct_grid_device(4, 4)
+    router = cirq.RouteCQC(device.metadata.nx_graph)
+    q = cirq.LineQubit.range(4)
+
+    ignored = cirq.CircuitOperation(cirq.Circuit(cirq.CNOT(q[0], q[1])).freeze()).with_tags(
+        'ignore'
+    )
+    unrolled = cirq.CircuitOperation(cirq.Circuit(cirq.CZ(q[2], q[3])).freeze())
+    circuit = cirq.Circuit(ignored, unrolled)
+
+    routed, _, _ = router.route_circuit(
+        circuit, context=cirq.TransformerContext(tags_to_ignore=('ignore',))
+    )
+    device.validate_circuit(routed)
+    remaining = [
+        op for op in routed.all_operations() if isinstance(op.untagged, cirq.CircuitOperation)
+    ]
+    assert len(remaining) == 1
+    assert 'ignore' in remaining[0].tags
+
+
+def test_ignored_circuit_operation_on_more_than_two_qubits_raises() -> None:
+    device = cirq.testing.construct_grid_device(4, 4)
+    router = cirq.RouteCQC(device.metadata.nx_graph)
+    q = cirq.LineQubit.range(3)
+
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.Circuit(cirq.CNOT(q[0], q[1]), cirq.CNOT(q[1], q[2])).freeze()
+        ).with_tags('ignore')
+    )
+
+    with pytest.raises(ValueError, match='act on 1 or 2 qubits'):
+        router.route_circuit(circuit, context=cirq.TransformerContext(tags_to_ignore=('ignore',)))
+
+
+def test_subcircuit_with_only_single_qubit_gates() -> None:
+    device = cirq.testing.construct_grid_device(4, 4)
+    router = cirq.RouteCQC(device.metadata.nx_graph)
+    q = cirq.LineQubit.range(3)
+
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(cirq.Circuit(cirq.X(q[0]), cirq.Y(q[1]), cirq.Z(q[2])).freeze()),
+        cirq.CNOT(q[0], q[1]),
+    )
+
+    # No 2-qubit coverage can come from the subcircuit, so the threshold is simply unreachable.
+    view = router._circuit_for_initial_mapping(circuit, 1.0)
+    assert not any(isinstance(op.untagged, cirq.CircuitOperation) for op in view.all_operations())
+
+    routed, imap, swap_map = router.route_circuit(circuit, min_qubit_mapping_threshold=1.0)
+    device.validate_circuit(routed)
+    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+        routed, circuit.transform_qubits(imap), swap_map
+    )
+
+
+@pytest.mark.parametrize('threshold', [0.0, 0.5, 1.0])
+def test_deeply_nested_circuit_operations(threshold) -> None:
+    device = cirq.testing.construct_grid_device(4, 4)
+    router = cirq.RouteCQC(device.metadata.nx_graph)
+    q = cirq.LineQubit.range(4)
+
+    innermost = cirq.CircuitOperation(cirq.Circuit(cirq.CNOT(q[0], q[1])).freeze())
+    inner = cirq.CircuitOperation(cirq.Circuit(innermost, cirq.CZ(q[1], q[2])).freeze())
+    outer = cirq.CircuitOperation(cirq.Circuit(inner, cirq.CNOT(q[2], q[3])).freeze())
+    circuit = cirq.Circuit(cirq.H(q[0]), outer, cirq.CNOT(q[0], q[3]))
+
+    routed, imap, swap_map = router.route_circuit(circuit, min_qubit_mapping_threshold=threshold)
+    device.validate_circuit(routed)
+    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+        routed, circuit.transform_qubits(imap), swap_map
+    )
+    assert not any(isinstance(op.untagged, cirq.CircuitOperation) for op in routed.all_operations())
+
+
+def test_nested_circuit_operation_tagged_with_tags_to_ignore_is_not_unrolled() -> None:
+    device = cirq.testing.construct_grid_device(4, 4)
+    router = cirq.RouteCQC(device.metadata.nx_graph)
+    q = cirq.LineQubit.range(3)
+
+    ignored = cirq.CircuitOperation(cirq.Circuit(cirq.CNOT(q[0], q[1])).freeze()).with_tags(
+        'ignore'
+    )
+    outer = cirq.CircuitOperation(cirq.Circuit(ignored, cirq.Z(q[2])).freeze())
+
+    routed, _, _ = router.route_circuit(
+        cirq.Circuit(outer), context=cirq.TransformerContext(tags_to_ignore=('ignore',))
+    )
+    device.validate_circuit(routed)
+    remaining = [
+        op for op in routed.all_operations() if isinstance(op.untagged, cirq.CircuitOperation)
+    ]
+    assert len(remaining) == 1
+    assert 'ignore' in remaining[0].tags
