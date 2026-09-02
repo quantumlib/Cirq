@@ -626,7 +626,7 @@ class RouteCQC:
         """
         ignored = set(tags_to_ignore)
 
-        def map_func(moment: cirq.Moment, _: int) -> list[cirq.Moment]:
+        def map_func(moment: cirq.Moment, _: int) -> Sequence[cirq.Moment]:
             to_zip: list[cirq.AbstractCircuit] = []
             for op in moment:
                 op_untagged = op.untagged
