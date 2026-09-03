@@ -102,12 +102,12 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
     def add_qubits(self, qubits: Sequence[cirq.Qid]) -> Self:
         """Add `qubits` in the `|0>` state to the state space.
 
-                Args:
-                    qubits: Sequence of qubits to be added.
+        Args:
+            qubits: Sequence of qubits to be added.
 
-                Returns:
-        q            A state of the same type with qubits added or NotImplemented if
-                        the subclass does not implement this method.
+        Returns:
+            A state of the same type with qubits added or NotImplemented if
+                the subclass does not implement this method.
         """
         if not qubits:
             return self
