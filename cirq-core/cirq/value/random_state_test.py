@@ -17,6 +17,7 @@ from __future__ import annotations
 import numpy as np
 
 import cirq
+from cirq.value import random_state
 
 
 def test_parse_random_state() -> None:
@@ -24,13 +25,14 @@ def test_parse_random_state() -> None:
 
     def rand(prng):
         np.random.set_state(global_state)
-        return prng.rand()
+        return random_state.get_random_array(prng)
 
     prngs = [
         np.random,
         cirq.value.parse_random_state(np.random),
         cirq.value.parse_random_state(None),
     ]
+
     vals = [rand(prng) for prng in prngs]
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(*vals)
@@ -41,6 +43,32 @@ def test_parse_random_state() -> None:
         cirq.value.parse_random_state(np.random.RandomState(seed)),
         cirq.value.parse_random_state(seed),
     ]
-    vals = [prng.rand() for prng in prngs1]
+    vals = [random_state.get_random_array(prng) for prng in prngs1]
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(*vals)
+
+
+def test_get_random_helpers_with_generator() -> None:
+    """The helpers should use the `np.random.Generator` spelling of each draw."""
+
+    prng = np.random.default_rng(0)
+
+    assert random_state.get_random_array(prng, (2, 3)).shape == (2, 3)
+    assert isinstance(random_state.get_random_array(prng), float)
+    assert random_state.get_random_normal_array(prng, (2, 3)).shape == (2, 3)
+    assert isinstance(random_state.get_random_normal_array(prng), float)
+    assert random_state.get_random_int(prng, 0, 10, size=(2,)).shape == (2,)
+    assert 0 <= random_state.get_random_int(prng, 10) < 10
+
+
+def test_get_random_helpers_with_random_state() -> None:
+    """The helpers should use the `np.random.RandomState` spelling of each draw."""
+
+    prng = np.random.RandomState(0)
+
+    assert random_state.get_random_array(prng, (2, 3)).shape == (2, 3)
+    assert isinstance(random_state.get_random_array(prng), float)
+    assert random_state.get_random_normal_array(prng, (2, 3)).shape == (2, 3)
+    assert isinstance(random_state.get_random_normal_array(prng), float)
+    assert random_state.get_random_int(prng, 0, 10, size=(2,)).shape == (2,)
+    assert 0 <= random_state.get_random_int(prng, 10) < 10

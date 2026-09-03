@@ -158,6 +158,7 @@ class Simulator(
         initial_state: cirq.STATE_VECTOR_LIKE | cirq.StateVectorSimulationState,
         qubits: Sequence[cirq.Qid],
         classical_data: cirq.ClassicalDataStore,
+        prng: np.random.Generator | None = None,
     ):
         """Creates the StateVectorSimulationState for a circuit.
 
@@ -179,7 +180,7 @@ class Simulator(
 
         return state_vector_simulation_state.StateVectorSimulationState(
             qubits=qubits,
-            prng=self._prng,
+            prng=prng if prng is not None else self._prng,
             classical_data=classical_data,
             initial_state=initial_state,
             dtype=self._dtype,

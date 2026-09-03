@@ -247,7 +247,7 @@ def test_random_combinations_layer_circuit_vs_device() -> None:
 
 
 def _cz_with_adjacent_z_rotations(
-    a: cirq.GridQubit, b: cirq.GridQubit, prng: np.random.RandomState
+    a: cirq.GridQubit, b: cirq.GridQubit, prng: np.random.RandomState | np.random.Generator
 ):
     z_exponents = [prng.uniform(0, 1) for _ in range(4)]
     yield cirq.Z(a) ** z_exponents[0]
@@ -370,7 +370,7 @@ def test_random_rotations_between_grid_interaction_layers(
     qubits: Iterable[cirq.GridQubit],
     depth: int,
     two_qubit_op_factory: Callable[
-        [cirq.GridQubit, cirq.GridQubit, np.random.RandomState], cirq.OP_TREE
+        [cirq.GridQubit, cirq.GridQubit, np.random.RandomState | np.random.Generator], cirq.OP_TREE
     ],
     pattern: Sequence[GridInteractionLayer],
     single_qubit_gates: Sequence[cirq.Gate],

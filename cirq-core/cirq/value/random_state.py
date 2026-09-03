@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any, cast
 
 import numpy as np
@@ -39,13 +40,16 @@ document(
 )
 
 
-def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.RandomState:
+def parse_random_state(
+    random_state: RANDOM_STATE_OR_SEED_LIKE,
+) -> np.random.RandomState | np.random.Generator:
     """Interpret an object as a pseudorandom number generator.
 
     If `random_state` is None, returns the module `np.random`.
     If `random_state` is an integer, returns
     `np.random.RandomState(random_state)`.
-    Otherwise, returns `random_state` unmodified.
+    If `random_state` is an `np.random.Generator`, return it unmodified.
+    Otherwise, returns `random_state` cast to an `np.random.RandomState`.
 
     Args:
         random_state: The object to be used as or converted to a pseudorandom
@@ -58,5 +62,49 @@ def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.Ran
         return cast(np.random.RandomState, np.random)
     elif isinstance(random_state, int):
         return np.random.RandomState(random_state)
+    elif isinstance(random_state, np.random.Generator):
+        return random_state
     else:
         return cast(np.random.RandomState, random_state)
+
+
+def get_random_array(
+    rng: np.random.RandomState | np.random.Generator, shape: Sequence[int] | None = None
+):
+    if isinstance(rng, np.random.Generator):
+        if shape is not None:
+            return rng.random(size=shape)
+        else:
+            return rng.random()
+    else:
+        if shape is not None:
+            return rng.rand(*shape)
+        else:
+            return rng.rand()
+
+
+def get_random_normal_array(
+    rng: np.random.RandomState | np.random.Generator, shape: Sequence[int] | None = None
+):
+    if isinstance(rng, np.random.Generator):
+        if shape is not None:
+            return rng.standard_normal(size=shape)
+        else:
+            return rng.standard_normal()
+    else:
+        if shape is not None:
+            return rng.randn(*shape)
+        else:
+            return rng.randn()
+
+
+def get_random_int(
+    rng: np.random.RandomState | np.random.Generator,
+    low: int,
+    high: int | None = None,
+    size: Sequence[int] | None = None,
+):
+    if isinstance(rng, np.random.Generator):
+        return rng.integers(low, high, size=size)
+    else:
+        return rng.randint(low, high, size=size)

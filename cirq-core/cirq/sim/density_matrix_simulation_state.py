@@ -247,7 +247,7 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         self,
         *,
         available_buffer: list[np.ndarray] | None = None,
-        prng: np.random.RandomState | None = None,
+        prng: np.random.RandomState | np.random.Generator | None = None,
         qubits: Sequence[cirq.Qid] | None = None,
         initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
         dtype: type[np.complexfloating] = np.complex64,

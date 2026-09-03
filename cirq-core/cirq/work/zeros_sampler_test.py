@@ -91,3 +91,11 @@ def test_validate_device() -> None:
     circuit = cirq.Circuit(cirq.measure(a), cirq.X(b))
     with pytest.raises(ValueError, match=r'X\(b\) is not a measurement'):
         _ = sampler.run_sweep(circuit, None, 3)
+
+
+def test_zeros_sampler_rejects_prng() -> None:
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.H(a), cirq.measure(a, key='m'))
+
+    with pytest.raises(ValueError, match='RNG'):
+        cirq.ZerosSampler().run_sweep(circuit, None, 1, prng=np.random.default_rng(0))

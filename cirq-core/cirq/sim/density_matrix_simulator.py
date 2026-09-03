@@ -155,6 +155,7 @@ class DensityMatrixSimulator(
         initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE | cirq.DensityMatrixSimulationState,
         qubits: Sequence[cirq.Qid],
         classical_data: cirq.ClassicalDataStore,
+        prng: np.random.Generator | None = None,
     ) -> cirq.DensityMatrixSimulationState:
         """Creates the DensityMatrixSimulationState for a circuit.
 
@@ -176,7 +177,7 @@ class DensityMatrixSimulator(
 
         return density_matrix_simulation_state.DensityMatrixSimulationState(
             qubits=qubits,
-            prng=self._prng,
+            prng=prng if prng is not None else self._prng,
             classical_data=classical_data,
             initial_state=initial_state,
             dtype=self._dtype,

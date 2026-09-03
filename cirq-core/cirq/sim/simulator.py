@@ -55,12 +55,22 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
     """
 
     def run_sweep(
-        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+        self,
+        program: cirq.AbstractCircuit,
+        params: cirq.Sweepable,
+        repetitions: int = 1,
+        prng: np.random.Generator | None = None,
     ) -> Sequence[cirq.Result]:
-        return list(self.run_sweep_iter(program, params, repetitions))
+        if prng is None:
+            return list(self.run_sweep_iter(program, params, repetitions))
+        return list(self.run_sweep_iter(program, params, repetitions, prng))
 
     def run_sweep_iter(
-        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+        self,
+        program: cirq.AbstractCircuit,
+        params: cirq.Sweepable,
+        repetitions: int = 1,
+        prng: np.random.Generator | None = None,
     ) -> Iterator[cirq.Result]:
         """Runs the supplied Circuit, mimicking quantum hardware.
 
@@ -71,6 +81,8 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
             program: The circuit to simulate.
             params: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             Result list for this run; one for each possible parameter
@@ -88,14 +100,26 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
                 for _, op, _ in program.findall_operations_with_gate_type(ops.MeasurementGate):
                     records[protocols.measurement_key_name(op)] = np.empty([0, 1, 1])
             else:
-                records = self._run(
-                    circuit=program, param_resolver=param_resolver, repetitions=repetitions
-                )
+                if prng is None:
+                    records = self._run(
+                        circuit=program, param_resolver=param_resolver, repetitions=repetitions
+                    )
+                else:
+                    records = self._run(
+                        circuit=program,
+                        param_resolver=param_resolver,
+                        repetitions=repetitions,
+                        prng=prng,
+                    )
             yield study.ResultDict(params=param_resolver, records=records)
 
     @abc.abstractmethod
     def _run(
-        self, circuit: cirq.AbstractCircuit, param_resolver: cirq.ParamResolver, repetitions: int
+        self,
+        circuit: cirq.AbstractCircuit,
+        param_resolver: cirq.ParamResolver,
+        repetitions: int,
+        prng: np.random.Generator | None = None,
     ) -> dict[str, np.ndarray]:
         """Run a simulation, mimicking quantum hardware.
 
@@ -459,6 +483,7 @@ class SimulatesFinalState(
         param_resolver: cirq.ParamResolverOrSimilarType = None,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
+        prng: np.random.Generator | None = None,
     ) -> TSimulationTrialResult:
         """Simulates the supplied Circuit.
 
@@ -474,12 +499,18 @@ class SimulatesFinalState(
             initial_state: The initial state for the simulation. The form of
                 this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             SimulationTrialResults for the simulation. Includes the final state.
         """
+        if prng is None:
+            return self.simulate_sweep(
+                program, study.ParamResolver(param_resolver), qubit_order, initial_state
+            )[0]
         return self.simulate_sweep(
-            program, study.ParamResolver(param_resolver), qubit_order, initial_state
+            program, study.ParamResolver(param_resolver), qubit_order, initial_state, prng
         )[0]
 
     def simulate_sweep(
@@ -488,12 +519,15 @@ class SimulatesFinalState(
         params: cirq.Sweepable,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
+        prng: np.random.Generator | None = None,
     ) -> list[TSimulationTrialResult]:
         """Wraps computed states in a list.
 
         Prefer overriding `simulate_sweep_iter`.
         """
-        return list(self.simulate_sweep_iter(program, params, qubit_order, initial_state))
+        if prng is None:
+            return list(self.simulate_sweep_iter(program, params, qubit_order, initial_state))
+        return list(self.simulate_sweep_iter(program, params, qubit_order, initial_state, prng))
 
     def _simulate_sweep_to_iter(
         self,
@@ -501,10 +535,14 @@ class SimulatesFinalState(
         params: cirq.Sweepable,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
+        prng: np.random.Generator | None = None,
     ) -> Iterator[TSimulationTrialResult]:
         if type(self).simulate_sweep == SimulatesFinalState.simulate_sweep:
             raise RecursionError("Must define either simulate_sweep or simulate_sweep_iter.")
-        yield from self.simulate_sweep(program, params, qubit_order, initial_state)
+        if prng is None:
+            yield from self.simulate_sweep(program, params, qubit_order, initial_state)
+        else:
+            yield from self.simulate_sweep(program, params, qubit_order, initial_state, prng)
 
     @value.alternative(requires='simulate_sweep', implementation=_simulate_sweep_to_iter)
     def simulate_sweep_iter(
@@ -513,6 +551,7 @@ class SimulatesFinalState(
         params: cirq.Sweepable,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
+        prng: np.random.Generator | None = None,
     ) -> Iterator[TSimulationTrialResult]:
         """Simulates the supplied Circuit.
 
@@ -529,6 +568,8 @@ class SimulatesFinalState(
             initial_state: The initial state for the simulation. The form of
                 this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             Iterator over SimulationTrialResults for this run, one for each
@@ -561,6 +602,7 @@ class SimulatesIntermediateState(
         params: cirq.Sweepable,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
+        prng: np.random.Generator | None = None,
     ) -> Iterator[TSimulationTrialResult]:
         """Simulates the supplied Circuit.
 
@@ -578,6 +620,8 @@ class SimulatesIntermediateState(
                 either a raw state or an `SimulationStateBase`. The form of the
                 raw state depends on the simulation implementation. See
                 documentation of the implementing class for details.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             List of SimulationTrialResults for this run, one for each
@@ -591,9 +635,14 @@ class SimulatesIntermediateState(
                 if isinstance(initial_state, SimulationStateBase) and i < len(resolvers) - 1
                 else initial_state
             )
-            all_step_results = self.simulate_moment_steps(
-                program, param_resolver, qubit_order, state
-            )
+            if prng is None:
+                all_step_results = self.simulate_moment_steps(
+                    program, param_resolver, qubit_order, state
+                )
+            else:
+                all_step_results = self.simulate_moment_steps(
+                    program, param_resolver, qubit_order, state, prng
+                )
             measurements: dict[str, np.ndarray] = {}
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
@@ -610,6 +659,7 @@ class SimulatesIntermediateState(
         param_resolver: cirq.ParamResolverOrSimilarType = None,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
+        prng: np.random.Generator | None = None,
     ) -> Iterator[TStepResult]:
         """Returns an iterator of StepResults for each moment simulated.
 
@@ -626,6 +676,8 @@ class SimulatesIntermediateState(
                 either a raw state or a `TSimulationState`. The form of the
                 raw state depends on the simulation implementation. See
                 documentation of the implementing class for details.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             Iterator that steps through the simulation, simulating each
@@ -634,8 +686,12 @@ class SimulatesIntermediateState(
         param_resolver = study.ParamResolver(param_resolver)
         actual_initial_state = 0 if initial_state is None else initial_state
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
+        if prng is None:
+            return self._base_iterator(
+                circuit, qubits, actual_initial_state, param_resolver=param_resolver
+            )
         return self._base_iterator(
-            circuit, qubits, actual_initial_state, param_resolver=param_resolver
+            circuit, qubits, actual_initial_state, param_resolver=param_resolver, prng=prng
         )
 
     @abc.abstractmethod
@@ -645,6 +701,7 @@ class SimulatesIntermediateState(
         qubits: tuple[cirq.Qid, ...],
         initial_state: Any,
         param_resolver: cirq.ParamResolver | None = None,
+        prng: np.random.Generator | None = None,
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 

@@ -15,7 +15,9 @@
 from __future__ import annotations
 
 import time
+from typing import TYPE_CHECKING
 
+import numpy as np
 import requests
 
 import cirq
@@ -103,7 +105,11 @@ class PasqalSampler(cirq.work.Sampler):
         return result
 
     def run_sweep(
-        self, program: cirq.AbstractCircuit, params: cirq.study.Sweepable, repetitions: int = 1
+        self,
+        program: cirq.AbstractCircuit,
+        params: cirq.study.Sweepable,
+        repetitions: int = 1,
+        prng: np.random.Generator | None = None,
     ) -> list[cirq.study.Result]:
         """Samples from the given Circuit.
         In contrast to run, this allows for sweeping over different parameter
@@ -112,10 +118,13 @@ class PasqalSampler(cirq.work.Sampler):
             program: The circuit to simulate.
             params: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
+            prng: Not supported for this class as no client-side RNG, must be None.
         Returns:
             Result list for this run; one for each possible parameter
             resolver.
         """
+        if prng is not None:
+            raise ValueError("PasqalSampler has no client-side RNG.")
         device = self._device
         assert isinstance(
             device, cirq_pasqal.PasqalDevice

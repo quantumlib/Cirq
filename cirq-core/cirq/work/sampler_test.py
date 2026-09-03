@@ -52,7 +52,7 @@ async def test_run_sweep_async() -> None:
 @duet.sync
 async def test_sampler_async_fail() -> None:
     class FailingSampler(cirq.Sampler):
-        def run_sweep(self, program, params, repetitions: int = 1):
+        def run_sweep(self, program, params, repetitions: int = 1):  # type: ignore[override]
             raise ValueError('test')
 
     with pytest.raises(ValueError, match='test'):
@@ -66,7 +66,7 @@ def test_run_sweep_impl() -> None:
     """Test run_sweep implemented in terms of run_sweep_async."""
 
     class AsyncSampler(cirq.Sampler):
-        async def run_sweep_async(self, program, params, repetitions: int = 1):
+        async def run_sweep_async(self, program, params, repetitions: int = 1):  # type: ignore[override]
             await duet.sleep(0.001)
             return cirq.Simulator().run_sweep(program, params, repetitions)
 
@@ -85,7 +85,7 @@ async def test_run_sweep_async_impl() -> None:
     """Test run_sweep_async implemented in terms of run_sweep."""
 
     class SyncSampler(cirq.Sampler):
-        def run_sweep(self, program, params, repetitions: int = 1):
+        def run_sweep(self, program, params, repetitions: int = 1):  # type: ignore[override]
             return cirq.Simulator().run_sweep(program, params, repetitions)
 
     results = await SyncSampler().run_sweep_async(
@@ -226,7 +226,7 @@ async def test_run_batch_async_calls_run_sweep_asynchronously() -> None:
     params_list = [params1, params2]
 
     class AsyncSampler(cirq.Sampler):
-        async def run_sweep_async(
+        async def run_sweep_async(  # type: ignore[override]
             self, program, params, repetitions: int = 1, unused: duet.Limiter = duet.Limiter(None)
         ):
             if params == params1:
@@ -288,7 +288,7 @@ def test_sampler_sample_expectation_values_calculation() -> None:
         probabilities of the |0) and |1) state.
         """
 
-        def run_sweep(
+        def run_sweep(  # type: ignore[override]
             self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
         ) -> Sequence[cirq.Result]:
             results = np.zeros((repetitions, 1), dtype=bool)
@@ -393,3 +393,87 @@ def test_sampler_simple_sample_expectation_requirements() -> None:
     circuit.append(cirq.measure(a, key='out'))
     with pytest.raises(ValueError, match='permit_terminal_measurements'):
         _ = sampler.sample_expectation_values(circuit, [obs], num_samples=1)
+
+
+def test_run_batch_uses_independent_generators() -> None:
+    """Tests that `run_batch` uses `spawn` on the prng argument to generate independent generators,
+    so all results will also be independent."""
+
+    a = cirq.LineQubit(0)
+    sampler = cirq.Simulator(seed=1)
+    circuit = cirq.Circuit(cirq.H(a), cirq.measure(a, key='m'))
+
+    batch = [
+        r[0].records['m']
+        for r in sampler.run_batch([circuit] * 3, repetitions=50, prng=np.random.default_rng(0))
+    ]
+
+    expected = [
+        sampler.run(circuit, repetitions=50, prng=prng).records['m']
+        for prng in np.random.default_rng(0).spawn(3)
+    ]
+
+    for b, e in zip(batch, expected):
+        assert np.array_equal(b, e)
+
+    assert not np.array_equal(batch[0], batch[1])
+
+
+class _BackCompatSampler(cirq.Sampler):
+    """Sampler before run_sweep got the `prng` param."""
+
+    def run_sweep(  # type: ignore[override]
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+    ) -> Sequence[cirq.Result]:
+        return cirq.Simulator().run_sweep(program, params, repetitions)
+
+
+class _BackCompatAsyncSampler(cirq.Sampler):
+    """Sampler before run_sweep_async got the `prng` param."""
+
+    async def run_sweep_async(  # type: ignore[override]
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+    ) -> Sequence[cirq.Result]:
+        return cirq.Simulator().run_sweep(program, params, repetitions)
+
+
+@pytest.mark.parametrize('sampler', [_BackCompatSampler(), _BackCompatAsyncSampler()])
+def test_sampler_without_prng_no_forwarding(sampler: cirq.Sampler) -> None:
+    """`run` and `run_sweep` shouldn't forward `prng` when the caller didn't pass one in."""
+
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(a), cirq.measure(a, key='m'))
+    expected = np.ones((2, 1, 1))
+    np.testing.assert_equal(sampler.run(circuit, repetitions=2).records['m'], expected)
+    np.testing.assert_equal(sampler.run_sweep(circuit, None, 2)[0].records['m'], expected)
+    assert len(sampler.sample(circuit, repetitions=2)) == 2
+    assert len(sampler.run_batch([circuit], repetitions=2)) == 1
+
+
+@pytest.mark.parametrize('sampler', [_BackCompatSampler(), _BackCompatAsyncSampler()])
+@duet.sync
+async def test_sampler_without_prng_no_forwarding_async(sampler: cirq.Sampler) -> None:
+    """`run_async` and `run_batch_async` shouldn't forward `prng` either."""
+
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(a), cirq.measure(a, key='m'))
+    result = await sampler.run_async(circuit, repetitions=2)
+    np.testing.assert_equal(result.records['m'], np.ones((2, 1, 1)))
+    assert len(await sampler.run_batch_async([circuit], repetitions=2)) == 1
+
+
+@pytest.mark.parametrize('sampler', [_BackCompatSampler(), _BackCompatAsyncSampler()])
+@duet.sync
+async def test_passing_prng_to_sampler_without_prng_fails(sampler: cirq.Sampler) -> None:
+    """Samplers that don't use `prng` should throw an error upon receiving it."""
+
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(a), cirq.measure(a, key='m'))
+    with pytest.raises(TypeError, match='run_sweep'):
+        sampler.run(circuit, repetitions=2, prng=np.random.default_rng(0))
+    with pytest.raises(TypeError, match='run_sweep'):
+        sampler.sample(circuit, repetitions=2, prng=np.random.default_rng(0))
+    with pytest.raises(TypeError, match='run_sweep'):
+        await sampler.run_async(circuit, repetitions=2, prng=np.random.default_rng(0))
+    with pytest.raises(TypeError, match='run_sweep'):
+        await sampler.run_batch_async([circuit], repetitions=2, prng=np.random.default_rng(0))

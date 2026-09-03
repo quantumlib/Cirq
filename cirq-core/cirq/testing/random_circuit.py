@@ -115,10 +115,10 @@ def random_circuit(
         operations = []
         free_qubits = set(qubits)
         while len(free_qubits) >= max_arity:
-            gate, arity = gate_arity_pairs[prng.randint(num_gates)]
+            gate, arity = gate_arity_pairs[value.get_random_int(prng, num_gates)]
             op_qubits = prng.choice(sorted(free_qubits), size=arity, replace=False)
             free_qubits.difference_update(op_qubits)
-            if prng.rand() <= op_density:
+            if value.get_random_array(prng) <= op_density:
                 operations.append(gate(*op_qubits))
         moments.append(circuits.Moment(operations))
 
@@ -149,7 +149,9 @@ def random_two_qubit_circuit_with_czs(
     q1 = ops.NamedQubit('q1') if q1 is None else q1
 
     def random_one_qubit_gate():
-        return ops.PhasedXPowGate(phase_exponent=prng.rand(), exponent=prng.rand())
+        return ops.PhasedXPowGate(
+            phase_exponent=value.get_random_array(prng), exponent=value.get_random_array(prng)
+        )
 
     def one_cz():
         return [ops.CZ.on(q0, q1), random_one_qubit_gate().on(q0), random_one_qubit_gate().on(q1)]

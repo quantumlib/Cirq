@@ -38,16 +38,25 @@ class StabilizerSampler(sampler.Sampler):
         self._prng = value.parse_random_state(seed)
 
     def run_sweep(
-        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+        self,
+        program: cirq.AbstractCircuit,
+        params: cirq.Sweepable,
+        repetitions: int = 1,
+        prng: np.random.Generator | None = None,
     ) -> Sequence[cirq.Result]:
         results: list[cirq.Result] = []
         for param_resolver in cirq.to_resolvers(params):
             resolved_circuit = cirq.resolve_parameters(program, param_resolver)
-            measurements = self._run(resolved_circuit, repetitions=repetitions)
+            measurements = self._run(resolved_circuit, repetitions=repetitions, prng=prng)
             results.append(cirq.ResultDict(params=param_resolver, measurements=measurements))
         return results
 
-    def _run(self, circuit: cirq.AbstractCircuit, repetitions: int) -> dict[str, np.ndarray]:
+    def _run(
+        self,
+        circuit: cirq.AbstractCircuit,
+        repetitions: int,
+        prng: np.random.Generator | None = None,
+    ) -> dict[str, np.ndarray]:
 
         measurements: dict[str, list[np.ndarray]] = {
             key: [] for key in protocols.measurement_key_names(circuit)
@@ -56,7 +65,9 @@ class StabilizerSampler(sampler.Sampler):
 
         for _ in range(repetitions):
             state = CliffordTableauSimulationState(
-                CliffordTableau(num_qubits=len(qubits)), qubits=list(qubits), prng=self._prng
+                CliffordTableau(num_qubits=len(qubits)),
+                qubits=list(qubits),
+                prng=prng if prng is not None else self._prng,
             )
             for op in circuit.all_operations():
                 protocols.act_on(op, state)

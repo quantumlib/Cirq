@@ -18,6 +18,8 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
+import numpy as np
+
 import cirq
 from cirq_ionq import results
 
@@ -69,7 +71,11 @@ class Sampler(cirq.Sampler):
         self._timeout_seconds = timeout_seconds
 
     def run_sweep(
-        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+        self,
+        program: cirq.AbstractCircuit,
+        params: cirq.Sweepable,
+        repetitions: int = 1,
+        prng: np.random.Generator | None = None,
     ) -> Sequence[cirq.Result]:
         """Samples from the given Circuit.
 
@@ -88,11 +94,14 @@ class Sampler(cirq.Sampler):
             program: The circuit to sample from.
             params: Parameters to run with the program.
             repetitions: The number of times to sample.
+            prng: Not supported for this class as no client-side RNG, must be None.
 
         Returns:
             Either a list of `cirq_ionq.QPUResult` or a list of `cirq_ionq.SimulatorResult`
             depending on whether the job was running on an actual quantum processor or a simulator.
         """
+        if prng is not None:
+            raise ValueError("Ionq Sampler has no client-side RNG.")
         resolvers = list(cirq.to_resolvers(params))
         jobs = [
             self._service.create_job(

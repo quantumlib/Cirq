@@ -122,7 +122,7 @@ class CountingSimulator(
     def __init__(self, noise=None, split_untangled_states=False):
         super().__init__(noise=noise, split_untangled_states=split_untangled_states)
 
-    def _create_partial_simulation_state(
+    def _create_partial_simulation_state(  # type: ignore[override]
         self,
         initial_state: Any,
         qubits: Sequence[cirq.Qid],
@@ -152,7 +152,7 @@ class SplittableCountingSimulator(CountingSimulator):
     def __init__(self, noise=None, split_untangled_states=True):
         super().__init__(noise=noise, split_untangled_states=split_untangled_states)
 
-    def _create_partial_simulation_state(
+    def _create_partial_simulation_state(  # type: ignore[override]
         self,
         initial_state: Any,
         qubits: Sequence[cirq.Qid],
@@ -464,3 +464,55 @@ def test_simulate_unresolved_parameter_raises() -> None:
         match=r'Circuit contains ops whose symbols were not specified in the parameter sweep\.',
     ):
         sim.simulate(circuit)
+
+
+class _BackCompatCreateSimulationState(CountingSimulator):
+    """SimulatorBase before `_create_simulation_state` got the `prng` param."""
+
+    def _create_simulation_state(  # type: ignore[override]
+        self,
+        initial_state: Any,
+        qubits: Sequence[cirq.Qid],
+        param_resolver: cirq.ParamResolver | None = None,
+    ) -> cirq.SimulationStateBase[CountingSimulationState]:
+        return super()._create_simulation_state(initial_state, qubits, param_resolver)
+
+
+def test_simulator_base_without_prng_no_forwarding() -> None:
+    """`_run`, `simulate_sweep_iter` and `_base_iterator` shouldn't forward a `prng` of None."""
+
+    sim = _BackCompatCreateSimulationState()
+    circuit = cirq.Circuit(cirq.X(q0), cirq.measure(q0, key='m'))
+
+    np.testing.assert_equal(sim.run(circuit, repetitions=2).records['m'], np.ones((2, 1, 1)))
+    r = sim.simulate(circuit)
+    assert isinstance(r._final_simulator_state, CountingSimulationState)
+    assert r._final_simulator_state.gate_count == 1
+    assert len(list(sim.simulate_moment_steps(circuit))) == 2
+
+
+def test_passing_prng_to_simulator_base_without_prng_fails() -> None:
+    """Simulators that don't use `prng` should throw an error upon receiving it."""
+
+    sim = _BackCompatCreateSimulationState()
+    circuit = cirq.Circuit(cirq.X(q0), cirq.measure(q0, key='m'))
+
+    with pytest.raises(TypeError, match='_create_simulation_state'):
+        sim.run(circuit, repetitions=2, prng=np.random.default_rng(0))
+    with pytest.raises(TypeError, match='_create_simulation_state'):
+        sim.simulate(circuit, prng=np.random.default_rng(0))
+    with pytest.raises(TypeError, match='_create_simulation_state'):
+        next(sim.simulate_moment_steps(circuit, prng=np.random.default_rng(0)))
+
+
+@pytest.mark.parametrize('split_untangled_states', [False, True])
+def test_create_simulation_state_forwards_prng(split_untangled_states) -> None:
+    """A `prng` passed in should reach the simulation states built for the run."""
+
+    sim = cirq.Simulator(split_untangled_states=split_untangled_states)
+    prng = np.random.default_rng(0)
+    initial_state = np.array([1, 0, 0, 0], dtype=np.complex64)
+
+    state = sim._create_simulation_state(initial_state, (q0, q1), prng=prng)
+
+    assert state.create_merged_state().prng is prng

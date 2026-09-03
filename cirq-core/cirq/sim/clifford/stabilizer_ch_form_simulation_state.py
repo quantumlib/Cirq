@@ -35,7 +35,7 @@ class StabilizerChFormSimulationState(
     def __init__(
         self,
         *,
-        prng: np.random.RandomState | None = None,
+        prng: np.random.RandomState | np.random.Generator | None = None,
         qubits: Sequence[cirq.Qid] | None = None,
         initial_state: int | cirq.StabilizerStateChForm = 0,
         classical_data: cirq.ClassicalDataStore | None = None,

@@ -112,3 +112,13 @@ def test_run_sweep(mock_post, mock_get):
     # so none of them may turn off TLS certificate verification.
     for call in [*mock_post.call_args_list, *mock_get.call_args_list]:
         assert call[1].get('verify', True) is not False
+
+
+def test_pasqal_sampler_rejects_prng() -> None:
+    qs = [cirq_pasqal.ThreeDQubit(i, j, 0) for i in range(3) for j in range(3)]
+    circuit = cirq.Circuit(cirq.X(qs[0]), cirq.measure(qs[0], key='m'))
+    device = cirq_pasqal.PasqalVirtualDevice(control_radius=1, qubits=qs)
+    sampler = _make_sampler(device)
+
+    with pytest.raises(ValueError, match='RNG'):
+        sampler.run_sweep(circuit, None, 1, prng=np.random.default_rng(0))

@@ -430,3 +430,19 @@ async def test_run_batch_error_divisible():
         ValueError, match="Engine returned 3 results, which is not divisible by 2 programs."
     ):
         await sampler.run_batch_async([circuit1, circuit2], [{}, {}], 5)
+
+
+@pytest.mark.parametrize('jobs_per_batch', [1, 2])
+def test_processor_sampler_rejects_prng(jobs_per_batch) -> None:
+    """The processor applies its own randomness, so a client-side `prng` must be refused."""
+
+    processor = mock.create_autospec(AbstractProcessor, instance=True)
+    sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=jobs_per_batch)
+
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(a), cirq.measure(a, key='m'))
+
+    with pytest.raises(ValueError, match='no client-side RNG'):
+        sampler.run_sweep(circuit, None, 2, prng=np.random.default_rng(0))
+    with pytest.raises(ValueError, match='no client-side RNG'):
+        sampler.run_batch([circuit], None, 2, prng=np.random.default_rng(0))

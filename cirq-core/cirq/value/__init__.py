@@ -74,6 +74,9 @@ from cirq.value.product_state import (
 from cirq.value.periodic_value import PeriodicValue as PeriodicValue
 
 from cirq.value.random_state import (
+    get_random_array as get_random_array,
+    get_random_int as get_random_int,
+    get_random_normal_array as get_random_normal_array,
     parse_random_state as parse_random_state,
     RANDOM_STATE_OR_SEED_LIKE as RANDOM_STATE_OR_SEED_LIKE,
 )

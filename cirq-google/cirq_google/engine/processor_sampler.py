@@ -22,6 +22,8 @@ import duet
 import cirq
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq_google as cg
 
 
@@ -82,7 +84,24 @@ class ProcessorSampler(cirq.Sampler):
         program: cirq.AbstractCircuit,
         params: cirq.Sweepable | Sequence[cirq.Sweepable],
         repetitions: int = 1,
+        prng: np.random.Generator | None = None,
     ) -> Sequence[cg.EngineResult]:
+        """Samples the given circuit on the processor.
+
+        Args:
+            program: The circuit to sample from.
+            params: Parameters to run with the program.
+            repetitions: The number of times to sample.
+            prng: Not supported for this class as no client-side RNG, must be None.
+
+        Returns:
+            Result list for this run; one for each possible parameter resolver.
+
+        Raises:
+            ValueError: If `prng` is not None, as randomness is applied by the processor.
+        """
+        if prng is not None:
+            raise ValueError("ProcessorSampler has no client-side RNG.")
         return await self._run_sweep_async(program, params, repetitions)
 
     run_sweep = duet.sync(run_sweep_async)
@@ -115,7 +134,24 @@ class ProcessorSampler(cirq.Sampler):
         programs: Sequence[cirq.AbstractCircuit] | Mapping[str, cirq.AbstractCircuit],
         params_list: Sequence[cirq.Sweepable] | None = None,
         repetitions: int | Sequence[int] = 1,
+        prng: np.random.Generator | None = None,
     ) -> Sequence[Sequence[cg.EngineResult]]:
+        """Runs the supplied circuits on the processor.
+
+        Args:
+            programs: The circuits to sample from.
+            params_list: Parameters to run with each circuit.
+            repetitions: Number of times to sample each circuit.
+            prng: Not supported for this class as no client-side RNG, must be None.
+
+        Returns:
+            A list of lists of Results, one for each circuit.
+
+        Raises:
+            ValueError: If `prng` is not None, as randomness is applied by the processor.
+        """
+        if prng is not None:
+            raise ValueError("ProcessorSampler has no client-side RNG.")
         if self._jobs_per_batch > 1:
             # Treat programs as a sequence for iteration, but keep keys if it's a mapping
             prog_keys = list(programs.keys()) if isinstance(programs, Mapping) else []
@@ -151,7 +187,6 @@ class ProcessorSampler(cirq.Sampler):
                 program_batches.append(batch_programs)
                 params_list_batches.append(batch_sweep)
                 repetition_batches.append(batch_reps)
-
             all_batch_results = await duet.pstarmap_async(
                 self.run_sweep_async, zip(program_batches, params_list_batches, repetition_batches)
             )

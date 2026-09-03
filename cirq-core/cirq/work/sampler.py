@@ -32,6 +32,8 @@ from cirq.work.observable_measurement import (
 from cirq.work.observable_settings import _hashable_param
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 T = TypeVar('T')
@@ -45,6 +47,7 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         program: cirq.AbstractCircuit,
         param_resolver: cirq.ParamResolverOrSimilarType = None,
         repetitions: int = 1,
+        prng: np.random.Generator | None = None,
     ) -> cirq.Result:
         """Samples from the given `Circuit`.
 
@@ -62,17 +65,22 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
             program: The circuit to sample from.
             param_resolver: Parameters to run with the program.
             repetitions: The number of times to sample.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             `cirq.Result` that contains all the measurements for a run.
         """
-        return self.run_sweep(program, param_resolver, repetitions)[0]
+        if prng is None:
+            return self.run_sweep(program, param_resolver, repetitions)[0]
+        return self.run_sweep(program, param_resolver, repetitions, prng=prng)[0]
 
     async def run_async(
         self,
         program: cirq.AbstractCircuit,
         param_resolver: cirq.ParamResolverOrSimilarType = None,
         repetitions: int = 1,
+        prng: np.random.Generator | None = None,
     ) -> cirq.Result:
         """Asynchronously samples from the given Circuit.
 
@@ -84,15 +92,23 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
             program: The circuit to sample from.
             param_resolver: Parameters to run with the program.
             repetitions: The number of times to sample.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             Result for a run.
         """
-        results = await self.run_sweep_async(program, param_resolver, repetitions)
-        return results[0]
+        if prng is None:
+            return (await self.run_sweep_async(program, param_resolver, repetitions))[0]
+        return (await self.run_sweep_async(program, param_resolver, repetitions, prng))[0]
 
     def sample(
-        self, program: cirq.AbstractCircuit, *, repetitions: int = 1, params: cirq.Sweepable = None
+        self,
+        program: cirq.AbstractCircuit,
+        *,
+        repetitions: int = 1,
+        params: cirq.Sweepable = None,
+        prng: np.random.Generator | None = None,
     ) -> pd.DataFrame:
         """Samples the given Circuit, producing a pandas data frame.
 
@@ -108,6 +124,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
                 a dictionary, a list of dictionaries, a `cirq.Sweep`, a list of
                 `cirq.Sweep`, etc. The program will be sampled `repetition`
                 times for each mapping. Defaults to a single empty mapping.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             A `pandas.DataFrame` with a row for each sample, and a column for
@@ -171,7 +189,12 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
 
         results = []
         for sweep in sweeps_list:
-            sweep_results = self.run_sweep(program, params=sweep, repetitions=repetitions)
+            if prng is None:
+                sweep_results = self.run_sweep(program, params=sweep, repetitions=repetitions)
+            else:
+                sweep_results = self.run_sweep(
+                    program, params=sweep, repetitions=repetitions, prng=prng
+                )
             for resolver, result in zip(sweep, sweep_results):
                 param_values_once = [resolver.value_of(key) for key in keys]
                 param_table = pd.DataFrame(data=[param_values_once] * repetitions, columns=keys)
@@ -180,20 +203,36 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         return pd.concat(results)
 
     def _run_sweep_impl(
-        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+        self,
+        program: cirq.AbstractCircuit,
+        params: cirq.Sweepable,
+        repetitions: int = 1,
+        prng: np.random.Generator | None = None,
     ) -> Sequence[cirq.Result]:
         """Implements run_sweep using run_sweep_async"""
-        return duet.run(self.run_sweep_async, program, params, repetitions)
+        if prng is None:
+            return duet.run(self.run_sweep_async, program, params, repetitions)
+        return duet.run(self.run_sweep_async, program, params, repetitions, prng)
 
     async def _run_sweep_async_impl(
-        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+        self,
+        program: cirq.AbstractCircuit,
+        params: cirq.Sweepable,
+        repetitions: int = 1,
+        prng: np.random.Generator | None = None,
     ) -> Sequence[cirq.Result]:
         """Implements run_sweep_async using run_sweep"""
-        return self.run_sweep(program, params=params, repetitions=repetitions)
+        if prng is None:
+            return self.run_sweep(program, params=params, repetitions=repetitions)
+        return self.run_sweep(program, params=params, repetitions=repetitions, prng=prng)
 
     @value.alternative(requires='run_sweep_async', implementation=_run_sweep_impl)
     def run_sweep(
-        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+        self,
+        program: cirq.AbstractCircuit,
+        params: cirq.Sweepable,
+        repetitions: int = 1,
+        prng: np.random.Generator | None = None,
     ) -> Sequence[cirq.Result]:
         """Samples from the given Circuit.
 
@@ -209,6 +248,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
             program: The circuit to sample from.
             params: Parameters to run with the program.
             repetitions: The number of times to sample.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             Result list for this run; one for each possible parameter resolver.
@@ -217,7 +258,11 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
 
     @value.alternative(requires='run_sweep', implementation=_run_sweep_async_impl)
     async def run_sweep_async(
-        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+        self,
+        program: cirq.AbstractCircuit,
+        params: cirq.Sweepable,
+        repetitions: int = 1,
+        prng: np.random.Generator | None = None,
     ) -> Sequence[cirq.Result]:
         """Asynchronously samples from the given Circuit.
 
@@ -229,6 +274,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
             program: The circuit to sample from.
             params: Parameters to run with the program.
             repetitions: The number of times to sample.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             Result list for this run; one for each possible parameter resolver.
@@ -240,6 +287,7 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         programs: Sequence[cirq.AbstractCircuit],
         params_list: Sequence[cirq.Sweepable] | None = None,
         repetitions: int | Sequence[int] = 1,
+        prng: np.random.Generator | None = None,
     ) -> Sequence[Sequence[cirq.Result]]:
         """Runs the supplied circuits asynchronously.
 
@@ -268,6 +316,8 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
             repetitions: Number of circuit repetitions to run. Can be specified
                 as a single value to use for all runs, or as a list of values,
                 one for each circuit.
+            prng: An `np.random.Generator` to draw from for this call
+                instead of the internal random state.
 
         Returns:
             A list of lists of TrialResults. The outer list corresponds to
@@ -280,9 +330,15 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
                 of `params_list` or the length of `repetitions`.
         """
         params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
-        return await duet.pstarmap_async(
-            self.run_sweep_async, zip(programs, params_list, repetitions)
-        )
+        if prng is None:
+            return await duet.pstarmap_async(
+                self.run_sweep_async, zip(programs, params_list, repetitions)
+            )
+        else:
+            return await duet.pstarmap_async(
+                self.run_sweep_async,
+                zip(programs, params_list, repetitions, prng.spawn(len(programs))),
+            )
 
     run_batch = duet.sync(run_batch_async)
 

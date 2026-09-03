@@ -48,7 +48,7 @@ def _single_qubit_unitary(
 def random_qubit_unitary(
     shape: Sequence[int] = (),
     randomize_global_phase: bool = False,
-    rng: np.random.RandomState | None = None,
+    rng: np.random.RandomState | np.random.Generator | None = None,
 ) -> np.ndarray:
     """Random qubit unitary distributed over the Haar measure.
 
@@ -65,15 +65,15 @@ def random_qubit_unitary(
     """
     real_rng = random_state.parse_random_state(rng)
 
-    theta = np.arcsin(np.sqrt(real_rng.rand(*shape)))
-    phi_d = real_rng.rand(*shape) * np.pi * 2
-    phi_o = real_rng.rand(*shape) * np.pi * 2
+    theta = np.arcsin(np.sqrt(random_state.get_random_array(real_rng, shape)))
+    phi_d = random_state.get_random_array(real_rng, shape) * np.pi * 2
+    phi_o = random_state.get_random_array(real_rng, shape) * np.pi * 2
 
     out = _single_qubit_unitary(theta, phi_d, phi_o)
 
     if randomize_global_phase:
         out = np.moveaxis(out, (-2, -1), (0, 1))
-        out *= np.exp(1j * np.pi * 2 * real_rng.rand(*shape))
+        out *= np.exp(1j * np.pi * 2 * random_state.get_random_array(real_rng, shape))
         out = np.moveaxis(out, (0, 1), (-2, -1))
     return out
 

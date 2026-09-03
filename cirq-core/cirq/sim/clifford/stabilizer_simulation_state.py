@@ -45,7 +45,7 @@ class StabilizerSimulationState(
         self,
         *,
         state: TStabilizerState,
-        prng: np.random.RandomState | None = None,
+        prng: np.random.RandomState | np.random.Generator | None = None,
         qubits: Sequence[cirq.Qid] | None = None,
         classical_data: cirq.ClassicalDataStore | None = None,
     ):

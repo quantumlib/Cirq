@@ -84,6 +84,7 @@ class CustomStateSimulator(
         initial_state: Any,
         qubits: Sequence[cirq.Qid],
         classical_data: cirq.ClassicalDataStore,
+        prng: np.random.Generator | None = None,
     ) -> TSimulationState:
         return self.state_type(
             initial_state=initial_state, qubits=qubits, classical_data=classical_data
