@@ -237,12 +237,9 @@ class AbstractLocalProgram(AbstractProgram):
                 )
             return self._circuits[0]
         if isinstance(circuit_num, str):
-            if self._batch_keys is None:
-                raise KeyError("Program has no keys.")
-            try:
+            if self._batch_keys is not None and circuit_num in self._batch_keys:
                 return self._circuits[self._batch_keys.index(circuit_num)]
-            except ValueError:
-                raise KeyError(f"Circuit key '{circuit_num}' not found in program.")
+            raise KeyError(f"Circuit key '{circuit_num}' not found in program.")
         try:
             return self._circuits[circuit_num]
         except IndexError:
@@ -250,11 +247,24 @@ class AbstractLocalProgram(AbstractProgram):
                 f"Index {circuit_num} out of range for batch program of size {len(self._circuits)}."
             )
 
-    def get_circuits(self) -> list[cirq.Circuit] | dict[str, cirq.Circuit]:
+    def get_circuits(self) -> list[cirq.Circuit]:
         """Returns all the cirq Circuits for the program."""
-        if self._batch_keys is not None:
-            return dict(zip(self._batch_keys, self._circuits))
         return self._circuits.copy()
+
+    def get_mapped_circuits(self) -> dict[str, cirq.Circuit]:
+        """Returns all the cirq Circuits for a mapped program batch.
+
+        Returns:
+            A dictionary mapping circuit keys to cirq Circuits.
+
+        Raises:
+            ValueError: If called for a non-batch program or if keys were not specified.
+        """
+        if not self.is_batch():
+            raise ValueError("get_mapped_circuits called for a non-batch program.")
+        if self._batch_keys is None or any(not k for k in self._batch_keys):
+            raise ValueError("get_mapped_circuits called for a batch program without circuit keys.")
+        return dict(zip(self._batch_keys, self._circuits))
 
     def is_batch(self) -> bool:
         """Returns True if the program is a batch program."""

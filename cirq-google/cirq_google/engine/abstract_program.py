@@ -173,11 +173,22 @@ class AbstractProgram(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_circuits(self) -> Sequence[cirq.Circuit] | Mapping[str, cirq.Circuit]:
+    def get_circuits(self) -> Sequence[cirq.Circuit]:
         """Returns all the cirq Circuits for the program.
 
         Returns:
-            A list or a dict of the program's cirq Circuits.
+            A list of the program's cirq Circuits.
+        """
+
+    @abc.abstractmethod
+    def get_mapped_circuits(self) -> Mapping[str, cirq.Circuit]:
+        """Returns all the cirq Circuits for a mapped program batch.
+
+        Returns:
+            A dictionary mapping circuit keys to cirq Circuits.
+
+        Raises:
+            ValueError: If called for a non-batch program or if keys were not specified.
         """
 
     @abc.abstractmethod

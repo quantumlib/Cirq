@@ -427,7 +427,7 @@ class EngineProgram(abstract_program.AbstractProgram):
 
     get_circuit = duet.sync(get_circuit_async)
 
-    async def get_circuits_async(self) -> list[cirq.Circuit] | dict[str, cirq.Circuit]:
+    async def get_circuits_async(self) -> list[cirq.Circuit]:
         """Returns all the cirq Circuits for the Quantum Engine program."""
         proto = await self._get_proto_async()
         serializer = circuit_serializer.CIRCUIT_SERIALIZER
@@ -435,11 +435,29 @@ class EngineProgram(abstract_program.AbstractProgram):
             return [serializer.deserialize(proto)]
 
         deserialized = serializer.deserialize_multi_program(proto)
-        if all(kc.key for kc in proto.keyed_circuits) and len(proto.keyed_circuits) > 0:
-            return {triple[0]: cast(cirq.Circuit, triple[2]) for triple in deserialized}
         return [cast(cirq.Circuit, triple[2]) for triple in deserialized]
 
     get_circuits = duet.sync(get_circuits_async)
+
+    async def get_mapped_circuits_async(self) -> dict[str, cirq.Circuit]:
+        """Returns all the cirq Circuits for a mapped batch program.
+
+        Returns:
+            A dictionary mapping circuit keys to cirq Circuits.
+
+        Raises:
+            ValueError: if the program is not a batch program or does not have circuit keys.
+        """
+        if not await self.is_batch_async():
+            raise ValueError(f"Program {self.program_id} is not a batch program.")
+        proto = await self._get_proto_async()
+        if not all(kc.key for kc in proto.keyed_circuits) or len(proto.keyed_circuits) == 0:
+            raise ValueError(f"Program {self.program_id} does not have circuit keys.")
+        serializer = circuit_serializer.CIRCUIT_SERIALIZER
+        deserialized = serializer.deserialize_multi_program(proto)
+        return {triple[0]: cast(cirq.Circuit, triple[2]) for triple in deserialized}
+
+    get_mapped_circuits = duet.sync(get_mapped_circuits_async)
 
     async def batch_size_async(self) -> int:
         """Returns the number of programs in a batch program.

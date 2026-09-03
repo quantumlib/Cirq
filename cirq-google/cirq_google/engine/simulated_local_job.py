@@ -18,7 +18,7 @@ and a provided sampler to execute circuits."""
 from __future__ import annotations
 
 import concurrent.futures
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from typing import cast
 
 import duet
@@ -128,8 +128,6 @@ class SimulatedLocalJob(AbstractLocalJob):
         try:
             self._state = quantum.ExecutionStatus.State.RUNNING
             programs = parent.get_circuits()
-            if isinstance(programs, Mapping):
-                programs = list(programs.values())
             if len(sweeps) == 1 and len(programs) > 1:
                 sweeps = sweeps * len(programs)
             elif len(programs) == 1 and len(sweeps) > 1:
