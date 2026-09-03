@@ -36,7 +36,7 @@ class ProcessorSampler(cirq.Sampler):
         snapshot_id: str = "",
         device_config_name: str = "",
         max_concurrent_jobs: int = 100,
-        jobs_per_batch: int = 1,
+        circuits_per_job: int = 1,
     ):
         """Inits ProcessorSampler.
 
@@ -57,11 +57,11 @@ class ProcessorSampler(cirq.Sampler):
                 concurrently to the Engine. This client-side throttle can be
                 used to proactively reduce load to the backends and avoid quota
                 violations when pipelining circuit executions.
-            jobs_per_batch:  If set to greater than 1, this will batch multiple
+            circuits_per_job:  If set to greater than 1, this will batch multiple
                 circuits within the same API call when calling run_batch() or
-                run_batch_async() up to a maximum of `jobs_per_batch`.
+                run_batch_async() up to a maximum of `circuits_per_job`.
                 Note that actual hardware execution order is not guaranteed
-                if jobs_per_batch > 1. (For instance, the hardware may run
+                if circuits_per_job > 1. (For instance, the hardware may run
                 all circuits for the first sweep point, then the second point, etc.).
 
         Raises:
@@ -75,7 +75,7 @@ class ProcessorSampler(cirq.Sampler):
         self._snapshot_id = snapshot_id
         self._device_config_name = device_config_name
         self._concurrent_job_limiter = duet.Limiter(max_concurrent_jobs)
-        self._jobs_per_batch = jobs_per_batch
+        self._circuits_per_job = circuits_per_job
 
     async def run_sweep_async(
         self,
@@ -116,7 +116,7 @@ class ProcessorSampler(cirq.Sampler):
         params_list: Sequence[cirq.Sweepable] | None = None,
         repetitions: int | Sequence[int] = 1,
     ) -> Sequence[Sequence[cg.EngineResult]]:
-        if self._jobs_per_batch > 1:
+        if self._circuits_per_job > 1:
             # Treat programs as a sequence for iteration, but keep keys if it's a mapping
             prog_keys = list(programs.keys()) if isinstance(programs, Mapping) else []
             prog_values = (
@@ -139,7 +139,7 @@ class ProcessorSampler(cirq.Sampler):
                 i += 1
                 while (
                     i < len(prog_values)
-                    and len(batch_programs) < self._jobs_per_batch
+                    and len(batch_programs) < self._circuits_per_job
                     and repetitions[i] == batch_reps
                     and params_list[i] == batch_sweep
                 ):
@@ -198,3 +198,7 @@ class ProcessorSampler(cirq.Sampler):
     def max_concurrent_jobs(self) -> int:
         assert self._concurrent_job_limiter.capacity is not None
         return self._concurrent_job_limiter.capacity
+
+    @property
+    def circuits_per_job(self) -> int:
+        return self._circuits_per_job

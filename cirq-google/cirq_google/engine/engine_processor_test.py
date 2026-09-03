@@ -378,7 +378,7 @@ def test_get_sampler_from_run_name_with_defaults() -> None:
     assert sampler.device_config_name == default_config_alias
 
 
-def test_get_sampler_initializes_jobs_per_batch() -> None:
+def test_get_sampler_initializes_circuits_per_job() -> None:
     processor = cg.EngineProcessor(
         'a',
         'p',
@@ -390,14 +390,16 @@ def test_get_sampler_initializes_jobs_per_batch() -> None:
         ),
     )
     sampler_default = processor.get_sampler()
-    assert sampler_default._jobs_per_batch == 1
+    assert sampler_default._circuits_per_job == 1
+    assert sampler_default.circuits_per_job == 1
 
-    jobs_per_batch = 5
-    sampler = processor.get_sampler(jobs_per_batch=jobs_per_batch)
-    assert sampler._jobs_per_batch == jobs_per_batch
+    circuits_per_job = 5
+    sampler = processor.get_sampler(circuits_per_job=circuits_per_job)
+    assert sampler._circuits_per_job == circuits_per_job
+    assert sampler.circuits_per_job == circuits_per_job
 
 
-def test_get_sampler_initializes_jobs_per_batch_with_snapshot() -> None:
+def test_get_sampler_initializes_circuits_per_job_with_snapshot() -> None:
     processor = cg.EngineProcessor(
         'a',
         'p',
@@ -409,12 +411,15 @@ def test_get_sampler_initializes_jobs_per_batch_with_snapshot() -> None:
         ),
     )
     snapshot = Snapshot(id='test_snapshot')
-    jobs_per_batch = 5
-    sampler = processor.get_sampler(device_config_revision=snapshot, jobs_per_batch=jobs_per_batch)
-    assert sampler._jobs_per_batch == jobs_per_batch
+    circuits_per_job = 5
+    sampler = processor.get_sampler(
+        device_config_revision=snapshot, circuits_per_job=circuits_per_job
+    )
+    assert sampler._circuits_per_job == circuits_per_job
+    assert sampler.circuits_per_job == circuits_per_job
 
 
-def test_get_sampler_initializes_jobs_per_batch_with_run() -> None:
+def test_get_sampler_initializes_circuits_per_job_with_run() -> None:
     processor = cg.EngineProcessor(
         'a',
         'p',
@@ -426,9 +431,10 @@ def test_get_sampler_initializes_jobs_per_batch_with_run() -> None:
         ),
     )
     run = Run(id='test_run')
-    jobs_per_batch = 5
-    sampler = processor.get_sampler(device_config_revision=run, jobs_per_batch=jobs_per_batch)
-    assert sampler._jobs_per_batch == jobs_per_batch
+    circuits_per_job = 5
+    sampler = processor.get_sampler(device_config_revision=run, circuits_per_job=circuits_per_job)
+    assert sampler._circuits_per_job == circuits_per_job
+    assert sampler.circuits_per_job == circuits_per_job
 
 
 def test_get_sampler_from_snapshot_id() -> None:

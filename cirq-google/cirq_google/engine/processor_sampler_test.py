@@ -174,9 +174,9 @@ def test_run_batch_differing_repetitions():
     )
 
 
-def test_run_batch_with_jobs_per_batch():
+def test_run_batch_with_circuits_per_job():
     processor = mock.create_autospec(AbstractProcessor, instance=True)
-    sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=2)
+    sampler = cg.ProcessorSampler(processor=processor, circuits_per_job=2)
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
     circuit2 = cirq.Circuit(cirq.Y(a))
@@ -205,7 +205,7 @@ def test_run_batch_with_jobs_per_batch():
 
 def test_run_batch_ordering():
     processor = mock.create_autospec(AbstractProcessor, instance=True)
-    sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=2)
+    sampler = cg.ProcessorSampler(processor=processor, circuits_per_job=2)
 
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a), cirq.X(a), cirq.measure(a, key='m'))
@@ -246,9 +246,9 @@ def test_run_batch_ordering():
 
 
 @pytest.mark.parametrize('use_mapping', [True, False])
-def test_run_batch_with_jobs_per_batch_and_params(use_mapping: bool):
+def test_run_batch_with_circuits_per_job_and_params(use_mapping: bool):
     processor = mock.create_autospec(AbstractProcessor, instance=True)
-    sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=2)
+    sampler = cg.ProcessorSampler(processor=processor, circuits_per_job=2)
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
     circuit2 = cirq.Circuit(cirq.Y(a))
@@ -268,9 +268,9 @@ def test_run_batch_with_jobs_per_batch_and_params(use_mapping: bool):
     )
 
 
-def test_run_batch_with_jobs_per_batch_different_params():
+def test_run_batch_with_circuits_per_job_different_params():
     processor = mock.create_autospec(AbstractProcessor, instance=True)
-    sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=2)
+    sampler = cg.ProcessorSampler(processor=processor, circuits_per_job=2)
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
     circuit2 = cirq.Circuit(cirq.Y(a))
@@ -298,9 +298,9 @@ def test_run_batch_with_jobs_per_batch_different_params():
     )
 
 
-def test_run_batch_with_jobs_per_batch_different_repetitions():
+def test_run_batch_with_circuits_per_job_different_repetitions():
     processor = mock.create_autospec(AbstractProcessor, instance=True)
-    sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=2)
+    sampler = cg.ProcessorSampler(processor=processor, circuits_per_job=2)
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
     circuit2 = cirq.Circuit(cirq.Y(a))
@@ -384,8 +384,9 @@ async def test_sampler_with_full_job_queue_unblocks_when_available():
 
 def test_processor_sampler_processor_property():
     processor = mock.create_autospec(AbstractProcessor, instance=True)
-    sampler = cg.ProcessorSampler(processor=processor)
+    sampler = cg.ProcessorSampler(processor=processor, circuits_per_job=3)
     assert sampler.processor is processor
+    assert sampler.circuits_per_job == 3
 
 
 def test_with_local_processor():
@@ -414,7 +415,7 @@ def test_processor_sampler_with_invalid_configuration_throws(run_name, device_co
 @duet.sync
 async def test_run_batch_error_divisible():
     processor = mock.create_autospec(AbstractProcessor, instance=True)
-    sampler = cg.ProcessorSampler(processor=processor, jobs_per_batch=2)
+    sampler = cg.ProcessorSampler(processor=processor, circuits_per_job=2)
 
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
