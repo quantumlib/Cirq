@@ -198,10 +198,14 @@ class SimulatorBase(
             yield self._create_step_result(sim_state)
             return
 
-        system_qubits = sorted(circuit.all_qubits())
+        system_qubits = sorted(sim_state.qubits)
         measured: dict[tuple[cirq.Qid, ...], bool] = collections.defaultdict(bool)
         for moment in circuit:
             resolved_moment = protocols.resolve_parameters(moment, sim_state.param_resolver)
+            new_qubits = [q for q in resolved_moment.qubits if q not in sim_state.qubit_map]
+            if new_qubits:
+                sim_state = sim_state.add_qubits(new_qubits)
+                system_qubits = sorted(sim_state.qubits)
             noisy_moment = self.noise.noisy_moment(resolved_moment, system_qubits)
             for op in ops.flatten_to_ops(noisy_moment):
                 # Preprocess measurements
@@ -233,7 +237,9 @@ class SimulatorBase(
     ) -> dict[str, np.ndarray]:
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = study.ParamResolver({}) if param_resolver is None else param_resolver
-        qubits = tuple(sorted(circuit.all_qubits()))
+        qubits = tuple(
+            sorted(q for q in circuit.all_qubits() if not isinstance(q, ops.VariableQid))
+        )
         sim_state = self._create_simulation_state(0, qubits, param_resolver=param_resolver)
 
         def can_run_prefix(op: cirq.Operation) -> bool:
@@ -324,7 +330,9 @@ class SimulatorBase(
         def sweep_prefixable(op: cirq.Operation):
             return self._can_be_in_run_prefix(op) and not protocols.is_parameterized(op)
 
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(program.all_qubits())
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            q for q in program.all_qubits() if not isinstance(q, ops.VariableQid)
+        )
         initial_state = 0 if initial_state is None else initial_state
         sim_state = self._create_simulation_state(initial_state, qubits)
         prefix, suffix = (
