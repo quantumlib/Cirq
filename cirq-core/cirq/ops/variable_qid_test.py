@@ -300,38 +300,36 @@ def test_variable_grid_qid_simulation():
     statevec_sim = cirq.Simulator(split_untangled_states=False)
     prod_statevec_sim = cirq.Simulator()
     dm_sim = cirq.DensityMatrixSimulator()
+    sims = [statevec_sim, prod_statevec_sim, dm_sim]
 
     circuit = cirq.Circuit(cirq.Moment(cirq.X(q00)), cirq.Moment(cirq.measure(q, key='m')))
-    results = statevec_sim.run_sweep(circuit, params=[{'r': 0, 'c': 0}, {'r': 1, 'c': 2}])
-    assert results[0].measurements['m'] == 1
-    assert results[1].measurements['m'] == 0
-    results = prod_statevec_sim.run_sweep(circuit, params=[{'r': 0, 'c': 0}, {'r': 1, 'c': 2}])
-    assert results[0].measurements['m'] == 1
-    assert results[1].measurements['m'] == 0
-    results = dm_sim.run_sweep(circuit, params=[{'r': 0, 'c': 0}, {'r': 1, 'c': 2}])
-    assert results[0].measurements['m'] == 1
-    assert results[1].measurements['m'] == 0
+    for sim in sims:
+        results = sim.run_sweep(circuit, params=[{'r': 0, 'c': 0}, {'r': 1, 'c': 2}])
+        assert results[0].measurements['m'] == 1
+        assert results[1].measurements['m'] == 0
 
     circuit = cirq.Circuit(
         cirq.Moment(cirq.X(q00)),
         cirq.Moment(cirq.SetVariable(r, 0), cirq.SetVariable(c, 0)),
         cirq.Moment(cirq.measure(q, key='m')),
     )
-    results = statevec_sim.run(circuit)
-    assert results.measurements['m'] == 1
-    results = prod_statevec_sim.run(circuit)
-    assert results.measurements['m'] == 1
-    results = dm_sim.run(circuit)
-    assert results.measurements['m'] == 1
+    for sim in sims:
+        results = sim.run(circuit)
+        assert results.measurements['m'] == 1
 
     circuit = cirq.Circuit(
         cirq.Moment(cirq.X(q00)),
         cirq.Moment(cirq.SetVariable(r, 0), cirq.SetVariable(c, 1)),
         cirq.Moment(cirq.measure(q, key='m')),
     )
-    results = statevec_sim.run(circuit)
-    assert results.measurements['m'] == 0
-    results = prod_statevec_sim.run(circuit)
-    assert results.measurements['m'] == 0
-    results = dm_sim.run(circuit)
-    assert results.measurements['m'] == 0
+    for sim in sims:
+        results = statevec_sim.run(circuit)
+        assert results.measurements['m'] == 0
+
+    # check that unresolved variableqids cause an error
+    circuit = cirq.Circuit(cirq.X(q), cirq.measure(q00, key='m'))
+    for sim in sims:
+        with pytest.raises(
+            ValueError, match="Circuit contains ops whose symbols were not specified"
+        ):
+            sim.run(circuit)
