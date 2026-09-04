@@ -99,6 +99,20 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
     def apply_operation(self, op: cirq.Operation) -> None:
         protocols.act_on(op, self)
 
+    def add_qubits(self, qubits: Sequence[cirq.Qid]) -> Self:
+        """Add `qubits` in the `|0>` state to the state space.
+
+        Args:
+            qubits: Sequence of qubits to be added.
+
+        Returns:
+            A state of the same type with qubits added or NotImplemented if
+                the subclass does not implement this method.
+        """
+        if not qubits:
+            return self
+        return NotImplemented
+
     @abc.abstractmethod
     def copy(self, deep_copy_buffers: bool = True) -> Self:
         """Creates a copy of the object.

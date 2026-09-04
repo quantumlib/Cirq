@@ -50,6 +50,9 @@ class EmptySimulationState(cirq.SimulationState):
     ) -> bool:
         return True
 
+    def add_qubits(self, qubits: Sequence[cirq.Qid]) -> EmptySimulationState:
+        return EmptySimulationState(self.qubits + tuple(qubits), self.classical_data)
+
 
 q0, q1, q2 = qs3 = cirq.LineQubit.range(3)
 qs2 = cirq.LineQubit.range(2)
@@ -273,3 +276,23 @@ def test_field_getters() -> None:
     state = create_container(qs2)
     assert state.sim_states.keys() == set(qs2) | {None}
     assert state.split_untangled_states
+
+
+def test_add_qubits() -> None:
+    state = create_container(qs2)
+    assert len(state.qubits) == 2
+
+    state.add_qubits((cirq.q(6),))
+    assert len(state.qubits) == 3
+
+    state.add_qubits((cirq.q(7), cirq.q(8)))
+    assert len(state.qubits) == 5
+
+    state.add_qubits(())
+    assert len(state.qubits) == 5
+
+    state = create_container(qs2, split_untangled_states=False)
+    assert len(state.qubits) == 2
+
+    state.add_qubits((cirq.q(6),))
+    assert len(state.qubits) == 3

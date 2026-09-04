@@ -286,7 +286,6 @@ def test_variable_grid_qid_repr_and_str():
     assert str(q) == "v(r, c) (d=2)"
 
 
-@pytest.mark.xfail(reason="VariableQid does not work with the simulator (yet).")
 def test_variable_grid_qid_simulation():
     """VariableQid does not work with simulator sweeps
 
@@ -297,6 +296,40 @@ def test_variable_grid_qid_simulation():
     r, c = sympy.symbols('r c')
     q = cirq.VariableGridQid(r, c)
     q00 = cirq.GridQubit(0, 0)
+
+    statevec_sim = cirq.Simulator(split_untangled_states=False)
+    prod_statevec_sim = cirq.Simulator()
+    dm_sim = cirq.DensityMatrixSimulator()
+    sims = [statevec_sim, prod_statevec_sim, dm_sim]
+
     circuit = cirq.Circuit(cirq.Moment(cirq.X(q00)), cirq.Moment(cirq.measure(q, key='m')))
-    sim = cirq.Simulator()
-    _ = sim.run_sweep(circuit, params=[{'r': 0, 'c': 0}, {'r': 1, 'c': 2}])
+    for sim in sims:
+        results = sim.run_sweep(circuit, params=[{'r': 0, 'c': 0}, {'r': 1, 'c': 2}])
+        assert results[0].measurements['m'] == 1
+        assert results[1].measurements['m'] == 0
+
+    circuit = cirq.Circuit(
+        cirq.Moment(cirq.X(q00)),
+        cirq.Moment(cirq.SetVariable(r, 0), cirq.SetVariable(c, 0)),
+        cirq.Moment(cirq.measure(q, key='m')),
+    )
+    for sim in sims:
+        results = sim.run(circuit)
+        assert results.measurements['m'] == 1
+
+    circuit = cirq.Circuit(
+        cirq.Moment(cirq.X(q00)),
+        cirq.Moment(cirq.SetVariable(r, 0), cirq.SetVariable(c, 1)),
+        cirq.Moment(cirq.measure(q, key='m')),
+    )
+    for sim in sims:
+        results = statevec_sim.run(circuit)
+        assert results.measurements['m'] == 0
+
+    # check that unresolved variableqids cause an error
+    circuit = cirq.Circuit(cirq.X(q), cirq.measure(q00, key='m'))
+    for sim in sims:
+        with pytest.raises(
+            ValueError, match="Circuit contains ops whose symbols were not specified"
+        ):
+            sim.run(circuit)

@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from collections import abc
 from collections.abc import Iterator, Mapping, Sequence
-from typing import Any, Generic, TYPE_CHECKING
+from typing import Any, Generic, Self, TYPE_CHECKING
 
 import numpy as np
 
@@ -83,6 +83,29 @@ class SimulationProductState(
         for state in extra_states:
             merged_state.kronecker_product(state, inplace=True)
         return merged_state.transpose_to_qubit_order(self.qubits, inplace=True)
+
+    def add_qubits(self, qubits: Sequence[cirq.Qid]) -> Self:
+        """Add `qubits` in the `|0>` state as new unentangled statespaces.
+
+        Args:
+            qubits: Sequence of qubits to be added.
+
+        Returns:
+            self with the additional states added
+        """
+        if not qubits:
+            return self
+        if self.split_untangled_states:
+            for q in qubits:
+                sub = self.sim_states[None].copy().add_qubits([q])
+                sub._classical_data = self._classical_data
+                self._sim_states[q] = sub
+        else:
+            self._sim_states[None] = self.sim_states[None].add_qubits(qubits)
+            for q in qubits:
+                self._sim_states[q] = self.sim_states[None]
+        self._set_qubits(self.qubits + tuple(qubits))
+        return self
 
     def _act_on_fallback_(
         self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True
