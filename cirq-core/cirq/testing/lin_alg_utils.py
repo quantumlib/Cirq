@@ -42,7 +42,7 @@ def random_superposition(
     """
     random_state = value.parse_random_state(random_state)
     state_vector = random_state.randn(2 * dim).view(np.complex128)
-    state_vector *= 1.0 / np.linalg.norm(state_vector)
+    state_vector /= np.linalg.norm(state_vector)
     return state_vector
 
 
