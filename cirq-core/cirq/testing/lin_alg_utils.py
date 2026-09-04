@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 
 def random_superposition(
-    dim: int, *, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+    dim: int, *, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None, batch_size: int = 1 << 20
 ) -> np.ndarray[tuple[int], np.dtype[np.complex128]]:
     """Returns a random unit-length vector from the uniform distribution.
 
@@ -36,15 +36,24 @@ def random_superposition(
         random_state: A seed (int) or `np.random.RandomState` class to use when
             generating random values. If not set, defaults to using the module
             methods in `np.random`.
+        batch_size: Number of elements to generate at once (to avoid extra memory
+            overhead).
 
     Returns:
         The sampled unit-length vector.
     """
     random_state = value.parse_random_state(random_state)
+    state_vector = np.empty(dim, dtype=np.complex128)
 
-    state_vector = random_state.randn(dim).astype(complex)
-    state_vector += 1j * random_state.randn(dim)
-    state_vector /= np.linalg.norm(state_vector)
+    for start in range(0, dim, batch_size):
+        end = min(start + batch_size, dim)
+        state_vector.real[start:end] = random_state.randn(end - start)
+
+    for start in range(0, dim, batch_size):
+        end = min(start + batch_size, dim)
+        state_vector.imag[start:end] = random_state.randn(end - start)
+
+    state_vector *= 1.0 / np.linalg.norm(state_vector)
     return state_vector
 
 
