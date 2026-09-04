@@ -421,10 +421,13 @@ from cirq.transformers import (
     two_qubit_matrix_to_diagonal_and_cz_operations as two_qubit_matrix_to_diagonal_and_cz_operations,  # noqa: E501
     two_qubit_matrix_to_ion_operations as two_qubit_matrix_to_ion_operations,
     two_qubit_matrix_to_sqrt_iswap_operations as two_qubit_matrix_to_sqrt_iswap_operations,
+    two_qubit_gate_numerical_compilation as two_qubit_gate_numerical_compilation,
     two_qubit_gate_product_tabulation as two_qubit_gate_product_tabulation,
     TwoQubitCompilationTargetGateset as TwoQubitCompilationTargetGateset,
     TwoQubitGateTabulation as TwoQubitGateTabulation,
     TwoQubitGateTabulationResult as TwoQubitGateTabulationResult,
+    TwoQubitNumericalCompilationResult as TwoQubitNumericalCompilationResult,
+    TwoQubitNumericalCompiler as TwoQubitNumericalCompiler,
     toggle_tags as toggle_tags,
     unroll_circuit_op as unroll_circuit_op,
     unroll_circuit_op_greedy_earliest as unroll_circuit_op_greedy_earliest,

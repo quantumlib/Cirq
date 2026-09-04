@@ -235,6 +235,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'TrialResult': cirq.ResultDict,  # keep support for Cirq < 0.11.
         'TwoQubitDiagonalGate': cirq.TwoQubitDiagonalGate,
         'TwoQubitGateTabulation': cirq.TwoQubitGateTabulation,
+        'TwoQubitNumericalCompiler': cirq.TwoQubitNumericalCompiler,
         '_UnconstrainedDevice': cirq.devices.unconstrained_device._UnconstrainedDevice,
         '_Unit': cirq.study.sweeps._Unit,
         'VariableLineQid': cirq.ops.variable_qid.VariableLineQid,
