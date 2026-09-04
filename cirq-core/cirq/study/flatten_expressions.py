@@ -52,7 +52,7 @@ def flatten(val: Any) -> tuple[Any, ExpressionMap]:
 
     Args:
         val: The value to copy and substitute parameter expressions with
-        flattened symbols.
+            flattened symbols.
 
     Returns:
         The tuple (new value, expression map) where new value and expression map
@@ -136,7 +136,7 @@ def flatten_with_sweep(
 
     Args:
         val: The value to copy and substitute parameter expressions with
-        flattened symbols.
+            flattened symbols.
         sweep: A sweep over parameters used by `val`.
 
     Returns:
@@ -171,7 +171,7 @@ def flatten_with_params(
 
     Args:
         val: The value to copy and substitute parameter expressions with
-        flattened symbols.
+            flattened symbols.
         params: A dictionary or `ParamResolver` where the keys are
             `sympy.Symbol`s used by `val` and the values are numbers.
 

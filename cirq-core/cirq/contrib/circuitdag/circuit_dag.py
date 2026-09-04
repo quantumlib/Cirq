@@ -190,8 +190,7 @@ class CircuitDag(networkx.DiGraph):
         """Finds all nodes before blocking ones.
 
         Args:
-            is_blocker: The predicate that indicates whether or not an
-            operation is blocking.
+            is_blocker: The predicate that indicates whether or not an operation is blocking.
         """
         remaining_dag = self.copy()
 

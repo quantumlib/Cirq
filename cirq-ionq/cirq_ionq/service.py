@@ -405,7 +405,7 @@ class Service:
 
         Args:
             job_id: The UUID of the job. Jobs are assigned these numbers by the
-            server during the creation of the job.
+                server during the creation of the job.
 
         Returns:
             A `cirq_ionq.IonQJob` which can be queried for status or results.

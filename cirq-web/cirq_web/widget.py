@@ -76,7 +76,7 @@ class Widget(ABC):
 
         Args:
             output_directory: the directory in which the output file will be
-            generated. The default is the current directory ('./')
+                generated. The default is the current directory ('./')
 
             file_name: the name of the output file. Default is 'bloch_sphere'
 

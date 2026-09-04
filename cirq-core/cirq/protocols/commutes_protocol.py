@@ -124,7 +124,7 @@ def commutes(
 
     Raises:
         TypeError: The commutativity of `v1` and `v2` is indeterminate, or could
-        not be determined, and the `default` argument was not specified.
+            not be determined, and the `default` argument was not specified.
     """
     atol = float(atol)
 

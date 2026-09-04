@@ -158,10 +158,10 @@ class StateVectorTrialResult(
 
         Args:
             copy: If True, the returned state vector will be a copy of that
-            stored by the object. This is potentially expensive for large
-            state vectors, but prevents mutation of the object state, e.g. for
-            operating on intermediate states of a circuit.
-            Defaults to False.
+                stored by the object. This is potentially expensive for large
+                state vectors, but prevents mutation of the object state, e.g.,
+                for operating on intermediate states of a circuit.
+                Defaults to False.
         """
         return self.final_state_vector.copy() if copy else self.final_state_vector
 
