@@ -451,7 +451,7 @@ def test_numpy_parameterized_circuit_json_round_trip() -> None:
         ).on(q0),
         cirq.WaitGate(cirq.Duration(nanos=np.int32(5))).on(q0),
         cirq.depolarize(np.float64(0.25)).on(q0),
-        cirq.bit_flip(np.float32(0.25)).on(q0),
+        cirq.bit_flip(np.float32(0.25)).on(q0),  # type: ignore[arg-type]
         cirq.X.with_probability(np.float32(0.25)).on(q0),
     )
     restored = cirq.read_json(json_text=cirq.to_json(circuit))
