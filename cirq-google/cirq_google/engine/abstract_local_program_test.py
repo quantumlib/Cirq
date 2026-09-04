@@ -53,6 +53,9 @@ def test_init():
     with pytest.raises(ValueError, match='Empty key provided in program.'):
         _ = NothingProgram([circuit1, circuit2], None, batch_keys=['a', ''])
 
+    with pytest.raises(ValueError, match='batch_keys is not used'):
+        _ = NothingProgram({'a': circuit1, 'b': circuit2}, None, batch_keys=['a', ''])
+
 
 def test_jobs():
     program = NothingProgram([cirq.Circuit()], None)
@@ -183,6 +186,64 @@ def test_circuit():
 
     with pytest.raises(IndexError):
         _ = program.get_circuit(2)
+
+    # Mapped circuits (dict)
+    program = NothingProgram({'a': circuit1, 'b': circuit2}, None)
+    assert program.is_batch()
+    assert program.batch_size() == 2
+    assert program.get_circuit('a') == circuit1
+    assert program.get_circuit('b') == circuit2
+    assert program.get_circuit(0) == circuit1
+    assert program.get_circuit(1) == circuit2
+    assert program.get_circuit(-1) == circuit2
+    assert program.get_circuits() == [circuit1, circuit2]
+    assert program.get_mapped_circuits() == {'a': circuit1, 'b': circuit2}
+    with pytest.raises(KeyError, match="Circuit key 'c' not found in program."):
+        _ = program.get_circuit('c')
+    with pytest.raises(IndexError):
+        _ = program.get_circuit(2)
+
+    # Mapped circuits with explicit batch keys
+    program = NothingProgram([circuit1, circuit2], None, batch_keys=['x', 'y'])
+    assert program.get_circuit('x') == circuit1
+    assert program.get_circuit('y') == circuit2
+    assert program.get_circuit(0) == circuit1
+    assert program.get_circuit(1) == circuit2
+    assert program.get_circuits() == [circuit1, circuit2]
+    assert program.get_mapped_circuits() == {'x': circuit1, 'y': circuit2}
+
+    # Dict mapping single-circuit
+    program = NothingProgram({'only': circuit1}, None)
+    assert program.is_batch()
+    assert program.batch_size() == 1
+    assert program.get_circuit('only') == circuit1
+    assert program.get_circuit(0) == circuit1
+    assert program.get_circuits() == [circuit1]
+    assert program.get_mapped_circuits() == {'only': circuit1}
+    with pytest.raises(ValueError, match="batch program containing 1 circuits"):
+        _ = program.get_circuit()
+    with pytest.raises(KeyError, match="Circuit key 'other' not found in program."):
+        _ = program.get_circuit('other')
+
+    # Non-batch single circuit raises KeyError for string key and ValueError for get_mapped_circuits
+    program = NothingProgram([circuit1], None)
+    with pytest.raises(KeyError, match="Circuit key 'a' not found in program."):
+        _ = program.get_circuit('a')
+    with pytest.raises(ValueError, match="get_mapped_circuits called for a non-batch program"):
+        _ = program.get_mapped_circuits()
+
+    # Unkeyed multi circuit raises KeyError for string key and ValueError for get_mapped_circuits
+    program = NothingProgram([circuit1, circuit2], None)
+    with pytest.raises(KeyError, match="Circuit key 'a' not found in program."):
+        _ = program.get_circuit('a')
+    with pytest.raises(
+        ValueError, match="get_mapped_circuits called for a batch program without circuit keys"
+    ):
+        _ = program.get_mapped_circuits()
+
+    # Empty key in mapping raises ValueError
+    with pytest.raises(ValueError, match="Empty key provided in program."):
+        _ = NothingProgram({'': circuit1}, None)
 
 
 def test_batch_keys():
