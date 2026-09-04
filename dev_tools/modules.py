@@ -88,12 +88,14 @@ def list_modules(
 
     Args:
         include_parent: if true, a setup.py is expected in `search_dir`, and the corresponding
-        module will be included.
+            module will be included.
         search_dir: the search directory for modules, by default the repo root.
+
     Returns:
-          a list of `Module`s that were found, where each module `m` is initialized with `m.root`
-           relative to `search_dir`, `m.raw_setup` contains the dictionary equivalent to the
-           keyword args passed to the `setuptools.setup` method in setup.py
+        a list of `Module`s that were found, where each module `m` is initialized with `m.root`
+        relative to `search_dir`, `m.raw_setup` contains the dictionary equivalent to the
+        keyword args passed to the `setuptools.setup` method in setup.py
+
     Raises:
         ValueError: if include_parent=True but there is no setup.py in `search_dir`.
     """

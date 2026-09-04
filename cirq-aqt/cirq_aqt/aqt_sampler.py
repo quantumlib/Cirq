@@ -414,7 +414,7 @@ class AQTSampler(cirq.Sampler):
 
         Args:
             program: The circuit to simulate.
-            Should be generated using AQTSampler.generate_circuit_from_list
+                Should be generated using `AQTSampler.generate_circuit_from_list`.
             params: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
 
