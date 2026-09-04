@@ -80,7 +80,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         device_config_name: str | None = None,
         device_config_revision: processor_config.DeviceConfigRevision | None = None,
         max_concurrent_jobs: int = 100,
-        jobs_per_batch: int = 1,
+        circuits_per_job: int = 1,
     ) -> cg.engine.ProcessorSampler:
         """Returns the default sampler backed by the engine.
 
@@ -93,11 +93,11 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
                 simultaneously to the Engine. This client-side throttle can be
                 used to proactively reduce load to the backends and avoid quota
                 violations when pipelining circuit executions.
-            jobs_per_batch:  If set to greater than 1, this will batch multiple
+            circuits_per_job:  If set to greater than 1, this will batch multiple
                 circuits within the same API call when calling run_batch() or
-                run_batch_async() up to a maximum of `jobs_per_batch`.
+                run_batch_async() up to a maximum of `circuits_per_job`.
                 Note that actual hardware execution order is not guaranteed
-                if jobs_per_batch > 1. (For instance, the hardware may run
+                if circuits_per_job > 1. (For instance, the hardware may run
                 all circuits for the first sweep point, then the second point, etc.).
 
         Returns:
@@ -121,7 +121,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
                 snapshot_id=device_config_revision.id,
                 device_config_name=device_config_name,
                 max_concurrent_jobs=max_concurrent_jobs,
-                jobs_per_batch=jobs_per_batch,
+                circuits_per_job=circuits_per_job,
             )
         if isinstance(device_config_revision, processor_config.Run):
             return processor_sampler.ProcessorSampler(
@@ -129,7 +129,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
                 run_name=device_config_revision.id,
                 device_config_name=device_config_name,
                 max_concurrent_jobs=max_concurrent_jobs,
-                jobs_per_batch=jobs_per_batch,
+                circuits_per_job=circuits_per_job,
             )
 
         return processor_sampler.ProcessorSampler(
@@ -137,7 +137,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             run_name=processor.default_device_config_key.run,
             device_config_name=device_config_name,
             max_concurrent_jobs=max_concurrent_jobs,
-            jobs_per_batch=jobs_per_batch,
+            circuits_per_job=circuits_per_job,
         )
 
     async def run_sweep_async(

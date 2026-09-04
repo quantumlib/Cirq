@@ -156,6 +156,8 @@ def test_get_circuit():
     mock_program.get_circuit.assert_called_with(None)
     assert job.get_circuit(1) == circuit
     mock_program.get_circuit.assert_called_with(1)
+    assert job.get_circuit('c1') == circuit
+    mock_program.get_circuit.assert_called_with('c1')
 
 
 def test_get_config():

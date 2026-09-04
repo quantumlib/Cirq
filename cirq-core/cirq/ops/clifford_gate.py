@@ -275,12 +275,12 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
 
         Args:
             tableau: A CliffordTableau to define the effect of Clifford Gate applying on
-            the stabilizer state or Pauli group. The meaning of tableau here is
-                    To  X   Z    sign
-            from  X  [ X_x Z_x | r_x ]
-            from  Z  [ X_z Z_z | r_z ]
-            Each row in the Clifford tableau indicates how the transformation of original
-            Pauli gates to the new gates after applying this Clifford Gate.
+                the stabilizer state or Pauli group. The meaning of tableau here is
+                        To  X   Z    sign
+                from  X  [ X_x Z_x | r_x ]
+                from  Z  [ X_z Z_z | r_z ]
+                Each row in the Clifford tableau indicates how the transformation of original
+                Pauli gates to the new gates after applying this Clifford Gate.
 
         Returns:
             A CliffordGate instance, which has the transformation defined by
@@ -288,7 +288,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
 
         Raises:
             ValueError: When input tableau is wrong type or the tableau does not
-            satisfy the symplectic property.
+                satisfy the symplectic property.
         """
         if not isinstance(tableau, qis.CliffordTableau):
             raise ValueError('Input argument has to be a CliffordTableau instance.')

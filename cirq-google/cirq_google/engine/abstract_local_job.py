@@ -190,13 +190,14 @@ class AbstractLocalJob(AbstractJob):
         if available, else None."""
         return self.engine().get_processor(self._processor_id)
 
-    def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:
+    def get_circuit(self, circuit_num: int | str | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the job.
 
         Args:
-            circuit_num: if this is a multi-circuit job, the index of the circuit
-                to return.  This argument is zero-indexed. Negative values
-                index from the end of the list.  Ignored if not multi-circuit.
+            circuit_num: if this is a multi-circuit job, the index or key of the circuit
+                to return. For integer indices, this argument is zero-indexed with negative
+                values indexing from the end of the list. For string keys, this looks up
+                the circuit by its key in a mapped program. Ignored if not multi-circuit.
 
         Returns:
             The job's cirq Circuit.

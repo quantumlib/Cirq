@@ -940,6 +940,8 @@ def test_get_circuit():
         get_circuit_async.assert_called_with(None)
         assert job.get_circuit(1) is circuit
         get_circuit_async.assert_called_with(1)
+        assert job.get_circuit('c1') is circuit
+        get_circuit_async.assert_called_with('c1')
 
 
 @duet.sync
@@ -952,6 +954,8 @@ async def test_get_circuit_async():
         get_circuit_async.return_value = circuit
         assert await job.get_circuit_async(1) is circuit
         get_circuit_async.assert_called_with(1)
+        assert await job.get_circuit_async('c1') is circuit
+        get_circuit_async.assert_called_with('c1')
 
 
 @mock.patch('cirq_google.engine.engine_program.EngineProgram.is_batch_async')
