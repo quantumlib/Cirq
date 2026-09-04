@@ -53,6 +53,23 @@ def test_with_probability_numpy_one_returns_gate(dtype) -> None:
     assert cirq.X.with_probability(dtype(1)) is cirq.X
 
 
+@pytest.mark.parametrize('dtype', [np.float16, np.float32, np.float64])
+def test_with_probability_numpy_json_round_trip(dtype) -> None:
+    channel = cirq.X.with_probability(dtype(0.25))
+    restored = cirq.read_json(json_text=cirq.to_json(channel))
+    assert restored == channel
+    assert type(restored.probability) in (float, int)
+    assert not isinstance(restored.probability, np.number)
+
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(channel.on(q))
+    restored_circuit = cirq.read_json(json_text=cirq.to_json(circuit))
+    assert restored_circuit == circuit
+    restored_op = next(restored_circuit.all_operations())
+    assert type(restored_op.gate.probability) in (float, int)
+    assert not isinstance(restored_op.gate.probability, np.number)
+
+
 def test_eq() -> None:
     eq = cirq.testing.EqualsTester()
     q = cirq.LineQubit(0)

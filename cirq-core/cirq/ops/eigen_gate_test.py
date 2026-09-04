@@ -397,34 +397,77 @@ def test_resolve_parameters_numpy_half(resolve_fn, dtype) -> None:
     assert resolved == CExpZinGate(0.5)
 
 
+def _assert_python_number(value) -> None:
+    assert type(value) in (int, float)
+    assert not isinstance(value, np.number)
+
+
 @pytest.mark.parametrize(
     'value',
     [
         np.float16(0.5),
         np.float32(0.5),
         np.float64(0.5),
+        np.double(0.5),
         np.int8(1),
+        np.int16(1),
         np.int32(1),
         np.int64(1),
+        np.short(1),
         np.uint8(1),
+        np.uint16(1),
         np.uint32(1),
         np.uint64(1),
     ],
 )
-def test_numpy_exponent_json_round_trip(value) -> None:
-    gate = cirq.XPowGate(exponent=value)
+@pytest.mark.parametrize(
+    'gate_cls',
+    [cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.HPowGate, cirq.CZPowGate, cirq.CXPowGate],
+)
+def test_numpy_exponent_json_round_trip(value, gate_cls) -> None:
+    gate = gate_cls(exponent=value)
     restored_gate = cirq.read_json(json_text=cirq.to_json(gate))
     assert restored_gate == gate
-    assert type(restored_gate.exponent) in (float, int)
-    assert not isinstance(restored_gate.exponent, np.number)
+    _assert_python_number(restored_gate.exponent)
 
-    q = cirq.LineQubit(0)
-    circuit = cirq.Circuit(gate.on(q))
+    qubits = cirq.LineQubit.range(cirq.num_qubits(gate))
+    circuit = cirq.Circuit(gate.on(*qubits))
     restored_circuit = cirq.read_json(json_text=cirq.to_json(circuit))
     assert restored_circuit == circuit
     restored_op = next(restored_circuit.all_operations())
-    assert type(restored_op.gate.exponent) in (float, int)
-    assert not isinstance(restored_op.gate.exponent, np.number)
+    _assert_python_number(restored_op.gate.exponent)
+
+
+def test_numpy_parameterized_circuit_json_round_trip() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.XPowGate(exponent=np.float32(0.5)).on(q0),
+        cirq.YPowGate(exponent=np.float64(0.25)).on(q0),
+        cirq.ZPowGate(exponent=np.int64(1)).on(q0),
+        cirq.CZPowGate(exponent=np.double(0.5)).on(q0, q1),
+        cirq.FSimGate(np.float32(0.25), np.float64(0.5)).on(q0, q1),
+        cirq.PhasedXZGate(
+            x_exponent=np.float64(0.5), z_exponent=np.float32(0.25), axis_phase_exponent=np.int8(0)
+        ).on(q0),
+        cirq.WaitGate(cirq.Duration(nanos=np.int32(5))).on(q0),
+        cirq.depolarize(np.float64(0.25)).on(q0),
+        cirq.bit_flip(np.float32(0.25)).on(q0),
+        cirq.X.with_probability(np.float32(0.25)).on(q0),
+    )
+    restored = cirq.read_json(json_text=cirq.to_json(circuit))
+    assert restored == circuit
+    for op in restored.all_operations():
+        gate = op.gate
+        if isinstance(gate, cirq.EigenGate):
+            _assert_python_number(gate.exponent)
+        elif isinstance(gate, cirq.PhasedXZGate):
+            _assert_python_number(gate.x_exponent)
+            _assert_python_number(gate.z_exponent)
+            _assert_python_number(gate.axis_phase_exponent)
+        elif isinstance(gate, cirq.RandomGateChannel):
+            _assert_python_number(gate.probability)
+        elif isinstance(gate, (cirq.DepolarizingChannel, cirq.BitFlipChannel)):
+            _assert_python_number(gate.p)
 
 
 class WeightedZPowGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
