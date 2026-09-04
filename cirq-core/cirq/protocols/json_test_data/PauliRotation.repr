@@ -1,0 +1,1 @@
+cirq.PauliRotation(cirq.DensePauliString('XI', coefficient=(1+0j)), (cirq.LineQubit(0), cirq.LineQubit(1)), exponent=0.7853981633974483)
