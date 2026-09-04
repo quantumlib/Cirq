@@ -58,7 +58,7 @@ class AbstractLocalProgram(AbstractProgram):
         if isinstance(circuits, Mapping):
             if batch_keys is not None:
                 raise ValueError("batch_keys is not used if a circuit mapping is provided.")
-            if any(not key for key in circuits.keys()):
+            if not all(circuits.keys()):
                 raise ValueError("Empty key provided in program.")
             self._batch_keys: list[str] | None = list(circuits.keys())
             self._circuits: list[cirq.Circuit] = list(circuits.values())
@@ -227,6 +227,11 @@ class AbstractLocalProgram(AbstractProgram):
 
         Returns:
             The program's cirq Circuit.
+
+        Raises:
+            ValueError: If called with an int for a non-batch program.
+            KeyError: If called with a string that is not in a mapping.
+            IndexError: If called with an int larger than the size of the batch.
         """
         if circuit_num is None:
             if self.is_batch():
