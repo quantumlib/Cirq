@@ -41,17 +41,17 @@ def integrated_histogram(
     Suppose the input is a list of gate fidelities. The x-axis of the plot will
     be gate fidelity, and the y-axis will be the probability that a random gate
     fidelity from the list is less than the x-value. It will look something like
-    this
+    this:
 
-    1.0
-    |              |
-    |           ___|
-    |           |
-    |       ____|
-    |      |
-    |      |
-    |_____|_______________
-    0.0
+        1.0
+        |              |
+        |           ___|
+        |           |
+        |       ____|
+        |      |
+        |      |
+        |_____|_______________
+        0.0
 
     Another way of saying this is that we assume the probability distribution
     function (pdf) of gate fidelities is a set of equally weighted delta
