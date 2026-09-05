@@ -1053,7 +1053,10 @@ class QasmParser:
         | expr '-' expr
         | expr '^' expr
         """
-        p[0] = self.binary_operators[p[2]](p[1], p[3])
+        try:
+            p[0] = self.binary_operators[p[2]](p[1], p[3])
+        except ZeroDivisionError:
+            raise QasmException(f"Division by zero at line {p.lineno(2)}")
 
     def p_term(self, p):
         """term : NUMBER

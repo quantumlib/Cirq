@@ -2525,3 +2525,32 @@ def test_input_invalid_type_error() -> None:
     """
     with pytest.raises(QasmException, match="Syntax error"):
         QasmParser().parse(qasm)
+
+
+@pytest.mark.parametrize(
+    'expression', ['pi/0', '1/0', '0/0', 'pi/(1-1)', 'pi/1e-400', '(2+2)/(3-3)']
+)
+def test_division_by_zero(expression: str) -> None:
+    qasm = f"""OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     rx({expression}) q[0];
+"""
+    with pytest.raises(QasmException, match="Division by zero at line 4"):
+        QasmParser().parse(qasm)
+
+
+def test_division_by_zero_does_not_reject_valid_arithmetic() -> None:
+    """The guard wraps the line that applies every binary operator."""
+    qasm = """OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     rx(pi/2) q[0];
+     ry(pi*1) q[0];
+     rz(2^1*pi/2) q[0];
+"""
+    parsed_qasm = QasmParser().parse(qasm)
+    q0 = cirq.NamedQubit('q_0')
+    assert parsed_qasm.circuit == Circuit(
+        [cirq.rx(np.pi / 2).on(q0), cirq.ry(np.pi).on(q0), cirq.rz(np.pi).on(q0)]
+    )
