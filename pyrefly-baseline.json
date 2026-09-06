@@ -2819,6 +2819,78 @@
       "description": "Unused `# type: ignore` comment",
       "concise_description": "Unused `# type: ignore` comment",
       "severity": "error"
+    },
+    {
+      "line": 838,
+      "column": 44,
+      "stop_line": 838,
+      "stop_column": 45,
+      "path": "cirq-core/cirq/linalg/decompositions.py",
+      "code": -2,
+      "name": "bad-argument-type",
+      "description": "Argument `floating | Unknown` is not assignable to parameter `x` with type `float` in function `kak_canonicalize_vector`",
+      "concise_description": "Argument `floating | Unknown` is not assignable to parameter `x` with type `float` in function `kak_canonicalize_vector`",
+      "severity": "error"
+    },
+    {
+      "line": 838,
+      "column": 47,
+      "stop_line": 838,
+      "stop_column": 48,
+      "path": "cirq-core/cirq/linalg/decompositions.py",
+      "code": -2,
+      "name": "bad-argument-type",
+      "description": "Argument `floating | Unknown` is not assignable to parameter `y` with type `float` in function `kak_canonicalize_vector`",
+      "concise_description": "Argument `floating | Unknown` is not assignable to parameter `y` with type `float` in function `kak_canonicalize_vector`",
+      "severity": "error"
+    },
+    {
+      "line": 838,
+      "column": 50,
+      "stop_line": 838,
+      "stop_column": 51,
+      "path": "cirq-core/cirq/linalg/decompositions.py",
+      "code": -2,
+      "name": "bad-argument-type",
+      "description": "Argument `floating | Unknown` is not assignable to parameter `z` with type `float` in function `kak_canonicalize_vector`",
+      "concise_description": "Argument `floating | Unknown` is not assignable to parameter `z` with type `float` in function `kak_canonicalize_vector`",
+      "severity": "error"
+    },
+    {
+      "line": 101,
+      "column": 16,
+      "stop_line": 101,
+      "stop_column": 101,
+      "path": "cirq-core/cirq/ops/global_phase_op.py",
+      "code": -2,
+      "name": "bad-return",
+      "description": "Returned type `Literal[False] | ndarray[tuple[Any, ...], dtype[numpy.bool]] | Any` is not assignable to declared return type `builtins.bool`",
+      "concise_description": "Returned type `Literal[False] | ndarray[tuple[Any, ...], dtype[numpy.bool]] | Any` is not assignable to declared return type `builtins.bool`",
+      "severity": "error"
+    },
+    {
+      "line": 317,
+      "column": 50,
+      "stop_line": 317,
+      "stop_column": 62,
+      "path": "cirq-core/cirq/transformers/analytical_decompositions/quantum_shannon_decomposition.py",
+      "code": -2,
+      "name": "bad-argument-type",
+      "description": "Argument `ndarray[tuple[Any, ...], dtype[floating]] | Unknown` is not assignable to parameter `angles` with type `list[float]` in function `_multiplexed_cossin`",
+      "concise_description": "Argument `ndarray[tuple[Any, ...], dtype[floating]] | Unknown` is not assignable to parameter `angles` with type `list[float]` in function `_multiplexed_cossin`",
+      "severity": "error"
+    },
+    {
+      "line": 34,
+      "column": 12,
+      "stop_line": 34,
+      "stop_column": 38,
+      "path": "cirq-core/cirq/transformers/eject_z.py",
+      "code": -2,
+      "name": "bad-return",
+      "description": "Returned type `ndarray[tuple[Any, ...], dtype[numpy.bool]] | Any` is not assignable to declared return type `builtins.bool`",
+      "concise_description": "Returned type `ndarray[tuple[Any, ...], dtype[numpy.bool]] | Any` is not assignable to declared return type `builtins.bool`",
+      "severity": "error"
     }
   ]
 }

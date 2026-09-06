@@ -401,6 +401,7 @@ ignore-missing-imports = [
     "ruamel.*",
     "scipy.*",
     "setuptools.*",
+    "stim",
     "stimcirq.*",
     "sympy.*",
     "tensorflow_docs.*",
