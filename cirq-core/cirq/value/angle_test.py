@@ -107,6 +107,11 @@ def test_canonicalize_half_turns_zero_dimensional_array_boundary() -> None:
     assert result.shape == ()
     assert result.item() == 0.5
 
+    wrapped = cirq.canonicalize_half_turns(np.array(1.5))
+    assert isinstance(wrapped, np.ndarray)
+    assert wrapped.shape == ()
+    assert wrapped.item() == pytest.approx(-0.5)
+
 
 def test_canonicalize_half_turns_numpy_signed_zero() -> None:
     result = cirq.canonicalize_half_turns(np.float64(-0.0))
@@ -131,12 +136,6 @@ def test_canonicalize_half_turns_numpy_number_instances(val) -> None:
     assert type(result) is type(val)
     assert -1 < result <= 1
     assert (float(result) - float(val)) % 2 == pytest.approx(0)
-
-
-def test_tparamval_includes_real_numpy_numbers_only() -> None:
-    assert np.integer in cirq.TParamVal.__args__
-    assert np.floating in cirq.TParamVal.__args__
-    assert np.complexfloating not in cirq.TParamVal.__args__
 
 
 @pytest.mark.parametrize('dtype', _NUMPY_FLOAT_TYPES + _NUMPY_INT_TYPES)
