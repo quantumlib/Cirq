@@ -22,6 +22,7 @@ import sympy
 if TYPE_CHECKING:
     from cirq.value import type_alias
 
+# Match TParamVal: real NumPy scalars only. `np.number` also includes complex.
 TNumpyReal = TypeVar('TNumpyReal', bound=np.integer | np.floating)
 
 
