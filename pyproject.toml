@@ -43,6 +43,7 @@ extend_skip = ["__init__.py"]
 extend_skip_glob = ["*_pb2.py"]
 
 
+
 [tool.mypy]
 exclude = [
     '/setup\.py',
@@ -342,3 +343,82 @@ select = [
 
 [tool.ruff.lint.per-file-ignores]
 "*.ipynb" = ["E402", "PLW0406"]
+
+# Migrated from [tool.mypy] via `pyrefly init`. Cirq is a multi-package
+# monorepo; search-path mirrors `source dev_tools/pypath` for imports.
+[tool.pyrefly]
+preset = "legacy"
+# Match mypy defaults: do not aggressively check unannotated defs.
+check-unannotated-defs = false
+infer-return-types = "never"
+# Respect leftover `# type: ignore` comments during migration.
+permissive-ignores = true
+disable-search-path-heuristics = true
+search-path = [
+    ".",
+    "cirq-aqt",
+    "cirq-core",
+    "cirq-google",
+    "cirq-ionq",
+    "cirq-pasqal",
+    "cirq-web",
+]
+project-excludes = [
+    "**/setup.py",
+    "**/cirq-google/cirq_google/cloud/**",
+    "**/*.ipynb",
+    "**/node_modules/**",
+]
+baseline = "pyrefly-baseline.json"
+ignore-missing-imports = [
+    "__main__",
+    "google.api_core.*",
+    "google.auth.*",
+    "google.cloud.*",
+    "google.colab.*",
+    "google.oauth2.*",
+    "google.protobuf.*",
+    "qsimcirq",
+    "IPython.*",
+    "ipython.*",
+    "_pytest.*",
+    "absl.*",
+    "astroid.*",
+    "cachetools.*",
+    "filelock.*",
+    "ipywidgets.*",
+    "matplotlib.*",
+    "mpl_toolkits.*",
+    "networkx.*",
+    "pandas.*",
+    "ply.*",
+    "proto.*",
+    "pylatex.*",
+    "pylint.*",
+    "pytest.*",
+    "qiskit.*",
+    "quimb.*",
+    "ruamel.*",
+    "scipy.*",
+    "setuptools.*",
+    "stim",
+    "stimcirq.*",
+    "sympy.*",
+    "tensorflow_docs.*",
+    "tqdm.*",
+]
+# Protobuf / heavy stub-poor libs: mypy used follow_imports=silent/skip.
+replace-imports-with-any = [
+    "google.protobuf",
+    "google.protobuf.*",
+    "sympy",
+    "sympy.*",
+    "networkx",
+    "networkx.*",
+    "pandas",
+    "pandas.*",
+]
+
+[tool.pyrefly.errors]
+redundant-cast = "error"
+unused-type-ignore = "error"
