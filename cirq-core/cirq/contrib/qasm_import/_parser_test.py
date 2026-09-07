@@ -2552,6 +2552,29 @@ def test_zero_to_a_negative_power(expression: str) -> None:
         QasmParser().parse(qasm)
 
 
+def test_zero_division_message_does_not_depend_on_the_interpreter() -> None:
+    """The message is ours, not CPython's.
+
+    An earlier version of this fix built the message from `str(e)` on the caught
+    ZeroDivisionError. CPython rewords that error between releases -- 3.11 raises
+    "0.0 cannot be raised to a negative power" where 3.14 raises "zero to a
+    negative power" -- so the parser's user-visible error, and any downstream
+    matching on it, silently changed with the interpreter. Pin both messages.
+    """
+    zero_div = 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[1];\nrx(1/0) q[0];\n'
+    neg_pow = 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[1];\nrx(0^-1) q[0];\n'
+
+    with pytest.raises(QasmException) as div_info:
+        QasmParser().parse(zero_div)
+    with pytest.raises(QasmException) as pow_info:
+        QasmParser().parse(neg_pow)
+
+    # Exact strings, not regexes: the point of the test is that the wording is
+    # fixed by this file and cannot drift with the Python version.
+    assert str(div_info.value) == 'division by zero at line 4'
+    assert str(pow_info.value) == 'zero to a negative power at line 4'
+
+
 def test_division_by_zero_does_not_reject_valid_arithmetic() -> None:
     """The guard wraps the line that applies every binary operator."""
     qasm = """OPENQASM 2.0;
