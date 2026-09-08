@@ -1339,6 +1339,7 @@ def test_expectation_from_state_vector_invalid_input() -> None:
     with pytest.raises(ValueError, match='normalized'):
         psum.expectation_from_state_vector(np.arange(16, dtype=np.complex64), q_map_2)
 
+    # Use a different variable to avoid a type check error.
     wf_16 = np.arange(16, dtype=np.complex64) / np.linalg.norm(np.arange(16))
     with pytest.raises(ValueError, match='shape'):
         psum.expectation_from_state_vector(wf_16.reshape((16, 1)), q_map_2)
