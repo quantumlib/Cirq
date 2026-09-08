@@ -52,7 +52,7 @@ The following document provides an ecosystem overview of various open-source too
 |[Pasqal](https://quantumai.google/cirq/hardware/pasqal/getting_started)|Neutral atoms|
 
 For more information for vendors about integrating with Cirq,
-see our [RFC page](../dev/rfc_process.md#new_hardware_integrations).
+see our [RFC page](../dev/rfc_process.md#new-hardware-integrations).
 
 ## High performance quantum circuit simulators
 
