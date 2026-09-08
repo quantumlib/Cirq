@@ -1339,11 +1339,11 @@ def test_expectation_from_state_vector_invalid_input() -> None:
     with pytest.raises(ValueError, match='normalized'):
         psum.expectation_from_state_vector(np.arange(16, dtype=np.complex64), q_map_2)
 
-    wf = np.arange(16, dtype=np.complex64) / np.linalg.norm(np.arange(16))
+    wf_16 = np.arange(16, dtype=np.complex64) / np.linalg.norm(np.arange(16))
     with pytest.raises(ValueError, match='shape'):
-        psum.expectation_from_state_vector(wf.reshape((16, 1)), q_map_2)
+        psum.expectation_from_state_vector(wf_16.reshape((16, 1)), q_map_2)
     with pytest.raises(ValueError, match='shape'):
-        psum.expectation_from_state_vector(wf.reshape((4, 4, 1)), q_map_2)
+        psum.expectation_from_state_vector(wf_16.reshape((4, 4, 1)), q_map_2)
 
 
 def test_expectation_from_state_vector_check_preconditions() -> None:

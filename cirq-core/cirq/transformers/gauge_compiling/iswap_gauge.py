@@ -41,7 +41,7 @@ class RZRotation(Gauge):
     def weight(self) -> float:
         return 2.0
 
-    def _rz(self, theta, sgn: int) -> ConstantGauge:
+    def _rz(self, theta, sgn: int | np.integer) -> ConstantGauge:
         """Returns an ISWAP Gauge composed of Rz rotations.
 
         0: ───Rz(theta)──────iSwap───Rz(sgn*theta)───

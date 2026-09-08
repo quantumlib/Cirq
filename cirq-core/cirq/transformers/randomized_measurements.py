@@ -148,7 +148,7 @@ def _single_qubit_clifford(rng: np.random.Generator) -> cirq.Gate:
     """
 
     # there are 24 distinct single-qubit Clifford gates
-    clifford_idx = rng.choice(np.arange(24))
+    clifford_idx = int(rng.choice(24))
 
     return SingleQubitCliffordGate.to_phased_xz_gate(
         SingleQubitCliffordGate.all_single_qubit_cliffords[clifford_idx]

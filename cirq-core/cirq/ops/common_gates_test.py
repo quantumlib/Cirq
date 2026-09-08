@@ -1356,8 +1356,8 @@ def test_zpow_dim_4() -> None:
     svs = [
         step.state_vector(copy=True) for step in sim.simulate_moment_steps(circuit, initial_state=0)
     ]
-    expected = np.asarray([[1, 0, 0, 0]] * 8)
-    assert np.allclose((svs), expected)
+    expected_dim4 = np.asarray([[1, 0, 0, 0]] * 8)
+    assert np.allclose((svs), expected_dim4)
 
     svs = [
         step.state_vector(copy=True) for step in sim.simulate_moment_steps(circuit, initial_state=1)

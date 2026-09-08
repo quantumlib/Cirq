@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+import math
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -223,8 +224,8 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
     """
     shape = density_matrix.shape
     half_index = len(shape) // 2
-    row_size = np.prod(shape[:half_index]).item() if shape else 0
-    col_size = np.prod(shape[half_index:]).item() if shape else 0
+    row_size = math.prod(shape[:half_index]) if shape else 0
+    col_size = math.prod(shape[half_index:]) if shape else 0
     if row_size != col_size:
         raise ValueError(f'Matrix was not square. Shape was {shape}')
     if row_size & (row_size - 1):
