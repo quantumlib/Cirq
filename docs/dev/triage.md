@@ -1,6 +1,6 @@
 # Cirq Triage
 
-Original RFC: [bit.do/cirq-triage](https://bit.do/cirq-triage)
+Original RFC: [goo.gle/cirq-rfc-triage](https://goo.gle/cirq-rfc-triage)
 
 ## **Objective**
 
@@ -14,7 +14,7 @@ The goals for this document are as follows:
 
 [Triage Party](https://github.com/google/triage-party) is a stateless web app to optimize issue and PR triage for large open-source projects using the GitHub API.
 
-Our deployed version is here (a static IP, domain request is in progress): [http://bit.do/cirq-triage-party](http://bit.do/cirq-triage-party)
+Our deployed version is here (a static IP, domain request is in progress): [goo.gle/cirq-triage-party](http://goo.gle/cirq-triage-party)
 
 [GitHub Actions](https://github.com/features/actions) is GitHub's workflow automation platform. We use it for continuous integration testing as well as for stale issue handling later described here.
 
