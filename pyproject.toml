@@ -146,6 +146,7 @@ asyncio_default_fixture_loop_scope = "function"
 fail-on = ["I"]
 ignore-long-lines = "^(.*#\\w*pylint: disable.*|\\s*(# )?[<\\[\\(]?https?://\\S+[>\\]\\)]?)$"
 ignore-paths=[
+    "cirq-[^/]*/build/",
     "cirq-google/cirq_google/cloud/",
     "cirq-web/cirq_web/node_modules/",
 ]
