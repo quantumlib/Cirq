@@ -207,19 +207,22 @@ class ZXTransformer:
         self.qubit_to_index: dict[cirq.Qid, int] = {}
         self.measurement_keys: list[str] = []
         self._measurement_invert: list[bool] = []
+        self._measurement_op_ids: list[int] = []
         self.optimize = optimize or _optimize
 
     def _cirq_to_circuits_and_ops(
-        self, circuit: circuits.AbstractCircuit
+        self, circuit: circuits.AbstractCircuit, tags_to_ignore: frozenset = frozenset()
     ) -> list[zx.Circuit | cirq.Operation]:
         circuits_and_ops: list[zx.Circuit | cirq.Operation] = []
-        self.qubits = [*circuit.all_qubits()]
+        self.qubits = sorted(circuit.all_qubits())
         self.qubit_to_index = {qubit: index for index, qubit in enumerate(self.qubits)}
         self.measurement_keys = []
         self._measurement_invert = []
+        self._measurement_op_ids = []
 
         num_measurements = sum(
-            len(op.qubits) for moment in circuit for op in moment if cirq.is_measurement(op)
+            len(op.qubits) for moment in circuit for op in moment
+            if cirq.is_measurement(op) and not tags_to_ignore.intersection(op.tags)
         )
 
         current_circuit: zx.Circuit | None = None
@@ -239,17 +242,31 @@ class ZXTransformer:
                 circuits_and_ops.append(current_circuit)
                 current_circuit = None
 
+        next_op_id = 0
+
         for moment in circuit:
             for op in moment:
+                if tags_to_ignore.intersection(op.tags):
+                    flush_circuit()
+                    circuits_and_ops.append(op)
+                    continue
+
                 if isinstance(op.gate, cirq.MeasurementGate):
+                    if getattr(op.gate, 'confusion_map', None):
+                        flush_circuit()
+                        circuits_and_ops.append(op)
+                        continue
                     key = cirq.measurement_key_name(op)
                     invert_mask = op.gate.invert_mask or ()
+                    op_id = next_op_id
+                    next_op_id += 1
                     for i, qubit in enumerate(op.qubits):
                         bit_index = len(self.measurement_keys)
                         self.measurement_keys.append(key)
                         self._measurement_invert.append(
                             invert_mask[i] if i < len(invert_mask) else False
                         )
+                        self._measurement_op_ids.append(op_id)
                         ensure_circuit().add_gate(
                             PyzxMeasurement(self.qubit_to_index[qubit], result_bit=bit_index)
                         )
@@ -286,11 +303,12 @@ class ZXTransformer:
         cirq_circuit = circuits.Circuit()
 
         pending_key: str | None = None
+        pending_op_id: int | None = None
         pending_qubits: list[cirq.Qid] = []
         pending_inverts: list[bool] = []
 
         def flush_measurement() -> None:
-            nonlocal pending_key, pending_qubits, pending_inverts
+            nonlocal pending_key, pending_op_id, pending_qubits, pending_inverts
             if pending_key is not None:
                 invert_mask = tuple(pending_inverts)
                 while invert_mask and not invert_mask[-1]:
@@ -301,6 +319,7 @@ class ZXTransformer:
                     )
                 )
                 pending_key = None
+                pending_op_id = None
                 pending_qubits = []
                 pending_inverts = []
 
@@ -322,12 +341,14 @@ class ZXTransformer:
                     key = self.measurement_keys[gate.result_bit]
                     qubit = self.qubits[gate.target]
                     invert = self._measurement_invert[gate.result_bit]
-                    if pending_key == key:
+                    op_id = self._measurement_op_ids[gate.result_bit]
+                    if pending_key == key and pending_op_id == op_id:
                         pending_qubits.append(qubit)
                         pending_inverts.append(invert)
                     else:
                         flush_measurement()
                         pending_key = key
+                        pending_op_id = op_id
                         pending_qubits = [qubit]
                         pending_inverts = [invert]
                     continue
@@ -375,8 +396,8 @@ class ZXTransformer:
         *,
         context: transformers.TransformerContext | None = None,
     ) -> circuits.Circuit:
-        del context
-        circuits_and_ops = self._cirq_to_circuits_and_ops(circuit)
+        tags_to_ignore = frozenset(context.tags_to_ignore) if context is not None else frozenset()
+        circuits_and_ops = self._cirq_to_circuits_and_ops(circuit, tags_to_ignore)
         if not circuits_and_ops:
             return circuit.unfreeze(copy=True)
 
