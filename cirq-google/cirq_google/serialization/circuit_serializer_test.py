@@ -16,21 +16,21 @@ from __future__ import annotations
 
 from typing import Any
 
-import attrs
-import numpy as np
 import pytest
-import sympy
 import tunits.units
-from google.protobuf import json_format
 
+import attrs
 import cirq
 import cirq_google as cg
+import numpy as np
+import sympy
 from cirq_google.api import v2
 from cirq_google.serialization.circuit_serializer import _SERIALIZER_NAME
 from cirq_google.serialization.op_deserializer import OpDeserializer
 from cirq_google.serialization.op_serializer import OpSerializer
 from cirq_google.serialization.tag_deserializer import TagDeserializer
 from cirq_google.serialization.tag_serializer import TagSerializer
+from google.protobuf import json_format
 
 
 class FakeDevice(cirq.Device):
@@ -1078,6 +1078,8 @@ def test_circuit_with_analog_detune_coupler_only():
         cg.TwoPulseFSimTag(),
         cg.PhysicalZTag(),
         cg.InternalTag(name='abc', package='xyz'),
+        cg.NoSyncTag(),
+        cg.NoSyncTag(reverse=0, forward=1),
     ],
 )
 def test_circuit_with_tag(tag):

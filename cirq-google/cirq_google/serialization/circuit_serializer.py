@@ -22,9 +22,8 @@ import warnings
 from collections.abc import Callable, Hashable, Mapping, Sequence
 from typing import Any
 
-import sympy
-
 import cirq
+import sympy
 from cirq_google.api import v2
 from cirq_google.experimental.ops import CouplerPulse
 from cirq_google.ops import (
@@ -38,6 +37,7 @@ from cirq_google.ops import (
     LeakageISWAP,
     LZSResetViaResonator,
     MultilevelResetViaResonator,
+    NoSyncTag,
     PhysicalZTag,
     SycamoreGate,
     TwoPulseFSimTag,
@@ -1161,6 +1161,8 @@ class CircuitSerializer(serializer.Serializer):
             return InternalTag.from_proto(msg)
         elif which == 'compress_duration':
             return CompressDurationTag()
+        elif which == 'no_sync':
+            return NoSyncTag.from_proto(msg)
         elif which == 'raw_value':
             return arg_func_langs.arg_from_proto(msg.raw_value)
         else:
