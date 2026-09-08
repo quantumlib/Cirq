@@ -47,7 +47,7 @@ The following document provides an ecosystem overview of various open-source too
 |--- |--- |
 |[Alpine Quantum Technologies](https://quantumai.google/cirq/hardware/aqt/getting_started)|Trapped ions|
 |[IonQ](https://quantumai.google/cirq/hardware/ionq/getting_started)|Trapped ions|
-|[IQM](https://iqm-finland.github.io/cirq-on-iqm/)|Superconducting qubits|
+|[IQM](https://docs.iqm.tech/iqm-client/user_guide_cirq.html)|Superconducting qubits|
 |[Microsoft Azure Quantum](https://quantumai.google/cirq/hardware/azure-quantum/getting_started_ionq)|Trapped ions (Honeywell and IonQ)|
 |[Pasqal](https://quantumai.google/cirq/hardware/pasqal/getting_started)|Neutral atoms|
 

@@ -10,5 +10,5 @@ When using our projects, please cite them according to the following guide:
 | Qualtran | https://github.com/quantumlib/qualtran#how-to-cite-qualtran |
 | ReCirq | https://github.com/quantumlib/ReCirq#how-to-cite-recirq |
 | Stim | https://github.com/quantumlib/stim#how-cite-stim |
-| TensorFlow Quantum | https://github.com/tensorflow/quantum#references|
-| Tesseract Decoder | https://github.com/quantumlib/tesseract-decoder#citation|
+| TensorFlow Quantum | https://github.com/tensorflow/quantum#references |
+| Tesseract Decoder | https://github.com/quantumlib/tesseract-decoder#citation |
