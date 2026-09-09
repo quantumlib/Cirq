@@ -22,9 +22,8 @@ import warnings
 from collections.abc import Callable, Hashable, Mapping, Sequence
 from typing import Any
 
-import sympy
-
 import cirq
+import sympy
 from cirq_google.api import v2
 from cirq_google.experimental.ops import CouplerPulse
 from cirq_google.ops import (
