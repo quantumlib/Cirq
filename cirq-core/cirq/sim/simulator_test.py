@@ -125,6 +125,15 @@ def test_run_zero_repetitions_preserves_measurement_record_shape() -> None:
     assert result.records['m'].shape == (0, 2, 2)
 
 
+def test_run_zero_repetitions_rejects_repeated_key_with_mismatched_qid_shape() -> None:
+    q0 = cirq.LineQid.for_qid_shape((2,))[0]
+    q1 = cirq.LineQid.for_qid_shape((3,))[0]
+    circuit = cirq.Circuit(cirq.measure(q0, key='m'), cirq.measure(q1, key='m'))
+
+    with pytest.raises(ValueError, match='Different qid shapes for repeated measurement'):
+        cirq.Simulator().run(circuit, repetitions=0)
+
+
 def test_run_simulator_sweeps() -> None:
     expected_records = {'a': np.array([[[1]]])}
     simulator = FakeSimulatesSamples(expected_records)

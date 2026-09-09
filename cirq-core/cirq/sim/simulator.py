@@ -85,24 +85,24 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         for param_resolver in study.to_resolvers(params):
             records = {}
             if repetitions == 0:
-                record_shapes: dict[str, tuple[int, int]] = {}
+                record_shapes: dict[str, tuple[int, tuple[int, ...]]] = {}
                 for _, op, _ in program.findall_operations_with_gate_type(ops.MeasurementGate):
                     key = protocols.measurement_key_name(op)
-                    num_qubits = len(op.qubits)
+                    qid_shape = protocols.qid_shape(op)
                     if key in record_shapes:
-                        num_instances, expected_num_qubits = record_shapes[key]
-                        if num_qubits != expected_num_qubits:
+                        num_instances, expected_qid_shape = record_shapes[key]
+                        if qid_shape != expected_qid_shape:
                             raise ValueError(
-                                'Measurements with the same key must measure the same number '
-                                f'of qubits. Key {key!r} measures both {expected_num_qubits} '
-                                f'and {num_qubits} qubits.'
+                                'Different qid shapes for repeated measurement: '
+                                f'key={key!r}, prev_qid_shape={expected_qid_shape}, '
+                                f'qid_shape={qid_shape}'
                             )
-                        record_shapes[key] = (num_instances + 1, num_qubits)
+                        record_shapes[key] = (num_instances + 1, qid_shape)
                     else:
-                        record_shapes[key] = (1, num_qubits)
+                        record_shapes[key] = (1, qid_shape)
                 records = {
-                    key: np.empty((0, num_instances, num_qubits))
-                    for key, (num_instances, num_qubits) in record_shapes.items()
+                    key: np.empty((0, num_instances, len(qid_shape)))
+                    for key, (num_instances, qid_shape) in record_shapes.items()
                 }
             else:
                 records = self._run(
