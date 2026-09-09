@@ -25,12 +25,8 @@ def test_equality() -> None:
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq_google.NoSyncTag(), cirq_google.NoSyncTag())
     eq.add_equality_group(
-<<<<<<< HEAD
         cirq_google.NoSyncTag(reverse=0, forward=1),
         cirq_google.NoSyncTag(forward=1),
-=======
-        cirq_google.NoSyncTag(reverse=0, forward=1), cirq_google.NoSyncTag(forward=1)
->>>>>>> 11155ce3d66520fd6860dcc87580ea9589d4eb7d
     )
     eq.add_equality_group(cirq_google.NoSyncTag(reverse=1, forward=1))
     eq.add_equality_group(cirq_google.NoSyncTag(reverse=0, forward=2))
@@ -110,13 +106,9 @@ def test_proto() -> None:
     assert deserialized == tag_with_fields
 
     # Tag with remove_all_syncs
-<<<<<<< HEAD
     tag_all_syncs = cirq_google.NoSyncTag(
         remove_all_syncs_before=True, remove_all_syncs_after=True
     )
-=======
-    tag_all_syncs = cirq_google.NoSyncTag(remove_all_syncs_before=True, remove_all_syncs_after=True)
->>>>>>> 11155ce3d66520fd6860dcc87580ea9589d4eb7d
     msg_all_syncs = tag_all_syncs.to_proto()
     assert msg_all_syncs.no_sync.WhichOneof('rev') == 'remove_all_syncs_before'
     assert msg_all_syncs.no_sync.remove_all_syncs_before is True
@@ -128,7 +120,3 @@ def test_proto() -> None:
         msg_wrong = program_pb2.Tag()
         msg_wrong.internal_tag.SetInParent()
         cirq_google.NoSyncTag.from_proto(msg_wrong)
-<<<<<<< HEAD
-
-=======
->>>>>>> 11155ce3d66520fd6860dcc87580ea9589d4eb7d
