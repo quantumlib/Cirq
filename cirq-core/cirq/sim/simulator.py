@@ -85,8 +85,25 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         for param_resolver in study.to_resolvers(params):
             records = {}
             if repetitions == 0:
+                record_shapes: dict[str, tuple[int, int]] = {}
                 for _, op, _ in program.findall_operations_with_gate_type(ops.MeasurementGate):
-                    records[protocols.measurement_key_name(op)] = np.empty([0, 1, 1])
+                    key = protocols.measurement_key_name(op)
+                    num_qubits = len(op.qubits)
+                    if key in record_shapes:
+                        num_instances, expected_num_qubits = record_shapes[key]
+                        if num_qubits != expected_num_qubits:
+                            raise ValueError(
+                                'Measurements with the same key must measure the same number '
+                                f'of qubits. Key {key!r} measures both {expected_num_qubits} '
+                                f'and {num_qubits} qubits.'
+                            )
+                        record_shapes[key] = (num_instances + 1, num_qubits)
+                    else:
+                        record_shapes[key] = (1, num_qubits)
+                records = {
+                    key: np.empty((0, num_instances, num_qubits))
+                    for key, (num_instances, num_qubits) in record_shapes.items()
+                }
             else:
                 records = self._run(
                     circuit=program, param_resolver=param_resolver, repetitions=repetitions

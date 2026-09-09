@@ -115,6 +115,16 @@ def test_run_simulator_run() -> None:
     )
 
 
+def test_run_zero_repetitions_preserves_measurement_record_shape() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.measure(q0, q1, key='m'), cirq.measure(q0, q1, key='m'))
+
+    result = cirq.Simulator().run(circuit, repetitions=0)
+
+    assert result.repetitions == 0
+    assert result.records['m'].shape == (0, 2, 2)
+
+
 def test_run_simulator_sweeps() -> None:
     expected_records = {'a': np.array([[[1]]])}
     simulator = FakeSimulatesSamples(expected_records)
