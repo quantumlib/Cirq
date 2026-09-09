@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import abc
 import datetime
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -158,14 +158,15 @@ class AbstractProgram(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:
+    def get_circuit(self, circuit_num: int | str | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the program. This is only
         supported if the program was created with the V2 protos.
 
         Args:
-            circuit_num: if this is a multi-circuit program, the index of the circuit
-                to return.  This argument is zero-indexed. Negative values
-                indexing from the end of the list.
+            circuit_num: if this is a multi-circuit program, the index or key of the
+                circuit to return. For integer indices, this argument is zero-indexed
+                with negative values indexing from the end of the list. For string keys,
+                this looks up the circuit by its key in a mapped program.
 
         Returns:
             The program's cirq Circuit.
@@ -177,6 +178,17 @@ class AbstractProgram(abc.ABC):
 
         Returns:
             A list of the program's cirq Circuits.
+        """
+
+    @abc.abstractmethod
+    def get_mapped_circuits(self) -> Mapping[str, cirq.Circuit]:
+        """Returns all the cirq Circuits for a mapped program batch.
+
+        Returns:
+            A dictionary mapping circuit keys to cirq Circuits.
+
+        Raises:
+            ValueError: If called for a non-batch program or if keys were not specified.
         """
 
     @abc.abstractmethod

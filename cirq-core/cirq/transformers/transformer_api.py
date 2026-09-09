@@ -154,7 +154,7 @@ class TransformerLogger:
 
         Args:
             level: The logging level to filter the logs with. The method shows all logs with a
-            `LogLevel` >= `level`.
+                `LogLevel` >= `level`.
         """
 
         def print_log(log: _LoggerNode, pad=''):

@@ -476,7 +476,7 @@ class Engine(abstract_engine.AbstractEngine):
 
         Args:
             program: The circuit or circuits to execute. Can either be a single
-                circuit or a list of circuits. Mappings are not currently supported.
+                circuit, a sequence of circuits, or a mapping from string keys to circuits.
             program_id: A user-provided identifier for the program. This must be
                 unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
@@ -670,7 +670,7 @@ class Engine(abstract_engine.AbstractEngine):
         device_config_name: str | None = None,
         device_config_revision: processor_config.DeviceConfigRevision | None = None,
         max_concurrent_jobs: int = 100,
-        jobs_per_batch: int = 1,
+        circuits_per_job: int = 1,
     ) -> cirq_google.ProcessorSampler:
         """Returns a sampler backed by the engine.
 
@@ -684,11 +684,11 @@ class Engine(abstract_engine.AbstractEngine):
                 concurrently to the Engine. This client-side throttle can be
                 used to proactively reduce load to the backends and avoid quota
                 violations when pipelining circuit executions.
-            jobs_per_batch:  If set to greater than 1, this will batch multiple
+            circuits_per_job:  If set to greater than 1, this will batch multiple
                 circuits within the same API call when calling run_batch() or
-                run_batch_async() up to a maximum of `jobs_per_batch`.
+                run_batch_async() up to a maximum of `circuits_per_job`.
                 Note that actual hardware execution order is not guaranteed
-                if jobs_per_batch > 1. (For instance, the hardware may run
+                if circuits_per_job > 1. (For instance, the hardware may run
                 all circuits for the first sweep point, then the second point, etc.).
 
         Returns:
@@ -710,7 +710,7 @@ class Engine(abstract_engine.AbstractEngine):
             device_config_name=device_config_name,
             device_config_revision=device_config_revision,
             max_concurrent_jobs=max_concurrent_jobs,
-            jobs_per_batch=jobs_per_batch,
+            circuits_per_job=circuits_per_job,
         )
 
     async def get_processor_config_async(

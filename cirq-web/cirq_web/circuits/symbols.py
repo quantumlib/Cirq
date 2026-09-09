@@ -158,15 +158,15 @@ class Operation3DSymbol:
 
         Args:
             wire_symbols: a list of symbols taken from circuit_diagram_info()
-            that will be used to represent the operation in the 3D circuit.
+                that will be used to represent the operation in the 3D circuit.
 
             location_info: A list of coordinates for each wire_symbol. The
-            index of the coordinate tuple in the location_info list must
-            correspond with the index of the symbol in the wire_symbols list.
+                index of the coordinate tuple in the location_info list must
+                correspond with the index of the symbol in the wire_symbols list.
 
             color_info: a list representing the desired color of the symbol(s).
-            These will also correspond to index of the symbol in the
-            wire_symbols list.
+                These will also correspond to index of the symbol in the
+                wire_symbols list.
 
             moment: the moment where the symbol should be.
         """

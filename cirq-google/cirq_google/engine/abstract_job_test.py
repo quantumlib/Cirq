@@ -95,7 +95,7 @@ class MockJob(AbstractJob):
     def get_config(self):
         pass
 
-    def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:
+    def get_circuit(self, circuit_num: int | str | None = None) -> cirq.Circuit:
         return cirq.Circuit()
 
     def cancel(self) -> None:
@@ -144,6 +144,7 @@ def test_get_circuit():
     job = MockJob()
     assert job.get_circuit() == cirq.Circuit()
     assert job.get_circuit(1) == cirq.Circuit()
+    assert job.get_circuit('c1') == cirq.Circuit()
 
 
 def test_batched_results():

@@ -143,7 +143,7 @@ class BayesianNetworkGate(raw_types.Gate):
 
         Raises:
             ValueError: If the probabilities are not in [0, 1], or an incorrect number of
-            probability is specified, or if the parameter names are no passed as a tuple.
+                probability is specified, or if the parameter names are no passed as a tuple.
         """
         for _, init_prob in init_probs:
             if init_prob is None:

@@ -914,14 +914,16 @@ def test_get_sampler_initializes_max_concurrent_jobs():
     assert sampler.max_concurrent_jobs == max_concurrent_jobs
 
 
-def test_get_sampler_initializes_jobs_per_batch():
+def test_get_sampler_initializes_circuits_per_job():
     engine = cg.Engine(project_id='proj')
     sampler_default = engine.get_sampler(processor_id='tmp')
-    assert sampler_default._jobs_per_batch == 1
+    assert sampler_default._circuits_per_job == 1
+    assert sampler_default.circuits_per_job == 1
 
-    jobs_per_batch = 5
-    sampler = engine.get_sampler(processor_id='tmp', jobs_per_batch=jobs_per_batch)
-    assert sampler._jobs_per_batch == jobs_per_batch
+    circuits_per_job = 5
+    sampler = engine.get_sampler(processor_id='tmp', circuits_per_job=circuits_per_job)
+    assert sampler._circuits_per_job == circuits_per_job
+    assert sampler.circuits_per_job == circuits_per_job
 
 
 def test_get_sampler_from_run_name():

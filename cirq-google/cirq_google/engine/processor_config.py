@@ -130,7 +130,7 @@ class ProcessorConfig:
         return parts[-1]
 
     def sampler(
-        self, max_concurrent_jobs: int = 100, jobs_per_batch: int = 1
+        self, max_concurrent_jobs: int = 100, circuits_per_job: int = 1
     ) -> processor_sampler.ProcessorSampler:
         """Returns the sampler backed by this config.
 
@@ -139,11 +139,11 @@ class ProcessorConfig:
                 simultaneously to the Engine. This client-side throttle can be
                 used to proactively reduce load to the backends and avoid quota
                 violations when pipelining circuit executions.
-            jobs_per_batch:  If set to greater than 1, this will batch multiple
+            circuits_per_job:  If set to greater than 1, this will batch multiple
                 circuits within the same API call when calling run_batch() or
-                run_batch_async() up to a maximum of `jobs_per_batch`.
+                run_batch_async() up to a maximum of `circuits_per_job`.
                 Note that actual hardware execution order is not guaranteed
-                if jobs_per_batch > 1. (For instance, the hardware may run
+                if circuits_per_job > 1. (For instance, the hardware may run
                 all circuits for the first sweep point, then the second point, etc.).
 
         Returns:
@@ -157,7 +157,7 @@ class ProcessorConfig:
             snapshot_id=self.snapshot_id,
             device_config_name=self.config_name,
             max_concurrent_jobs=max_concurrent_jobs,
-            jobs_per_batch=jobs_per_batch,
+            circuits_per_job=circuits_per_job,
         )
 
     def __repr__(self) -> str:

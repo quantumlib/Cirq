@@ -146,8 +146,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
 
         Args:
             deep_copy_buffers: If True, buffers will also be deep-copied.
-            Otherwise the copy will share a reference to the original object's
-            buffers.
+                Otherwise the copy will share a reference to the original object's buffers.
 
         Returns:
             A copied instance.

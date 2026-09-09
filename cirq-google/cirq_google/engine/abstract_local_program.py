@@ -56,6 +56,10 @@ class AbstractLocalProgram(AbstractProgram):
         self._engine = engine
         self._jobs: dict[str, AbstractLocalJob] = {}
         if isinstance(circuits, Mapping):
+            if batch_keys is not None:
+                raise ValueError("batch_keys is not used if a circuit mapping is provided.")
+            if not all(circuits.keys()):
+                raise ValueError("Empty key provided in program.")
             self._batch_keys: list[str] | None = list(circuits.keys())
             self._circuits: list[cirq.Circuit] = list(circuits.values())
         else:
@@ -211,17 +215,23 @@ class AbstractLocalProgram(AbstractProgram):
             del self._labels[key]
         return self
 
-    def get_circuit(self, circuit_num: int | None = None) -> cirq.Circuit:
+    def get_circuit(self, circuit_num: int | str | None = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the program. This is only
         supported if the program was created with the V2 protos.
 
         Args:
-            circuit_num: if this is a multi-circuit program, the index of the circuit
-                to return.  This argument is zero-indexed. Negative values
-                indexing from the end of the list.
+            circuit_num: if this is a multi-circuit program, the index or key of the circuit
+                to return. For integer indices, this argument is zero-indexed with negative
+                values indexing from the end of the list. For string keys, this looks up
+                the circuit by its key in a mapped program.
 
         Returns:
             The program's cirq Circuit.
+
+        Raises:
+            ValueError: If called with an int for a non-batch program.
+            KeyError: If called with a string that is not in a mapping.
+            IndexError: If called with an int larger than the size of the batch.
         """
         if circuit_num is None:
             if self.is_batch():
@@ -231,6 +241,10 @@ class AbstractLocalProgram(AbstractProgram):
                     "or use `get_circuits()` to get all of them."
                 )
             return self._circuits[0]
+        if isinstance(circuit_num, str):
+            if self._batch_keys is not None and circuit_num in self._batch_keys:
+                return self._circuits[self._batch_keys.index(circuit_num)]
+            raise KeyError(f"Circuit key '{circuit_num}' not found in program.")
         try:
             return self._circuits[circuit_num]
         except IndexError:
@@ -240,7 +254,22 @@ class AbstractLocalProgram(AbstractProgram):
 
     def get_circuits(self) -> list[cirq.Circuit]:
         """Returns all the cirq Circuits for the program."""
-        return self._circuits
+        return self._circuits.copy()
+
+    def get_mapped_circuits(self) -> dict[str, cirq.Circuit]:
+        """Returns all the cirq Circuits for a mapped program batch.
+
+        Returns:
+            A dictionary mapping circuit keys to cirq Circuits.
+
+        Raises:
+            ValueError: If called for a non-batch program or if keys were not specified.
+        """
+        if not self.is_batch():
+            raise ValueError("get_mapped_circuits called for a non-batch program.")
+        if self._batch_keys is None or any(not k for k in self._batch_keys):
+            raise ValueError("get_mapped_circuits called for a batch program without circuit keys.")
+        return dict(zip(self._batch_keys, self._circuits))
 
     def is_batch(self) -> bool:
         """Returns True if the program is a batch program."""
