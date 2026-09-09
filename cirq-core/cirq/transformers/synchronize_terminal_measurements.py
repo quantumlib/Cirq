@@ -29,7 +29,8 @@ def find_terminal_measurements(circuit: cirq.AbstractCircuit) -> list[tuple[int,
     """Finds all terminal measurements in the given circuit.
 
     A measurement is terminal if there are no other operations acting on the measured qubits
-    after the measurement operation occurs in the circuit.
+    after the measurement operation occurs in the circuit, and none of its measurement keys
+    are subsequently used as classical controls or re-measured.
 
     Args:
         circuit: The circuit to find terminal measurements in.
@@ -51,8 +52,8 @@ def find_terminal_measurements(circuit: cirq.AbstractCircuit) -> list[tuple[int,
                 op is not None
                 and open_qubits.issuperset(op.qubits)
                 and protocols.is_measurement(op)
-                and not (seen_control_keys & protocols.measurement_key_objs(op))
-                and not (seen_measurement_keys & protocols.measurement_key_objs(op))
+                and not (seen_control_keys & (key_objs := protocols.measurement_key_objs(op)))
+                and not (seen_measurement_keys & key_objs)
             ):
                 terminal_measurements.add((i, op))
         open_qubits -= moment.qubits
