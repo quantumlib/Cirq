@@ -18,10 +18,13 @@ from __future__ import annotations
 
 from typing import Any
 
+import attrs
+
 import cirq
 from cirq_google.api.v2 import program_pb2
 
 
+@attrs.frozen(kw_only=True)
 class NoSyncTag:
     """A tag class to direct hardware to ignore moment-based synchronization.
 
@@ -30,52 +33,50 @@ class NoSyncTag:
 
     Args:
         reverse: Number of synchronizations before the operation to remove.
-        forward: Number of synchronizations after the operation to remove.
+            Mutually exclusive with remove_all_syncs_before.
         remove_all_syncs_before: Remove all possible synchronizations before the operation.
+            Mutually exclusive with reverse.
+        forward: Number of synchronizations after the operation to remove.
+            Mutually exclusive with remove_all_syncs_after.
         remove_all_syncs_after: Remove all possible synchronizations after the operation.
+            Mutually exclusive with forward.
     """
 
-    def __init__(
-        self,
-        reverse: int | None = None,
-        forward: int | None = None,
-        *,
-        remove_all_syncs_before: bool = False,
-        remove_all_syncs_after: bool = False,
-    ):
-        if reverse is not None and remove_all_syncs_before:
+    reverse: int = 0
+    remove_all_syncs_before: bool = False
+    forward: int = 0
+    remove_all_syncs_after: bool = False
+
+    def __attrs_post_init__(self):
+        if self.reverse and self.remove_all_syncs_before:
             raise ValueError("Cannot specify both reverse and remove_all_syncs_before")
-        if forward is not None and remove_all_syncs_after:
+        if self.forward and self.remove_all_syncs_after:
             raise ValueError("Cannot specify both forward and remove_all_syncs_after")
-        if reverse is not None and reverse < 0:
-            raise ValueError(f"reverse must be non-negative, got {reverse}")
-        if forward is not None and forward < 0:
-            raise ValueError(f"forward must be non-negative, got {forward}")
-        self.reverse = reverse
-        self.forward = forward
-        self.remove_all_syncs_before = remove_all_syncs_before
-        self.remove_all_syncs_after = remove_all_syncs_after
+        if self.reverse < 0:
+            raise ValueError(f"reverse must be non-negative, got {self.reverse}")
+        if self.forward < 0:
+            raise ValueError(f"forward must be non-negative, got {self.forward}")
 
     def __str__(self) -> str:
         args = []
-        if self.reverse is not None:
+        if self.reverse:
             args.append(f'reverse={self.reverse}')
-        if self.forward is not None:
-            args.append(f'forward={self.forward}')
         if self.remove_all_syncs_before:
             args.append(f'remove_all_syncs_before={self.remove_all_syncs_before}')
+        if self.forward:
+            args.append(f'forward={self.forward}')
         if self.remove_all_syncs_after:
             args.append(f'remove_all_syncs_after={self.remove_all_syncs_after}')
         return f"NoSyncTag({', '.join(args)})"
 
     def __repr__(self) -> str:
         args = []
-        if self.reverse is not None:
+        if self.reverse:
             args.append(f'reverse={self.reverse!r}')
-        if self.forward is not None:
-            args.append(f'forward={self.forward!r}')
         if self.remove_all_syncs_before:
             args.append(f'remove_all_syncs_before={self.remove_all_syncs_before!r}')
+        if self.forward:
+            args.append(f'forward={self.forward!r}')
         if self.remove_all_syncs_after:
             args.append(f'remove_all_syncs_after={self.remove_all_syncs_after!r}')
         return f"cirq_google.NoSyncTag({', '.join(args)})"
@@ -85,90 +86,34 @@ class NoSyncTag:
             self,
             [
                 'reverse',
-                'forward',
                 'remove_all_syncs_before',
+                'forward',
                 'remove_all_syncs_after',
             ],
         )
 
-    def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, NoSyncTag):
-            return NotImplemented
-        return (
-            self.reverse == other.reverse
-            and self.forward == other.forward
-            and self.remove_all_syncs_before == other.remove_all_syncs_before
-            and self.remove_all_syncs_after == other.remove_all_syncs_after
-        )
-
-    def __hash__(self) -> int:
-        return hash((
-            self.reverse,
-            self.forward,
-            self.remove_all_syncs_before,
-            self.remove_all_syncs_after,
-        ))
-
-    def to_proto(
-        self, msg: program_pb2.Tag | program_pb2.NoSyncTag | None = None
-    ) -> program_pb2.Tag | program_pb2.NoSyncTag:
+    def to_proto(self, msg: program_pb2.Tag | None = None) -> program_pb2.Tag:
         if msg is None:
             msg = program_pb2.Tag()
-        if isinstance(msg, program_pb2.NoSyncTag):
-            no_sync_msg = msg
-        else:
-            no_sync_msg = msg.no_sync
-
+        msg.no_sync.SetInParent()
+        msg.no_sync.Clear()
+        if self.reverse:
+            msg.no_sync.reverse = self.reverse
         if self.remove_all_syncs_before:
-            no_sync_msg.remove_all_syncs_before = True
-        elif self.reverse is not None:
-            no_sync_msg.reverse = self.reverse
-
+            msg.no_sync.remove_all_syncs_before = True
+        if self.forward:
+            msg.no_sync.forward = self.forward
         if self.remove_all_syncs_after:
-            no_sync_msg.remove_all_syncs_after = True
-        elif self.forward is not None:
-            no_sync_msg.forward = self.forward
-
-        if (
-            self.reverse is None
-            and not self.remove_all_syncs_before
-            and self.forward is None
-            and not self.remove_all_syncs_after
-            and isinstance(msg, program_pb2.Tag)
-        ):
-            msg.no_sync.SetInParent()
+            msg.no_sync.remove_all_syncs_after = True
         return msg
 
     @staticmethod
-    def from_proto(msg: program_pb2.Tag | program_pb2.NoSyncTag) -> NoSyncTag:
-        if isinstance(msg, program_pb2.Tag):
-            if msg.WhichOneof("tag") != "no_sync":
-                raise ValueError(f"Message is not a NoSyncTag, {msg}")
-            no_sync = msg.no_sync
-        elif isinstance(msg, program_pb2.NoSyncTag):
-            no_sync = msg
-        else:
-            raise ValueError(f"Expected Tag or NoSyncTag, got {type(msg)}")
-
-        reverse = None
-        remove_all_syncs_before = False
-        rev_which = no_sync.WhichOneof("rev")
-        if rev_which == "reverse":
-            reverse = no_sync.reverse
-        elif rev_which == "remove_all_syncs_before":
-            remove_all_syncs_before = no_sync.remove_all_syncs_before
-
-        forward = None
-        remove_all_syncs_after = False
-        fwd_which = no_sync.WhichOneof("fwd")
-        if fwd_which == "forward":
-            forward = no_sync.forward
-        elif fwd_which == "remove_all_syncs_after":
-            remove_all_syncs_after = no_sync.remove_all_syncs_after
-
+    def from_proto(msg: program_pb2.Tag) -> NoSyncTag:
+        if msg.WhichOneof("tag") != "no_sync":
+            raise ValueError(f"Message is not a NoSyncTag, {msg}")
         return NoSyncTag(
-            reverse=reverse,
-            forward=forward,
-            remove_all_syncs_before=remove_all_syncs_before,
-            remove_all_syncs_after=remove_all_syncs_after,
+            reverse=msg.no_sync.reverse,
+            forward=msg.no_sync.forward,
+            remove_all_syncs_before=msg.no_sync.remove_all_syncs_before,
+            remove_all_syncs_after=msg.no_sync.remove_all_syncs_after,
         )

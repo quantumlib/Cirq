@@ -1,7 +1,23 @@
-{
-  "cirq_type": "NoSyncTag",
-  "reverse": null,
-  "forward": null,
-  "remove_all_syncs_before": false,
-  "remove_all_syncs_after": false
-}
+[
+  {
+    "cirq_type": "NoSyncTag",
+    "reverse": 0,
+    "remove_all_syncs_before": false,
+    "forward": 0,
+    "remove_all_syncs_after": false
+  },
+  {
+    "cirq_type": "NoSyncTag",
+    "reverse": 2,
+    "remove_all_syncs_before": false,
+    "forward": 3,
+    "remove_all_syncs_after": false
+  },
+  {
+    "cirq_type": "NoSyncTag",
+    "reverse": 0,
+    "remove_all_syncs_before": true,
+    "forward": 0,
+    "remove_all_syncs_after": true
+  }
+]
