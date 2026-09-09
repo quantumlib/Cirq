@@ -26,8 +26,7 @@ def test_equality() -> None:
     eq.add_equality_group(cirq_google.NoSyncTag(), cirq_google.NoSyncTag())
     eq.add_equality_group(
         cirq_google.NoSyncTag(reverse=0, forward=1),
-        cirq_google.NoSyncTag(reverse=0, forward=1),
-        cirq_google.NoSyncTag(0, 1),
+        cirq_google.NoSyncTag(forward=1),
     )
     eq.add_equality_group(cirq_google.NoSyncTag(reverse=1, forward=1))
     eq.add_equality_group(cirq_google.NoSyncTag(reverse=0, forward=2))
@@ -51,6 +50,9 @@ def test_invalid_args() -> None:
     with pytest.raises(ValueError, match="forward must be non-negative"):
         _ = cirq_google.NoSyncTag(forward=-1)
 
+    with pytest.raises(TypeError):
+        _ = cirq_google.NoSyncTag(1)  # type: ignore[misc]
+
 
 def test_str_repr() -> None:
     assert str(cirq_google.NoSyncTag()) == 'NoSyncTag()'
@@ -59,47 +61,49 @@ def test_str_repr() -> None:
         cirq_google.NoSyncTag(), setup_code='import cirq\nimport cirq_google\n'
     )
 
-    tag = cirq_google.NoSyncTag(reverse=0, forward=1)
-    assert str(tag) == 'NoSyncTag(reverse=0, forward=1)'
-    assert repr(tag) == 'cirq_google.NoSyncTag(reverse=0, forward=1)'
-    cirq.testing.assert_equivalent_repr(
-        tag, setup_code='import cirq\nimport cirq_google\n'
-    )
+    tag = cirq_google.NoSyncTag(reverse=2, forward=1)
+    assert str(tag) == 'NoSyncTag(reverse=2, forward=1)'
+    assert repr(tag) == 'cirq_google.NoSyncTag(reverse=2, forward=1)'
+    cirq.testing.assert_equivalent_repr(tag, setup_code='import cirq\nimport cirq_google\n')
 
     tag_bool = cirq_google.NoSyncTag(remove_all_syncs_before=True, remove_all_syncs_after=True)
     assert str(tag_bool) == 'NoSyncTag(remove_all_syncs_before=True, remove_all_syncs_after=True)'
-    assert repr(tag_bool) == 'cirq_google.NoSyncTag(remove_all_syncs_before=True, remove_all_syncs_after=True)'
-    cirq.testing.assert_equivalent_repr(
-        tag_bool, setup_code='import cirq\nimport cirq_google\n'
+    assert (
+        repr(tag_bool)
+        == 'cirq_google.NoSyncTag(remove_all_syncs_before=True, remove_all_syncs_after=True)'
     )
+    cirq.testing.assert_equivalent_repr(tag_bool, setup_code='import cirq\nimport cirq_google\n')
 
 
 def test_proto() -> None:
     # Empty tag
     tag = cirq_google.NoSyncTag()
     msg = tag.to_proto()
+    assert msg.WhichOneof('tag') == 'no_sync'
     assert tag == cirq_google.NoSyncTag.from_proto(msg)
 
-    # Tag with reverse=0, forward=1
-    tag_with_fields = cirq_google.NoSyncTag(reverse=0, forward=1)
+    # Existing message passed to to_proto
+    existing_msg = program_pb2.Tag()
+    assert tag.to_proto(existing_msg) is existing_msg
+    assert tag == cirq_google.NoSyncTag.from_proto(existing_msg)
+
+    # Tag with reverse=2, forward=1
+    tag_with_fields = cirq_google.NoSyncTag(reverse=2, forward=1)
     msg_fields = tag_with_fields.to_proto()
     assert msg_fields.no_sync.WhichOneof('rev') == 'reverse'
-    assert msg_fields.no_sync.reverse == 0
+    assert msg_fields.no_sync.reverse == 2
     assert msg_fields.no_sync.WhichOneof('fwd') == 'forward'
     assert msg_fields.no_sync.forward == 1
     assert tag_with_fields == cirq_google.NoSyncTag.from_proto(msg_fields)
 
-    # from_proto directly with manually created proto matching "reverse: 0, forward: 1"
+    # from_proto directly with manually created proto matching "reverse: 2, forward: 1"
     raw_tag_msg = program_pb2.Tag()
-    raw_tag_msg.no_sync.reverse = 0
+    raw_tag_msg.no_sync.reverse = 2
     raw_tag_msg.no_sync.forward = 1
     deserialized = cirq_google.NoSyncTag.from_proto(raw_tag_msg)
-    assert deserialized.reverse == 0
+    assert deserialized.reverse == 2
     assert deserialized.forward == 1
     assert deserialized == tag_with_fields
-
-    # from_proto accepting NoSyncTag proto directly
-    assert deserialized == cirq_google.NoSyncTag.from_proto(raw_tag_msg.no_sync)
 
     # Tag with remove_all_syncs
     tag_all_syncs = cirq_google.NoSyncTag(
@@ -117,5 +121,3 @@ def test_proto() -> None:
         msg_wrong.internal_tag.SetInParent()
         cirq_google.NoSyncTag.from_proto(msg_wrong)
 
-    with pytest.raises(ValueError, match="Expected Tag or NoSyncTag"):
-        cirq_google.NoSyncTag.from_proto("not_a_proto")  # type: ignore[arg-type]
