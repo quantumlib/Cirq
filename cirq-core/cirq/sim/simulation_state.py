@@ -161,6 +161,10 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         """Creates a final merged state."""
         return self
 
+    def create_empty_state(self, qubits: Sequence[cirq.Qid]) -> Self:
+        """Creates a new state with the given qubits in the |0> state"""
+        raise NotImplementedError("This simulation state does not implement create_empty_state.")
+
     def remove_qubits(self: Self, qubits: Sequence[cirq.Qid]) -> Self:
         """Remove `qubits` from the state space.
 

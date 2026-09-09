@@ -53,6 +53,9 @@ class EmptySimulationState(cirq.SimulationState):
     def add_qubits(self, qubits: Sequence[cirq.Qid]) -> EmptySimulationState:
         return EmptySimulationState(self.qubits + tuple(qubits), self.classical_data)
 
+    def create_empty_state(self, qubits: Sequence[cirq.Qid]) -> EmptySimulationState:
+        return EmptySimulationState(qubits, self._classical_data)
+
 
 q0, q1, q2 = qs3 = cirq.LineQubit.range(3)
 qs2 = cirq.LineQubit.range(2)

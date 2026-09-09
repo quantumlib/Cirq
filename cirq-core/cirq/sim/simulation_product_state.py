@@ -97,9 +97,7 @@ class SimulationProductState(
             return self
         if self.split_untangled_states:
             for q in qubits:
-                sub = self.sim_states[None].copy().add_qubits([q])
-                sub._classical_data = self._classical_data
-                self._sim_states[q] = sub
+                self._sim_states[q] = self.sim_states[None].create_empty_state([q])
         else:
             self._sim_states[None] = self.sim_states[None].add_qubits(qubits)
             for q in qubits:

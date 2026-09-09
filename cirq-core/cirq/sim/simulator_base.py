@@ -202,7 +202,11 @@ class SimulatorBase(
         measured: dict[tuple[cirq.Qid, ...], bool] = collections.defaultdict(bool)
         for moment in circuit:
             resolved_moment = protocols.resolve_parameters(moment, sim_state.param_resolver)
-            new_qubits = [q for q in resolved_moment.qubits if q not in sim_state.qubit_map]
+            new_qubits = sorted(
+                q
+                for q in resolved_moment.qubits
+                if q not in sim_state.qubit_map and not isinstance(q, ops.VariableQid)
+            )
             if new_qubits:
                 sim_state = sim_state.add_qubits(new_qubits)
                 system_qubits = sorted(sim_state.qubits)

@@ -323,7 +323,7 @@ def test_variable_grid_qid_simulation():
         cirq.Moment(cirq.measure(q, key='m')),
     )
     for sim in sims:
-        results = statevec_sim.run(circuit)
+        results = sim.run(circuit)
         assert results.measurements['m'] == 0
 
     # check that unresolved variableqids cause an error
