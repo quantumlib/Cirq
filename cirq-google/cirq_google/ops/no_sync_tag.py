@@ -33,13 +33,13 @@ class NoSyncTag:
 
     Args:
         reverse: Number of synchronizations before the operation to remove.
-            Mutually exclusive with remove_all_syncs_before.
+            Mutually exclusive with `remove_all_syncs_before`.
         remove_all_syncs_before: Remove all possible synchronizations before the operation.
-            Mutually exclusive with reverse.
+            Mutually exclusive with `reverse`.
         forward: Number of synchronizations after the operation to remove.
-            Mutually exclusive with remove_all_syncs_after.
+            Mutually exclusive with `remove_all_syncs_after`.
         remove_all_syncs_after: Remove all possible synchronizations after the operation.
-            Mutually exclusive with forward.
+            Mutually exclusive with `forward`.
     """
 
     reverse: int = 0
@@ -47,7 +47,7 @@ class NoSyncTag:
     forward: int = 0
     remove_all_syncs_after: bool = False
 
-    def __attrs_post_init__(self):
+    def __attrs_post_init__(self) -> None:
         if self.reverse and self.remove_all_syncs_before:
             raise ValueError("Cannot specify both reverse and remove_all_syncs_before")
         if self.forward and self.remove_all_syncs_after:
