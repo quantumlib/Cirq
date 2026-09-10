@@ -17,8 +17,8 @@
 from __future__ import annotations
 
 import itertools
-from collections.abc import Sequence
-from typing import Any, TYPE_CHECKING
+from collections.abc import Hashable, Sequence
+from typing import Any, cast, TYPE_CHECKING
 
 import networkx as nx
 
@@ -121,6 +121,7 @@ class RouteCQC:
         lookahead_radius: int = 8,
         tag_inserted_swaps: bool = False,
         initial_mapper: cirq.AbstractInitialMapper | None = None,
+        min_qubit_mapping_threshold: float = 0.5,
         context: cirq.TransformerContext | None = None,
     ) -> cirq.AbstractCircuit:
         """Transforms the given circuit to make it executable on the device.
@@ -137,7 +138,14 @@ class RouteCQC:
             initial_mapper: an initial mapping strategy (placement) of logical qubits in the
                 circuit onto physical qubits on the device. If not provided, defaults to an
                 instance of `cirq.LineInitialMapper`.
+            min_qubit_mapping_threshold: the minimum fraction (0.0 to 1.0) of qubits that must be
+                covered by 2-qubit operations in the view of the circuit used to compute the
+                initial mapping. `CircuitOperation`s are unrolled one at a time, in circuit order,
+                until that fraction is reached. This only affects initial placement, never the
+                routed circuit's semantics.
             context: transformer context storing common configurable options for transformers.
+                `CircuitOperation`s tagged with a tag in `context.tags_to_ignore` are not
+                unrolled.
 
         Returns:
             The routed circuit, which is equivalent to original circuit up to a final qubit
@@ -145,13 +153,15 @@ class RouteCQC:
                 `device_graph`.
 
         Raises:
-            ValueError: if circuit has operations that act on 3 or more qubits, except measurements.
+            ValueError: if circuit has operations that act on 3 or more qubits, except measurements,
+                or if `min_qubit_mapping_threshold` is not between 0.0 and 1.0.
         """
         routed_circuit, _, _ = self.route_circuit(
             circuit=circuit,
             lookahead_radius=lookahead_radius,
             tag_inserted_swaps=tag_inserted_swaps,
             initial_mapper=initial_mapper,
+            min_qubit_mapping_threshold=min_qubit_mapping_threshold,
             context=context,
         )
         return routed_circuit
@@ -163,15 +173,19 @@ class RouteCQC:
         lookahead_radius: int = 8,
         tag_inserted_swaps: bool = False,
         initial_mapper: cirq.AbstractInitialMapper | None = None,
+        min_qubit_mapping_threshold: float = 0.5,
         context: cirq.TransformerContext | None = None,
     ) -> tuple[cirq.AbstractCircuit, dict[cirq.Qid, cirq.Qid], dict[cirq.Qid, cirq.Qid]]:
         """Transforms the given circuit to make it executable on the device.
 
         This transformer assumes that all multi-qubit operations have been decomposed into 2-qubit
-        operations and will raise an error if `circuit` a n-qubit operation where n > 2. If
-        `circuit` contains `cirq.CircuitOperation`s and `context.deep` is True then they are first
-        unrolled before proceeding. If `context.deep` is False or `context` is None then any
-        `cirq.CircuitOperation` that acts on more than 2-qubits will also raise an error.
+        operations and will raise an error if `circuit` a n-qubit operation where n > 2. Any
+        `cirq.CircuitOperation` in `circuit` is unrolled before routing, unless it is tagged with
+        one of `context.tags_to_ignore`, in which case it is routed as an opaque operation and
+        must act on at most 2 qubits. Only as many `cirq.CircuitOperation`s as are needed to cover
+        `min_qubit_mapping_threshold` of the qubits are inspected when computing the initial
+        mapping; the circuit that is routed is always unrolled, so the routed circuit is
+        equivalent to the unrolled input up to a final qubit permutation.
 
         The algorithm tries to find the best swap at each timestep by ranking a set of candidate
         swaps against operations starting from the current timestep (say s) to the timestep at index
@@ -191,7 +205,17 @@ class RouteCQC:
                 operations.
             initial_mapper: an initial mapping strategy (placement) of logical qubits in the
                 circuit onto physical qubits on the device.
+            min_qubit_mapping_threshold: the minimum fraction (0.0 to 1.0) of qubits that must be
+                covered by 2-qubit operations in the view of the circuit used to compute the
+                initial mapping. `CircuitOperation`s are unrolled one at a time, in circuit order,
+                until that fraction is reached; the rest are left folded, which keeps the cost of
+                computing the initial mapping down on circuits built from large subcircuits. A
+                value of 1.0 means every `CircuitOperation` is inspected unless full coverage is
+                reached earlier, and 0.0 means none are. This only affects initial placement,
+                never the routed circuit's semantics.
             context: transformer context storing common configurable options for transformers.
+                `CircuitOperation`s tagged with a tag in `context.tags_to_ignore` are not
+                unrolled.
 
         Returns:
             The routed circuit, which is equivalent to original circuit up to a final qubit
@@ -203,12 +227,29 @@ class RouteCQC:
                 inserting swaps.
 
         Raises:
-            ValueError: if circuit has operations that act on 3 or more qubits, except measurements.
+            ValueError: if circuit has operations that act on 3 or more qubits, except measurements,
+                or if `min_qubit_mapping_threshold` is not between 0.0 and 1.0.
         """
 
-        # 0. Handle CircuitOperations by unrolling them.
-        if context is not None and context.deep is True:
-            circuit = transformer_primitives.unroll_circuit_op(circuit, deep=True)
+        if not 0.0 <= min_qubit_mapping_threshold <= 1.0:
+            raise ValueError(
+                "min_qubit_mapping_threshold must be between 0.0 and 1.0, but got "
+                f"{min_qubit_mapping_threshold}."
+            )
+
+        # 0. Handle CircuitOperations by computing the initial mapping from a partially unrolled
+        # view of the circuit and then unrolling them.
+        tags_to_ignore = context.tags_to_ignore if context is not None else ()
+        if initial_mapper is None:
+            initial_mapper = line_initial_mapper.LineInitialMapper(self.device_graph)
+        initial_mapping: dict[cirq.Qid, cirq.Qid] | None = None
+        if self._has_circuit_operations(circuit):
+            initial_mapping = initial_mapper.initial_mapping(
+                self._circuit_for_initial_mapping(
+                    circuit, min_qubit_mapping_threshold, tags_to_ignore
+                )
+            )
+            circuit = self._unrolled_circuit(circuit, tags_to_ignore)
         if any(
             protocols.num_qubits(op) > 2 and not protocols.is_measurement(op)
             for op in circuit.all_operations()
@@ -216,9 +257,8 @@ class RouteCQC:
             raise ValueError("Input circuit must only have ops that act on 1 or 2 qubits.")
 
         # 1. Do the initial mapping of logical to physical qubits.
-        if initial_mapper is None:
-            initial_mapper = line_initial_mapper.LineInitialMapper(self.device_graph)
-        initial_mapping = initial_mapper.initial_mapping(circuit)
+        if initial_mapping is None:
+            initial_mapping = initial_mapper.initial_mapping(circuit)
 
         # 2. Construct a mapping manager that implicitly keeps track of this mapping and provides
         # convenience methods over the image of the map on the device graph.
@@ -562,6 +602,85 @@ class RouteCQC:
         for swap in swaps:
             mm.apply_swap(*swap)
         return max_length, sum_length
+
+    def _has_circuit_operations(self, circuit: cirq.AbstractCircuit) -> bool:
+        """Check if the circuit contains any CircuitOperations."""
+        return any(
+            isinstance(op.untagged, circuits.CircuitOperation) for op in circuit.all_operations()
+        )
+
+    @staticmethod
+    def _two_qubit_coverage(operations: Sequence[cirq.Operation]) -> set[cirq.Qid]:
+        """Gets the qubits that take part in a 2-qubit operation."""
+        return {q for op in operations if protocols.num_qubits(op) == 2 for q in op.qubits}
+
+    @classmethod
+    def _unrolled_circuit(
+        cls, circuit: cirq.AbstractCircuit, tags_to_ignore: Sequence[Hashable]
+    ) -> cirq.AbstractCircuit:
+        """Unrolls every `CircuitOperation` that isn't tagged with a tag in `tags_to_ignore`.
+
+        Like `cirq.unroll_circuit_op` this preserves the moment structure of the input, but a
+        `CircuitOperation` marked with one of `tags_to_ignore` is left folded, at any nesting
+        depth, so that the `context.tags_to_ignore` contract is honoured.
+        """
+        ignored = set(tags_to_ignore)
+
+        def map_func(moment: cirq.Moment, _: int) -> Sequence[cirq.Moment]:
+            to_zip: list[cirq.AbstractCircuit] = []
+            for op in moment:
+                op_untagged = op.untagged
+                if isinstance(op_untagged, circuits.CircuitOperation) and not ignored.intersection(
+                    op.tags
+                ):
+                    to_zip.append(
+                        cls._unrolled_circuit(op_untagged.mapped_circuit(), tags_to_ignore)
+                    )
+                else:
+                    to_zip.append(circuits.Circuit(op))
+            return circuits.Circuit.zip(*to_zip).moments
+
+        return transformer_primitives.map_moments(circuit, map_func)
+
+    def _circuit_for_initial_mapping(
+        self,
+        circuit: cirq.AbstractCircuit,
+        min_qubit_mapping_threshold: float,
+        tags_to_ignore: Sequence[Hashable] = (),
+    ) -> cirq.AbstractCircuit:
+        """Returns the view of `circuit` used to compute the initial mapping.
+
+        `CircuitOperation`s are unrolled one at a time, in circuit order, until the fraction of
+        qubits covered by 2-qubit operations reaches `min_qubit_mapping_threshold`. The rest, along
+        with any `CircuitOperation` marked with a tag in `tags_to_ignore`, are left folded, so
+        every qubit of the input is still present and the returned circuit always yields a mapping
+        over the full qubit set.
+        """
+        all_qubits = circuit.all_qubits()
+        if not all_qubits:
+            return circuit
+        ignored = set(tags_to_ignore)
+        required_coverage = min_qubit_mapping_threshold * len(all_qubits)
+
+        flattened = list(circuit.all_operations())
+        circuit_op_positions = [
+            i
+            for i, op in enumerate(flattened)
+            if isinstance(op.untagged, circuits.CircuitOperation)
+            and not ignored.intersection(op.tags)
+        ]
+        offset = 0
+        for position in circuit_op_positions:
+            if len(self._two_qubit_coverage(flattened)) >= required_coverage:
+                break
+            index = position + offset
+            circuit_op = cast('cirq.CircuitOperation', flattened[index].untagged)
+            body = list(
+                self._unrolled_circuit(circuit_op.mapped_circuit(), tags_to_ignore).all_operations()
+            )
+            flattened[index : index + 1] = body
+            offset += len(body) - 1
+        return circuits.Circuit(flattened)
 
     def __eq__(self, other) -> bool:
         return nx.utils.graphs_equal(self.device_graph, other.device_graph)
