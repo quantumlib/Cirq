@@ -381,6 +381,15 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         remainder._state._state_vector *= extracted._state._state_vector.reshape((-1,))[0]
         return remainder
 
+    def create_empty_state(self, qubits: Sequence[cirq.Qid]) -> StateVectorSimulationState:
+        return StateVectorSimulationState(
+            prng=self._prng,
+            qubits=qubits,
+            dtype=self._state._state_vector.dtype,
+            classical_data=self._classical_data,
+            param_resolver=self._param_resolver,
+        )
+
     def _act_on_fallback_(
         self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True
     ) -> bool:

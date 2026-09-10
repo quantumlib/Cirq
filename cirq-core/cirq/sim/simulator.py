@@ -633,7 +633,9 @@ class SimulatesIntermediateState(
         """
         param_resolver = study.ParamResolver(param_resolver)
         actual_initial_state = 0 if initial_state is None else initial_state
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            q for q in circuit.all_qubits() if not isinstance(q, ops.VariableQid)
+        )
         return self._base_iterator(
             circuit, qubits, actual_initial_state, param_resolver=param_resolver
         )
