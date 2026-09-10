@@ -99,7 +99,7 @@ def test_ionq_client_create_job(mock_post):
     mock_post.return_value.json.return_value = {'foo': 'bar'}
 
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
-    program = ionq.SerializedProgram(
+    program = ionq.SerializedQISProgram(
         input={'job': 'mine'},
         metadata={'a': '0,1'},
         settings={'aaa': 'bb'},
@@ -145,7 +145,7 @@ def test_ionq_client_create_job_error_mitigation_is_correctly_initialized(mock_p
     mock_post.return_value.json.return_value = {'foo': 'bar'}
 
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
-    program = ionq.SerializedProgram(
+    program = ionq.SerializedQISProgram(
         input={'job': 'mine'},
         metadata={'a': '0,1'},
         settings={},
@@ -190,7 +190,7 @@ def test_ionq_client_create_job_compilation_is_correctly_initialized(mock_post):
     mock_post.return_value.json.return_value = {'foo': 'bar'}
 
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
-    program = ionq.SerializedProgram(
+    program = ionq.SerializedQISProgram(
         input={'job': 'mine'},
         metadata={'a': '0,1'},
         settings={},
@@ -235,7 +235,7 @@ def test_ionq_client_create_job_extra_params(mock_post):
     mock_post.return_value.json.return_value = {'foo': 'bar'}
 
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
-    program = ionq.SerializedProgram(
+    program = ionq.SerializedQISProgram(
         input={'job': 'mine'},
         metadata={'a': '0,1'},
         settings={},
@@ -278,7 +278,7 @@ def test_ionq_client_create_job_extra_params(mock_post):
 def test_ionq_client_create_job_dry_run_warning_behavior(mock_post, target, expect_warning):
 
     client = ionq.ionq_client._IonQClient(remote_host="http://example.com", api_key="to_my_heart")
-    program = ionq.SerializedProgram(
+    program = ionq.SerializedQISProgram(
         input={"job": "mine"},
         metadata={},
         settings={},
@@ -308,7 +308,7 @@ def test_ionq_client_create_job_default_target(mock_post):
         remote_host='http://example.com', api_key='to_my_heart', default_target='simulator'
     )
     _ = client.create_job(
-        ionq.SerializedProgram(
+        ionq.SerializedQISProgram(
             input={'job': 'mine'},
             metadata={},
             settings={},
@@ -330,7 +330,7 @@ def test_ionq_client_create_job_target_overrides_default_target(mock_post):
         remote_host='http://example.com', api_key='to_my_heart', default_target='simulator'
     )
     _ = client.create_job(
-        serialized_program=ionq.SerializedProgram(
+        serialized_program=ionq.SerializedQISProgram(
             input={'job': 'mine'},
             metadata={},
             settings={},
@@ -349,7 +349,7 @@ def test_ionq_client_create_job_no_targets():
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
     with pytest.raises(AssertionError, match='neither were set'):
         _ = client.create_job(
-            serialized_program=ionq.SerializedProgram(
+            serialized_program=ionq.SerializedQISProgram(
                 input={'job': 'mine'},
                 metadata={},
                 settings={},
@@ -371,7 +371,7 @@ def test_ionq_client_create_job_unauthorized(mock_post):
     )
     with pytest.raises(ionq.IonQException, match='Not authorized'):
         _ = client.create_job(
-            serialized_program=ionq.SerializedProgram(
+            serialized_program=ionq.SerializedQISProgram(
                 input={'job': 'mine'},
                 metadata={},
                 settings={},
@@ -393,7 +393,7 @@ def test_ionq_client_create_job_not_found(mock_post):
     )
     with pytest.raises(ionq.IonQNotFoundException, match='not find'):
         _ = client.create_job(
-            serialized_program=ionq.SerializedProgram(
+            serialized_program=ionq.SerializedQISProgram(
                 input={'job': 'mine'},
                 metadata={},
                 settings={},
@@ -415,7 +415,7 @@ def test_ionq_client_create_job_not_retriable(mock_post):
     )
     with pytest.raises(ionq.IonQException, match='Status: 409'):
         _ = client.create_job(
-            serialized_program=ionq.SerializedProgram(
+            serialized_program=ionq.SerializedQISProgram(
                 input={'job': 'mine'},
                 metadata={},
                 settings={},
@@ -444,7 +444,7 @@ def test_ionq_client_create_job_retry(mock_post):
     test_stdout = io.StringIO()
     with contextlib.redirect_stdout(test_stdout):
         _ = client.create_job(
-            serialized_program=ionq.SerializedProgram(
+            serialized_program=ionq.SerializedQISProgram(
                 input={'job': 'mine'},
                 metadata={},
                 settings={},
@@ -467,7 +467,7 @@ def test_ionq_client_create_job_retry_request_error(mock_post):
         remote_host='http://example.com', api_key='to_my_heart', default_target='simulator'
     )
     _ = client.create_job(
-        serialized_program=ionq.SerializedProgram(
+        serialized_program=ionq.SerializedQISProgram(
             input={'job': 'mine'},
             metadata={},
             settings={},
@@ -493,7 +493,7 @@ def test_ionq_client_create_job_timeout(mock_post):
     )
     with pytest.raises(TimeoutError):
         _ = client.create_job(
-            serialized_program=ionq.SerializedProgram(
+            serialized_program=ionq.SerializedQISProgram(
                 input={'job': 'mine'},
                 metadata={},
                 settings={},
