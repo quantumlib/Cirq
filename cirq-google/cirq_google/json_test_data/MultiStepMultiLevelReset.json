@@ -1,0 +1,16 @@
+{
+  "cirq_type": "MultiStepMultiLevelReset",
+  "f_start": null,
+  "already_at_readout_detuning": null,
+  "f_end": null,
+  "end_at_idle": null,
+  "lengths": null,
+  "f_swaps_delta": null,
+  "gs": null,
+  "padding_before": null,
+  "padding_after": null,
+  "detune_to_start_freq": null,
+  "start_at_readout_detuning": null,
+  "coupler_amplitudes": null,
+  "compensate_coupled_qubit": null
+}
