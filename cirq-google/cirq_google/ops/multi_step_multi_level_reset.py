@@ -23,11 +23,13 @@ multiple frequency steps.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import attrs
 import cirq
-from cirq_google.study import symbol_util as su
+
+if TYPE_CHECKING:
+    from cirq_google.study import symbol_util as su
 
 
 @attrs.frozen(eq=False, hash=False)
