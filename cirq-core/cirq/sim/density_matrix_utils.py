@@ -176,8 +176,9 @@ def measure_density_matrix(
     # Reshape to a tensor inplace to set the masked values to 0.
     arrout.reshape(qid_shape * 2, copy=False)[mask] = 0
 
-    # Renormalize.
+    # Renormalize to the measured outcome, then correct trace drift from float error.
     arrout /= probs[result]
+    _renormalize_density_matrix_trace(arrout, qid_shape)
 
     return measurement_bits, arrout
 
@@ -190,6 +191,16 @@ def _probs(
     all_probs = np.diagonal(np.reshape(density_matrix, (np.prod(qid_shape, dtype=np.int64),) * 2))
 
     return simulation_utils.state_probabilities_by_indices(all_probs.real, indices, qid_shape)
+
+
+def _renormalize_density_matrix_trace(
+    density_matrix: np.ndarray, qid_shape: tuple[int, ...]
+) -> None:
+    """Rescale `density_matrix` in place so its trace is 1."""
+    size = int(np.prod(qid_shape))
+    trace = np.trace(density_matrix.reshape(size, size))
+    if not np.isclose(trace, 0):
+        density_matrix /= trace
 
 
 def _validate_density_matrix_qid_shape(
