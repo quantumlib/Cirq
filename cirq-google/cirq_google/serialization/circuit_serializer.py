@@ -40,6 +40,7 @@ from cirq_google.ops import (
     LZSResetViaResonator,
     MultilevelResetViaResonator,
     MultiStepMultiLevelReset,
+    NoSyncTag,
     PhysicalZTag,
     SycamoreGate,
     TwoPulseFSimTag,
@@ -1206,6 +1207,8 @@ class CircuitSerializer(serializer.Serializer):
             return InternalTag.from_proto(msg)
         elif which == 'compress_duration':
             return CompressDurationTag()
+        elif which == 'no_sync':
+            return NoSyncTag.from_proto(msg)
         elif which == 'raw_value':
             return arg_func_langs.arg_from_proto(msg.raw_value)
         else:

@@ -66,6 +66,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         # cirq_google.GateTabulation has been removed and replaced by cirq.TwoQubitGateTabulation.
         'GateTabulation': TwoQubitGateTabulation,
         'PhysicalZTag': cirq_google.PhysicalZTag,
+        'NoSyncTag': cirq_google.NoSyncTag,
         'FSimGateFamily': cirq_google.FSimGateFamily,
         'FSimViaModelTag': cirq_google.FSimViaModelTag,
         'TwoPulseFSimTag': cirq_google.TwoPulseFSimTag,
