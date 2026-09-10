@@ -31,7 +31,6 @@ from cirq_google.serialization.op_deserializer import OpDeserializer
 from cirq_google.serialization.op_serializer import OpSerializer
 from cirq_google.serialization.tag_deserializer import TagDeserializer
 from cirq_google.serialization.tag_serializer import TagSerializer
-from google.protobuf import json_format
 
 
 class FakeDevice(cirq.Device):
