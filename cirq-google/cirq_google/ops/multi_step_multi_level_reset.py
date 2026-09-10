@@ -12,55 +12,79 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Multi-step multi-level reset gate."""
+"""Multi-step multi-level reset gate.
+
+This module defines `MultiStepMultiLevelReset`, an active reset gate for
+superconducting qubits that resets the qubit to its ground state by iteratively
+swapping excited-state populations into a fast-decaying reset resonator across
+multiple frequency steps.
+"""
 
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any, TypeAlias
+from typing import Any
 
 import attrs
-import sympy
-import tunits as tu
-
 import cirq
-
-ValueOrSymbol: TypeAlias = tu.Value | sympy.Basic
-FloatOrSymbol: TypeAlias = float | sympy.Basic
+from cirq_google.study import symbol_util as su
 
 
 @attrs.frozen(eq=False, hash=False)
 class MultiStepMultiLevelReset(cirq.Gate):
     """Multi-step multi-level reset gate.
 
+    This gate actively resets a superconducting qubit to the ground state by
+    iteratively swapping excited populations (including higher levels like |2>
+    and |1>) into an attached reset resonator across multiple frequency steps.
+    Each step specifies a duration (`lengths`), a swap frequency detuning relative
+    to the reset resonator frequency (`f_swaps_delta`), and a coupling strength
+    (`gs`).
+
+    Parameters that are not specified (set to `None`) are populated from calibration
+    or device defaults at scheduling/runtime.
+
     Attributes:
-        f_start: Starting frequency for the trajectory.
-        already_at_readout_detuning: Whether the qubit is already at readout detuning.
-        f_end: Final frequency for the trajectory.
-        end_at_idle: Whether to return the qubit to idle frequency at the end.
+        f_start: Starting frequency of the reset trajectory.
+        already_at_readout_detuning: If True, indicates that the qubit is already
+            at the readout detuning frequency prior to this gate (e.g. immediately
+            following readout), rather than at idle. This is used to compute the
+            step pulse amplitude needed to transition into `f_start`.
+        f_end: Ending frequency of the reset trajectory.
+        end_at_idle: If True, the qubit returns to idle frequency at the end of
+            the gate, ignoring `f_end`. If False, the trajectory ends at `f_end`
+            and an additional step pulse is applied to return to idle.
         lengths: Sequence of durations for each reset step.
-        f_swaps_delta: Sequence of swap detuning frequencies for each step.
-        gs: Sequence of coupling strengths for each step.
-        padding_before: Padding time before the reset trajectory.
-        padding_after: Padding time after the reset trajectory.
-        detune_to_start_freq: Whether to detune to start frequency first.
-        start_at_readout_detuning: Whether to start at readout detuning.
-        coupler_amplitudes: Map of coupler names to amplitudes.
-        compensate_coupled_qubit: Whether to apply compensation for coupled qubits.
+        f_swaps_delta: Sequence of swap detuning frequencies for each step,
+            measured relative to the reset resonator frequency.
+        gs: Sequence of coupling strengths for each reset step.
+        padding_before: Padding duration before the reset trajectory begins.
+        padding_after: Padding duration after the reset trajectory ends.
+        detune_to_start_freq: If True, include a detune step to bring the qubit
+            to `f_start`. If False, assume the qubit is already at `f_start`.
+        start_at_readout_detuning: If True, begins the reset trajectory at the
+            qubit's readout detuning frequency, overriding `f_start`. This differs
+            from `already_at_readout_detuning`, which specifies the qubit's initial
+            state before the gate starts.
+        coupler_amplitudes: Optional map of coupler names to detune amplitudes
+            for couplers connected to this qubit during reset.
+        compensate_coupled_qubit: If True, compensates for coupler detuning by
+            applying a compensation detune to the other qubit connected to each
+            coupler.
     """
 
-    f_start: ValueOrSymbol | None = None
+    f_start: su.ValueOrSymbol | None = None
     already_at_readout_detuning: bool | None = None
-    f_end: ValueOrSymbol | None = None
+    f_end: su.ValueOrSymbol | None = None
     end_at_idle: bool | None = None
-    lengths: Sequence[ValueOrSymbol] | None = None
-    f_swaps_delta: Sequence[ValueOrSymbol] | None = None
-    gs: Sequence[ValueOrSymbol] | None = None
-    padding_before: ValueOrSymbol | None = None
-    padding_after: ValueOrSymbol | None = None
+    lengths: Sequence[su.ValueOrSymbol] | None = None
+    f_swaps_delta: Sequence[su.ValueOrSymbol] | None = None
+    gs: Sequence[su.ValueOrSymbol] | None = None
+    padding_before: su.ValueOrSymbol | None = None
+    padding_after: su.ValueOrSymbol | None = None
     detune_to_start_freq: bool | None = None
     start_at_readout_detuning: bool | None = None
-    coupler_amplitudes: dict[str, FloatOrSymbol] | None = None
+    coupler_amplitudes: dict[str, cirq.TParamVal] | None = None
     compensate_coupled_qubit: bool | None = None
 
     def _num_qubits_(self) -> int:

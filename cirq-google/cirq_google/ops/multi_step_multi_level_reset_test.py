@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sympy
 import tunits as tu
 
 import cirq
 import cirq_google as cg
+import sympy
 from cirq_google.api import v2
 from cirq_google.ops.multi_step_multi_level_reset import MultiStepMultiLevelReset
 

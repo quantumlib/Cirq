@@ -24,9 +24,8 @@ from collections.abc import Callable, Hashable, Mapping, Sequence
 from typing import Any
 
 import attrs
-import sympy
-
 import cirq
+import sympy
 from cirq_google.api import v2
 from cirq_google.experimental.ops import CouplerPulse
 from cirq_google.ops import (
@@ -66,6 +65,12 @@ _SERIALIZER_NAME = 'v2_5'
 
 
 def _serialize_value(value: Any, out_msg: v2.program_pb2.Arg) -> None:
+    # Note: `v2.program_pb2.Arg` (and `ArgValue`) does not have a map/dict field in
+    # the protobuf schema, only primitive types, tunits.Value, and tuples/ndarrays.
+    # To represent dictionary arguments such as `coupler_amplitudes` without
+    # protobuf schema changes and to stay wire-compatible with pyle
+    # (see pyle.cirqtools.proto_serialization._serialize_value),
+    # dictionaries are serialized as JSON strings with the '__JSON_DICT__:' prefix.
     if isinstance(value, dict):
         val = "__JSON_DICT__:" + json.dumps(value)
     else:
