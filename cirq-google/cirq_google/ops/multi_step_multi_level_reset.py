@@ -26,6 +26,7 @@ from collections.abc import Sequence
 from typing import Any, TYPE_CHECKING
 
 import attrs
+
 import cirq
 
 if TYPE_CHECKING:
