@@ -16,14 +16,15 @@ from __future__ import annotations
 
 from typing import Any
 
-import pytest
-import tunits.units
-
 import attrs
+import numpy as np
+import pytest
+import sympy
+import tunits.units
+from google.protobuf import json_format
+
 import cirq
 import cirq_google as cg
-import numpy as np
-import sympy
 from cirq_google.api import v2
 from cirq_google.serialization.circuit_serializer import _SERIALIZER_NAME
 from cirq_google.serialization.op_deserializer import OpDeserializer

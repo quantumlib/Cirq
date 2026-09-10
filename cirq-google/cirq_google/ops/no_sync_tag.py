@@ -19,6 +19,7 @@ from __future__ import annotations
 from typing import Any
 
 import attrs
+
 import cirq
 from cirq_google.api.v2 import program_pb2
 
@@ -82,13 +83,7 @@ class NoSyncTag:
 
     def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(
-            self,
-            [
-                'reverse',
-                'remove_all_syncs_before',
-                'forward',
-                'remove_all_syncs_after',
-            ],
+            self, ['reverse', 'remove_all_syncs_before', 'forward', 'remove_all_syncs_after']
         )
 
     def to_proto(self, msg: program_pb2.Tag | None = None) -> program_pb2.Tag:
