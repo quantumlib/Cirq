@@ -103,7 +103,9 @@ class RuntimeInfo:
     def _json_dict_(self) -> dict[str, Any]:
         d = {
             'execution_index': self.execution_index,
-            'qubit_placement': self.qubit_placement and list(self.qubit_placement.items()),
+            'qubit_placement': (
+                list(self.qubit_placement.items()) if self.qubit_placement is not None else None
+            ),
             'timings_s': list(self.timings_s.items()),
         }
         return d
