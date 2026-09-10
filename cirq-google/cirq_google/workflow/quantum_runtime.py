@@ -101,10 +101,11 @@ class RuntimeInfo:
         return 'cirq.google'
 
     def _json_dict_(self) -> dict[str, Any]:
-        d = dataclass_json_dict(self)
-        if d['qubit_placement']:
-            d['qubit_placement'] = list(d['qubit_placement'].items())
-        d['timings_s'] = list(d['timings_s'].items())
+        d = {
+            'execution_index': self.execution_index,
+            'qubit_placement': self.qubit_placement and list(self.qubit_placement.items()),
+            'timings_s': list(self.timings_s.items()),
+        }
         return d
 
     @classmethod
