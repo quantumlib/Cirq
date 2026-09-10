@@ -1,0 +1,5 @@
+[
+    cirq_google.NoSyncTag(),
+    cirq_google.NoSyncTag(reverse=2, forward=3),
+    cirq_google.NoSyncTag(remove_all_syncs_before=True, remove_all_syncs_after=True)
+]
