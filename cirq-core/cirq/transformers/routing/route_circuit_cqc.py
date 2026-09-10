@@ -282,8 +282,8 @@ class RouteCQC:
                     circuits.Moment() for _ in range(timestep + 1 - len(two_qubit_circuit))
                 )
                 if protocols.num_qubits(op) > 2 and protocols.is_measurement(op):
-                    key = op.gate.key  # type: ignore
-                    default_key = ops.measure(op.qubits).gate.key  # type: ignore
+                    key = op.gate.key  # type: ignore[union-attr]
+                    default_key = ops.measure(op.qubits).gate.key  # type: ignore[attr-defined]
                     if len(circuit.moments) == i + 1:
                         single_qubit_ops[timestep].append(op)
                     elif key in ('', default_key):
@@ -368,14 +368,14 @@ class RouteCQC:
         timestep.
 
         Args:
-          two_qubit_ops: the circuit's two-qubit gates factored into timesteps as defined by the
-            paper.
-          single_qubit_ops: the circuit's single-qubit gates factored into timesteps as defined by
-            the paper.
-          lookahead_radius: the maximum number of times the cost function can be iterated for
-            convergence.
-        tag_inserted_swaps: whether or not a RoutingSwapTag should be attached to inserted swap
-            operations.
+            two_qubit_ops: the circuit's two-qubit gates factored into timesteps as defined by the
+                paper.
+            single_qubit_ops: the circuit's single-qubit gates factored into timesteps as defined
+                by the paper.
+            lookahead_radius: the maximum number of times the cost function can be iterated for
+                convergence.
+            tag_inserted_swaps: whether or not a RoutingSwapTag should be attached to inserted swap
+                operations.
 
         Returns:
             A list of lists corresponding to timesteps of the routed circuit and

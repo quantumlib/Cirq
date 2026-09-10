@@ -13,9 +13,8 @@
 # limitations under the License.
 """Abstract interface for a quantum processor.
 
-This interface can run circuits, sweeps, batches, or calibration
-requests.  Inheritors of this interface should implement all
-methods.
+This interface can run circuits, sweeps and batches.
+Inheritors of this interface should implement all methods.
 """
 
 from __future__ import annotations
@@ -35,7 +34,6 @@ if TYPE_CHECKING:
     import cirq_google.cloud.quantum as quantum
     import cirq_google.engine.abstract_engine as abstract_engine
     import cirq_google.engine.abstract_job as abstract_job
-    import cirq_google.engine.calibration as calibration
 
 
 class AbstractProcessor(abc.ABC):
@@ -43,14 +41,11 @@ class AbstractProcessor(abc.ABC):
 
     This quantum processor has the ability to execute single circuits
     (via the run method), parameter sweeps (via run_sweep), batched
-    lists of circuits (via run_batch), and calibration
-    requests (via run_calibration).  Running circuits can also be
+    lists of circuits (via run_batch).  Running circuits can also be
     done using the `cirq.Sampler` by calling get_sampler.
 
     The processor interface also includes methods to create, list,
     and remove reservations on the processor for dedicated access.
-    The processor can also list calibration metrics for the processor
-    given a time period.
 
     This is an abstract class.  Inheritors should implement abstract methods.
     """
@@ -235,44 +230,6 @@ class AbstractProcessor(abc.ABC):
 
         Returns:
             A `cirq.Device` representing the processor.
-        """
-
-    @abc.abstractmethod
-    def list_calibrations(
-        self,
-        earliest_timestamp: datetime.datetime | datetime.date | int | None = None,
-        latest_timestamp: datetime.datetime | datetime.date | int | None = None,
-    ) -> list[calibration.Calibration]:
-        """Retrieve metadata about a specific calibration run.
-
-        Args:
-            earliest_timestamp: The earliest timestamp of a calibration
-                to return in UTC.
-            latest_timestamp: The latest timestamp of a calibration to
-                return in UTC.
-
-        Returns:
-            The list of calibration data with the most recent first.
-        """
-
-    @abc.abstractmethod
-    def get_calibration(self, calibration_timestamp_seconds: int) -> calibration.Calibration:
-        """Retrieve metadata about a specific calibration run.
-
-        Args:
-            calibration_timestamp_seconds: The timestamp of the calibration in
-                seconds since epoch.
-
-        Returns:
-            The calibration data.
-        """
-
-    @abc.abstractmethod
-    def get_current_calibration(self) -> calibration.Calibration | None:
-        """Returns metadata about the current calibration for a processor.
-
-        Returns:
-            The calibration data or None if there is no current calibration.
         """
 
     @abc.abstractmethod

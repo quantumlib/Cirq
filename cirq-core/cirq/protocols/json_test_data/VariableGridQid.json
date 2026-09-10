@@ -1,0 +1,32 @@
+[
+  {
+    "cirq_type": "VariableGridQid",
+    "row": {
+      "cirq_type": "sympy.Symbol",
+      "name": "x"
+    },
+    "col": {
+      "cirq_type": "sympy.Symbol",
+      "name": "y"
+    },
+    "dimension": 2
+  },
+  {
+    "cirq_type": "VariableGridQid",
+    "row": {
+      "cirq_type": "sympy.Add",
+      "args": [
+        {
+          "cirq_type": "sympy.Symbol",
+          "name": "x"
+        },
+        {
+          "cirq_type": "sympy.Symbol",
+          "name": "y"
+        }
+      ]
+    },
+    "col": 3,
+    "dimension": 3
+  }
+]

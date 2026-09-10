@@ -53,9 +53,9 @@ def _verify_reps(
     total_reps = 0
     for idx, sweep in enumerate(sweeps):
         if not isinstance(repetitions, int):
-            total_reps += len(list(cirq.to_resolvers(sweep))) * repetitions[idx]
+            total_reps += sum(1 for _ in cirq.to_resolvers(sweep)) * repetitions[idx]
         else:
-            total_reps += len(list(cirq.to_resolvers(sweep))) * repetitions
+            total_reps += sum(1 for _ in cirq.to_resolvers(sweep)) * repetitions
     if total_reps > max_repetitions:
         raise RuntimeError(
             'No requested processors currently support the number of requested total repetitions.'

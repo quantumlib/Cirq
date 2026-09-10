@@ -55,7 +55,6 @@ from cirq_google.engine.calibration_to_noise_properties import (
 from cirq_google.engine.engine import (
     Engine as Engine,
     get_engine as get_engine,
-    get_engine_calibration as get_engine_calibration,
     get_engine_device as get_engine_device,
     get_engine_sampler as get_engine_sampler,
     ProtoVersion as ProtoVersion,

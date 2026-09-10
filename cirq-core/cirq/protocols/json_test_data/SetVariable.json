@@ -1,0 +1,22 @@
+[
+  {
+    "cirq_type": "SetVariable",
+    "target": {
+      "cirq_type": "sympy.Symbol",
+      "name": "a"
+    },
+    "expression": {
+      "cirq_type": "sympy.Add",
+      "args": [
+        {
+          "cirq_type": "sympy.Integer",
+          "i": 1
+        },
+        {
+          "cirq_type": "sympy.Symbol",
+          "name": "b"
+        }
+      ]
+    }
+  }
+]

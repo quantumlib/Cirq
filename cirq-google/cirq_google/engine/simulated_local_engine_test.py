@@ -22,8 +22,6 @@ import pytest
 import sympy
 
 import cirq
-import cirq_google
-from cirq_google.api import v2
 from cirq_google.engine.abstract_local_job_test import NothingJob
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
 from cirq_google.engine.abstract_local_program_test import NothingProgram
@@ -41,15 +39,6 @@ class ProgramDictProcessor(AbstractLocalProcessor):
         super().__init__(**kwargs)
         self._programs = programs
 
-    def get_calibration(self, *args, **kwargs):
-        pass
-
-    def get_latest_calibration(self, *args, **kwargs):
-        pass
-
-    def get_current_calibration(self, *args, **kwargs):
-        pass
-
     def get_device(self, *args, **kwargs):
         pass
 
@@ -57,9 +46,6 @@ class ProgramDictProcessor(AbstractLocalProcessor):
         pass
 
     def health(self, *args, **kwargs):
-        pass
-
-    def list_calibrations(self, *args, **kwargs):
         pass
 
     async def run_sweep_async(self, *args, **kwargs):
@@ -159,21 +145,3 @@ def test_sampler():
     results = engine.get_sampler('tester').run_sweep(circuit, params=sweep, repetitions=100)
     assert np.all(results[0].measurements['m'] == 1)
     assert np.all(results[1].measurements['m'] == 0)
-
-
-def test_get_calibration_from_job():
-    cal_proto = v2.metrics_pb2.MetricsSnapshot(timestamp_ms=10000)
-    cal = cirq_google.Calibration(cal_proto)
-    proc = SimulatedLocalProcessor(processor_id='test_proc', calibrations={10000: cal})
-    engine = SimulatedLocalEngine([proc])
-    job = engine.get_processor('test_proc').run_sweep(cirq.Circuit(), params={}, repetitions=100)
-    assert job.get_processor() == proc
-    assert job.get_calibration() == cal
-
-
-def test_no_calibration_from_job():
-    proc = SimulatedLocalProcessor(processor_id='test_proc')
-    engine = SimulatedLocalEngine([proc])
-    job = engine.get_processor('test_proc').run_sweep(cirq.Circuit(), params={}, repetitions=100)
-    assert job.get_processor() == proc
-    assert job.get_calibration() is None

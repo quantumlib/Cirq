@@ -17,7 +17,7 @@ from __future__ import annotations
 import dataclasses
 import functools
 import operator
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterator
 from typing import Any, cast, TYPE_CHECKING
 
 import numpy as np
@@ -137,7 +137,7 @@ class QasmGateStatement:
 
     def on(
         self, params: list[value.TParamVal], args: list[list[ops.Qid]], lineno: int
-    ) -> Iterable[ops.Operation]:
+    ) -> Iterator[ops.Operation]:
         self._validate_args(args, lineno)
         self._validate_params(params, lineno)
 
@@ -166,7 +166,7 @@ class CustomGate:
 
     def on(
         self, params: list[value.TParamVal], args: list[list[ops.Qid]], lineno: int
-    ) -> Iterable[ops.Operation]:
+    ) -> Iterator[ops.Operation]:
         if len(params) != len(self.params):
             raise QasmException(f"Wrong number of params for '{self.name}' at line {lineno}")
         if len(args) != len(self.qubits):

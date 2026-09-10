@@ -43,7 +43,6 @@ from typing import Any, cast, overload, Self, TYPE_CHECKING, TypeVar, Union
 import networkx
 import numpy as np
 
-import cirq._version
 from cirq import _compat, devices, ops, protocols, qis
 from cirq._doc import document
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
@@ -52,7 +51,6 @@ from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.moment import Moment
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
-from cirq.protocols import circuit_diagram_info_protocol
 
 if TYPE_CHECKING:
     import cirq
@@ -236,7 +234,7 @@ class AbstractCircuit(abc.ABC):
             return NotImplemented
         return other is self or (
             self.tags == other.tags
-            and cirq.protocols.approx_eq(tuple(self.moments), tuple(other.moments), atol=atol)
+            and protocols.approx_eq(tuple(self.moments), tuple(other.moments), atol=atol)
         )
 
     def __ne__(self, other) -> bool:
@@ -792,7 +790,7 @@ class AbstractCircuit(abc.ABC):
 
     def findall_operations(
         self, predicate: Callable[[cirq.Operation], bool]
-    ) -> Iterable[tuple[int, cirq.Operation]]:
+    ) -> Iterator[tuple[int, cirq.Operation]]:
         """Find the locations of all operations that satisfy a given condition.
 
         This returns an iterator of (index, operation) tuples where each
@@ -813,7 +811,7 @@ class AbstractCircuit(abc.ABC):
 
     def findall_operations_with_gate_type(
         self, gate_type: type[_TGate]
-    ) -> Iterable[tuple[int, cirq.GateOperation, _TGate]]:
+    ) -> Iterator[tuple[int, cirq.GateOperation, _TGate]]:
         """Find the locations of all gate operations of a given type.
 
         Args:
@@ -863,8 +861,6 @@ class AbstractCircuit(abc.ABC):
             given predicate are terminal. Also checks within any CircuitGates
             the circuit may contain.
         """
-        from cirq.circuits import CircuitOperation
-
         if not all(
             self.next_moment_operating_on(op.qubits, i + 1) is None
             for (i, op) in self.findall_operations(predicate)
@@ -908,8 +904,6 @@ class AbstractCircuit(abc.ABC):
             given predicate are terminal. Also checks within any CircuitGates
             the circuit may contain.
         """
-        from cirq.circuits import CircuitOperation
-
         if any(
             self.next_moment_operating_on(op.qubits, i + 1) is None
             for (i, op) in self.findall_operations(predicate)
@@ -942,7 +936,16 @@ class AbstractCircuit(abc.ABC):
         Returns: frozenset of `cirq.Qid` objects acted on by all operations
             in this circuit.
         """
-        return frozenset(q for m in self.moments for q in m.qubits)
+        # Filter for unique moment instances using object identity and collect their qubit sets.
+        # The condition `(m_id := id(m)) not in seen and not seen.add(m_id)` does both:
+        # 1. Checks if m_id is unseen.
+        # 2. Short-circuits to `seen.add(m_id)` (which returns None) to record m_id in `seen`.
+        seen: set[int] = set()
+        qubit_sets = [m.qubits for m in self if (m_id := id(m)) not in seen and not seen.add(m_id)]  # type: ignore[func-returns-value]
+
+        # Perform a C-level bulk set union across all collected qubit sets.
+        # This avoids element-by-element Python-level iteration and hashing.
+        return frozenset().union(*qubit_sets)
 
     def all_operations(self) -> Iterator[cirq.Operation]:
         """Returns an iterator over the operations in the circuit.
@@ -1297,7 +1300,7 @@ class AbstractCircuit(abc.ABC):
             diagram.write(0, i, name)
         first_annotation_row = max(label_map.values(), default=0) + 1
 
-        if any(isinstance(op.gate, cirq.GlobalPhaseGate) for op in self.all_operations()):
+        if any(isinstance(op.gate, ops.GlobalPhaseGate) for op in self.all_operations()):
             diagram.write(0, max(label_map.values(), default=0) + 1, 'global phase:')
             first_annotation_row += 1
 
@@ -1382,8 +1385,10 @@ class AbstractCircuit(abc.ABC):
             version:  Version of OpenQASM to render as output.  Defaults
                 to OpenQASM 2.0.  For OpenQASM 3.0, set this to '3.0'.
         """
+        from cirq import __version__
+
         if header is None:
-            header = f'Generated from Cirq v{cirq._version.__version__}'
+            header = f'Generated from Cirq v{__version__}'
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         return QasmOutput(
             operations=self.all_operations(),
@@ -1504,13 +1509,13 @@ class AbstractCircuit(abc.ABC):
         if isinstance(align, str):
             align = Alignment[align.upper()]
 
-        result = cirq.Circuit(tags=circuits[0].tags if circuits else ())
+        result = Circuit(tags=circuits[0].tags if circuits else ())
         for k in range(n):
             try:
                 if align == Alignment.LEFT:
-                    moment = cirq.Moment(c[k] for c in circuits if k < len(c))
+                    moment = Moment(c[k] for c in circuits if k < len(c))
                 else:
-                    moment = cirq.Moment(c[len(c) - n + k] for c in circuits if len(c) - n + k >= 0)
+                    moment = Moment(c[len(c) - n + k] for c in circuits if len(c) - n + k >= 0)
                 result.append(moment)
             except ValueError as ex:
                 raise ValueError(
@@ -1563,7 +1568,7 @@ class AbstractCircuit(abc.ABC):
 
         # Allocate a buffer large enough to append and prepend all the circuits.
         pad_len = sum(len(c) for c in circuits) - n_acc
-        buffer: MutableSequence[cirq.Moment] = [cirq.Moment()] * (pad_len * 2 + n_acc)
+        buffer: MutableSequence[cirq.Moment] = [Moment()] * (pad_len * 2 + n_acc)
 
         # Put the initial circuit in the center of the buffer.
         offset = pad_len
@@ -1573,7 +1578,7 @@ class AbstractCircuit(abc.ABC):
         for k in range(1, len(circuits)):
             offset, n_acc = _concat_ragged_helper(offset, n_acc, buffer, circuits[k].moments, align)
 
-        return cirq.Circuit(buffer[offset : offset + n_acc], tags=circuits[0].tags)
+        return Circuit(buffer[offset : offset + n_acc], tags=circuits[0].tags)
 
     def get_independent_qubit_sets(self) -> list[set[cirq.Qid]]:
         """Divide circuit's qubits into independent qubit sets.
@@ -2037,14 +2042,14 @@ class Circuit(AbstractCircuit):
             return NotImplemented
         inv_moments = []
         for moment in self[::-1]:
-            inv_moment = cirq.inverse(moment, default=NotImplemented)
+            inv_moment = protocols.inverse(moment, default=NotImplemented)
             if inv_moment is NotImplemented:
                 return NotImplemented
             inv_moments.append(inv_moment)
 
-        return cirq.Circuit(inv_moments, tags=self.tags)
+        return Circuit(inv_moments, tags=self.tags)
 
-    __hash__ = None  # type: ignore
+    __hash__ = None  # type: ignore[assignment]
 
     def concat_ragged(
         *circuits: cirq.AbstractCircuit, align: cirq.Alignment | str = Alignment.LEFT
@@ -2305,7 +2310,7 @@ class Circuit(AbstractCircuit):
                 and not all(
                     (strategy is InsertStrategy.EARLIEST and self._can_add_op_at(k, op))
                     or (k > 0 and self._can_add_op_at(k - 1, op))
-                    for op in cast(list[cirq.Operation], batch)
+                    for op in cast(list[ops.Operation], batch)
                 )
             ):
                 self._moments.insert(k, Moment())
@@ -2765,7 +2770,7 @@ def _draw_moment_in_diagram(
     transpose: bool,
 ):
     if get_circuit_diagram_info is None:
-        get_circuit_diagram_info = circuit_diagram_info_protocol._op_info_with_fallback
+        get_circuit_diagram_info = protocols.circuit_diagram_info_protocol._op_info_with_fallback
     x0 = out_diagram.width()
 
     non_global_ops = [op for op in moment.operations if op.qubits]
@@ -2830,16 +2835,15 @@ def _draw_moment_in_diagram(
         desc = _formatted_phase(global_phase, use_unicode_characters, precision)
         if desc:
             y = max(label_map.values(), default=0) + 1
-            visible_tags = protocols.CircuitDiagramInfoArgs(
+            tag_args = protocols.CircuitDiagramInfoArgs(
                 known_qubits=None,
                 known_qubit_count=None,
-                use_unicode_characters=True,
-                precision=None,
+                use_unicode_characters=use_unicode_characters,
+                precision=precision,
                 label_map=None,
                 include_tags=include_tags,
-            ).tags_to_include(tags)
-            if visible_tags:
-                desc = desc + f"[{', '.join(map(str, visible_tags))}]"
+            )
+            desc = desc + tag_args.format_tags(tags)
             out_diagram.write(x0, y, desc)
 
     if not non_global_ops:
@@ -2980,14 +2984,14 @@ _TKey = TypeVar('_TKey')
 @overload
 def _group_until_different(
     items: Iterable[_TIn], key: Callable[[_TIn], _TKey]
-) -> Iterable[tuple[_TKey, list[_TIn]]]:
+) -> Iterator[tuple[_TKey, list[_TIn]]]:
     pass
 
 
 @overload
 def _group_until_different(
     items: Iterable[_TIn], key: Callable[[_TIn], _TKey], val: Callable[[_TIn], _TOut]
-) -> Iterable[tuple[_TKey, list[_TOut]]]:
+) -> Iterator[tuple[_TKey, list[_TOut]]]:
     pass
 
 
@@ -3037,7 +3041,7 @@ def _group_into_moment_compatible(inputs: Sequence[_MOMENT_OR_OP]) -> Iterator[l
     batch_measurement_keys: set[cirq.MeasurementKey] = set()
     batch_control_keys: set[cirq.MeasurementKey] = set()
     for mop in inputs:
-        if isinstance(mop, cirq.Moment):
+        if isinstance(mop, Moment):
             if batch:
                 yield batch
                 batch = []

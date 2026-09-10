@@ -471,3 +471,31 @@ def test_controlled_mixture() -> None:
     c_yes = cirq.ControlledOperation(controls=[b], sub_operation=cirq.phase_flip(0.25).on(a))
     assert cirq.has_mixture(c_yes)
     assert cirq.approx_eq(cirq.mixture(c_yes), [(0.75, np.eye(4)), (0.25, cirq.unitary(cirq.CZ))])
+
+
+def test_variable_qid_resolution():
+    x = sympy.Symbol('x')
+    y = sympy.Symbol('y')
+    q0 = cirq.LineQubit(0)
+    qx = cirq.VariableLineQid(x)
+    qy = cirq.VariableLineQid(y)
+
+    cx_x0 = cirq.X(qx).controlled_by(q0)
+    cx_0x = cirq.X(q0).controlled_by(qx)
+    cx_xy = cirq.X(qx).controlled_by(qy)
+
+    assert cirq.is_parameterized(cx_x0)
+    assert cirq.is_parameterized(cx_0x)
+    assert cirq.is_parameterized(cx_xy)
+
+    assert cirq.parameter_names(cx_x0) == {'x'}
+    assert cirq.parameter_names(cx_0x) == {'x'}
+    assert cirq.parameter_names(cx_xy) == {'x', 'y'}
+
+    resolver = cirq.ParamResolver({x: 1, y: 2})
+    resolved_cx_x0 = cirq.resolve_parameters(cx_x0, resolver)
+    assert resolved_cx_x0 == cirq.X(cirq.LineQubit(1)).controlled_by(cirq.LineQubit(0))
+    resolved_cx_0x = cirq.resolve_parameters(cx_0x, resolver)
+    assert resolved_cx_0x == cirq.X(cirq.LineQubit(0)).controlled_by(cirq.LineQubit(1))
+    resolved_cx_xy = cirq.resolve_parameters(cx_xy, resolver)
+    assert resolved_cx_xy == cirq.X(cirq.LineQubit(1)).controlled_by(cirq.LineQubit(2))

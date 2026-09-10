@@ -47,7 +47,9 @@ from dev_tools.notebooks import filter_notebooks, list_all_notebooks, REPO_ROOT,
 # by the notebooks in question when adding notebooks to this list.
 # For more information, please see the section "Lifecycle" in docs/dev/notebooks.md.
 
-NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = []
+NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = [
+    'docs/simulate/virtual_engine_interface.ipynb'
+]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
@@ -140,11 +142,18 @@ def _rewrite_and_run_notebook(notebook_path, cloned_env, papermill_scheduler):
     # ensure papermill will have CLOUDSDK_CONFIG set per dev_tools/conftest.py
     env = {'CLOUDSDK_CONFIG': os.environ['CLOUDSDK_CONFIG'], 'PIP_CONFIG_FILE': '/dev/null'}
     assert os.path.isdir(env["CLOUDSDK_CONFIG"])
-    notebook_env = cloned_env("isolated_notebook_tests", *PACKAGES)
 
-    notebook_file = os.path.basename(notebook_path)
+    # allow testing of notebooks that import deprecated cirq_web
+    notebooks_that_use_cirq_web = (
+        "circuit_example.ipynb",
+        "qvm_stabilizer_example.ipynb",
+        "bloch_sphere_example.ipynb",
+    )
+    if notebook_file in notebooks_that_use_cirq_web:
+        env["ALLOW_DEPRECATION_IN_TEST"] = "True"
 
     rewritten_notebook_path = rewrite_notebook(notebook_path)
+    notebook_env = cloned_env("isolated_notebook_tests", *PACKAGES)
 
     REPO_ROOT.joinpath("out", notebook_rel_dir).mkdir(parents=True, exist_ok=True)
     cmd = f"""
@@ -227,7 +236,7 @@ def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path) -> None:
     # utf-8 is important for Windows testing, otherwise characters like ┌──┐ fail on cp1252
     content = pathlib.Path(notebook_path).read_text(encoding="utf-8")
     mandatory_matches = [
-        r"!pip install --upgrade --quiet cirq(-google)?~=1.0.dev",
+        r"!pip install --upgrade cirq(-google)?~=1.0.dev",
         (
             r"Note: this notebook relies on unreleased Cirq features\. "
             r"If you want to try these features, make sure you install cirq(-google)? via "

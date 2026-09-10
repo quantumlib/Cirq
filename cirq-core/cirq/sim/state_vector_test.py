@@ -65,7 +65,7 @@ def test_sample_state_big_endian() -> None:
         state = cirq.to_valid_state_vector(x, 3)
         sample = cirq.sample_state_vector(state, [2, 1, 0])
         results.append(sample)
-    expecteds = [[list(reversed(x))] for x in list(itertools.product([False, True], repeat=3))]
+    expecteds = [[list(reversed(x))] for x in itertools.product([False, True], repeat=3)]
     for result, expected in zip(results, expecteds):
         np.testing.assert_equal(result, expected)
 
@@ -193,7 +193,7 @@ def test_measure_state_computational_basis(use_np_transpose: bool) -> None:
         bits, state = cirq.measure_state_vector(initial_state, [2, 1, 0])
         results.append(bits)
         np.testing.assert_almost_equal(state, initial_state)
-    expected = [list(reversed(x)) for x in list(itertools.product([False, True], repeat=3))]
+    expected = [list(reversed(x)) for x in itertools.product([False, True], repeat=3)]
     assert results == expected
 
 
@@ -205,7 +205,7 @@ def test_measure_state_reshape(use_np_transpose: bool) -> None:
         bits, state = cirq.measure_state_vector(initial_state, [2, 1, 0])
         results.append(bits)
         np.testing.assert_almost_equal(state, initial_state)
-    expected = [list(reversed(x)) for x in list(itertools.product([False, True], repeat=3))]
+    expected = [list(reversed(x)) for x in itertools.product([False, True], repeat=3)]
     assert results == expected
 
 

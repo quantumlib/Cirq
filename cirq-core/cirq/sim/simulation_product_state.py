@@ -39,6 +39,7 @@ class SimulationProductState(
         qubits: Sequence[cirq.Qid],
         split_untangled_states: bool,
         classical_data: cirq.ClassicalDataStore | None = None,
+        param_resolver: cirq.ParamResolver | None = None,
     ):
         """Initializes the class.
 
@@ -51,9 +52,12 @@ class SimulationProductState(
                 at the end.
             classical_data: The shared classical data container for this
                 simulation.
+            param_resolver: The parameter resolver for the simulation.
         """
         classical_data = classical_data or value.ClassicalDataDictionaryStore()
-        super().__init__(qubits=qubits, classical_data=classical_data)
+        super().__init__(
+            qubits=qubits, classical_data=classical_data, param_resolver=param_resolver
+        )
         self._sim_states = sim_states
         self._split_untangled_states = split_untangled_states
 
@@ -148,7 +152,11 @@ class SimulationProductState(
             copy._classical_data = classical_data
         args = {q: copies[a] for q, a in self.sim_states.items()}
         return SimulationProductState(
-            args, self.qubits, self.split_untangled_states, classical_data=classical_data
+            args,
+            self.qubits,
+            self.split_untangled_states,
+            classical_data=classical_data,
+            param_resolver=self.param_resolver,
         )
 
     def sample(

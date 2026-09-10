@@ -1976,7 +1976,7 @@ def test_mutable_pauli_string_dict_pauli_like_not_pauli_like() -> None:
     p = cirq.MutablePauliString()
     # Check error string includes terms like "X" in error message.
     with pytest.raises(TypeError, match="PAULI_GATE_LIKE.*X"):
-        p[0] = 1.2  # type: ignore
+        p[0] = 1.2  # type: ignore[assignment, index]
 
 
 def test_mutable_pauli_string_text() -> None:
@@ -2159,3 +2159,22 @@ def test_try_interpret_as_pauli_string() -> None:
     # non-Pauli operation
     h_gate = cirq.H(q)
     assert _try_interpret_as_pauli_string(h_gate) is None
+
+
+def test_variable_qid_resolution():
+    x = sympy.Symbol('x')
+    y = sympy.Symbol('y')
+    q0 = cirq.LineQubit(0)
+    q1 = cirq.LineQubit(1)
+    qx = cirq.VariableLineQid(x)
+    qy = cirq.VariableLineQid(y)
+
+    qxqy_xy = cirq.PauliString({qx: cirq.X, qy: cirq.Y})
+    assert cirq.is_parameterized(qxqy_xy)
+    assert cirq.parameter_names(qxqy_xy) == {'x', 'y'}
+
+    resolved = cirq.resolve_parameters(qxqy_xy, cirq.ParamResolver({x: 0, y: 1}))
+    assert resolved == cirq.PauliString({q0: cirq.X, q1: cirq.Y})
+
+    with pytest.raises(ValueError, match="Duplicate qubits"):
+        cirq.resolve_parameters(qxqy_xy, cirq.ParamResolver({x: 0, y: 0}))

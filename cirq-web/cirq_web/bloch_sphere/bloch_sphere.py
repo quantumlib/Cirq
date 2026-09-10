@@ -16,8 +16,10 @@ from __future__ import annotations
 
 import cirq
 from cirq_web import widget
+from cirq_web.deprecation import deprecated_cirq_web_class
 
 
+@deprecated_cirq_web_class
 class BlochSphere(widget.Widget):
     def __init__(self, sphere_radius: int = 5, state_vector: cirq.STATE_VECTOR_LIKE | None = None):
         """Initializes a BlochSphere.

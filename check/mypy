@@ -7,6 +7,11 @@
 #     check/mypy [--flags]
 ################################################################################
 
+echo "Warning: 'check/mypy' is deprecated." \
+    "Please use 'check/typecheck' instead." >&2
+echo "Warning: 'check/mypy' will be removed in cirq v1.8." >&2
+echo >&2
+
 # Get the working directory to the repo root.
 thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
 repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?

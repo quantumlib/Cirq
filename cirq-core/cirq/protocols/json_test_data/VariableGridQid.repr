@@ -1,0 +1,4 @@
+[
+    cirq.VariableGridQid(sympy.Symbol('x'), sympy.Symbol('y'), dimension=2),
+    cirq.VariableGridQid(sympy.Symbol('x') + sympy.Symbol('y'), 3, dimension=3),
+]

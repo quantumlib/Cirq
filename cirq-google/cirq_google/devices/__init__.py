@@ -19,6 +19,10 @@ from cirq_google.devices.google_noise_properties import (
     NoiseModelFromGoogleNoiseProperties as NoiseModelFromGoogleNoiseProperties,
 )
 
-from cirq_google.devices.known_devices import Sycamore as Sycamore, Sycamore23 as Sycamore23
+from cirq_google.devices.known_devices import (
+    Sycamore as Sycamore,
+    Sycamore23 as Sycamore23,
+    Willow105 as Willow105,
+)
 
 from cirq_google.devices.grid_device import GridDevice as GridDevice

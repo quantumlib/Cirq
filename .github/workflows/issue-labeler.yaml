@@ -34,7 +34,7 @@ on:
         type: boolean
         default: true
 
-permissions: read-all
+permissions: {}
 
 jobs:
   label-triage-discuss:

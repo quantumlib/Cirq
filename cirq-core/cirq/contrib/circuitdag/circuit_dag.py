@@ -52,8 +52,8 @@ class Unique(Generic[T]):
 
 
 def _disjoint_qubits(op1: cirq.Operation, op2: cirq.Operation) -> bool:
-    """Returns true only if the operations have qubits in common."""
-    return not set(op1.qubits) & set(op2.qubits)
+    """Returns true only if the operations have no qubits in common."""
+    return set(op1.qubits).isdisjoint(op2.qubits)
 
 
 class CircuitDag(networkx.DiGraph):
@@ -142,7 +142,7 @@ class CircuitDag(networkx.DiGraph):
     def __ne__(self, other):
         return not self == other
 
-    __hash__ = None  # type: ignore
+    __hash__ = None  # type: ignore[assignment]
 
     def ordered_nodes(self) -> Iterator[Unique[cirq.Operation]]:
         if not self.nodes():
@@ -190,8 +190,7 @@ class CircuitDag(networkx.DiGraph):
         """Finds all nodes before blocking ones.
 
         Args:
-            is_blocker: The predicate that indicates whether or not an
-            operation is blocking.
+            is_blocker: The predicate that indicates whether or not an operation is blocking.
         """
         remaining_dag = self.copy()
 

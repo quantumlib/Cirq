@@ -160,7 +160,9 @@ def test_sycamore_gateset_compiles_swap_zz():
     compiled_circuit2 = cirq.optimize_for_target_gateset(circuit2, gateset=gateset)
     cirq.testing.assert_same_circuits(compiled_circuit1, compiled_circuit2)
     assert (
-        len(list(compiled_circuit1.findall_operations_with_gate_type(cirq_google.SycamoreGate)))
+        sum(
+            1 for _ in compiled_circuit1.findall_operations_with_gate_type(cirq_google.SycamoreGate)
+        )
         == 3
     )
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(

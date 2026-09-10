@@ -24,7 +24,6 @@ from cirq_google.cloud import quantum
 from cirq_google.engine.abstract_processor import AbstractProcessor
 
 if TYPE_CHECKING:
-    import cirq_google.engine.calibration as calibration
     from cirq_google.engine.abstract_engine import AbstractEngine
     from cirq_google.engine.abstract_local_program import AbstractLocalProgram
     from cirq_google.engine.abstract_program import AbstractProgram
@@ -394,10 +393,6 @@ class AbstractLocalProcessor(AbstractProcessor):
                 continue
             time_slots.append(slot)
         return time_slots
-
-    @abc.abstractmethod
-    def get_latest_calibration(self, timestamp: int) -> calibration.Calibration | None:
-        """Returns the latest calibration with the provided timestamp or earlier."""
 
     @abc.abstractmethod
     def get_program(self, program_id: str) -> AbstractProgram:

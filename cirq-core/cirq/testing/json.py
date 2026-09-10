@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import dataclasses
+import importlib.util
 import inspect
 import io
 import pathlib
@@ -132,8 +133,6 @@ class ModuleJsonTestSpec:
 
 
 def spec_for(module_name: str) -> ModuleJsonTestSpec:
-    import importlib.util
-
     if importlib.util.find_spec(module_name) is None:
         raise ModuleNotFoundError(f"{module_name} not found")
 

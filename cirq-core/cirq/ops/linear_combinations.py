@@ -226,8 +226,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         """Returns qubits acted on self."""
         if not self:
             return ()
-        qubit_sets = [set(op.qubits) for op in self.keys()]
-        all_qubits = set.union(*qubit_sets)
+        all_qubits = set().union(*(op.qubits for op in self.keys()))
         return tuple(sorted(all_qubits))
 
     def __pow__(self, exponent: int) -> LinearCombinationOfOperations:

@@ -153,8 +153,10 @@ def test_device_missing_metadata():
 
 def _all_offset_placements(device_graph, offset=(4, 2), min_sidelength=2, max_sidelength=5):
     # Generate candidate tilted square lattice topologies
-    sidelens = list(itertools.product(range(min_sidelength, max_sidelength + 1), repeat=2))
-    topos = [cirq.TiltedSquareLattice(width, height) for width, height in sidelens]
+    topos = [
+        cirq.TiltedSquareLattice(width, height)
+        for width, height in itertools.product(range(min_sidelength, max_sidelength + 1), repeat=2)
+    ]
 
     # Make placements using TiltedSquareLattice.nodes_to_gridqubits offset parameter
     placements = {topo: topo.nodes_to_gridqubits(offset=offset) for topo in topos}

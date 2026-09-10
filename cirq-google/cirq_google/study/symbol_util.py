@@ -26,17 +26,17 @@ import cirq
 # follows more on the t-unit + symbol instead of float + symbol style.
 ValueOrSymbol: TypeAlias = tu.Value | sympy.Basic
 
-# A sentile for not finding the key in resolver.
-NOT_FOUND = "__NOT_FOUND__"
+# A sentinel to mark keys that are not present in the resolver dictionary.
+_NOT_FOUND = object()
 
 
 def direct_symbol_replacement(x, resolver: cirq.ParamResolver):
     """A shortcut for value resolution to avoid tu.unit compare with float issue."""
     if isinstance(x, sympy.Symbol):
-        value = resolver.param_dict.get(x.name, NOT_FOUND)
-        if value == NOT_FOUND:
-            value = resolver.param_dict.get(x, NOT_FOUND)
-        if value != NOT_FOUND:
+        value = resolver.param_dict.get(x.name, _NOT_FOUND)
+        if value is _NOT_FOUND:
+            value = resolver.param_dict.get(x, _NOT_FOUND)
+        if value is not _NOT_FOUND:
             return value
         return x  # pragma: no cover
     return x

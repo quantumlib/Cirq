@@ -38,6 +38,7 @@ from cirq_google.ops import (
     LeakageISWAP,
     LZSResetViaResonator,
     MultilevelResetViaResonator,
+    NoSyncTag,
     PhysicalZTag,
     SycamoreGate,
     TwoPulseFSimTag,
@@ -257,7 +258,7 @@ class CircuitSerializer(serializer.Serializer):
                 ):
                     op_pb = moment_proto.circuit_operations.add()
                     self._serialize_circuit_op(
-                        op.untagged.without_classical_controls(),  # type: ignore
+                        op.untagged.without_classical_controls(),  # type: ignore[arg-type]
                         op_pb,
                         constants=constants,
                         raw_constants=raw_constants,
@@ -495,7 +496,7 @@ class CircuitSerializer(serializer.Serializer):
                     tag, msg=constant.tag_value, constants=constants, raw_constants=raw_constants
                 )
             elif getattr(tag, 'to_proto', None) is not None:
-                tag.to_proto(constant.tag_value)  # type: ignore
+                tag.to_proto(constant.tag_value)  # type: ignore[attr-defined]
             else:
                 # Try to serialize raw values like strings
                 try:
@@ -1161,6 +1162,8 @@ class CircuitSerializer(serializer.Serializer):
             return InternalTag.from_proto(msg)
         elif which == 'compress_duration':
             return CompressDurationTag()
+        elif which == 'no_sync':
+            return NoSyncTag.from_proto(msg)
         elif which == 'raw_value':
             return arg_func_langs.arg_from_proto(msg.raw_value)
         else:

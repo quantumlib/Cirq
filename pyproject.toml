@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [tool.black]
 fast = true
 line-length = 100
-target_version = ['py311', 'py312', 'py313', 'py314']
+target-version = ['py311', 'py312', 'py313', 'py314']
 skip-string-normalization = true
 skip-magic-trailing-comma = true
 extend-exclude = ".*_pb2[.]py[i]?"
@@ -53,6 +53,7 @@ plugins = ["duet.typing"]
 show_error_codes = true
 warn_redundant_casts = true
 warn_unused_ignores = true
+enable_error_code = "ignore-without-code"
 
 [[tool.mypy.overrides]]
 module = ["__main__"]
@@ -80,6 +81,7 @@ module = [
     "google.colab.*",
     "google.oauth2.*",
     "qsimcirq",
+    "stim",
 ]
 follow_imports = "silent"
 ignore_missing_imports = true
@@ -144,6 +146,7 @@ asyncio_default_fixture_loop_scope = "function"
 fail-on = ["I"]
 ignore-long-lines = "^(.*#\\w*pylint: disable.*|\\s*(# )?[<\\[\\(]?https?://\\S+[>\\]\\)]?)$"
 ignore-paths=[
+    "cirq-[^/]*/build/",
     "cirq-google/cirq_google/cloud/",
     "cirq-web/cirq_web/node_modules/",
 ]
@@ -319,6 +322,7 @@ select = [
     "TC001",  # typing-only-first-party-import
     "TC002",  # typing-only-third-party-import
     # "TC003",  # typing-only-standard-library-import
+    "TC004",  # runtime-import-in-type-checking-block
     "TID251",  # banned-api
     "UP004",  # useless-object-inheritance
     "UP006",  # non-pep585-annotation
@@ -330,6 +334,7 @@ select = [
     "UP034",  # extraneous-parentheses
     "UP035",  # deprecated-import
     "UP037",  # quoted-annotation
+    "UP045",  # non-pep604-annotation-optional
     "W605",  # invalid-escape-sequence, pylint anomalous-backslash-in-string
 ]
 

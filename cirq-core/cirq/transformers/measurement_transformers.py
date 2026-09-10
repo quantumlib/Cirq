@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import itertools
 from collections import defaultdict
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Iterator, Sequence
 from typing import Any, cast, TYPE_CHECKING
 
 import numpy as np
@@ -172,7 +172,7 @@ def defer_measurements(
 def _all_possible_datastore_states(
     keys: Iterable[tuple[cirq.MeasurementKey, int]],
     measurement_qubits: dict[cirq.MeasurementKey, list[tuple[cirq.Qid, ...]]],
-) -> Iterable[cirq.ClassicalDataStoreReader]:
+) -> Iterator[cirq.ClassicalDataStoreReader]:
     """The Cartesian product of all possible DataStore states for the given keys."""
     # First we get the list of all possible values. So if we have a key mapped to qubits of shape
     # (2, 2) and a key mapped to a qutrit, the possible measurement values are:

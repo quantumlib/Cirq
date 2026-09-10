@@ -168,7 +168,7 @@ class BucketPriorityQueue(Generic[TItem]):
             f'drop_duplicate_entries={drop_duplicate_entries})'
         )
 
-    __hash__ = None  # type: ignore
+    __hash__ = None  # type: ignore[assignment]
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):

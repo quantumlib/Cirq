@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import dataclasses
 import datetime
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterator, Mapping
 from typing import Any, TYPE_CHECKING
 
 import numpy as np
@@ -113,7 +113,7 @@ class ObservableMeasuredResult:
     circuit_params: Mapping[str | sympy.Expr, value.Scalar | sympy.Expr]
 
     # unhashable because of the mapping-type circuit_params attribute
-    __hash__ = None  # type: ignore
+    __hash__ = None  # type: ignore[assignment]
 
     def __repr__(self):
         # I wish we could use the default dataclass __repr__ but
@@ -298,7 +298,7 @@ class BitstringAccumulator:
         return len(self.bitstrings)
 
     @property
-    def results(self) -> Iterable[ObservableMeasuredResult]:
+    def results(self) -> Iterator[ObservableMeasuredResult]:
         """Yield individual setting results as `ObservableMeasuredResult`
         objects."""
         for setting in self._simul_settings:

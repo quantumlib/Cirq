@@ -196,9 +196,9 @@ def _determine_qubits_to_measure(
         ]
 
     elif isinstance(qubits[0], ops.Qid):
-        qubits_to_measure = [qubits]  # type: ignore
+        qubits_to_measure = [qubits]  # type: ignore[list-item]
     else:
-        qubits_to_measure = qubits  # type: ignore
+        qubits_to_measure = qubits  # type: ignore[assignment]
     return qubits_to_measure
 
 

@@ -75,7 +75,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) ->
         num_passed_over = 0
         for i in range(start_i + 1, len(all_ops)):
             op = all_ops[i]
-            if not set(op.qubits) & set(modified_op.qubits):
+            if set(op.qubits).isdisjoint(modified_op.qubits):
                 # No qubits in common
                 continue
             cont_cond = continue_condition(op, modified_op, i == start_i + 1)
@@ -120,7 +120,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) ->
             part_cliff_gate = ops.SingleQubitCliffordGate.from_quarter_turns(pauli, quarter_turns)
 
             other_op = all_ops[merge_i] if merge_i < len(all_ops) else None
-            if other_op is not None and qubit not in set(other_op.qubits):
+            if other_op is not None and qubit not in other_op.qubits:
                 other_op = None
 
             if isinstance(other_op, ops.GateOperation) and isinstance(
@@ -160,9 +160,10 @@ def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) ->
 
     def try_merge_cz(cz_op: ops.GateOperation, start_i: int) -> int:
         """Returns the number of operations removed at or before start_i."""
+        cz_op_qubits = frozenset(cz_op.qubits)
         for i in reversed(range(start_i)):
             op = all_ops[i]
-            if not set(cz_op.qubits) & set(op.qubits):
+            if cz_op_qubits.isdisjoint(op.qubits):
                 # Don't share qubits
                 # Keep looking
                 continue

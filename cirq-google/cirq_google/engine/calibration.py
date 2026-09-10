@@ -537,7 +537,7 @@ class Calibration(abc.Mapping):
             and isinstance(target, tuple)
             and all(isinstance(q, cirq.GridQubit) for q in target)
         ):
-            return target  # type: ignore
+            return target  # type: ignore[return-value]
         raise ValueError(f'The metric target {target} was not a tuple of grid qubits.')
 
     @staticmethod

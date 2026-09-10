@@ -1078,6 +1078,8 @@ def test_circuit_with_analog_detune_coupler_only():
         cg.TwoPulseFSimTag(),
         cg.PhysicalZTag(),
         cg.InternalTag(name='abc', package='xyz'),
+        cg.NoSyncTag(),
+        cg.NoSyncTag(reverse=0, forward=1),
     ],
 )
 def test_circuit_with_tag(tag):
@@ -1524,4 +1526,4 @@ def test_multi_programs_bad_function() -> None:
 
     sweep = cirq.Points('num_x', [1, 2])
     with pytest.raises(ValueError, match="Function returned unrecognized type"):
-        _ = serializer.serialize_circuit_function(_bad_function, sweep)  # type: ignore
+        _ = serializer.serialize_circuit_function(_bad_function, sweep)  # type: ignore[arg-type]

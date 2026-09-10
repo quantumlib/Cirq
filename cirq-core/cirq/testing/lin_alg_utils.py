@@ -41,9 +41,7 @@ def random_superposition(
         The sampled unit-length vector.
     """
     random_state = value.parse_random_state(random_state)
-
-    state_vector = random_state.randn(dim).astype(complex)
-    state_vector += 1j * random_state.randn(dim)
+    state_vector = random_state.randn(2 * dim).view(np.complex128)
     state_vector /= np.linalg.norm(state_vector)
     return state_vector
 

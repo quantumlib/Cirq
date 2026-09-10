@@ -223,10 +223,13 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             job_id = self._create_id(id_type='job')
         if isinstance(program, cirq.AbstractCircuit):
             programs = [program]
+            batch_keys = None
         elif isinstance(program, Mapping):
             programs = list(program.values())
+            batch_keys = list(program.keys())
         else:
             programs = list(program)
+            batch_keys = None
 
         sweeps_list = cirq.to_sweeps(params)
         sweeps_to_use = sweeps_list
@@ -236,6 +239,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             program_id=program_id,
             simulation_type=self._simulation_type,
             circuits=programs,
+            batch_keys=batch_keys,
             processor=self,
             engine=self.engine(),
         )

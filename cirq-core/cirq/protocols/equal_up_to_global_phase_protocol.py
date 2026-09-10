@@ -93,7 +93,7 @@ def equal_up_to_global_phase(val: Any, other: Any, *, atol: float = 1e-8) -> boo
 
     # Fall back to approx_eq for compare the magnitude of two numbers.
     if isinstance(val, numbers.Number) and isinstance(other, numbers.Number):
-        result = approx_eq(abs(val), abs(other), atol=atol)  # type: ignore
+        result = approx_eq(abs(val), abs(other), atol=atol)  # type: ignore[arg-type]
         if result is not NotImplemented:
             return result
 

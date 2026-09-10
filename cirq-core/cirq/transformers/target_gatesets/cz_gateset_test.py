@@ -170,7 +170,7 @@ def test_optimizes_single_iswap() -> None:
     c = cirq.Circuit(cirq.ISWAP(a, b))
     assert_optimization_not_broken(c)
     c = cirq.optimize_for_target_gateset(c, gateset=cirq.CZTargetGateset(), ignore_failures=False)
-    assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
+    assert sum(1 for op in c.all_operations() if len(op.qubits) == 2) == 2
 
 
 def test_optimizes_tagged_partial_cz() -> None:
@@ -179,7 +179,7 @@ def test_optimizes_tagged_partial_cz() -> None:
     assert_optimization_not_broken(c)
     c = cirq.optimize_for_target_gateset(c, gateset=cirq.CZTargetGateset(), ignore_failures=False)
     assert (
-        len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
+        sum(1 for op in c.all_operations() if len(op.qubits) == 2) == 2
     ), 'It should take 2 CZ gates to decompose a CZ**0.5 gate'
 
 

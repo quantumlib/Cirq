@@ -632,15 +632,19 @@ class SimulatesIntermediateState(
             moment and returning a StepResult for each moment.
         """
         param_resolver = study.ParamResolver(param_resolver)
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        check_all_resolved(resolved_circuit)
         actual_initial_state = 0 if initial_state is None else initial_state
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-        return self._base_iterator(resolved_circuit, qubits, actual_initial_state)
+        return self._base_iterator(
+            circuit, qubits, actual_initial_state, param_resolver=param_resolver
+        )
 
     @abc.abstractmethod
     def _base_iterator(
-        self, circuit: cirq.AbstractCircuit, qubits: tuple[cirq.Qid, ...], initial_state: Any
+        self,
+        circuit: cirq.AbstractCircuit,
+        qubits: tuple[cirq.Qid, ...],
+        initial_state: Any,
+        param_resolver: cirq.ParamResolver | None = None,
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
@@ -968,12 +972,15 @@ def split_into_matching_protocol_then_general(
         matching_part = []
         general_part = []
         for op in moment:
-            qs = set(op.qubits)
             keys = protocols.measurement_keys_touched(op)
-            if predicate(op) and qs.isdisjoint(blocked_qubits) and keys.isdisjoint(blocked_keys):
+            if (
+                predicate(op)
+                and blocked_qubits.isdisjoint(op.qubits)
+                and keys.isdisjoint(blocked_keys)
+            ):
                 matching_part.append(op)
             else:
-                blocked_qubits |= qs
+                blocked_qubits.update(op.qubits)
                 blocked_keys |= keys
                 general_part.append(op)
         if matching_part:

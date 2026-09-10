@@ -741,6 +741,31 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return self
 
+    @cached_method
+    def _qubit_parameter_names(self) -> frozenset[str]:
+        return frozenset(protocols.parameter_names(self.qubits))
+
+    @cached_method
+    def _are_qubits_parameterized(self) -> bool:
+        from cirq.ops.variable_qid import VariableQid
+
+        return any(isinstance(q, VariableQid) for q in self.qubits)
+
+    def _is_parameterized_(self) -> bool:
+        """Returns true if the Operation is parameterized, false otherwise."""
+        return self._are_qubits_parameterized() or NotImplemented
+
+    def _parameter_names_(self) -> Set[str]:
+        """Returns the names of the parameters in the operation."""
+        return self._qubit_parameter_names()
+
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Operation:
+        """Attempts to resolve any parameters in the operation."""
+        resolved_qubits = [
+            protocols.resolve_parameters(q, resolver, recursive) for q in self.qubits
+        ]
+        return self.with_qubits(*resolved_qubits)
+
 
 @value.value_equality
 class TaggedOperation(Operation):
@@ -901,9 +926,10 @@ class TaggedOperation(Operation):
         return NotImplemented
 
     @cached_method
-    def _parameter_names_(self) -> Set[str]:
-        tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}
-        return protocols.parameter_names(self.sub_operation) | tag_params
+    def _parameter_names_(self) -> frozenset[str]:
+        return frozenset(protocols.parameter_names(self.sub_operation)).union(
+            *(protocols.parameter_names(tag) for tag in self.tags)
+        )
 
     def _resolve_parameters_(
         self, resolver: cirq.ParamResolver, recursive: bool
@@ -916,14 +942,14 @@ class TaggedOperation(Operation):
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         sub_op_info = protocols.circuit_diagram_info(self.sub_operation, args, NotImplemented)
-        if sub_op_info is not NotImplemented and sub_op_info.wire_symbols:
-            visible_tags = args.tags_to_include(self._tags)
-            if visible_tags:
-                sub_op_info.wire_symbols = (
-                    sub_op_info.wire_symbols[0] + f"[{', '.join(map(str, visible_tags))}]",
-                    *sub_op_info.wire_symbols[1:],
-                )
-        return sub_op_info
+        if sub_op_info is NotImplemented or not sub_op_info.wire_symbols:
+            return sub_op_info
+        tag_text = args.format_tags(self._tags)
+        if not tag_text:
+            return sub_op_info
+        return sub_op_info.with_wire_symbols(
+            (sub_op_info.wire_symbols[0] + tag_text, *sub_op_info.wire_symbols[1:])
+        )
 
     @cached_method
     def _trace_distance_bound_(self) -> float:
@@ -1003,7 +1029,7 @@ class _InverseCompositeGate(Gate):
         )
 
     def _has_unitary_(self):
-        from cirq import devices, protocols
+        from cirq import devices
 
         qubits = devices.LineQid.for_gate(self)
         return all(
@@ -1016,8 +1042,8 @@ class _InverseCompositeGate(Gate):
         return protocols.is_parameterized(self._original)
 
     @cached_method
-    def _parameter_names_(self) -> Set[str]:
-        return protocols.parameter_names(self._original)
+    def _parameter_names_(self) -> frozenset[str]:
+        return frozenset(protocols.parameter_names(self._original))
 
     def _resolve_parameters_(
         self, resolver: cirq.ParamResolver, recursive: bool

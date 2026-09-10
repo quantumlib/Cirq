@@ -19,7 +19,7 @@ from __future__ import annotations
 import dataclasses
 from typing import TYPE_CHECKING
 
-from cirq import circuits, ops
+from cirq import circuits
 from cirq.transformers import transformer_api, transformer_primitives
 
 if TYPE_CHECKING:
@@ -44,13 +44,12 @@ def align_left(
     """
     if context is None:
         context = transformer_api.TransformerContext()
+    tags_to_ignore_set = frozenset(context.tags_to_ignore)
 
     ret = circuits.Circuit()
     for i, moment in enumerate(circuit):
         for op in moment:
-            if isinstance(op, ops.TaggedOperation) and set(op.tags).intersection(
-                context.tags_to_ignore
-            ):
+            if not tags_to_ignore_set.isdisjoint(op.tags):
                 ret.append([circuits.Moment()] * (i + 1 - len(ret)))
                 ret[i] = ret[i].with_operation(op)
             else:

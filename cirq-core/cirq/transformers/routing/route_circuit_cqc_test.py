@@ -275,9 +275,7 @@ def test_empty_circuit() -> None:
     empty_circuit_routed = router(empty_circuit)
 
     device.validate_circuit(empty_circuit_routed)
-    assert len(list(empty_circuit.all_operations())) == len(
-        list(empty_circuit_routed.all_operations())
-    )
+    assert 0 == len(empty_circuit_routed)
 
 
 def test_directed_device_with_tag_inserted_swaps() -> None:

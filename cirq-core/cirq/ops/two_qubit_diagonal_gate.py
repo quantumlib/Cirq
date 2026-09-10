@@ -128,7 +128,7 @@ class TwoQubitDiagonalGate(raw_types.Gate):
         angles = []
         for angle in self._diag_angles_radians:
             mulAngle = protocols.mul(angle, exponent, NotImplemented)
-            if mulAngle == NotImplemented:
+            if mulAngle is NotImplemented:
                 return NotImplemented
             angles.append(mulAngle)
         return TwoQubitDiagonalGate(angles)

@@ -39,7 +39,7 @@ def _sorted_best_string_placements(
         node_max = (string_op, 0, possible_node)
 
         for i, out_op in enumerate(output_ops):
-            if not set(out_op.qubits) & set(string_op.qubits):
+            if set(out_op.qubits).isdisjoint(string_op.qubits):
                 # Skip if operations don't share qubits
                 continue
             if isinstance(out_op, ops.PauliStringPhasor) and protocols.commutes(

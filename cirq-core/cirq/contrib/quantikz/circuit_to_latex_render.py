@@ -257,6 +257,7 @@ def render_circuit(
             # Run pdflatex twice for correct cross-references and layout
             cmd_latex = [
                 pdflatex_exec,
+                "-no-shell-escape",  # Refuse \write18 etc. from gate labels / measurement keys
                 "-interaction=nonstopmode",  # Don't prompt for input
                 "-halt-on-error",  # Exit on first error
                 "-output-directory",

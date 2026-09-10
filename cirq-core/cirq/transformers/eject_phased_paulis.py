@@ -60,11 +60,11 @@ def eject_phased_paulis(
           Copy of the transformed input circuit.
     """
     held_w_phases: dict[ops.Qid, value.TParamVal] = {}
-    tags_to_ignore = set(context.tags_to_ignore) if context else set()
+    tags_to_ignore = frozenset(context.tags_to_ignore) if context else frozenset()
 
     def map_func(op: cirq.Operation, _: int) -> cirq.OP_TREE:
         # Dump if `op` marked with a no compile tag.
-        if set(op.tags) & tags_to_ignore:
+        if not tags_to_ignore.isdisjoint(op.tags):
             return [_dump_held(op.qubits, held_w_phases, atol), op]
 
         # Collect, phase, and merge Ws.

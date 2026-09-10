@@ -97,7 +97,7 @@ def map_moments(
 
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
-        map_func: Mapping function from (cirq.Moment, moment_index) to a sequence of moments.
+        map_func: Mapping function from (`cirq.Moment`, `moment_index`) to a sequence of moments.
         tags_to_ignore: Tagged circuit operations marked with any of `tags_to_ignore` will be
             ignored when recursively applying the transformer primitive to sub-circuits, given
             deep=True.
@@ -105,15 +105,16 @@ def map_moments(
             any circuit operations contained within `circuit`.
 
     Returns:
-        Copy of input circuit with mapped moments.
+        Copy of the input circuit with mapped moments.
     """
     mutable_circuit = circuit.unfreeze(copy=False)
     if deep:
+        tags_to_ignore_set = frozenset(tags_to_ignore)
         batch_replace = []
         for i, op in circuit.findall_operations(
             lambda o: isinstance(o.untagged, circuits.CircuitOperation)
         ):
-            if set(op.tags).intersection(tags_to_ignore):
+            if not tags_to_ignore_set.isdisjoint(op.tags):
                 continue
             op_untagged = cast(circuits.CircuitOperation, op.untagged)
             mapped_op = op_untagged.replace(
@@ -137,6 +138,7 @@ def _map_operations_impl(
     raise_if_add_qubits=True,
     tags_to_ignore: Sequence[Hashable] = (),
     wrap_in_circuit_op: bool = True,
+    preserve_moments: bool = False,
 ) -> CIRCUIT_TYPE:
     """Applies local transformations, by calling `map_func(op, moment_index)` for each operation.
 
@@ -158,13 +160,13 @@ def _map_operations_impl(
 
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
-        map_func: Mapping function from (cirq.Operation, moment_index) to a cirq.OP_TREE. If the
-            resulting optree spans more than 1 moment, it's either wrapped in a tagged circuit
-            operation and inserted in-place in the same moment (if  `wrap_in_circuit_op` is True)
-            OR the mapped operations are inserted directly in the circuit, preserving moment
-            structure. The effect is equivalent to (but much faster) a two-step approach of first
-            wrapping the operations in a circuit operation and then calling `cirq.unroll_circuit_op`
-            to unroll the corresponding circuit ops.
+        map_func: Mapping function from (`cirq.Operation`, `moment_index`) to a `cirq.OP_TREE`.
+            If the resulting optree spans more than 1 moment, it's either wrapped in a tagged
+            circuit operation and inserted in-place in the same moment (if `wrap_in_circuit_op`
+            is True) OR the mapped operations are inserted directly in the circuit, preserving
+            moment structure. The effect is equivalent to (but much faster) a two-step approach
+            of first wrapping the operations in a circuit operation and then calling
+            `cirq.unroll_circuit_op` to unroll the corresponding circuit ops.
         deep: If true, `map_func` will be recursively applied to circuits wrapped inside
             any circuit operations contained within `circuit`.
         raise_if_add_qubits: Set to True by default. If True, raises ValueError if
@@ -173,19 +175,24 @@ def _map_operations_impl(
             tagged operations -- i.e. `map_func(op, idx)` will be called only for operations that
             satisfy `set(op.tags).isdisjoint(tags_to_ignore)`.
         wrap_in_circuit_op: If True, the mapped operations will be wrapped in a tagged circuit
-        operation and inserted in-place if they occupy more than one moment.
+            operation and inserted in-place if they occupy more than one moment.
+        preserve_moments: If True, all operations mapped from a single source moment are packed
+            into a single target moment, preserving both the moment structure and the order of
+            operations within the moment.
 
     Raises:
-          ValueError if `issubset(qubit_set(map_func(op, idx)), op.qubits) is False` and
-            `raise_if_add_qubits is True`.
+        ValueError: If `raise_if_add_qubits` is True and `map_func(op, idx)` returns
+            operations that act on qubits outside of the `op.qubits` set.
+        ValueError: If `preserve_moments` is True and the mapped operations cannot fit
+            in a single moment (e.g., two mapped operations act on the same qubit).
 
     Returns:
-        Copy of input circuit with mapped operations.
+        Copy of the input circuit with mapped operations.
     """
-    tags_to_ignore_set = set(tags_to_ignore)
+    tags_to_ignore_set = frozenset(tags_to_ignore)
 
     def apply_map_func(op: cirq.Operation, idx: int) -> list[cirq.Operation]:
-        if tags_to_ignore_set.intersection(op.tags):
+        if not tags_to_ignore_set.isdisjoint(op.tags):
             return [op]
         if deep and isinstance(op.untagged, circuits.CircuitOperation):
             op = op.untagged.replace(
@@ -196,6 +203,7 @@ def _map_operations_impl(
                     raise_if_add_qubits=raise_if_add_qubits,
                     tags_to_ignore=tags_to_ignore,
                     wrap_in_circuit_op=wrap_in_circuit_op,
+                    preserve_moments=preserve_moments,
                 )
             ).with_tags(*op.tags)
         mapped_ops = [*ops.flatten_to_ops(map_func(op, idx))]
@@ -208,9 +216,9 @@ def _map_operations_impl(
                     f"Mapped operations {mapped_ops} should act on a subset "
                     f"of qubits of the original operation {op}"
                 )
-            if mapped_ops_qubits.intersection(mapped_op.qubits):
+            if not mapped_ops_qubits.isdisjoint(mapped_op.qubits):
                 has_overlapping_ops = True
-            mapped_ops_qubits = mapped_ops_qubits.union(mapped_op.qubits)
+            mapped_ops_qubits.update(mapped_op.qubits)
         if wrap_in_circuit_op and has_overlapping_ops:
             # Mapped operations should be wrapped in a `CircuitOperation` only iff they occupy more
             # than one moment, i.e. there are at least two operations that share a qubit.
@@ -221,6 +229,19 @@ def _map_operations_impl(
             ]
         return mapped_ops
 
+    if preserve_moments:
+        preserved_moments: list[circuits.Moment] = []
+        for idx, moment in enumerate(circuit):
+            moment_ops = [mapped_op for op in moment for mapped_op in apply_map_func(op, idx)]
+            try:
+                preserved_moments.append(circuits.Moment.from_ops(*moment_ops))
+            except ValueError as ex:
+                raise ValueError(
+                    f"Cannot preserve the moment structure - operations mapped from the "
+                    f"moment at index {idx} do not fit into a single moment:\n{ex}"
+                ) from ex
+        return _create_target_circuit_type(preserved_moments, circuit)
+
     new_moments: list[list[cirq.Operation]] = []
     for idx, moment in enumerate(circuit):
         curr_moments: list[list[cirq.Operation]] = [[]] if wrap_in_circuit_op else []
@@ -229,7 +250,9 @@ def _map_operations_impl(
             mapped_ops = apply_map_func(op, idx)
             for mapped_op in mapped_ops:
                 placement_index = placement_cache.append(mapped_op)
-                curr_moments.extend([[] for _ in range(placement_index - len(curr_moments) + 1)])
+                # placement_index may increment at most by one
+                if placement_index == len(curr_moments):
+                    curr_moments.append([])
                 curr_moments[placement_index].append(mapped_op)
         new_moments.extend(curr_moments)
 
@@ -243,6 +266,7 @@ def map_operations(
     deep: bool = False,
     raise_if_add_qubits=True,
     tags_to_ignore: Sequence[Hashable] = (),
+    preserve_moments: bool = False,
 ) -> CIRCUIT_TYPE:
     """Applies local transformations, by calling `map_func(op, moment_index)` for each operation.
 
@@ -263,13 +287,20 @@ def map_operations(
         tags_to_ignore: Sequence of tags which should be ignored while applying `map_func` on
             tagged operations -- i.e. `map_func(op, idx)` will be called only for operations that
             satisfy `set(op.tags).isdisjoint(tags_to_ignore)`.
+        preserve_moments: If True, operations mapped from a single source moment are packed into
+            a single target moment, preserving both the moment structure and the order of
+            operations within the moment. This is safe for circuits with duplicate measurement
+            keys in the same moment. Raises ValueError if the mapped operations cannot fit in a
+            single moment (e.g. two mapped operations act on the same qubit).
 
     Raises:
-          ValueError if `issubset(qubit_set(map_func(op, idx)), op.qubits) is False` and
+        ValueError if `issubset(qubit_set(map_func(op, idx)), op.qubits) is False` and
             `raise_if_add_qubits is True`.
+        ValueError if `preserve_moments is True` and operations mapped from a source moment
+            cannot be packed into a single target moment.
 
     Returns:
-        Copy of input circuit with mapped operations (wrapped in a tagged CircuitOperation).
+        Copy of the input circuit with mapped operations (wrapped in a tagged CircuitOperation).
     """
     return _map_operations_impl(
         circuit,
@@ -278,6 +309,7 @@ def map_operations(
         raise_if_add_qubits=raise_if_add_qubits,
         tags_to_ignore=tags_to_ignore,
         wrap_in_circuit_op=True,
+        preserve_moments=preserve_moments,
     )
 
 
@@ -288,6 +320,7 @@ def map_operations_and_unroll(
     deep: bool = False,
     raise_if_add_qubits=True,
     tags_to_ignore: Sequence[Hashable] = (),
+    preserve_moments: bool = False,
 ) -> CIRCUIT_TYPE:
     """Applies local transformations via `cirq.map_operations` & unrolls intermediate circuit ops.
 
@@ -303,6 +336,10 @@ def map_operations_and_unroll(
         tags_to_ignore: Sequence of tags which should be ignored while applying `map_func` on
             tagged operations -- i.e. `map_func(op, idx)` will be called only for operations that
             satisfy `set(op.tags).isdisjoint(tags_to_ignore)`.
+        preserve_moments: If True, operations mapped from a single source moment are packed into
+            a single target moment, preserving both the moment structure and the order of
+            operations within the moment. Raises ValueError if the mapped operations cannot fit
+            in a single moment (e.g. two mapped operations act on the same qubit).
 
     Returns:
         Copy of input circuit with mapped operations, unrolled in a moment preserving way.
@@ -314,6 +351,7 @@ def map_operations_and_unroll(
         raise_if_add_qubits=raise_if_add_qubits,
         tags_to_ignore=tags_to_ignore,
         wrap_in_circuit_op=False,
+        preserve_moments=preserve_moments,
     )
 
 
@@ -752,6 +790,60 @@ def merge_moments(
     return _create_target_circuit_type(merged_moments, circuit)
 
 
+def merge_moments_batch(
+    circuit: CIRCUIT_TYPE,
+    merge_func: Callable[[Sequence[cirq.Moment]], tuple[cirq.Moment, Sequence[cirq.Moment]]],
+    *,
+    tags_to_ignore: Sequence[Hashable] = (),
+    deep: bool = False,
+) -> CIRCUIT_TYPE:
+    """Merges as many adjacent moments as possible at once using `merge_func(moments_list)`.
+
+    Starting from the first moment, the largest run of mergeable moments is found and then
+    merged at once. The process is repeated starting from the next moment, until the circuit
+    is exhausted. `merge_func` is not called on single-moment runs.
+
+    Args:
+        circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
+        merge_func: Callable that takes a sequence of moments and returns both the first
+            moment merged with as many consecutive moments as possible, and a sequence of
+            the remaining unmerged moments.
+        tags_to_ignore: Tagged circuit operations marked with any of `tags_to_ignore` will be
+            ignored when recursively applying the transformer primitive to sub-circuits, given
+            deep=True.
+        deep: If true, the transformer primitive will be recursively applied to all circuits
+            wrapped inside circuit operations.
+
+    Returns:
+        Copy of input circuit with merged moments.
+    """
+    if not circuit:
+        return circuit
+    if deep:
+        circuit = map_operations(
+            circuit,
+            lambda op, _: (
+                op.untagged.replace(
+                    circuit=merge_moments_batch(
+                        op.untagged.circuit, merge_func, tags_to_ignore=tags_to_ignore, deep=deep
+                    )
+                ).with_tags(*op.tags)
+                if isinstance(op.untagged, circuits.CircuitOperation)
+                else op
+            ),
+            tags_to_ignore=tags_to_ignore,
+        )
+
+    merged_moments: list[circuits.Moment] = []
+    moments_to_merge: Sequence[circuits.Moment] = circuit.moments
+
+    while moments_to_merge:
+        batch_merged_moment, moments_to_merge = merge_func(moments_to_merge)
+        merged_moments.append(batch_merged_moment)
+
+    return _create_target_circuit_type(merged_moments, circuit)
+
+
 def unroll_circuit_op(
     circuit: CIRCUIT_TYPE,
     *,
@@ -773,6 +865,7 @@ def unroll_circuit_op(
     Returns:
         Copy of input circuit with (Tagged) CircuitOperation's expanded in a moment preserving way.
     """
+    tags_to_check_set = frozenset(tags_to_check or ())
 
     def map_func(m: circuits.Moment, _: int):
         to_zip: list[cirq.AbstractCircuit] = []
@@ -787,7 +880,7 @@ def unroll_circuit_op(
                     )
                 to_zip.append(
                     op_untagged.mapped_circuit()
-                    if (tags_to_check is None or set(tags_to_check).intersection(op.tags))
+                    if (tags_to_check is None or not tags_to_check_set.isdisjoint(op.tags))
                     else circuits.Circuit(op_untagged.with_tags(*op.tags))
                 )
             else:
@@ -819,6 +912,7 @@ def unroll_circuit_op_greedy_earliest(
     Returns:
         Copy of input circuit with (Tagged) CircuitOperation's expanded using EARLIEST strategy.
     """
+    tags_to_check_set = frozenset(tags_to_check or ())
     batch_replace = []
     batch_remove = []
     batch_insert = []
@@ -832,7 +926,7 @@ def unroll_circuit_op_greedy_earliest(
                     op_untagged.circuit, deep=deep, tags_to_check=tags_to_check
                 )
             )
-        if tags_to_check is None or set(tags_to_check).intersection(op.tags):
+        if tags_to_check is None or not tags_to_check_set.isdisjoint(op.tags):
             batch_remove.append((i, op))
             batch_insert.append((i, op_untagged.mapped_circuit().all_operations()))
         elif deep:
@@ -867,6 +961,7 @@ def unroll_circuit_op_greedy_frontier(
         Copy of input circuit with (Tagged) CircuitOperation's expanded inline at qubit frontier.
     """
     unrolled_circuit = circuit.unfreeze(copy=True)
+    tags_to_check_set = frozenset(tags_to_check or ())
     frontier: dict[cirq.Qid, int] = defaultdict(lambda: 0)
     idx = 0
     while idx < len(unrolled_circuit):
@@ -883,7 +978,7 @@ def unroll_circuit_op_greedy_frontier(
                         op_untagged.circuit, deep=deep, tags_to_check=tags_to_check
                     )
                 )
-            if tags_to_check is None or set(tags_to_check).intersection(op.tags):
+            if tags_to_check is None or not tags_to_check_set.isdisjoint(op.tags):
                 unrolled_circuit.clear_operations_touching(op.qubits, [idx])
                 frontier = unrolled_circuit.insert_at_frontier(
                     op_untagged.mapped_circuit().all_operations(), idx, frontier
@@ -919,7 +1014,7 @@ def toggle_tags(circuit: CIRCUIT_TYPE, tags: Sequence[Hashable], *, deep: bool =
         return (
             op
             if deep and isinstance(op, circuits.CircuitOperation)
-            else op.untagged.with_tags(*(set(op.tags) ^ tags_to_xor))
+            else op.untagged.with_tags(*tags_to_xor.symmetric_difference(op.tags))
         )
 
     return map_operations(circuit, map_func, deep=deep)

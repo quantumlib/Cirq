@@ -327,6 +327,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
         dtype: type[np.complexfloating] | np.dtype[np.complexfloating] = np.complex64,
         classical_data: cirq.ClassicalDataStore | None = None,
+        param_resolver: cirq.ParamResolver | None = None,
     ):
         """Inits StateVectorSimulationState.
 
@@ -348,6 +349,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
                 `target_tenson` is None.
             classical_data: The shared classical data container for this
                 simulation.
+            param_resolver: The parameter resolver for the simulation.
         """
         state = _BufferedStateVector.create(
             initial_state=initial_state,
@@ -355,7 +357,13 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
             dtype=dtype,
             buffer=available_buffer,
         )
-        super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
+        super().__init__(
+            state=state,
+            prng=prng,
+            qubits=qubits,
+            classical_data=classical_data,
+            param_resolver=param_resolver,
+        )
 
     def add_qubits(self, qubits: Sequence[cirq.Qid]) -> Self:
         ret = super().add_qubits(qubits)

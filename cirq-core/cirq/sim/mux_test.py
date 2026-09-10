@@ -298,7 +298,7 @@ def test_final_density_matrix_dtype_insensitive_to_initial_state() -> None:
 def test_final_density_matrix_param_resolver() -> None:
     s = sympy.Symbol('s')
 
-    with pytest.raises(ValueError, match='not specified in parameter sweep'):
+    with pytest.raises(ValueError, match='not specified in the parameter sweep'):
         _ = cirq.final_density_matrix(cirq.X**s)
 
     np.testing.assert_allclose(

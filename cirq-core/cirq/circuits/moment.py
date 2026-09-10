@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import itertools
-from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping, Sequence, Set
+from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping, Sequence
 from functools import cached_property
 from types import NotImplementedType
 from typing import Any, cast, overload, Self, TYPE_CHECKING
@@ -42,7 +42,7 @@ text_diagram_drawer = LazyLoader(
 def _default_breakdown(qid: cirq.Qid) -> tuple[Any, Any]:
     # Attempt to convert into a position on the complex plane.
     try:
-        plane_pos = complex(qid)  # type: ignore
+        plane_pos = complex(qid)  # type: ignore[call-overload]
         return plane_pos.real, plane_pos.imag
     except TypeError:
         return None, qid
@@ -293,8 +293,8 @@ class Moment:
         return any(protocols.is_parameterized(op) for op in self)
 
     @_compat.cached_method()
-    def _parameter_names_(self) -> Set[str]:
-        return {name for op in self for name in protocols.parameter_names(op)}
+    def _parameter_names_(self) -> frozenset[str]:
+        return frozenset().union(*(protocols.parameter_names(op) for op in self))
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> cirq.Moment:
         changed = False
@@ -591,12 +591,9 @@ class Moment:
                 raise KeyError("Moment doesn't act on given qubit")
             return self._qubit_to_op[key]
         elif isinstance(key, Iterable):
-            qubits_to_keep = frozenset(key)
-            ops_to_keep = []
-            for q in qubits_to_keep:
-                if q in self._qubit_to_op:
-                    ops_to_keep.append(self._qubit_to_op[q])
-            return Moment(frozenset(ops_to_keep))
+            ops_to_keep = frozenset(op for q in key if (op := self._qubit_to_op.get(q)) is not None)
+            # preserve the order of operations
+            return Moment.from_ops(*(op for op in self if op in ops_to_keep))
 
     def to_text_diagram(
         self: cirq.Moment,

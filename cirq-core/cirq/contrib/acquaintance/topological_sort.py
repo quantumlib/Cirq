@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import operator
 import random
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Iterator
 from typing import Any, cast, TYPE_CHECKING
 
 from cirq import ops
@@ -73,7 +73,7 @@ def is_topologically_sorted(
     return not bool(frontier)
 
 
-def random_topological_sort(dag: networkx.DiGraph) -> Iterable[Any]:
+def random_topological_sort(dag: networkx.DiGraph) -> Iterator[Any]:
     remaining_dag = dag.copy()
     frontier = [node for node in remaining_dag.nodes() if not remaining_dag.pred[node]]
     while frontier:

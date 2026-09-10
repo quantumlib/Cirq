@@ -1013,7 +1013,11 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             conjugated = _calc_conjugation(ps, op)
             # The pauli string on the remaining qubits
             remain: PauliString = PauliString(
-                *(pauli(q) for q in all_qubits - set(op.qubits) if (pauli := ps.get(q)) is not None)
+                *(
+                    pauli(q)
+                    for q in all_qubits.difference(op.qubits)
+                    if (pauli := ps.get(q)) is not None
+                )
             )
             ps = remain * conjugated
         return ps
@@ -1090,16 +1094,22 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return self.before(all_ops[::-1])
 
     def _is_parameterized_(self) -> bool:
-        return protocols.is_parameterized(self.coefficient)
+        return protocols.is_parameterized(self.coefficient) or self._are_qubits_parameterized()
 
     def _parameter_names_(self) -> Set[str]:
-        return protocols.parameter_names(self.coefficient)
+        return protocols.parameter_names(self.coefficient) | self._qubit_parameter_names()
 
     def _resolve_parameters_(
         self, resolver: cirq.ParamResolver, recursive: bool
     ) -> cirq.PauliString:
         coefficient = protocols.resolve_parameters(self.coefficient, resolver, recursive)
-        return PauliString(qubit_pauli_map=self._qubit_pauli_map, coefficient=coefficient)
+        resolved_qubit_pauli_map = {
+            protocols.resolve_parameters(k, resolver, recursive): v
+            for k, v in self._qubit_pauli_map.items()
+        }
+        if len(resolved_qubit_pauli_map) != len(self._qubit_pauli_map):
+            raise ValueError("Duplicate qubits during parameter resolution.")
+        return PauliString(qubit_pauli_map=resolved_qubit_pauli_map, coefficient=coefficient)
 
 
 def _validate_qubit_mapping(
@@ -1155,7 +1165,7 @@ def _try_interpret_as_pauli_string(op: Any) -> PauliString | None:
         common_gates.ZPowGate: pauli_gates.Z,
     }
     if (pauli := cached_gates.get(type(op.gate))) is not None:
-        exponent = op.gate.exponent  # type: ignore
+        exponent = op.gate.exponent  # type: ignore[union-attr]
         if exponent % 2 == 0:
             return PauliString()
         if exponent % 2 == 1:
@@ -1170,7 +1180,7 @@ def _try_interpret_as_pauli_string(op: Any) -> PauliString | None:
 
 
 # Ignoring type because mypy believes `with_qubits` methods are incompatible.
-class SingleQubitPauliStringGateOperation(  # type: ignore
+class SingleQubitPauliStringGateOperation(  # type: ignore[misc]
     gate_operation.GateOperation, PauliString
 ):
     """An operation to represent single qubit pauli gates applied to a qubit.
@@ -1210,7 +1220,7 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
         return protocols.obj_to_dict_helper(self, ['pauli', 'qubit'])
 
     @classmethod
-    def _from_json_dict_(cls, pauli: pauli_gates.Pauli, qubit: cirq.Qid, **kwargs):  # type: ignore
+    def _from_json_dict_(cls, pauli: pauli_gates.Pauli, qubit: cirq.Qid, **kwargs):  # type: ignore[override]
         # Note, this method is required or else superclasses' deserialization
         # would be used
         return cls(pauli=pauli, qubit=qubit)
@@ -1565,10 +1575,10 @@ class MutablePauliString(Generic[TKey]):
 
 
 # Mypy has extreme difficulty with these constants for some reason.
-_i = cast(identity.IdentityGate, identity.I)  # type: ignore
-_x = cast(pauli_gates.Pauli, pauli_gates.X)  # type: ignore
-_y = cast(pauli_gates.Pauli, pauli_gates.Y)  # type: ignore
-_z = cast(pauli_gates.Pauli, pauli_gates.Z)  # type: ignore
+_i = cast(identity.IdentityGate, identity.I)  # type: ignore[has-type]
+_x = cast(pauli_gates.Pauli, pauli_gates.X)  # type: ignore[has-type]
+_y = cast(pauli_gates.Pauli, pauli_gates.Y)  # type: ignore[has-type]
+_z = cast(pauli_gates.Pauli, pauli_gates.Z)  # type: ignore[has-type]
 
 PAULI_GATE_LIKE_TO_INDEX_MAP: dict[cirq.PAULI_GATE_LIKE, int] = {
     _i: 0,

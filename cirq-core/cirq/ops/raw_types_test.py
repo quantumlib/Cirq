@@ -529,9 +529,30 @@ def test_circuit_diagram() -> None:
         def __str__(self):
             return '<taggy>'
 
+    class DiagramInfoTag:
+        """Tag that customizes diagram rendering via `_circuit_diagram_info_`."""
+
+        def __str__(self):
+            return 'should-not-appear-in-diagram'
+
+        def __repr__(self):
+            return 'DiagramInfoTag()'
+
+        def _circuit_diagram_info_(
+            self, args: cirq.CircuitDiagramInfoArgs
+        ) -> str | cirq.CircuitDiagramInfo:
+            if args.use_unicode_characters:
+                return '★'
+            return cirq.CircuitDiagramInfo(wire_symbols=('D',))
+
+    # str/repr exist for documentation; protocol path must not use them.
+    assert str(DiagramInfoTag()) == 'should-not-appear-in-diagram'
+    assert repr(DiagramInfoTag()) == 'DiagramInfoTag()'
+
     h = cirq.H(cirq.GridQubit(1, 1))
     tagged_h = h.with_tags('tag1')
     non_string_tag_h = h.with_tags(TaggyTag())
+    diagram_info_tag_h = h.with_tags(DiagramInfoTag())
 
     expected = cirq.CircuitDiagramInfo(
         wire_symbols=("H[tag1]",),
@@ -557,6 +578,23 @@ def test_circuit_diagram() -> None:
     assert c.to_text_diagram(include_tags=False) == diagram_without_tags
     assert c.to_text_diagram(include_tags={str}) == diagram_without_tags
     assert c.to_text_diagram(include_tags={TaggyTag}) == diagram_with_non_string_tag
+
+    # Tags implementing _circuit_diagram_info_ customize diagram text (not str).
+    c = cirq.Circuit(diagram_info_tag_h)
+    assert c.to_text_diagram(use_unicode_characters=True) == "(1, 1): ───H[★]───"
+    assert c.to_text_diagram(use_unicode_characters=False) == "(1, 1): ---H[D]---"
+    assert c.to_text_diagram(include_tags=False) == diagram_without_tags
+    assert c.to_text_diagram(include_tags={str}) == diagram_without_tags
+    assert (
+        c.to_text_diagram(include_tags={DiagramInfoTag}, use_unicode_characters=True)
+        == "(1, 1): ───H[★]───"
+    )
+    # Mixed tags: protocol text for custom tags, str() fallback for others.
+    mixed = h.with_tags('plain', DiagramInfoTag(), TaggyTag())
+    assert (
+        cirq.Circuit(mixed).to_text_diagram(use_unicode_characters=True)
+        == "(1, 1): ───H[plain, ★, <taggy>]───"
+    )
 
 
 def test_circuit_diagram_tagged_global_phase() -> None:

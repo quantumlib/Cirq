@@ -148,9 +148,7 @@ class PointOptimizer:
                     continue  # pragma: no cover
 
                 # Clear target area, and insert new operations.
-                circuit.clear_operations_touching(
-                    opt.clear_qubits, list(range(i, i + opt.clear_span))
-                )
+                circuit.clear_operations_touching(opt.clear_qubits, range(i, i + opt.clear_span))
                 new_operations = self.post_clean_up(cast(tuple[ops.Operation], opt.new_operations))
 
                 flat_new_operations = tuple(ops.flatten_to_ops(new_operations))

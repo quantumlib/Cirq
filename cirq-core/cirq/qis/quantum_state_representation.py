@@ -30,10 +30,11 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def copy(self, deep_copy_buffers: bool = True) -> Self:
         """Creates a copy of the object.
+
         Args:
             deep_copy_buffers: If True, buffers will also be deep-copied.
-            Otherwise the copy will share a reference to the original object's
-            buffers.
+                Otherwise the copy will share a reference to the original object's buffers.
+
         Returns:
             A copied instance.
         """

@@ -176,22 +176,15 @@ def test_compile_circuit_replaces_swaps() -> None:
 
     # Assert that there were some swaps in the result
     compiler_mock.assert_called_with(compilation_result.circuit)
-    assert (
-        len(
-            list(compilation_result.circuit.findall_operations_with_gate_type(cirq.ops.SwapPowGate))
-        )
-        > 0
-    )
+    assert list(compilation_result.circuit.findall_operations_with_gate_type(cirq.ops.SwapPowGate))
     # Assert that there were not SwapPermutations in the result.
     assert (
-        len(
-            list(
-                compilation_result.circuit.findall_operations_with_gate_type(
-                    cirq.contrib.acquaintance.SwapPermutationGate
-                )
+        list(
+            compilation_result.circuit.findall_operations_with_gate_type(
+                cirq.contrib.acquaintance.SwapPermutationGate
             )
         )
-        == 0
+        == []
     )
 
 

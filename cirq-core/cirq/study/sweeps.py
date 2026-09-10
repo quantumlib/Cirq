@@ -650,7 +650,7 @@ def dict_to_zip_sweep(factor_dict: ProductOrZipSweepLike) -> Zip:
     """
     return Zip(
         *(
-            Points(k, cast(float, v) if isinstance(v, Sequence) else [v])  # type: ignore
+            Points(k, cast(float, v) if isinstance(v, Sequence) else [v])  # type: ignore[arg-type]
             for k, v in factor_dict.items()
         )
     )

@@ -165,7 +165,7 @@ def test_cliffords(gate, num_ops) -> None:
     desired_unitary = cirq.unitary(gate)
     shannon_circuit = cirq.Circuit(quantum_shannon_decomposition((cirq.q(0),), desired_unitary))
     new_unitary = cirq.unitary(shannon_circuit)
-    assert len([*shannon_circuit.all_operations()]) == num_ops
+    assert sum(1 for _ in shannon_circuit.all_operations()) == num_ops
     if num_ops:
         np.testing.assert_allclose(new_unitary, desired_unitary)
 
