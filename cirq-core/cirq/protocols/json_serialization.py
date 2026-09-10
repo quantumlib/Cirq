@@ -152,8 +152,6 @@ def obj_to_dict_helper(obj: Any, attribute_names: Iterable[str]) -> dict[str, An
     d = {}
     for attr_name in attribute_names:
         d[attr_name] = getattr(obj, attr_name)
-        if isinstance(d[attr_name], dict):
-            assert all(isinstance(k, str) for k in d[attr_name].keys())
     return d
 
 
