@@ -22,8 +22,7 @@ the following:
     *   Similarly, symbols in vendor packages, like [cirq-google](https://quantumai.google/reference/python/cirq_google/all_symbols), [cirq-aqt](https://quantumai.google/reference/python/cirq_aqt/all_symbols) are also not covered by the compatibility guarantee.
     *   If a symbol is available through the `cirq` Python module or its submodules, but is not documented, then it is **not** considered part of the public API.
 
-<a name="what-is-not-covered"></a>
-## What is _not_ covered
+## What is not covered
 * **Experimental APIs**: To facilitate development, we exempt some API symbols clearly marked as experimental from the compatibility guarantees. In particular, the following are not covered by any compatibility guarantees:
     *   any symbol in the `cirq.contrib` module or its submodules.
     *   any symbol whose name contains `experimental` or `Experimental`; or
