@@ -12,12 +12,8 @@ thisdir=$(dirname "${BASH_SOURCE[0]:?}") || exit $?
 repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
 cd "${repo_dir}" || exit $?
 
-# Ensure terminal color is reset even if interrupted.
-trap 'echo -e -n "\033[0m"' EXIT
-
 source dev_tools/pypath || exit $?
 
-echo -e -n "\033[31m"
 mypy "$@" .
 mypy_result=$?
 if (( mypy_result != 0 )); then
