@@ -18,15 +18,13 @@ from __future__ import annotations
 
 import functools
 import inspect
-import json
 import warnings
 from collections.abc import Callable, Hashable, Mapping, Sequence
 from typing import Any
 
 import attrs
-import sympy
-
 import cirq
+import sympy
 from cirq_google.api import v2
 from cirq_google.experimental.ops import CouplerPulse
 from cirq_google.ops import (
@@ -64,27 +62,6 @@ from cirq_google.serialization import (
 # "v2.5" refers to the most current v2.Program proto format.
 # CircuitSerializer is the dedicated serializer for the v2.5 format.
 _SERIALIZER_NAME = 'v2_5'
-
-
-def _serialize_value(value: Any, out_msg: v2.program_pb2.Arg) -> None:
-    # Note: `v2.program_pb2.Arg` (and `ArgValue`) does not have a map/dict field in
-    # the protobuf schema, only primitive types, tunits.Value, and tuples/ndarrays.
-    # To represent dictionary arguments such as `coupler_amplitudes` without
-    # protobuf schema changes and to stay wire-compatible with pyle
-    # (see pyle.cirqtools.proto_serialization._serialize_value),
-    # dictionaries are serialized as JSON strings with the '__JSON_DICT__:' prefix.
-    if isinstance(value, dict):
-        val = "__JSON_DICT__:" + json.dumps(value)
-    else:
-        val = value
-    arg_func_langs.arg_to_proto(val, out=out_msg)
-
-
-def _deserialize_value(arg_msg: v2.program_pb2.Arg) -> Any:
-    value = arg_func_langs.arg_from_proto(arg_msg)
-    if isinstance(value, str) and value.startswith("__JSON_DICT__:"):
-        return json.loads(value[len("__JSON_DICT__:") :])
-    return value
 
 
 class CircuitSerializer(serializer.Serializer):
@@ -427,7 +404,7 @@ class CircuitSerializer(serializer.Serializer):
             gate_args = msg.resetgate.arguments
             for arg in attrs.fields(type(gate)):
                 if (value := getattr(gate, arg.name, None)) is not None:
-                    _serialize_value(value, gate_args[arg.name])
+                    arg_func_langs.arg_to_proto(value, out=gate_args[arg.name])
         elif isinstance(gate, CouplerPulse):
             arg_func_langs.float_arg_to_proto(
                 gate.hold_time.total_picos(), out=msg.couplerpulsegate.hold_time_ps
@@ -959,11 +936,13 @@ class CircuitSerializer(serializer.Serializer):
                     op = MultilevelResetViaResonator()(*qubits)
                 case "MultiStepMultiLevelReset":
                     gate_args = operation_proto.resetgate.arguments
-                    kwargs = {}
+                    # `arg_from_proto` returns a union covering every arg type,
+                    # so the per-attribute types can't be narrowed here.
+                    kwargs: dict[str, Any] = {}
                     for arg in attrs.fields(MultiStepMultiLevelReset):
                         if arg.name not in gate_args:
                             continue
-                        kwargs[arg.name] = _deserialize_value(gate_args[arg.name])
+                        kwargs[arg.name] = arg_func_langs.arg_from_proto(gate_args[arg.name])
                     op = MultiStepMultiLevelReset(**kwargs)(*qubits)
                 case _:
                     op = cirq.ResetChannel(dimension=dimensions)(*qubits)
@@ -983,7 +962,7 @@ class CircuitSerializer(serializer.Serializer):
                     for arg in attrs.fields(MultiStepMultiLevelReset):
                         if arg.name not in gate_args:
                             continue
-                        kwargs[arg.name] = _deserialize_value(gate_args[arg.name])
+                        kwargs[arg.name] = arg_func_langs.arg_from_proto(gate_args[arg.name])
                     gate = MultiStepMultiLevelReset(**kwargs)
                 case "LeakageISWAPPhaseMatched":
                     gate = LeakageISWAP(phase_matched=True)

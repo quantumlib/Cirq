@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sympy
 import tunits as tu
 
 import cirq
 import cirq_google as cg
+import sympy
 from cirq_google.api import v2
 from cirq_google.ops.multi_step_multi_level_reset import MultiStepMultiLevelReset
+from cirq_google.serialization import arg_func_langs
 
 
 def test_multi_step_multi_level_reset_properties():
@@ -195,7 +196,20 @@ def test_full_serialization_round_trip():
             arg_value=v2.program_pb2.ArgValue(bool_value=False)
         ),
         "coupler_amplitudes": v2.program_pb2.Arg(
-            arg_value=v2.program_pb2.ArgValue(string_value='__JSON_DICT__:{"coupler_A": 0.5}')
+            arg_value=v2.program_pb2.ArgValue(
+                map_value=v2.program_pb2.ArgMapping(
+                    entries=[
+                        v2.program_pb2.ArgMapping.ArgEntry(
+                            key=v2.program_pb2.Arg(
+                                arg_value=v2.program_pb2.ArgValue(string_value="coupler_A")
+                            ),
+                            value=v2.program_pb2.Arg(
+                                arg_value=v2.program_pb2.ArgValue(float_value=0.5)
+                            ),
+                        )
+                    ]
+                )
+            )
         ),
         "compensate_coupled_qubit": v2.program_pb2.Arg(
             arg_value=v2.program_pb2.ArgValue(bool_value=True)
@@ -219,8 +233,8 @@ def test_internal_gate_deserialization_fallback():
     op_proto.qubit_constant_index.append(0)
     op_proto.internalgate.name = "MultiStepMultiLevelReset"
     op_proto.internalgate.gate_args["already_at_readout_detuning"].arg_value.bool_value = True
-    op_proto.internalgate.gate_args["coupler_amplitudes"].arg_value.string_value = (
-        '__JSON_DICT__:{"c1": 0.25}'
+    arg_func_langs.arg_to_proto(
+        {"c1": 0.25}, out=op_proto.internalgate.gate_args["coupler_amplitudes"]
     )
 
     program_proto = v2.program_pb2.Program()

@@ -560,6 +560,10 @@ message ArgValue {
     Complex complex_value = 11;
     Tuple tuple_value = 12;
     NDArray ndarray_value = 13;
+    // A dictionary (mapping) of arbitrary keys to arbitrary values.
+    // Note that both keys and values are themselves `Arg` protos, so
+    // mappings can be nested.
+    ArgMapping map_value = 14;
   }
 }
 
