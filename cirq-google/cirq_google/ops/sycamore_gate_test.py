@@ -32,7 +32,7 @@ import cirq_google as cg
 def test_consistent_protocols(gate_type, qubit_count):
     cirq.testing.assert_implements_consistent_protocols(
         gate_type,
-        setup_code='import cirq\nimport numpy as np\nimport sympy\nimport cirq_google',
+        setup_code='import cirq\nimport sympy\nimport cirq_google',
         qubit_count=qubit_count,
     )
 

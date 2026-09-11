@@ -141,7 +141,7 @@ def test_repr():
         key=KEY, distribution=DIST, seed=SEED, length=LENGTH, metadata={'data': 1}
     )
     # cirq.testing.assert_equivalent_repr evaluates the repr and checks equality
-    cirq.testing.assert_equivalent_repr(sweep, setup_code='import sympy\nimport cirq_google')
+    cirq.testing.assert_equivalent_repr(sweep, setup_code='import cirq_google')
 
 
 def test_json_serialization():
