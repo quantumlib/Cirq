@@ -19,10 +19,10 @@ import numbers
 from collections.abc import Sequence
 from typing import cast, TypeAlias
 
-import tunits
-
 import numpy as np
 import sympy
+import tunits
+
 from cirq.qis import CliffordTableau
 from cirq.value import BitMaskKeyCondition, Condition, KeyCondition, MeasurementKey, SympyCondition
 from cirq_google.api import v2

@@ -23,8 +23,9 @@ from collections.abc import Callable, Hashable, Mapping, Sequence
 from typing import Any
 
 import attrs
-import cirq
 import sympy
+
+import cirq
 from cirq_google.api import v2
 from cirq_google.experimental.ops import CouplerPulse
 from cirq_google.ops import (

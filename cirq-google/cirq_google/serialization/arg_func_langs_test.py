@@ -17,12 +17,13 @@ from __future__ import annotations
 import base64
 from typing import cast
 
+import numpy as np
 import pytest
+import sympy
 import tunits.units
+from google.protobuf import json_format
 
 import cirq_google
-import numpy as np
-import sympy
 from cirq.qis import CliffordTableau
 from cirq.value import BitMaskKeyCondition, KeyCondition, MeasurementKey, SympyCondition
 from cirq_google.api import v2
@@ -41,7 +42,6 @@ from cirq_google.serialization.arg_func_langs import (
     internal_gate_arg_to_proto,
     internal_gate_from_proto,
 )
-from google.protobuf import json_format
 
 
 @pytest.mark.parametrize(
