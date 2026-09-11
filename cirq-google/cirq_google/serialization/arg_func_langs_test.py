@@ -279,6 +279,26 @@ def test_dict_from_arg_mapping_proto(d):
     assert dict_from_arg_mapping_proto(dict_to_arg_mapping_proto(d)) == d
 
 
+@pytest.mark.parametrize(
+    "value",
+    [
+        {},
+        {'a': 1},
+        {'a': 1 * tunits.units.ns},
+        {'a': 1.25},
+        {'a': "str"},
+        {'a': [1, 2]},
+        {'a': 1, 'b': 1 * tunits.units.ns, 'c': 1.25, 'd': "str", 'e': [1, 2]},
+        {1: 'a', 2.5: 'b'},
+        {'outer': {'inner': 1}},
+    ],
+)
+def test_dict_roundtrip(value):
+    msg = arg_to_proto(value)
+    assert msg.arg_value.WhichOneof('arg_value') == 'map_value'
+    assert arg_from_proto(msg) == value
+
+
 @pytest.mark.parametrize('value', [[], (), set(), frozenset()])
 def test_empty_sequence_roundtrip(value):
     msg = arg_to_proto(value)

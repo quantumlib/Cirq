@@ -22,6 +22,7 @@ import warnings
 from collections.abc import Callable, Hashable, Mapping, Sequence
 from typing import Any
 
+import attrs
 import sympy
 
 import cirq
@@ -38,6 +39,7 @@ from cirq_google.ops import (
     LeakageISWAP,
     LZSResetViaResonator,
     MultilevelResetViaResonator,
+    MultiStepMultiLevelReset,
     NoSyncTag,
     PhysicalZTag,
     SycamoreGate,
@@ -398,6 +400,12 @@ class CircuitSerializer(serializer.Serializer):
             arg_func_langs.arg_to_proto(gate.dimension, out=msg.resetgate.arguments['dimension'])
         elif isinstance(gate, (MultilevelResetViaResonator, LZSResetViaResonator)):
             msg.resetgate.reset_type = type(gate).__name__
+        elif isinstance(gate, MultiStepMultiLevelReset):
+            msg.resetgate.reset_type = type(gate).__name__
+            gate_args = msg.resetgate.arguments
+            for arg in attrs.fields(type(gate)):
+                if (value := getattr(gate, arg.name, None)) is not None:
+                    arg_func_langs.arg_to_proto(value, out=gate_args[arg.name])
         elif isinstance(gate, CouplerPulse):
             arg_func_langs.float_arg_to_proto(
                 gate.hold_time.total_picos(), out=msg.couplerpulsegate.hold_time_ps
@@ -927,6 +935,16 @@ class CircuitSerializer(serializer.Serializer):
                     op = LZSResetViaResonator()(*qubits)
                 case "MultilevelResetViaResonator":
                     op = MultilevelResetViaResonator()(*qubits)
+                case "MultiStepMultiLevelReset":
+                    gate_args = operation_proto.resetgate.arguments
+                    # `arg_from_proto` returns a union covering every arg type,
+                    # so the per-attribute types can't be narrowed here.
+                    kwargs: dict[str, Any] = {}
+                    for arg in attrs.fields(MultiStepMultiLevelReset):
+                        if arg.name not in gate_args:
+                            continue
+                        kwargs[arg.name] = arg_func_langs.arg_from_proto(gate_args[arg.name])
+                    op = MultiStepMultiLevelReset(**kwargs)(*qubits)
                 case _:
                     op = cirq.ResetChannel(dimension=dimensions)(*qubits)
         elif which_gate_type == 'internalgate':
@@ -939,6 +957,14 @@ class CircuitSerializer(serializer.Serializer):
                 case "MultilevelResetViaResonator":
                     # Can be removed once resetgate deployed (about 9/2026)
                     gate = MultilevelResetViaResonator()
+                case "MultiStepMultiLevelReset":
+                    gate_args = msg.gate_args
+                    kwargs = {}
+                    for arg in attrs.fields(MultiStepMultiLevelReset):
+                        if arg.name not in gate_args:
+                            continue
+                        kwargs[arg.name] = arg_func_langs.arg_from_proto(gate_args[arg.name])
+                    gate = MultiStepMultiLevelReset(**kwargs)
                 case "LeakageISWAPPhaseMatched":
                     gate = LeakageISWAP(phase_matched=True)
                 case "LeakageISWAPUnmatched":

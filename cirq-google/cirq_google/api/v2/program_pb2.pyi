@@ -1620,6 +1620,7 @@ class ArgValue(_message.Message):
     COMPLEX_VALUE_FIELD_NUMBER: _builtins.int
     TUPLE_VALUE_FIELD_NUMBER: _builtins.int
     NDARRAY_VALUE_FIELD_NUMBER: _builtins.int
+    MAP_VALUE_FIELD_NUMBER: _builtins.int
     float_value: _builtins.float
     string_value: _builtins.str
     double_value: _builtins.float
@@ -1641,6 +1642,13 @@ class ArgValue(_message.Message):
     def tuple_value(self) -> Global___Tuple: ...
     @_builtins.property
     def ndarray_value(self) -> Global___NDArray: ...
+    @_builtins.property
+    def map_value(self) -> Global___ArgMapping:
+        """A dictionary (mapping) of arbitrary keys to arbitrary values.
+        Note that both keys and values are themselves `Arg` protos, so
+        mappings can be nested.
+        """
+
     def __init__(
         self,
         *,
@@ -1657,12 +1665,13 @@ class ArgValue(_message.Message):
         complex_value: Global___Complex | None = ...,
         tuple_value: Global___Tuple | None = ...,
         ndarray_value: Global___NDArray | None = ...,
+        map_value: Global___ArgMapping | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _typing.Literal["arg_value", b"arg_value", "bool_value", b"bool_value", "bool_values", b"bool_values", "bytes_value", b"bytes_value", "complex_value", b"complex_value", "double_value", b"double_value", "double_values", b"double_values", "float_value", b"float_value", "int64_values", b"int64_values", "ndarray_value", b"ndarray_value", "string_value", b"string_value", "string_values", b"string_values", "tuple_value", b"tuple_value", "value_with_unit", b"value_with_unit"]  # noqa: Y015
+    _HasFieldArgType: _TypeAlias = _typing.Literal["arg_value", b"arg_value", "bool_value", b"bool_value", "bool_values", b"bool_values", "bytes_value", b"bytes_value", "complex_value", b"complex_value", "double_value", b"double_value", "double_values", b"double_values", "float_value", b"float_value", "int64_values", b"int64_values", "map_value", b"map_value", "ndarray_value", b"ndarray_value", "string_value", b"string_value", "string_values", b"string_values", "tuple_value", b"tuple_value", "value_with_unit", b"value_with_unit"]  # noqa: Y015
     def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["arg_value", b"arg_value", "bool_value", b"bool_value", "bool_values", b"bool_values", "bytes_value", b"bytes_value", "complex_value", b"complex_value", "double_value", b"double_value", "double_values", b"double_values", "float_value", b"float_value", "int64_values", b"int64_values", "ndarray_value", b"ndarray_value", "string_value", b"string_value", "string_values", b"string_values", "tuple_value", b"tuple_value", "value_with_unit", b"value_with_unit"]  # noqa: Y015
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["arg_value", b"arg_value", "bool_value", b"bool_value", "bool_values", b"bool_values", "bytes_value", b"bytes_value", "complex_value", b"complex_value", "double_value", b"double_value", "double_values", b"double_values", "float_value", b"float_value", "int64_values", b"int64_values", "map_value", b"map_value", "ndarray_value", b"ndarray_value", "string_value", b"string_value", "string_values", b"string_values", "tuple_value", b"tuple_value", "value_with_unit", b"value_with_unit"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
-    _WhichOneofReturnType_arg_value: _TypeAlias = _typing.Literal["float_value", "bool_values", "string_value", "double_value", "int64_values", "double_values", "string_values", "value_with_unit", "bool_value", "bytes_value", "complex_value", "tuple_value", "ndarray_value"]  # noqa: Y015
+    _WhichOneofReturnType_arg_value: _TypeAlias = _typing.Literal["float_value", "bool_values", "string_value", "double_value", "int64_values", "double_values", "string_values", "value_with_unit", "bool_value", "bytes_value", "complex_value", "tuple_value", "ndarray_value", "map_value"]  # noqa: Y015
     _WhichOneofArgType_arg_value: _TypeAlias = _typing.Literal["arg_value", b"arg_value"]  # noqa: Y015
     def WhichOneof(self, oneof_group: _WhichOneofArgType_arg_value) -> _WhichOneofReturnType_arg_value | None: ...
 

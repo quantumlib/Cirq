@@ -32,9 +32,20 @@ from cirq_google.ops import InternalGate
 SUPPORTED_SYMPY_OPS = (sympy.Symbol, sympy.Add, sympy.Mul, sympy.Pow)
 
 # Argument types for gates.
-ARG_LIKE: TypeAlias = int | float | numbers.Real | Sequence[bool] | str | sympy.Expr | tunits.Value
+ARG_LIKE: TypeAlias = (
+    int | float | numbers.Real | Sequence[bool] | str | sympy.Expr | tunits.Value | dict
+)
 ARG_RETURN_LIKE: TypeAlias = (
-    float | int | str | list[bool] | list[int] | list[float] | list[str] | sympy.Expr | tunits.Value
+    float
+    | int
+    | str
+    | list[bool]
+    | list[int]
+    | list[float]
+    | list[str]
+    | sympy.Expr
+    | tunits.Value
+    | dict
 )
 FLOAT_ARG_LIKE: TypeAlias = float | sympy.Expr
 
@@ -168,6 +179,10 @@ def arg_to_proto(
                 return msg
             field, types_tuple = numerical_fields[cur_index]
             field.extend(types_tuple[0](x) for x in value)
+    elif isinstance(value, dict):
+        # Explicitly mark the field as present so that empty dicts round-trip.
+        msg.arg_value.map_value.SetInParent()
+        dict_to_arg_mapping_proto(value, out=msg.arg_value.map_value)
     elif isinstance(value, tunits.Value):
         msg.arg_value.value_with_unit.MergeFrom(value.to_proto())
     elif isinstance(value, MeasurementKey):
@@ -405,6 +420,14 @@ def arg_from_proto(
 
                 case 'ndarray_value':
                     return _ndarray_from_proto(arg_value)
+                case 'map_value':
+                    # Note: unlike `dict_from_arg_mapping_proto`, an explicitly
+                    # set but empty `map_value` deserializes to an empty dict
+                    # rather than to `None`.
+                    return {
+                        arg_from_proto(entry.key): arg_from_proto(entry.value)
+                        for entry in arg_value.map_value.entries
+                    }
             raise ValueError(f'Unrecognized value type: {which_val!r}')  # pragma: no cover
         case 'symbol':
             return sympy.Symbol(arg_proto.symbol)
