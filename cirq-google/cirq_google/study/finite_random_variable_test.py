@@ -140,7 +140,6 @@ def test_repr():
     sweep = cirq_google.study.FiniteRandomVariable(
         key=KEY, distribution=DIST, seed=SEED, length=LENGTH, metadata={'data': 1}
     )
-    print(repr(sweep))
     # cirq.testing.assert_equivalent_repr evaluates the repr and checks equality
     cirq.testing.assert_equivalent_repr(sweep, setup_code='import sympy\nimport cirq_google')
 
