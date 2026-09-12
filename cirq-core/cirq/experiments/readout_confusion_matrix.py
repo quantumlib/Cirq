@@ -34,10 +34,13 @@ if TYPE_CHECKING:
 class TensoredConfusionMatrices:
     """Store and use confusion matrices for readout error mitigation on sets of qubits.
 
-    The confusion matrix (CM) for one qubit is:
+    In Cirq's convention, a confusion matrix (CM) is structured such that rows index the prepared
+    (true) computational basis states, and columns index the observed (measured) outcomes. Each row
+    forms a normalized probability distribution summing to 1. The confusion matrix (CM) for one
+    qubit is:
 
-        [ Pr(0|0) Pr(0|1) ]
-        [ Pr(1|0) Pr(1|1) ]
+        ⎡ Pr(0|0) Pr(1|0) ⎤
+        ⎣ Pr(0|1) Pr(1|1) ⎦
 
     where Pr(i | j) = Probability of observing state "i" given state "j" was prepared.
 
