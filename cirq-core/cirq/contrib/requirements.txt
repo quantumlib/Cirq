@@ -6,3 +6,6 @@ pylatex~=1.4
 # quimb
 quimb~=1.8
 opt_einsum
+
+# required for zxtransformer
+pyzx>=0.10.0
