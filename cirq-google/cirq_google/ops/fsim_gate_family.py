@@ -167,9 +167,7 @@ class FSimGateFamily(cirq.GateFamily):
                 )
             self.gate_types_to_check = tuple(dict.fromkeys(gate_types_to_check))
 
-        self.gates_to_accept: tuple[
-            type[POSSIBLE_FSIM_GATES] | POSSIBLE_FSIM_GATES, ...
-        ] = ()
+        self.gates_to_accept: tuple[type[POSSIBLE_FSIM_GATES] | POSSIBLE_FSIM_GATES, ...] = ()
         if gates_to_accept:
             self.gates_to_accept = tuple(dict.fromkeys(gates_to_accept))
             for g in self.gates_to_accept:
