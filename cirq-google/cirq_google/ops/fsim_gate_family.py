@@ -34,7 +34,15 @@ POSSIBLE_FSIM_GATES = (
     | cirq.IdentityGate
 )
 
-T = TypeVar('T', bound=POSSIBLE_FSIM_GATES)
+T = TypeVar(
+    'T',
+    cirq.FSimGate,
+    cirq.PhasedFSimGate,
+    cirq.ISwapPowGate,
+    cirq.PhasedISwapPowGate,
+    cirq.CZPowGate,
+    cirq.IdentityGate,
+)
 
 
 def _exp(theta: complex | sympy.Basic):
@@ -148,6 +156,7 @@ class FSimGateFamily(cirq.GateFamily):
             cirq.CZPowGate: self._convert_to_cz,
             cirq.IdentityGate: self._convert_to_identity,
         }
+        self.gate_types_to_check: tuple[type[POSSIBLE_FSIM_GATES], ...]
         if not gate_types_to_check:
             self.gate_types_to_check = _SUPPORTED_GATE_TYPES
         else:
@@ -158,9 +167,10 @@ class FSimGateFamily(cirq.GateFamily):
                 )
             self.gate_types_to_check = tuple(dict.fromkeys(gate_types_to_check))
 
-        if not gates_to_accept:
-            self.gates_to_accept = ()
-        else:
+        self.gates_to_accept: tuple[
+            type[POSSIBLE_FSIM_GATES] | POSSIBLE_FSIM_GATES, ...
+        ] = ()
+        if gates_to_accept:
             self.gates_to_accept = tuple(dict.fromkeys(gates_to_accept))
             for g in self.gates_to_accept:
                 if isinstance(g, _SUPPORTED_GATE_TYPES):
