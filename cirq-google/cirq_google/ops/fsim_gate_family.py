@@ -166,12 +166,13 @@ class FSimGateFamily(cirq.GateFamily):
                 if isinstance(g, _SUPPORTED_GATE_TYPES):
                     if cirq.is_parameterized(g):
                         raise ValueError(
-                            f"Parameterized gate {g} cannot be used in `gates_to_accept` initializer."
+                            f"Parameterized gate {g} cannot be used in `gates_to_accept` "
+                            "initializer."
                         )
                 elif g not in self._supported_types:
                     raise ValueError(
-                        f"Gate {g} in `gates_to_accept` must be either a type from or an instance of "
-                        f"{_SUPPORTED_GATE_TYPES_STR}"
+                        f"Gate {g} in `gates_to_accept` must be either a type from or an "
+                        f"instance of {_SUPPORTED_GATE_TYPES_STR}."
                     )
         self.allow_symbols = allow_symbols
         self.atol = atol
