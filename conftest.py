@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Mapping, MutableMapping
 import os
+from collections.abc import Mapping, MutableMapping
 
 import pytest
 
@@ -83,9 +83,7 @@ def get_available_cpu_count() -> int:
 
 
 def compute_thread_limit(
-    num_processes: int | str,
-    available_cpus: int,
-    env: Mapping[str, str] = os.environ,
+    num_processes: int | str, available_cpus: int, env: Mapping[str, str] = os.environ
 ) -> str | None:
     """Return a thread limit value, as a string."""
     # If not using xdist or have only a single worker, do not set limits.
