@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import collections
+from collections.abc import Mapping, MutableMapping
 import os
 
 import pytest
@@ -67,8 +67,7 @@ def resolve_cpu_count(
 def get_available_cpu_count() -> int:
     """Return the number of CPU cores available to the current process.
 
-    This function respects active CPU limits such as process affinity and
-    container limits.
+    This function respects active CPU limits such as process affinity and container limits.
     """
     process_cpus = getattr(os, "process_cpu_count", lambda: None)()
 
@@ -84,13 +83,13 @@ def get_available_cpu_count() -> int:
 
 
 def compute_thread_limit(
-    num_processes: int | str | None,
+    num_processes: int | str,
     available_cpus: int,
-    env: collections.abc.Mapping[str, str] = os.environ,
+    env: Mapping[str, str] = os.environ,
 ) -> str | None:
     """Return a thread limit value, as a string."""
     # If not using xdist or have only a single worker, do not set limits.
-    if num_processes in (None, _NO_OPTION, 0, 1, "1"):
+    if num_processes in (_NO_OPTION, 0, 1, "1"):
         return None
 
     if str(num_processes) in ("auto", "logical"):
@@ -124,23 +123,21 @@ THREAD_ENV_VARS = (
 
 
 def _config_set_thread_limits(
-    config, env: collections.abc.MutableMapping[str, str] = os.environ, cpu_count: int | None = None
+    config, env: MutableMapping[str, str] = os.environ, cpu_count: int | None = None
 ) -> None:
     """Limit number of threads to prevent oversubscription with pytest-xdist.
 
-    This only influences parallelism in some core numerical libraries used in
-    packages such as NumPy by setting certain environment variables. When
-    pytest runs as many workers as CPUs, limiting the number of threads used by
-    the libraries greatly improves overall test performance. Without the limit,
-    numerical operations in some tests spawn as many parallel threads as CPUs,
-    overwhelming host resources when pytest runs the tests in parallel.
+    This only influences parallelism in some core numerical libraries used in packages such as
+    NumPy. It works by setting certain environment variables. When pytest runs as many workers as
+    CPUs, limiting the number of threads used by the libraries greatly improves overall test
+    performance. Without the limit, numerical operations in some tests spawn as many parallel
+    threads as CPUs, overwhelming host resources when pytest runs the tests in parallel.
     """
-    cpus = cpu_count if cpu_count is not None else get_available_cpu_count()
     try:
         numprocesses = config.getoption("numprocesses")
     except (AttributeError, ValueError):
-        numprocesses = None
-
+        return
+    cpus = cpu_count if cpu_count is not None else get_available_cpu_count()
     limit = compute_thread_limit(numprocesses, available_cpus=cpus, env=env)
     if limit is not None:
         for var in THREAD_ENV_VARS:
@@ -148,11 +145,11 @@ def _config_set_thread_limits(
 
 
 def pytest_configure(
-    config, env: collections.abc.MutableMapping[str, str] = os.environ, cpu_count: int | None = None
+    config, env: MutableMapping[str, str] = os.environ, cpu_count: int | None = None
 ) -> None:
     """Configure pytest environment settings, especially for pytest-xdist."""
-    # Worker processes in pytest-xdist inherit environment variables from the controller
-    # process, so thread limits only need to be initialized once before workers launch.
+    # Worker processes in pytest-xdist inherit environment variables from the controller process.
+    # Thread limits only need to be initialized once in the controller before workers launch.
     if hasattr(config, "workerinput"):
         return
     _config_set_thread_limits(config, env=env, cpu_count=cpu_count)
