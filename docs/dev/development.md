@@ -28,7 +28,7 @@ Note that if you are using PyCharm, you might have to use the command Restart & 
 1. Fork the Cirq repo (Fork button in upper right corner of
 [repo page](https://github.com/quantumlib/Cirq)).
 Forking creates a new GitHub repo at the location
-https://github.com/USERNAME/cirq where `USERNAME` is
+`https://github.com/USERNAME/cirq` where `USERNAME` is
 your GitHub id.
 1. Clone the fork you created to your local machine at the directory
 where you would like to store your local copy of the code, and `cd` into the newly created directory.
