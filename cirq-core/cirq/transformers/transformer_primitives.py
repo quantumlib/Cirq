@@ -22,7 +22,7 @@ import dataclasses
 import itertools
 from collections import defaultdict
 from collections.abc import Callable, Hashable, Sequence
-from typing import cast, TYPE_CHECKING
+from typing import cast, NoReturn, TYPE_CHECKING
 
 from cirq import circuits, ops, protocols
 from cirq.circuits.circuit import CIRCUIT_TYPE
@@ -84,6 +84,13 @@ def _remove_last(indices: list[int], value: int) -> None:
         indices.pop(pos)
     else:
         raise ValueError("The value is not in the list of indices")  # pragma: no cover
+
+
+def _raise_qubit_subset_error(op: cirq.Operation, mapped_ops: Sequence[cirq.Operation]) -> NoReturn:
+    raise ValueError(
+        f"Mapped operations {mapped_ops} should act on a subset "
+        f"of qubits of the original operation {op}"
+    )
 
 
 def map_moments(
@@ -207,15 +214,21 @@ def _map_operations_impl(
                 )
             ).with_tags(*op.tags)
         mapped_ops = [*ops.flatten_to_ops(map_func(op, idx))]
+        if len(mapped_ops) <= 1:
+            if (
+                mapped_ops
+                and raise_if_add_qubits
+                and mapped_ops[0].qubits != op.qubits
+                and not set(op.qubits).issuperset(mapped_ops[0].qubits)
+            ):
+                _raise_qubit_subset_error(op, mapped_ops)
+            return mapped_ops
         op_qubits = set(op.qubits)
         mapped_ops_qubits: set[cirq.Qid] = set()
         has_overlapping_ops = False
         for mapped_op in mapped_ops:
             if raise_if_add_qubits and not op_qubits.issuperset(mapped_op.qubits):
-                raise ValueError(
-                    f"Mapped operations {mapped_ops} should act on a subset "
-                    f"of qubits of the original operation {op}"
-                )
+                _raise_qubit_subset_error(op, mapped_ops)
             if not mapped_ops_qubits.isdisjoint(mapped_op.qubits):
                 has_overlapping_ops = True
             mapped_ops_qubits.update(mapped_op.qubits)
