@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+import os
+
 import pytest
 
 import conftest
@@ -35,6 +37,19 @@ class _FakeConfig:
 
 def test_get_available_cpu_count_live() -> None:
     assert conftest.get_available_cpu_count() >= 1
+
+
+@pytest.mark.skipif(not hasattr(os, "sched_getaffinity"), reason="requires os.sched_getaffinity")
+def test_get_available_cpu_count_affinity_oserror() -> None:
+    def fake_sched_getaffinity(pid: int) -> set[int]:
+        raise OSError("Simulated sched_getaffinity failure")
+
+    saved_affinity = os.sched_getaffinity
+    try:
+        os.sched_getaffinity = fake_sched_getaffinity
+        assert conftest.get_available_cpu_count() >= 1
+    finally:
+        os.sched_getaffinity = saved_affinity
 
 
 @pytest.mark.parametrize(
@@ -61,9 +76,12 @@ def test_resolve_cpu_count(process_cpus, affinity_count, total_cpus, expected):
         ("logical", 8, {}, "1"),
         ("auto", 8, {"PYTEST_XDIST_AUTO_NUM_WORKERS": "2"}, "4"),  # Respects auto cap (8/2 = 4).
         ("auto", 8, {"PYTEST_XDIST_AUTO_NUM_WORKERS": "invalid"}, "1"),
+        ("auto", 8, {"PYTEST_XDIST_AUTO_NUM_WORKERS": "1"}, None),
+        ("auto", 1, {}, None),
         (None, 8, {}, None),  # Single worker/disabled -> no limit.
         (1, 8, {}, None),
         ("1", 8, {}, None),
+        ("0", 8, {}, None),
         ("not-a-number", 8, {}, None),
     ],
 )
