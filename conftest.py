@@ -73,7 +73,7 @@ def get_available_cpu_count() -> int:
     if hasattr(os, "process_cpu_count"):
         try:
             process_cpus = os.process_cpu_count()
-        except OSError:
+        except OSError:  # pragma: no cover
             pass
 
     affinity_count = None
