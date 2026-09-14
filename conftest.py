@@ -70,10 +70,10 @@ def get_available_cpu_count() -> int:
     This function respects active CPU limits such as process affinity and container limits.
     """
     process_cpus = None
-    if hasattr(os, "process_cpu_count"):
+    if hasattr(os, "process_cpu_count"):  # pragma: no cover
         try:
             process_cpus = os.process_cpu_count()
-        except OSError:  # pragma: no cover
+        except OSError:
             pass
 
     affinity_count = None
