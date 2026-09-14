@@ -931,7 +931,7 @@ def test_expectation_from_state_vector_invalid_input() -> None:
     q0, q1, q2, q3 = _make_qubits(4)
     ps: cirq.PauliString[cirq.NamedQubit]
     ps = cirq.PauliString({q0: cirq.X, q1: cirq.Y})
-    wf = np.array([1, 0, 0, 0], dtype=np.complex64)
+    wf: np.ndarray = np.array([1, 0, 0, 0], dtype=np.complex64)
     q_map = {q0: 0, q1: 1}
 
     im_ps = (1j + 1) * ps
@@ -974,11 +974,11 @@ def test_expectation_from_state_vector_invalid_input() -> None:
     rho_or_wf = 0.5 * np.ones((2, 2), dtype=np.complex64)
     _ = ps.expectation_from_state_vector(rho_or_wf, q_map)
 
-    wf_16 = np.arange(16, dtype=np.complex64) / np.linalg.norm(np.arange(16))
+    wf = np.arange(16, dtype=np.complex64) / np.linalg.norm(np.arange(16))
     with pytest.raises(ValueError, match='shape'):
-        ps.expectation_from_state_vector(wf_16.reshape((16, 1)), q_map_2)
+        ps.expectation_from_state_vector(wf.reshape((16, 1)), q_map_2)
     with pytest.raises(ValueError, match='shape'):
-        ps.expectation_from_state_vector(wf_16.reshape((4, 4, 1)), q_map_2)
+        ps.expectation_from_state_vector(wf.reshape((4, 4, 1)), q_map_2)
 
 
 def test_expectation_from_state_vector_check_preconditions() -> None:
