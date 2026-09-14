@@ -69,7 +69,12 @@ def get_available_cpu_count() -> int:
 
     This function respects active CPU limits such as process affinity and container limits.
     """
-    process_cpus = getattr(os, "process_cpu_count", lambda: None)()
+    process_cpus = None
+    if hasattr(os, "process_cpu_count"):
+        try:
+            process_cpus = os.process_cpu_count()
+        except OSError:
+            pass
 
     affinity_count = None
     if hasattr(os, "sched_getaffinity"):
