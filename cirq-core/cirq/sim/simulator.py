@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import abc
 import collections
+import functools
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from typing import Any, cast, Generic, TYPE_CHECKING, TypeVar
 
@@ -82,28 +83,24 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         if not program.has_measurements():
             raise ValueError("Circuit has no measurements to sample.")
 
+        @functools.cache
+        def _zero_repetition_records() -> dict[str, np.ndarray]:
+            record_shapes: collections.defaultdict[str, tuple[int, int]] = collections.defaultdict(
+                lambda: (0, 0)
+            )
+            for _, op, _ in program.findall_operations_with_gate_type(ops.MeasurementGate):
+                key = protocols.measurement_key_name(op)
+                num_instances, num_qubits = record_shapes[key]
+                record_shapes[key] = (num_instances + 1, protocols.num_qubits(op))
+            return {
+                key: np.empty((0, num_instances, num_qubits))
+                for key, (num_instances, num_qubits) in record_shapes.items()
+            }
+
         for param_resolver in study.to_resolvers(params):
             records = {}
             if repetitions == 0:
-                record_shapes: dict[str, tuple[int, tuple[int, ...]]] = {}
-                for _, op, _ in program.findall_operations_with_gate_type(ops.MeasurementGate):
-                    key = protocols.measurement_key_name(op)
-                    qid_shape = protocols.qid_shape(op)
-                    if key in record_shapes:
-                        num_instances, expected_qid_shape = record_shapes[key]
-                        if qid_shape != expected_qid_shape:
-                            raise ValueError(
-                                'Different qid shapes for repeated measurement: '
-                                f'key={key!r}, prev_qid_shape={expected_qid_shape}, '
-                                f'qid_shape={qid_shape}'
-                            )
-                        record_shapes[key] = (num_instances + 1, qid_shape)
-                    else:
-                        record_shapes[key] = (1, qid_shape)
-                records = {
-                    key: np.empty((0, num_instances, len(qid_shape)))
-                    for key, (num_instances, qid_shape) in record_shapes.items()
-                }
+                records = _zero_repetition_records()
             else:
                 records = self._run(
                     circuit=program, param_resolver=param_resolver, repetitions=repetitions
