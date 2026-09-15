@@ -114,11 +114,12 @@ def test_run_simulator_run() -> None:
         program=circuit, repetitions=10, param_resolver=param_resolver
     )
 
-
 def test_run_zero_repetitions_preserves_measurement_record_shape() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
-        cirq.measure(q0, q1, key='m'), cirq.measure(q0, q1, key='m'), cirq.measure(q0, key='n')
+        cirq.measure(q0, key='m'),
+        cirq.measure(q0, q1, key='m'),
+        cirq.measure(q0, key='n'),
     )
 
     result = cirq.Simulator().run(circuit, repetitions=0)
