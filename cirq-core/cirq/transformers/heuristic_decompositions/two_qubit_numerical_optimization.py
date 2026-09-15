@@ -54,7 +54,7 @@ from typing import Any, NamedTuple, TYPE_CHECKING
 import numpy as np
 import scipy.optimize
 
-from cirq import value
+from cirq import linalg, value
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
@@ -187,11 +187,9 @@ def _optimize_template(
         if fidelity > best_fidelity:
             best_fidelity = fidelity
             best_x = res.x
-    if best_x is None:
-        raise RuntimeError(
-            'All optimization runs produced a non-finite objective value; '
-            'check that target and base_gate are valid (finite) unitaries.'
-        )
+    # Inputs are validated to be finite unitaries, so every run has a finite
+    # objective value and best_x is always set.
+    assert best_x is not None
     return best_x, best_fidelity
 
 
@@ -294,17 +292,20 @@ def two_qubit_gate_numerical_compilation(
         A TwoQubitNumericalCompilationResult with the best decomposition found.
 
     Raises:
-        ValueError: If `target_unitary` is not 4x4, `base_gates` is empty or
-            malformed, `base_gate_error_rates` does not match `base_gates`,
-            or `target_fidelity`, `max_layers`, `num_restarts`, `maxiter`,
-            `base_gate_error_rates` or `single_qubit_error_rates` are out of
-            range.
-        RuntimeError: If every optimization run produced a non-finite
-            objective value, e.g. because of non-finite inputs.
+        ValueError: If `target_unitary` is not a finite 4x4 unitary,
+            `base_gates` is empty, malformed, or contains non-finite or
+            non-unitary matrices, `base_gate_error_rates` does not match
+            `base_gates`, or `target_fidelity`, `max_layers`, `num_restarts`,
+            `maxiter`, `base_gate_error_rates` or `single_qubit_error_rates`
+            are out of range.
     """
     target = np.asarray(target_unitary)
     if target.shape != (4, 4):
         raise ValueError(f'target_unitary must have shape (4, 4), got {target.shape}')
+    if not np.isfinite(target).all():
+        raise ValueError('target_unitary must contain only finite values')
+    if not linalg.is_unitary(target):
+        raise ValueError('target_unitary must be unitary')
     if not 0 < target_fidelity < 1:
         raise ValueError(f'target_fidelity must be in (0, 1), got {target_fidelity}')
     if max_layers < 1:
@@ -321,6 +322,8 @@ def two_qubit_gate_numerical_compilation(
         raise ValueError(
             f'base_gates must be a 4x4 unitary or a sequence of them, got {gates.shape}'
         )
+    if not all(np.isfinite(gate).all() and linalg.is_unitary(gate) for gate in gates):
+        raise ValueError('base_gates must contain only finite unitaries')
     if base_gate_error_rates is not None:
         if len(base_gate_error_rates) != gates.shape[0]:
             raise ValueError(

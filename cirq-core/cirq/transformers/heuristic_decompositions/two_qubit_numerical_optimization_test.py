@@ -290,9 +290,14 @@ def test_input_validation() -> None:
         two_qubit_gate_numerical_compilation(target, _CZ, single_qubit_error_rates=(0.01, 1.5))
 
 
-def test_non_finite_inputs_raise_runtime_error() -> None:
-    """A NaN target makes every objective evaluation non-finite -> RuntimeError."""
-    with pytest.raises(RuntimeError, match='non-finite objective'):
-        two_qubit_gate_numerical_compilation(
-            np.full((4, 4), np.nan), _CZ, num_restarts=1, random_state=20
-        )
+def test_non_unitary_inputs_raise_value_error() -> None:
+    """Non-finite or non-unitary inputs are rejected before optimization runs."""
+    target = random_special_unitary(4, random_state=value.parse_random_state(20))
+    with pytest.raises(ValueError, match='target_unitary must contain only finite'):
+        two_qubit_gate_numerical_compilation(np.full((4, 4), np.nan), _CZ)
+    with pytest.raises(ValueError, match='target_unitary must be unitary'):
+        two_qubit_gate_numerical_compilation(2 * np.eye(4), _CZ)
+    with pytest.raises(ValueError, match='base_gates must contain only finite unitaries'):
+        two_qubit_gate_numerical_compilation(target, np.full((4, 4), np.nan))
+    with pytest.raises(ValueError, match='base_gates must contain only finite unitaries'):
+        two_qubit_gate_numerical_compilation(target, 2 * np.eye(4))
