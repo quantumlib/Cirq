@@ -50,17 +50,18 @@ def _reconstruct_actual_gate(result) -> np.ndarray:
 @pytest.mark.parametrize('base_gate_name', list(_BASE_GATES))
 @pytest.mark.parametrize('seed', [1, 2, 3])
 def test_exact_compilation_random_su4(base_gate_name: str, seed: int) -> None:
-    """Random SU(4) targets compile exactly (Fd >= 1 - 1e-8) with <= 3 base gates.
+    """Random SU(4) targets compile exactly (Fd >= 1 - 1e-8) with 3 base gates.
 
-    Matches the paper's finding (arXiv:2106.15490, Sec. VII.A) that NuOp uses
-    3 CZ, 3 SYC or 3 iSWAP gates for random (quantum volume) unitaries.
+    Matches the paper's finding (arXiv:2106.15490, Sec. VII.A) for NuOp-100%
+    (exact decomposition): NuOp uses 3 CZ, 3 SYC or 3 sqrt-iSWAP gates for
+    random unitaries.
     """
     target = random_special_unitary(4, random_state=value.parse_random_state(seed))
     result = two_qubit_gate_numerical_compilation(
         target, _BASE_GATES[base_gate_name], random_state=seed
     )
     assert result.success
-    assert result.num_base_gates <= 3
+    assert result.num_base_gates == 3
     assert result.decomposition_fidelity >= 1 - 1e-6
 
 
