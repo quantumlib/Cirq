@@ -2525,3 +2525,26 @@ def test_input_invalid_type_error() -> None:
     """
     with pytest.raises(QasmException, match="Syntax error"):
         QasmParser().parse(qasm)
+
+
+@pytest.mark.parametrize('expression', ['pi/0', '1/0', 'pi/(1-1)'])
+def test_division_by_zero(expression: str) -> None:
+    qasm = f"""OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     rx({expression}) q[0];
+    """
+    with pytest.raises(QasmException, match="^division by zero at line 4$"):
+        QasmParser().parse(qasm)
+
+
+@pytest.mark.parametrize('expression', ['0^-1', '(1-1)^-1'])
+def test_zero_to_a_negative_power(expression: str) -> None:
+    """`^` raises ZeroDivisionError too, but for a different reason."""
+    qasm = f"""OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     rx({expression}) q[0];
+    """
+    with pytest.raises(QasmException, match="^zero to a negative power at line 4$"):
+        QasmParser().parse(qasm)
