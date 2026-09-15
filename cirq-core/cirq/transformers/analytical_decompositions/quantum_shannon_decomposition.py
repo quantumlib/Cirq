@@ -326,7 +326,9 @@ def _nth_gray(n: int) -> int:
 
 
 def _multiplexed_cossin(
-    cossin_qubits: Sequence[cirq.Qid], angles: list[float], rot_func: Callable = ops.ry
+    cossin_qubits: Sequence[cirq.Qid],
+    angles: Sequence[float] | np.ndarray,
+    rot_func: Callable = ops.ry,
 ) -> Iterator[cirq.Operation]:
     """Performs a multiplexed rotation over all qubits in this unitary matrix,
 
