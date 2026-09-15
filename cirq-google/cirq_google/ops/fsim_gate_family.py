@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Sequence
-from typing import Any, cast, TypeVar
+from typing import Any, cast, get_args, TypeVar
 
 import numpy as np
 import sympy
@@ -61,6 +61,10 @@ def _gates_to_str(gates: Iterable[Any], gettr: Callable[[Any], str] = _gate_str)
 # This results in errors possibly up to 1e-6
 # (23 bits for mantissa in single precision)
 DEFAULT_ATOL = 1e-6
+
+# Avoid repeatedly creating this tuple in __init__() by doing it only once.
+_SUPPORTED_GATE_TYPES: tuple[type[POSSIBLE_FSIM_GATES], ...] = get_args(POSSIBLE_FSIM_GATES)
+_SUPPORTED_GATE_TYPES_STR = _gates_to_str(_SUPPORTED_GATE_TYPES)
 
 
 class FSimGateFamily(cirq.GateFamily):
@@ -152,28 +156,32 @@ class FSimGateFamily(cirq.GateFamily):
             cirq.CZPowGate: self._convert_to_cz,
             cirq.IdentityGate: self._convert_to_identity,
         }
+        self.gate_types_to_check: tuple[type[POSSIBLE_FSIM_GATES], ...]
         if not gate_types_to_check:
-            gate_types_to_check = tuple(self._supported_types.keys())
-
-        if any(g not in self._supported_types for g in gate_types_to_check):
-            raise ValueError(
-                f"All gates in gate_types_to_check: {_gates_to_str(gate_types_to_check)} must "
-                f"be one of {_gates_to_str(self._supported_types.keys())}."
-            )
-
-        for g in gates_to_accept:
-            if isinstance(g, tuple(self._supported_types.keys())):
-                if cirq.is_parameterized(g):
-                    raise ValueError(
-                        f"Parameterized gate {g} cannot be used in `gates_to_accept` initializer."
-                    )
-            elif g not in self._supported_types:
+            self.gate_types_to_check = _SUPPORTED_GATE_TYPES
+        else:
+            if any(g not in self._supported_types for g in gate_types_to_check):
                 raise ValueError(
-                    f"Gate {g} in `gates_to_accept` must be either a type from or an instance of "
-                    f"{_gates_to_str(self._supported_types.keys())}"
+                    f"All gates in gate_types_to_check: {_gates_to_str(gate_types_to_check)} must "
+                    f"be one of {_SUPPORTED_GATE_TYPES_STR}."
                 )
-        self.gates_to_accept = tuple(dict.fromkeys(gates_to_accept))
-        self.gate_types_to_check = tuple(dict.fromkeys(gate_types_to_check))
+            self.gate_types_to_check = tuple(dict.fromkeys(gate_types_to_check))
+
+        self.gates_to_accept: tuple[type[POSSIBLE_FSIM_GATES] | POSSIBLE_FSIM_GATES, ...] = ()
+        if gates_to_accept:
+            self.gates_to_accept = tuple(dict.fromkeys(gates_to_accept))
+            for g in self.gates_to_accept:
+                if isinstance(g, _SUPPORTED_GATE_TYPES):
+                    if cirq.is_parameterized(g):
+                        raise ValueError(
+                            f"Parameterized gate {g} cannot be used in `gates_to_accept` "
+                            "initializer."
+                        )
+                elif g not in self._supported_types:
+                    raise ValueError(
+                        f"Gate {g} in `gates_to_accept` must be either a type from or an "
+                        f"instance of {_SUPPORTED_GATE_TYPES_STR}."
+                    )
         self.allow_symbols = allow_symbols
         self.atol = atol
         super().__init__(cirq.Gate)
