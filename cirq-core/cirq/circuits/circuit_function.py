@@ -67,7 +67,6 @@ class CircuitFunction:
 
         self._name = name
         self._circuit = circuit.freeze()
-        self._qubits = self._circuit.all_qubits()
 
         if function_params is None:
             circuit_symbols = protocols.parameter_symbols(self._circuit)
@@ -76,7 +75,8 @@ class CircuitFunction:
             self._function_params = tuple(function_params)
             if not all(isinstance(p, sympy.Symbol) for p in self._function_params):
                 raise TypeError("All parameters must be sympy Symbols.")
-            if len(set(self._function_params)) != len(self._function_params):
+            param_names = [p.name for p in self._function_params]
+            if len(set(param_names)) != len(param_names):
                 raise ValueError("CircuitFunctions may not have duplicate parameters.")
 
     @property
@@ -91,9 +91,8 @@ class CircuitFunction:
     def function_params(self) -> tuple[sympy.Symbol, ...]:
         return self._function_params
 
-    @property
-    def qubits(self) -> frozenset[cirq.Qid]:
-        return self._qubits
+    def all_qubits(self) -> frozenset[cirq.Qid]:
+        return self._circuit.all_qubits()
 
     def _value_equality_values_(self) -> Any:
         return (self._name, self._circuit, self._function_params)
@@ -120,14 +119,25 @@ class CircuitFunction:
     ) -> CircuitFunction:
         return cls(name=name, circuit=circuit, function_params=function_params)
 
-    def __call__(self, *call_params: cirq.TParamVal) -> cirq.AbstractCircuit:
+    def __call__(self, *args: cirq.TParamVal, **kwargs: cirq.TParamVal) -> cirq.FrozenCircuit:
         """Call the circuit function with given parameters values."""
-        if len(call_params) != len(self.function_params):
+
+        param_dict = dict(zip(self._function_params, args)) | kwargs
+        positional_param_names = {p.name for p in self._function_params[: len(args)]}
+        expected_param_names = {p.name for p in self._function_params}
+
+        if not positional_param_names.isdisjoint(kwargs.keys()):
+            raise TypeError(f"CircuitFunction {self.name} called with duplicate parameters.")
+        if len(args) + len(kwargs) != len(self._function_params):
             raise TypeError(
-                f"CircuitFunction {self.name} called with the wrong number of parameters."
+                f"CircuitFunction {self.name} takes {len(self.function_params)}"
+                f" parameters but {len(args) + len(kwargs)} were provided."
+            )
+        if not set(kwargs.keys()) <= expected_param_names:
+            raise TypeError(
+                f"CircuitFunction {self.name} called with unrecognized keyword arguments."
             )
 
-        param_dict = dict(zip(self._function_params, call_params))
         return protocols.resolve_parameters(self._circuit, param_dict)
 
     def __repr__(self) -> str:
