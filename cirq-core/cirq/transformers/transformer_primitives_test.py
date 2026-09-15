@@ -476,7 +476,7 @@ def test_map_operations_preserve_moments_duplicate_measurement_key(transform_cho
         c_mapped, cirq.Circuit(cirq.Moment(cirq.M(q0, key='m')), cirq.Moment(cirq.M(q1, key='m')))
     )
 
-    # With the flag - moments with shared measurment keys are preserved.
+    # With the flag - moments with shared measurement keys are preserved.
     c_mapped = transform(c, lambda op, _: op, preserve_moments=True)
     cirq.testing.assert_same_circuits(c_mapped, c)
 
@@ -1194,3 +1194,43 @@ def test_reverse_circuit_has_reversed_all_operations() -> None:
     assert [m.tags for m in c_reversed] == [("M1M2",), ("XYZ",), ("H",)]
     assert list(c_reversed.all_operations()) == all_operations_orig[::-1]
     cirq.testing.assert_same_circuits(reverse_circuit(c_reversed), c_orig)
+
+
+def test_map_operations_fast_path_single_or_empty_ops():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(cirq.CNOT(q0, q1), cirq.Z(q2))
+
+    # 1-to-1 mapping with identical qubits.
+    mapped_same_qubits = cirq.map_operations(circuit, lambda op, _: op.with_tags("tagged"))
+    assert mapped_same_qubits == cirq.Circuit(
+        cirq.CNOT(q0, q1).with_tags("tagged"), cirq.Z(q2).with_tags("tagged")
+    )
+
+    # 1-to-1 mapping with strict subset of qubits.
+    mapped_subset_qubits = cirq.map_operations(
+        circuit, lambda op, _: cirq.X(op.qubits[0]) if len(op.qubits) > 1 else op
+    )
+    assert mapped_subset_qubits == cirq.Circuit(cirq.X(q0), cirq.Z(q2))
+
+    # 1-to-1 mapping with extra qubits: raise_if_add_qubits=True vs False.
+    q_extra = cirq.LineQubit(99)
+    with pytest.raises(ValueError, match="should act on a subset of qubits"):
+        cirq.map_operations(circuit, lambda op, _: cirq.X(q_extra))
+
+    mapped_extra_qubits = cirq.map_operations(
+        circuit, lambda op, _: cirq.X(q_extra), raise_if_add_qubits=False
+    )
+    assert q_extra in mapped_extra_qubits.all_qubits()
+
+    # Multi-op mapping with extra qubits: raises ValueError via _raise_qubit_subset_error.
+    with pytest.raises(ValueError, match="should act on a subset of qubits"):
+        cirq.map_operations(circuit, lambda op, _: [op, cirq.X(q_extra)])
+
+    # 1-to-0 mapping (empty mapping).
+    mapped_empty = cirq.map_operations(circuit, lambda op, _: [])
+    assert len(list(mapped_empty.all_operations())) == 0
+    assert mapped_empty == cirq.Circuit(cirq.Moment())
+
+    # preserve_moments=True with 1-to-1 mapping.
+    preserved = cirq.map_operations(circuit, lambda op, _: op, preserve_moments=True)
+    assert preserved == circuit
