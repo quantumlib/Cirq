@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+from unittest import mock
+
 import numpy as np
 import pytest
 
@@ -253,6 +255,46 @@ def test_numerical_compiler_json_rejects_live_rng() -> None:
     compiler = TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=np.random.RandomState(5))
     with pytest.raises(ValueError, match='None or an integer seed'):
         cirq.to_json(compiler)
+
+
+def test_numerical_compiler_memoizes_results() -> None:
+    """Identical unitaries are compiled once; distinct ones are compiled separately."""
+    compiler = TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=6)
+    target1 = random_special_unitary(4, random_state=value.parse_random_state(101))
+    target2 = random_special_unitary(4, random_state=value.parse_random_state(102))
+    with mock.patch(
+        'cirq.transformers.heuristic_decompositions.two_qubit_numerical_optimization'
+        '.two_qubit_gate_numerical_compilation',
+        wraps=two_qubit_gate_numerical_compilation,
+    ) as wrapped:
+        result1 = compiler.compile_two_qubit_gate(target1)
+        assert compiler.compile_two_qubit_gate(target1) is result1
+        compiler.compile_two_qubit_gate(target2)
+        assert wrapped.call_count == 2
+
+
+def test_numerical_compiler_cache_evicts_least_recently_used() -> None:
+    """When the cache exceeds _MAX_CACHE_SIZE, the oldest entry is evicted."""
+    compiler = TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=7)
+    targets = [np.full((4, 4), fill, dtype=complex) for fill in (1, 2, 3)]
+    with (
+        mock.patch(
+            'cirq.transformers.heuristic_decompositions.two_qubit_numerical_optimization'
+            '.two_qubit_gate_numerical_compilation'
+        ) as fake_compile,
+        mock.patch(
+            'cirq.transformers.heuristic_decompositions.two_qubit_numerical_optimization'
+            '._MAX_CACHE_SIZE',
+            2,
+        ),
+    ):
+        for target in targets:
+            compiler.compile_two_qubit_gate(target)
+        assert fake_compile.call_count == 3
+        compiler.compile_two_qubit_gate(targets[1])  # Still cached: no new call.
+        assert fake_compile.call_count == 3
+        compiler.compile_two_qubit_gate(targets[0])  # Evicted: recompiled.
+        assert fake_compile.call_count == 4
 
 
 def test_input_validation() -> None:

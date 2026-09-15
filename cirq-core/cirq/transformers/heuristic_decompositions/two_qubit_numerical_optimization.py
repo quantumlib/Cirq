@@ -48,6 +48,7 @@ from __future__ import annotations
 
 import dataclasses
 import numbers
+from collections import OrderedDict
 from collections.abc import Sequence
 from typing import Any, NamedTuple, TYPE_CHECKING
 
@@ -61,6 +62,9 @@ if TYPE_CHECKING:
     import cirq
 
 _SingleQubitGatePair = tuple[np.ndarray, np.ndarray]
+
+# Maximum number of compilation results memoized by TwoQubitNumericalCompiler.
+_MAX_CACHE_SIZE = 128
 
 
 class TwoQubitNumericalCompilationResult(NamedTuple):
@@ -419,10 +423,22 @@ class TwoQubitNumericalCompiler:
     num_restarts: int = 3
     maxiter: int = 1000
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+    _cache: OrderedDict[bytes, TwoQubitNumericalCompilationResult] = dataclasses.field(
+        default_factory=OrderedDict, repr=False
+    )
 
     def compile_two_qubit_gate(self, unitary: np.ndarray) -> TwoQubitNumericalCompilationResult:
-        """Compile the given 4x4 unitary onto this compiler's base gate(s)."""
-        return two_qubit_gate_numerical_compilation(
+        """Compile the given 4x4 unitary onto this compiler's base gate(s).
+
+        Results are memoized (least-recently-used, up to 128 entries):
+        compiling an identical unitary again returns the cached result
+        instead of re-running the numerical optimization.
+        """
+        key = np.asarray(unitary, dtype=complex).tobytes()
+        if key in self._cache:
+            self._cache.move_to_end(key)
+            return self._cache[key]
+        result = two_qubit_gate_numerical_compilation(
             unitary,
             self.base_gates,
             target_fidelity=self.target_fidelity,
@@ -433,6 +449,10 @@ class TwoQubitNumericalCompiler:
             maxiter=self.maxiter,
             random_state=self.random_state,
         )
+        self._cache[key] = result
+        if len(self._cache) > _MAX_CACHE_SIZE:
+            self._cache.popitem(last=False)
+        return result
 
     def _json_dict_(self) -> dict[str, Any]:
         if self.random_state is not None and not isinstance(self.random_state, numbers.Integral):
