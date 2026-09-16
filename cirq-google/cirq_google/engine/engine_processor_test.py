@@ -1066,7 +1066,7 @@ def test_get_default_config(client):
     )
     client().get_quantum_processor_config_async.return_value = quantum_config
 
-    default_run = 'current'
+    default_run = 'default'
     default_config = 'config_alias'
     processor = cg.EngineProcessor(
         project_id=project_id,
