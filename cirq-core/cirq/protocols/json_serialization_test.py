@@ -570,6 +570,19 @@ def test_invalid_type_deserialize() -> None:
         _ = cirq.read_json(json_text=factory_json, resolvers=test_resolvers)
 
 
+def test_to_from_bytes() -> None:
+    x_json_bytes = b"""{
+  "cirq_type": "_PauliX",
+  "exponent": 1.0,
+  "global_shift": 0.0
+}"""
+    buffer = io.BytesIO()
+    cirq.to_json(cirq.X, buffer)
+    assert buffer.getvalue() == x_json_bytes
+    # TODO - uncomment with read_json switch to orjson
+    # assert cirq.read_json(buffer) == cirq.X
+
+
 def test_to_from_strings() -> None:
     x_json_text = """{
   "cirq_type": "_PauliX",

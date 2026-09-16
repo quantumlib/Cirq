@@ -17,6 +17,7 @@ from __future__ import annotations
 import dataclasses
 import datetime
 import gzip
+import io
 import json
 import numbers
 import pathlib
@@ -26,6 +27,7 @@ from typing import Any, cast, IO, overload, Protocol
 
 import attrs
 import numpy as np
+import orjson
 import pandas as pd
 import sympy
 
@@ -508,15 +510,25 @@ def to_json(
             party classes, prefer adding the `_json_dict_` magic method
             to your classes rather than overriding this default.
     """
+    option = (
+        orjson.OPT_PASSTHROUGH_DATACLASS | orjson.OPT_PASSTHROUGH_DATETIME | orjson.OPT_INDENT_2
+    )
+    try:
+        json_bytes = orjson.dumps(obj, default=cls().default, option=option)
+    except orjson.JSONEncodeError as e:
+        raise e.__cause__ or e
     if file_or_fn is None:
-        return json.dumps(obj, indent=indent, separators=separators, cls=cls)
+        return json_bytes.decode()
 
     if isinstance(file_or_fn, (str, pathlib.Path)):
-        with open(file_or_fn, 'w') as actually_a_file:
-            json.dump(obj, actually_a_file, indent=indent, separators=separators, cls=cls)
-            return None
+        file_path = pathlib.Path(file_or_fn)
+        file_path.write_bytes(json_bytes)
+        return None
 
-    json.dump(obj, file_or_fn, indent=indent, separators=separators, cls=cls)
+    if isinstance(file_or_fn, io.TextIOBase):
+        file_or_fn.write(json_bytes.decode())
+    else:
+        file_or_fn.write(json_bytes)
     return None
 
 
