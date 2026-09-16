@@ -131,6 +131,7 @@ def test_noise_adaptive_compilation_prefers_higher_overall_fidelity() -> None:
         random_state=14,
     )
     assert np.array_equal(result.base_gate_unitary, _CZ)
+    assert result.base_gate_index == 0
     assert result.num_base_gates == 2
     assert result.hardware_fidelity is not None
     assert result.hardware_fidelity == pytest.approx(0.94**2)
@@ -200,11 +201,18 @@ def test_max_layers_failure_mode() -> None:
 
 
 def test_multiple_base_gates_first_meeting_threshold_wins() -> None:
-    """With several base gates, the fewest-layer decomposition is returned."""
+    """With several base gates, the fewest-layer decomposition is returned.
+
+    Gate types are tried in input order per layer count, so for a target that
+    needs the same number of layers of either gate, the first gate wins and
+    `base_gate_index` identifies it.
+    """
     target = cirq.unitary(cirq.ZZPowGate(exponent=0.3))
     result = two_qubit_gate_numerical_compilation(target, [_CZ, _ISWAP], random_state=19)
     assert result.success
     assert result.num_base_gates <= 2
+    assert result.base_gate_index == 0
+    assert np.array_equal(result.base_gate_unitary, _CZ)
 
 
 def test_numerical_compiler_wrapper() -> None:
@@ -213,6 +221,7 @@ def test_numerical_compiler_wrapper() -> None:
     result = compiler.compile_two_qubit_gate(target)
     assert result.success
     assert np.array_equal(result.base_gate_unitary, _CZ)
+    assert result.base_gate_index == 0
 
 
 def test_numerical_compiler_equality() -> None:

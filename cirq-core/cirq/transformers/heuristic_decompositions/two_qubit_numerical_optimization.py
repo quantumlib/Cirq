@@ -82,6 +82,10 @@ class TwoQubitNumericalCompilationResult(NamedTuple):
         base_gate_unitary: 4x4 unitary denoting $U_{base}$ above. If several
             base gates were given to the compiler, this is the one that was
             selected.
+        base_gate_index: Index of the selected base gate within the sequence
+            of base gates given to the compiler; 0 if a single base gate was
+            given. Allows the caller to recover the selected gate without
+            matching unitaries.
         target_gate: 4x4 unitary denoting $U_{target}$ above.
         local_unitaries: Sequence of 2-tuples
             $(k_{00}, k_{01}), (k_{10}, k_{11}) \ldots$ where
@@ -101,6 +105,7 @@ class TwoQubitNumericalCompilationResult(NamedTuple):
     """
 
     base_gate_unitary: np.ndarray
+    base_gate_index: int
     target_gate: np.ndarray
     local_unitaries: tuple[_SingleQubitGatePair, ...]
     actual_gate: np.ndarray
@@ -200,6 +205,7 @@ def _optimize_template(
 def _result_from_angles(
     params: np.ndarray,
     base_gate: np.ndarray,
+    base_gate_index: int,
     target: np.ndarray,
     num_layers: int,
     hardware_fidelity: float | None,
@@ -212,6 +218,7 @@ def _result_from_angles(
     )
     return TwoQubitNumericalCompilationResult(
         base_gate_unitary=base_gate,
+        base_gate_index=base_gate_index,
         target_gate=target,
         local_unitaries=local_unitaries,
         actual_gate=actual,
@@ -362,12 +369,18 @@ def two_qubit_gate_numerical_compilation(
         # first (base gate, layer count) meeting the target fidelity. Fall back
         # to the highest-fidelity decomposition if none meets the threshold.
         for num_layers in range(1, max_layers + 1):
-            for base_gate in gates:
+            for gate_idx, base_gate in enumerate(gates):
                 params, fidelity = _optimize_template(
                     target, base_gate, num_layers, rng, num_restarts, maxiter
                 )
                 result = _result_from_angles(
-                    params, base_gate, target, num_layers, None, fidelity >= target_fidelity
+                    params,
+                    base_gate,
+                    gate_idx,
+                    target,
+                    num_layers,
+                    None,
+                    fidelity >= target_fidelity,
                 )
                 if fidelity > best_overall:
                     best_overall = fidelity
@@ -377,12 +390,12 @@ def two_qubit_gate_numerical_compilation(
     else:
         # With error rates given, maximize the overall fidelity Fu = Fd * Fh
         # over all (base gate, layer count) combinations.
-        for gate_ind, base_gate in enumerate(gates):
+        for gate_idx, base_gate in enumerate(gates):
             for num_layers in range(1, max_layers + 1):
                 params, fidelity = _optimize_template(
                     target, base_gate, num_layers, rng, num_restarts, maxiter
                 )
-                hardware_fidelity = (1 - base_gate_error_rates[gate_ind]) ** num_layers
+                hardware_fidelity = (1 - base_gate_error_rates[gate_idx]) ** num_layers
                 hardware_fidelity *= (
                     (1 - single_qubit_error_rate_pair[0]) * (1 - single_qubit_error_rate_pair[1])
                 ) ** (num_layers + 1)
@@ -391,6 +404,7 @@ def two_qubit_gate_numerical_compilation(
                     best = _result_from_angles(
                         params,
                         base_gate,
+                        gate_idx,
                         target,
                         num_layers,
                         hardware_fidelity,
