@@ -16,9 +16,9 @@ from typing import cast
 
 import sympy
 
-import cirq.transformers.apply_args_to_circuit_operation as aaco
 from cirq import circuits, devices, ops, protocols
 from cirq.circuits.circuit import CIRCUIT_TYPE
+from cirq.transformers import apply_lazy_args_on_circuit_operation
 
 
 class TestApplyLazyArgs:
@@ -55,35 +55,35 @@ class TestApplyLazyArgs:
         return inner
 
     def test_apply_lazy_param_resolver(self) -> None:
-        applied_param_circuit = aaco.apply_lazy_args_on_circuit_operation(self.mapped_circuit)
+        applied_param_circuit = apply_lazy_args_on_circuit_operation(self.mapped_circuit)
 
         assert protocols.parameter_names(self.get_inner(self.circuit)) == {self.var_name}
         assert protocols.parameter_names(self.get_inner(self.mapped_circuit)) == {self.var_name}
         assert protocols.parameter_names(self.get_inner(applied_param_circuit)) == set()
 
     def test_apply_lazy_param_resolver_preserves_inner_tags(self) -> None:
-        applied_param_circuit = aaco.apply_lazy_args_on_circuit_operation(self.circuit)
+        applied_param_circuit = apply_lazy_args_on_circuit_operation(self.circuit)
 
         op = applied_param_circuit[0].operations[0]
         assert isinstance(op, circuits.CircuitOperation)
         assert op.circuit.tags == self.tags
 
     def test_apply_lazy_measurement_key_map(self) -> None:
-        applied_param_circuit = aaco.apply_lazy_args_on_circuit_operation(self.mapped_circuit)
+        applied_param_circuit = apply_lazy_args_on_circuit_operation(self.mapped_circuit)
 
         assert protocols.measurement_key_names(self.get_inner(self.circuit)) == {self.key0}
         assert protocols.measurement_key_names(self.get_inner(self.mapped_circuit)) == {self.key0}
         assert protocols.measurement_key_names(self.get_inner(applied_param_circuit)) == {self.key1}
 
     def test_apply_only_param_resolver(self) -> None:
-        out_circuit = aaco.apply_lazy_args_on_circuit_operation(
+        out_circuit = apply_lazy_args_on_circuit_operation(
             self.mapped_circuit, apply_param_resolver=True, apply_measurement_key_map=False
         )
         assert protocols.measurement_key_names(self.get_inner(out_circuit)) == {self.key0}
         assert protocols.parameter_names(self.get_inner(out_circuit)) == set()
 
     def test_apply_only_measurement_key_map(self) -> None:
-        out_circuit = aaco.apply_lazy_args_on_circuit_operation(
+        out_circuit = apply_lazy_args_on_circuit_operation(
             self.mapped_circuit, apply_param_resolver=False, apply_measurement_key_map=True
         )
         assert protocols.measurement_key_names(self.get_inner(out_circuit)) == {self.key1}
@@ -95,7 +95,7 @@ class TestApplyLazyArgs:
         assert self.get_inner(self.mapped_circuit, outer_moment=0) is self.get_inner(
             self.mapped_circuit, outer_moment=1
         )
-        out_circuit = aaco.apply_lazy_args_on_circuit_operation(
+        out_circuit = apply_lazy_args_on_circuit_operation(
             self.mapped_circuit, apply_param_resolver=True, apply_measurement_key_map=True
         )
 
@@ -117,7 +117,7 @@ class TestApplyLazyArgs:
         op2 = circuits.CircuitOperation(subcircuit, param_resolver={a: 0.75})
         circuit = circuits.Circuit(op1, op2)
 
-        transformed = aaco.apply_lazy_args_on_circuit_operation(circuit)
+        transformed = apply_lazy_args_on_circuit_operation(circuit)
 
         # op1 populates memo[subcircuit] = {final_circuit_1}
         # op2 triggers `initial_circuit in memo`, does not match op1's circuit,
