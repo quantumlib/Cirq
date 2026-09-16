@@ -1217,7 +1217,7 @@ class EngineClient:
         project_id: str,
         qec_circuit: cirq.Circuit,
         processor_id: str,
-        device_config_revision: DeviceConfigRevision = Run(id='current'),
+        device_config_revision: DeviceConfigRevision = Run(id='default'),
         config_name: str = 'default',
     ) -> quantum.QuantumJob:
         """Calibrates the given QEC circuit on Quantum Engine.
