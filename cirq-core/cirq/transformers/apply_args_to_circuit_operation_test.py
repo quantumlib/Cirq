@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import circuits, devices, protocols, ops
-import cirq.transformers.apply_args_to_circuit_operation as aaco
-import sympy
 from typing import cast
+
+import sympy
+
+import cirq.transformers.apply_args_to_circuit_operation as aaco
+from cirq import circuits, devices, ops, protocols
 from cirq.circuits.circuit import CIRCUIT_TYPE
+
 
 class TestApplyLazyArgs:
     def setup_method(self) -> None:
@@ -38,12 +41,10 @@ class TestApplyLazyArgs:
         )
 
         mapped_circuit = protocols.resolve_parameters(
-            self.circuit,
-            {self.var_name: 1}, recursive=True
+            self.circuit, {self.var_name: 1}, recursive=True
         )
         mapped_circuit = protocols.with_measurement_key_mapping(
-            mapped_circuit,
-            {self.key0: self.key1}
+            mapped_circuit, {self.key0: self.key1}
         )
         self.mapped_circuit = mapped_circuit.unfreeze()
 
@@ -76,18 +77,14 @@ class TestApplyLazyArgs:
 
     def test_apply_only_param_resolver(self) -> None:
         out_circuit = aaco.apply_lazy_args_on_circuit_operation(
-            self.mapped_circuit,
-            apply_param_resolver=True,
-            apply_measurement_key_map=False,
+            self.mapped_circuit, apply_param_resolver=True, apply_measurement_key_map=False
         )
         assert protocols.measurement_key_names(self.get_inner(out_circuit)) == {self.key0}
         assert protocols.parameter_names(self.get_inner(out_circuit)) == set()
 
     def test_apply_only_measurement_key_map(self) -> None:
         out_circuit = aaco.apply_lazy_args_on_circuit_operation(
-            self.mapped_circuit,
-            apply_param_resolver=False,
-            apply_measurement_key_map=True,
+            self.mapped_circuit, apply_param_resolver=False, apply_measurement_key_map=True
         )
         assert protocols.measurement_key_names(self.get_inner(out_circuit)) == {self.key1}
         assert protocols.parameter_names(self.get_inner(out_circuit)) == {self.var_name}
@@ -99,9 +96,7 @@ class TestApplyLazyArgs:
             self.mapped_circuit, outer_moment=1
         )
         out_circuit = aaco.apply_lazy_args_on_circuit_operation(
-            self.mapped_circuit,
-            apply_param_resolver=True,
-            apply_measurement_key_map=True,
+            self.mapped_circuit, apply_param_resolver=True, apply_measurement_key_map=True
         )
 
         assert self.get_inner(out_circuit, outer_moment=0) == self.get_inner(

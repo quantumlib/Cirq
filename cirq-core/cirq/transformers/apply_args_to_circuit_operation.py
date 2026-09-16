@@ -15,6 +15,7 @@
 from cirq import circuits, ops, protocols, transformers
 from cirq.transformers import transformer_api
 
+
 @transformer_api.transformer
 def apply_lazy_args_on_circuit_operation(
     circuit: circuits.AbstractCircuit,
@@ -65,7 +66,7 @@ def apply_lazy_args_on_circuit_operation(
                 raw_circuit, circuit_op.measurement_key_map
             )
             replace_dict["measurement_key_map"] = None
-            
+
         final_circuit = transformers.map_operations(raw_circuit, func, deep=False)
 
         # Conserve circuit identity (in particular if
