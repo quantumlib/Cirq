@@ -1148,7 +1148,7 @@ def test_get_config_from_snapshot(client):
 def test_get_config_not_found(client):
     project_id = "test_project_id"
     processor_id = "test_proc_id"
-    default_run = Run(id="current")
+    default_run = Run(id="default")
     config_name = "default"
 
     client().get_quantum_processor_config_async.return_value = None
