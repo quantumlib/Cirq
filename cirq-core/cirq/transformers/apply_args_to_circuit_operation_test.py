@@ -105,3 +105,24 @@ class TestApplyLazyArgs:
         assert self.get_inner(out_circuit, outer_moment=0) is self.get_inner(
             out_circuit, outer_moment=1
         )
+
+    def test_memoization_multiple_distinct_final_circuits(self) -> None:
+        q = devices.LineQubit(0)
+        a = sympy.Symbol("a")
+        subcircuit = circuits.FrozenCircuit(ops.X(q) ** a)
+
+        # Both CircuitOperations share the exact same underlying `initial_circuit`,
+        # but resolve `a` to different values, resulting in distinct `final_circuit`s.
+        op1 = circuits.CircuitOperation(subcircuit, param_resolver={a: 0.25})
+        op2 = circuits.CircuitOperation(subcircuit, param_resolver={a: 0.75})
+        circuit = circuits.Circuit(op1, op2)
+
+        transformed = aaco.apply_lazy_args_on_circuit_operation(circuit)
+
+        # op1 populates memo[subcircuit] = {final_circuit_1}
+        # op2 triggers `initial_circuit in memo`, does not match op1's circuit,
+        # and executes `memo[initial_circuit].add(final_circuit)` (line 82).
+        assert transformed == circuits.Circuit(
+            circuits.CircuitOperation(circuits.FrozenCircuit(ops.X(q) ** 0.25)),
+            circuits.CircuitOperation(circuits.FrozenCircuit(ops.X(q) ** 0.75)),
+        )
