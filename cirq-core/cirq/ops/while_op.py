@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 class While(raw_types.Operation):
     """An operation that repeatedly executes a sub-operation while a classical condition is True.
 
-    In contrast to If, this operation does NOT decompose into a `cirq.ClassicallyControlledOperation`.
+    In contrast to If, this operation does NOT decompose to a `cirq.ClassicallyControlledOperation`.
     """
 
     def __init__(
