@@ -220,12 +220,7 @@ def test_simulation_countdown() -> None:
         cirq.X(q0),
         cirq.X(q1),
         cirq.measure(q0, q1, key='a'),
-        cirq.While(
-            'a',
-            cirq.X(q1),
-            cirq.CNOT(q1, q0),
-            cirq.measure(q0, q1, key='a'),
-        ),
+        cirq.While('a', cirq.X(q1), cirq.CNOT(q1, q0), cirq.measure(q0, q1, key='a')),
     )
     sim = cirq.Simulator()
     res = sim.simulate(circuit)
@@ -256,9 +251,7 @@ def test_simulation_repeat_until_success() -> None:
     res = sim.simulate(circuit)
 
     assert list(res.measurements['a']) == [0]
-    cirq.testing.assert_allclose_up_to_global_phase(
-        res.state_vector(), np.array([1, 0]), atol=1e-6
-    )
+    cirq.testing.assert_allclose_up_to_global_phase(res.state_vector(), np.array([1, 0]), atol=1e-6)
 
     # Every recorded measurement before the last one must be (1,), and the last is (0,)
     records = res._final_simulator_state.classical_data.records[cirq.MeasurementKey('a')]
@@ -294,6 +287,8 @@ def test_qasm() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     op = cirq.While('a', cirq.X(q1))
     circuit = cirq.Circuit(cirq.measure(q0, key='a'), op)
+    with pytest.raises(ValueError, match='QASM 2.0 does not support while loops'):
+        _ = cirq.qasm(op)
     with pytest.raises(ValueError, match='QASM 2.0 does not support while loops'):
         _ = cirq.qasm(circuit)
 
