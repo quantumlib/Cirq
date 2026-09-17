@@ -66,6 +66,7 @@ from cirq_google.ops import (
     LZSResetViaResonator as LZSResetViaResonator,
     LeakageISWAP as LeakageISWAP,
     MultilevelResetViaResonator as MultilevelResetViaResonator,
+    NoSyncTag as NoSyncTag,
     PhysicalZTag as PhysicalZTag,
     SYC as SYC,
     SycamoreGate as SycamoreGate,

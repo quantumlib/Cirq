@@ -160,10 +160,10 @@ def render_circuit(
         ...     cirq.rx(0.25*np.pi).on(q1),
         ...     cirq.measure(q0, q1, key='result')
         ... )
-        >>> # Render and display in Jupyter (if available), also save to a file
+        >>> # Render and display in Jupyter (if available), optionally saving to a file.
         >>> img_or_path = render_circuit(
         ...     circuit,
-        ...     output_png_path="my_circuit.png",
+        ...     # output_png_path="my_circuit.png",
         ...     fold_at=2,
         ...     wire_labels="qid",
         ...     quantikz_options="column sep=0.7em",

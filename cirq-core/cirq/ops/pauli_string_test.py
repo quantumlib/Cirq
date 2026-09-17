@@ -931,7 +931,7 @@ def test_expectation_from_state_vector_invalid_input() -> None:
     q0, q1, q2, q3 = _make_qubits(4)
     ps: cirq.PauliString[cirq.NamedQubit]
     ps = cirq.PauliString({q0: cirq.X, q1: cirq.Y})
-    wf = np.array([1, 0, 0, 0], dtype=np.complex64)
+    wf: np.ndarray = np.array([1, 0, 0, 0], dtype=np.complex64)
     q_map = {q0: 0, q1: 1}
 
     im_ps = (1j + 1) * ps
