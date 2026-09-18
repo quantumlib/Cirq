@@ -1,0 +1,16 @@
+{
+  "cirq_type": "PauliRotationGate",
+  "dense_pauli_string": {
+    "cirq_type": "DensePauliString",
+    "pauli_mask": [
+      1,
+      0
+    ],
+    "coefficient": {
+      "cirq_type": "complex",
+      "real": 1.0,
+      "imag": 0.0
+    }
+  },
+  "exponent": 0.7853981633974483
+}
