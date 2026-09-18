@@ -62,6 +62,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'LZSResetViaResonator': cirq_google.LZSResetViaResonator,
         'LeakageISWAP': cirq_google.LeakageISWAP,
         'MultilevelResetViaResonator': cirq_google.MultilevelResetViaResonator,
+        'MultiStepMultiLevelReset': cirq_google.MultiStepMultiLevelReset,
         # cirq_google.GateTabulation has been removed and replaced by cirq.TwoQubitGateTabulation.
         'GateTabulation': TwoQubitGateTabulation,
         'PhysicalZTag': cirq_google.PhysicalZTag,
