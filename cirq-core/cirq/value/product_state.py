@@ -97,7 +97,7 @@ class ProductState:
         return f'cirq.ProductState({{{states_dict_repr}}})'
 
     def __getitem__(self, qubit: cirq.Qid) -> _NamedOneQubitState:
-        """Return the _NamedOneQubitState at the given qubit."""
+        """Return the `_NamedOneQubitState` at the given qubit."""
         return self.states[qubit]
 
     def __iter__(self) -> Iterator[tuple[cirq.Qid, _NamedOneQubitState]]:

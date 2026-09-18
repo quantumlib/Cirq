@@ -466,7 +466,7 @@ class ResultDict(Result):
         return self._data
 
     def _record_dict_repr(self):
-        """Helper function for use in __repr__ to display the records field."""
+        """Helper function for use in `__repr__` to display the records field."""
         return '{' + ', '.join(f'{k!r}: {proper_repr(v)}' for k, v in self.records.items()) + '}'
 
     def __repr__(self) -> str:

@@ -83,7 +83,7 @@ class DefaultResolver(SymbolResolver):
     }
 
     def resolve(self, operation: cirq.Operation) -> SymbolInfo | None:
-        """Checks for the _circuit_diagram_info attribute of the operation,
+        """Checks for the `_circuit_diagram_info` attribute of the operation,
         and if it exists, build the symbol information from it. Otherwise,
         builds symbol info for an unknown operation.
 

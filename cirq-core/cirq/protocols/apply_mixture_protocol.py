@@ -165,9 +165,9 @@ def apply_mixture(
     A. Try to use `val._apply_mixture_(args)`.
         1. If `_apply_mixture_` is not present or returns NotImplemented
             go to step B.
-        2. If '_apply_mixture_' is present and returns None conclude that
+        2. If `_apply_mixture_` is present and returns None conclude that
             `val` has no effect and return.
-        3. If '_apply_mixture_' is present and returns a numpy array conclude
+        3. If `_apply_mixture_` is present and returns a numpy array conclude
             that the mixture was applied successfully and forward result to
             caller.
 
@@ -178,11 +178,11 @@ def apply_mixture(
             and return.
 
     C. Try to use `val._mixture_()`.
-        1. If '_mixture_' is not present or returns NotImplemented
+        1. If `_mixture_` is not present or returns NotImplemented
             go to step D.
-        2. If '_mixture_' is present and returns None conclude that `val` has
+        2. If `_mixture_` is present and returns None conclude that `val` has
             no effect and return.
-        3. If '_mixture_' returns a list of tuples, loop over the list and
+        3. If `_mixture_` returns a list of tuples, loop over the list and
             examine each tuple. If the tuple is of the form
             `(probability, np.ndarray)` use matrix multiplication to apply it.
             If the tuple is of the form `(probability, op)` where op is any op,
@@ -334,7 +334,7 @@ def _apply_unitary_strat(
 def _apply_mixture_from_mixture_strat(
     val: Any, args: ApplyMixtureArgs, is_density_matrix: bool
 ) -> np.ndarray | None:
-    """Attempt to use unitary matrices in _mixture_ and return the result."""
+    """Attempt to use unitary matrices in `_mixture_` and return the result."""
     method = getattr(val, '_mixture_', None)
     if method is None:
         return None

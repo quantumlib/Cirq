@@ -70,10 +70,10 @@ def quantum_shannon_decomposition(
 
     Calls:
         (Base Case)
-        1. _single_qubit_decomposition
+        1. `_single_qubit_decomposition`
             OR
         (Recursive Case)
-        1. _recursive_decomposition
+        1. `_recursive_decomposition`
 
     Yields:
         A single 2-qubit or 1-qubit operations from OP TREE
@@ -161,9 +161,9 @@ def _recursive_decomposition(qubits: Sequence[cirq.Qid], u: np.ndarray) -> Itera
         u: Numpy array for unitary matrix representing gate to be decomposed
 
     Calls:
-        1. _msb_demuxer
-        2. _multiplexed_cossin
-        3. _msb_demuxer
+        1. `_msb_demuxer`
+        2. `_multiplexed_cossin`
+        3. `_msb_demuxer`
 
     Yields:
         Generic 2-qubit gates or operations from {ry,rz,CNOT,CZ}.
@@ -287,9 +287,9 @@ def _msb_demuxer(
         u2: Lower-right quadrant of total unitary to be decomposed (see diagram)
 
     Calls:
-        1. _recursive_decomposition
-        2. _multiplexed_cossin
-        3. _recursive_decomposition
+        1. `_recursive_decomposition`
+        2. `_multiplexed_cossin`
+        3. `_recursive_decomposition`
 
     Yields:
         Generic 2-qubit gates on the two least significant qubits,

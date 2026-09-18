@@ -33,7 +33,7 @@ class InsertStrategy:
         return inst
 
     def __getnewargs__(self):
-        """Returns a tuple of args to pass to __new__ when unpickling."""
+        """Returns a tuple of args to pass to `__new__` when unpickling."""
         return (self.name, self.__doc__)
 
     def __init__(self, name: str, doc: str):

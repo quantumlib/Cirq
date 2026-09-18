@@ -96,7 +96,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
                       │              │          │          │
         2: ───p───────X───p──────────X───p^-1───X───p^-1───X───
 
-        where p = T**self._exponent
+        where p = `T**self._exponent`
         """
         a, b, c = qubits
 
@@ -289,11 +289,11 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
                     [1, 0, 1, 1, 0, 0, 1][x_4]   [r_5]
                     [1, 1, 0, 0, 0, 1, 1][x_5]   [r_6]
                     [1, 1, 1, 0, 1, 0, 0][x_6]   [r_7]
-        where r_i is self._diag_angles_radians[i].
+        where r_i is `self._diag_angles_radians[i]`.
 
         The above system was created by equating the composition of the gates
-        in the circuit diagram to np.diag(self._diag_angles) (shifted by a
-        global phase of np.exp(-1j * self._diag_angles[0])).
+        in the circuit diagram to `np.diag(self._diag_angles)` (shifted by a
+        global phase of `np.exp(-1j * self._diag_angles[0])`).
         """
 
         a, b, c = qubits

@@ -58,7 +58,7 @@ class SupportsMixture(Protocol):
 
         This method is used by the global `cirq.has_mixture` method.  If this
         method is not present, or returns NotImplemented, it will fallback
-        to using _mixture_ with a default value, or False if neither exist.
+        to using `_mixture_` with a default value, or False if neither exist.
 
         Returns:
           True if the value has a mixture representation, Falseotherwise.

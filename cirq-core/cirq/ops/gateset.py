@@ -202,7 +202,7 @@ class GateFamily:
         The default predicate depends on the gate family initialization type:
 
         - Instance Family: `cirq.equal_up_to_global_phase(gate, self.gate)`
-            if self._ignore_global_phase else `gate == self.gate`.
+            if `self._ignore_global_phase` else `gate == self.gate`.
         - Type Family: `isinstance(gate, self.gate)`.
 
         Args:

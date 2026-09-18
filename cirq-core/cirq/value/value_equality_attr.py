@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Defines `@cirq.value_equality`, for easy __eq__/__hash__ methods."""
+"""Defines `@cirq.value_equality`, for easy `__eq__`/`__hash__` methods."""
 
 from __future__ import annotations
 
@@ -153,15 +153,15 @@ def value_equality(
     manual_cls: bool = False,
     approximate: bool = False,
 ) -> Callable[[type], type] | type:
-    """Implements __eq__/__ne__/__hash__ via a _value_equality_values_ method.
+    """Implements `__eq__`/`__ne__`/`__hash__` via a `_value_equality_values_` method.
 
-    _value_equality_values_ is a method that the decorated class must implement.
+    `_value_equality_values_` is a method that the decorated class must implement.
 
-    _value_equality_approximate_values_ is a method that the decorated class
+    `_value_equality_approximate_values_` is a method that the decorated class
     might implement if special support for approximate equality is required.
     This is only used when approximate argument is set. When approximate
-    argument is set and _value_equality_approximate_values_ is not defined,
-    _value_equality_values_ values are used for approximate equality.
+    argument is set and `_value_equality_approximate_values_` is not defined,
+    `_value_equality_values_` values are used for approximate equality.
     For example, this can be used to compare periodic values like angles: the
     angle value can be wrapped with `PeriodicValue`. When returned as part of
     approximate values a special normalization will be done automatically to
@@ -178,7 +178,7 @@ def value_equality(
     Args:
         cls: The type to decorate. Automatically passed in by python when using
             the @cirq.value_equality decorator notation on a class.
-        unhashable: When set, the __hash__ method will be set to None instead of
+        unhashable: When set, the `__hash__` method will be set to None instead of
             to a hash of the equality class and equality values. Useful for
             mutable types such as dictionaries.
         distinct_child_types: When set, classes that inherit from the decorated
@@ -186,7 +186,7 @@ def value_equality(
             classes will not be considered equal to each other. Useful for when
             the decorated class is an abstract class or trait that is helping to
             define equality for many conceptually distinct concrete classes.
-        manual_cls: When set, the method '_value_equality_values_cls_' must be
+        manual_cls: When set, the method `_value_equality_values_cls_` must be
             implemented. This allows a new class to compare as equal to another
             existing class that is also using value equality, by having the new
             class return the existing class' type.

@@ -1258,7 +1258,7 @@ class AbstractCircuit(abc.ABC):
         Args:
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
-            qubit_namer: Names qubits in diagram. Defaults to using _circuit_diagram_info_ or str.
+            qubit_namer: Names qubits in diagram. Defaults to using `_circuit_diagram_info_` or str.
             transpose: Arranges qubit wires vertically instead of horizontally.
             include_tags: Controls which tags attached to operations are
                 included. ``True`` includes all tags, ``False`` includes none,
@@ -3006,7 +3006,7 @@ def _group_until_different(items: Iterable[_TIn], key: Callable[[_TIn], _TKey], 
             item itself.
 
     Examples:
-        _group_until_different(range(11), key=is_prime) yields
+        `_group_until_different(range(11), key=is_prime)` yields
             (False, [0, 1])
             (True, [2, 3])
             (False, [4])

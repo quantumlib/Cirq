@@ -57,7 +57,7 @@ def assert_implements_consistent_protocols(
     local_vals: dict[str, Any] | None = None,
     ignore_decompose_to_default_gateset: bool = False,
 ) -> None:
-    """Checks that a value is internally consistent and has a good __repr__."""
+    """Checks that a value is internally consistent and has a good `__repr__`."""
     global_vals = global_vals or {}
     local_vals = local_vals or {}
 
@@ -96,7 +96,7 @@ def assert_eigengate_implements_consistent_protocols(
     ignore_decompose_to_default_gateset: bool = False,
 ) -> None:
     """Checks that an EigenGate subclass is internally consistent and has a
-    good __repr__."""
+    good `__repr__`."""
     __tracebackhide__ = True
 
     for exponent in exponents:

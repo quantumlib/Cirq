@@ -110,7 +110,7 @@ def has_unitary(val: Any, *, allow_decompose: bool = True) -> bool:
 
 
 def _strat_has_unitary_from_has_unitary(val: Any) -> bool | None:
-    """Attempts to infer a value's unitary-ness via its _has_unitary_ method."""
+    """Attempts to infer a value's unitary-ness via its `_has_unitary_` method."""
     if isinstance(val, np.ndarray):
         return linalg.is_unitary(val)
     if hasattr(val, '_has_unitary_'):
@@ -122,7 +122,7 @@ def _strat_has_unitary_from_has_unitary(val: Any) -> bool | None:
 
 
 def _strat_has_unitary_from_unitary(val: Any) -> bool | None:
-    """Attempts to infer a value's unitary-ness via its _unitary_ method."""
+    """Attempts to infer a value's unitary-ness via its `_unitary_` method."""
     getter = getattr(val, '_unitary_', None)
     if getter is None:
         return None
@@ -131,7 +131,7 @@ def _strat_has_unitary_from_unitary(val: Any) -> bool | None:
 
 
 def _strat_has_unitary_from_decompose(val: Any) -> bool | None:
-    """Attempts to infer a value's unitary-ness via its _decompose_ method."""
+    """Attempts to infer a value's unitary-ness via its `_decompose_` method."""
     operations, _, _ = _try_decompose_into_operations_and_qubits(val)
     if operations is None:
         return None
@@ -139,7 +139,7 @@ def _strat_has_unitary_from_decompose(val: Any) -> bool | None:
 
 
 def _strat_has_unitary_from_apply_unitary(val: Any) -> bool | None:
-    """Attempts to infer a value's unitary-ness via its _apply_unitary_ method."""
+    """Attempts to infer a value's unitary-ness via its `_apply_unitary_` method."""
     method = getattr(val, '_apply_unitary_', None)
     if method is None:
         return None

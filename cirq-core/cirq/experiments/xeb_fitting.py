@@ -359,8 +359,8 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
     def defaults_set(self) -> bool:
         """Whether the default angles are set.
 
-        This only considers angles where characterize_{angle} is True. If all such angles have
-        {angle}_default set to a value, this returns True. If none of the defaults are set,
+        This only considers angles where `characterize_{angle}` is True. If all such angles have
+        `{angle}_default` set to a value, this returns True. If none of the defaults are set,
         this returns False. If some defaults are set, we raise an exception.
         """
         defaults_set = [default is not None for _, default, _ in self._iter_angles()]
@@ -377,10 +377,10 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
     def with_defaults_from_gate(
         self, gate: cirq.Gate, gate_to_angles_func=phased_fsim_angles_from_gate
     ) -> XEBPhasedFSimCharacterizationOptions:
-        """A new Options class with {angle}_defaults inferred from `gate`.
+        """A new Options class with `{angle}_defaults` inferred from `gate`.
 
-        This keeps the same settings for the characterize_{angle} booleans, but will disregard
-        any current {angle}_default values.
+        This keeps the same settings for the `characterize_{angle}` booleans, but will disregard
+        any current `{angle}_default` values.
         """
         return XEBPhasedFSimCharacterizationOptions(
             characterize_theta=self.characterize_theta,

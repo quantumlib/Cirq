@@ -209,7 +209,7 @@ class LineQid(_BaseLineQid):
         return inst
 
     def __getnewargs__(self):
-        """Returns a tuple of args to pass to __new__ when unpickling."""
+        """Returns a tuple of args to pass to `__new__` when unpickling."""
         return (self._x, self._dimension)
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs__
@@ -313,7 +313,7 @@ class LineQubit(_BaseLineQid):
         return inst
 
     def __getnewargs__(self):
-        """Returns a tuple of args to pass to __new__ when unpickling."""
+        """Returns a tuple of args to pass to `__new__` when unpickling."""
         return (self._x,)
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs__

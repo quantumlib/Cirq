@@ -160,7 +160,7 @@ def definitely_commutes(v1: Any, v2: Any, *, atol: float = 1e-8) -> bool:
 def _strat_commutes_from_commutes(
     v1: Any, v2: Any, *, atol: float = 1e-8
 ) -> bool | NotImplementedType | None:
-    """Attempts to determine commutativity via the objects' _commutes_
+    """Attempts to determine commutativity via the objects' `_commutes_`
     method."""
 
     for a, b in [(v1, v2), (v2, v1)]:

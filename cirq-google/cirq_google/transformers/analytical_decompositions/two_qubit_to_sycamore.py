@@ -186,7 +186,7 @@ def _decompose_phased_iswap_into_syc_precomputed(
     """Decomposes `cirq.PhasedISwapPowGate` into Sycamore gates using precomputed coefficients.
 
     This should only be called if the Gate has a phase_exponent of .25. If the gate has an
-    exponent of 1, _decompose_phased_iswap_into_syc should be used instead. Converting PhasedISwap
+    exponent of 1, `_decompose_phased_iswap_into_syc` should be used instead. Converting PhasedISwap
     gates to Sycamore is not supported if neither of these constraints are satisfied.
 
     This synthesize a PhasedISwap in terms of four sycamore gates.  This compilation converts the
@@ -437,7 +437,7 @@ def _rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> Iterator[cirq.OP_TREE]:
 def _swap_rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> Iterator[cirq.OP_TREE]:
     """An implementation of SWAP * exp(-1j * theta * ZZ) using three sycamore gates.
 
-    This builds off of the _rzz method.
+    This builds off of the `_rzz` method.
 
     Args:
         theta: The rotation parameter of Rzz Ising coupling gate.

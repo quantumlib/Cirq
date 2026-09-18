@@ -51,7 +51,7 @@ TSimulatorState = TypeVar('TSimulatorState', bound=Any)
 class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
     """Simulator that mimics running on quantum hardware.
 
-    Implementers of this interface should implement the _run method.
+    Implementers of this interface should implement the `_run` method.
     """
 
     def run_sweep(
@@ -548,7 +548,7 @@ class SimulatesIntermediateState(
     state at the end of a circuit, a SimulatesIntermediateState can
     simulate stepping through the moments of a circuit.
 
-    Implementers of this interface should implement the _core_iterator
+    Implementers of this interface should implement the `_core_iterator`
     method.
 
     Note that state here refers to simulator state, which is not necessarily
@@ -834,7 +834,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
     ) -> None:
         """Mutates `bits` using the confusion_map.
 
-        Compare with _confuse_result in cirq-core/cirq/sim/simulation_state.py.
+        Compare with `_confuse_result` in cirq-core/cirq/sim/simulation_state.py.
         """
         prng = value.parse_random_state(seed)
         for rep in bits:

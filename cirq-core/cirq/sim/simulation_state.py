@@ -118,7 +118,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
     ):
         """Applies confusion matrices to measured results.
 
-        Compare with _confuse_results in cirq-core/cirq/sim/simulator.py.
+        Compare with `_confuse_results` in cirq-core/cirq/sim/simulator.py.
         """
         confused = list(bits)
         dims = [q.dimension for q in qubits]

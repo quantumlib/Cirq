@@ -141,7 +141,7 @@ class _QuirkArithmeticCallable:
     """A callable with parameter-name-dependent behavior."""
 
     def __init__(self, func: _IntsToIntCallable):
-        """Inits _QuirkArithmeticCallable.
+        """Inits `_QuirkArithmeticCallable`.
 
         Args:
             func: Maps target int to its output value based on other input ints.

@@ -282,7 +282,7 @@ class Heatmap:
                 plotted on, and shown.
             **kwargs: The optional keyword arguments are used to temporarily
                 override the values present in the heatmap config. See
-                __init__ for more details on the allowed arguments.
+                `__init__` for more details on the allowed arguments.
         Returns:
             A 2-tuple ``(ax, collection)``. ``ax`` is the `plt.Axes` that
             is plotted on. ``collection`` is the collection of paths drawn and filled.
@@ -399,7 +399,7 @@ class TwoQubitInteractionHeatmap(Heatmap):
                 plotted on, and shown.
             **kwargs: The optional keyword arguments are used to temporarily
                 override the values present in the heatmap config. See
-                __init__ for more details on the allowed arguments.
+                `__init__` for more details on the allowed arguments.
         Returns:
             A 2-tuple ``(ax, collection)``. ``ax`` is the `plt.Axes` that
             is plotted on. ``collection`` is the collection of paths drawn and filled.

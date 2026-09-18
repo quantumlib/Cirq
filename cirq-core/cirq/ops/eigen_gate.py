@@ -58,7 +58,7 @@ class EigenGate(raw_types.Gate):
     has a 2-dimensional eigenspace with eigenvalue -1, but one wishes for the
     square root of the gate to split this eigenspace into a part with
     eigenvalue i and a part with eigenvalue -i, then EigenGate allows this
-    functionality to be unambiguously specified via the _eigen_components
+    functionality to be unambiguously specified via the `_eigen_components`
     method.
 
     The eigenvalue of each eigenspace of a gate is computed by:
@@ -132,7 +132,7 @@ class EigenGate(raw_types.Gate):
     def _with_exponent(self, exponent: value.TParamVal) -> EigenGate:
         """Return the same kind of gate, but with a different exponent.
 
-        Child classes should override this method if they have an __init__
+        Child classes should override this method if they have an `__init__`
         method with a differing signature.
         """
         if self._global_shift == 0:
@@ -181,7 +181,7 @@ class EigenGate(raw_types.Gate):
         """Describes the eigenvalues of the gate's matrix.
 
         By default, this just extracts the shifts by calling
-        self._eigen_components(). However, because that method generates
+        `self._eigen_components()`. However, because that method generates
         matrices it may be extremely expensive.
 
         Returns:

@@ -72,7 +72,7 @@ def inverse(val: cirq.OP_TREE, default: TDefault) -> TDefault | cirq.OP_TREE:
 def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     """Returns the inverse `val**-1` of the given value, if defined.
 
-    An object can define an inverse by defining a __pow__(self, exponent) method
+    An object can define an inverse by defining a `__pow__(self, exponent)` method
     that returns something besides NotImplemented when given the exponent -1.
     The inverse of iterables is by default defined to be the iterable's items,
     each inverted, in reverse order.
@@ -84,14 +84,14 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
             If `default` is set to a value, that value is returned.
 
     Returns:
-        If `val` has a __pow__ method that returns something besides
+        If `val` has a `__pow__` method that returns something besides
         NotImplemented when given an exponent of -1, that result is returned.
         Otherwise, if `val` is iterable, the result is a tuple with the same
         items as `val` but in reverse order and with each item inverted.
         Otherwise, if a `default` argument was specified, it is returned.
 
     Raises:
-        TypeError: `val` doesn't have a __pow__ method, or that method returned
+        TypeError: `val` doesn't have a `__pow__` method, or that method returned
             NotImplemented when given -1. Furthermore `val` isn't an
             iterable containing invertible items. Also, no `default` argument
             was specified.

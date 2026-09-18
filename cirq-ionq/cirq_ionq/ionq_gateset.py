@@ -133,7 +133,7 @@ def decompose_all_to_all_connect_ccz_gate(
           │          │       │          │
     2: ───X───p^-1───X───p───X───p^-1───X───p──────────────
 
-    where p = T**ccz_gate._exponent
+    where p = `T**ccz_gate._exponent`
     """
     if len(qubits) != 3:
         raise ValueError(f'Expect 3 qubits for CCZ gate, got {len(qubits)} qubits.')

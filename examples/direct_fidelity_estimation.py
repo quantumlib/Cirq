@@ -231,7 +231,7 @@ def _estimate_pauli_traces_general(
     """Estimates the Pauli traces in case the circuit is not Clifford.
 
     In this case we cannot use the speedup implemented in the function
-    _estimate_pauli_traces_clifford() above, and so do a slow, density matrix
+    `_estimate_pauli_traces_clifford()` above, and so do a slow, density matrix
     simulation.
 
     Args:
