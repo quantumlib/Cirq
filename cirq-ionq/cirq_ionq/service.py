@@ -21,6 +21,7 @@ from collections.abc import Sequence
 
 import cirq
 from cirq_ionq import calibration, ionq_client, job, results, sampler, serializer
+from cirq_ionq.ionq_exceptions import IonQNotSupportedMultipleCircuitsJobException
 
 
 class Service:
@@ -37,7 +38,7 @@ class Service:
         remote_host: str | None = None,
         api_key: str | None = None,
         default_target: str | None = None,
-        api_version='v0.4',
+        api_version="v0.4",
         max_retry_seconds: int = 3600,
         job_settings: dict | None = None,
         verbose=False,
@@ -68,18 +69,18 @@ class Service:
         """
         self.remote_host = (
             remote_host
-            or os.getenv('CIRQ_IONQ_REMOTE_HOST')
-            or os.getenv('IONQ_REMOTE_HOST')
-            or f'https://api.ionq.co/{api_version}'
+            or os.getenv("CIRQ_IONQ_REMOTE_HOST")
+            or os.getenv("IONQ_REMOTE_HOST")
+            or f"https://api.ionq.co/{api_version}"
         )
 
         self.job_settings = job_settings or {}
-        self.api_key = api_key or os.getenv('CIRQ_IONQ_API_KEY') or os.getenv('IONQ_API_KEY')
+        self.api_key = api_key or os.getenv("CIRQ_IONQ_API_KEY") or os.getenv("IONQ_API_KEY")
 
         if not self.api_key:
             raise EnvironmentError(
-                'Parameter api_key was not specified and the environment variable '
-                'IONQ_API_KEY was also not set.'
+                "Parameter api_key was not specified and the environment variable "
+                "IONQ_API_KEY was also not set."
             )
 
         self._client = ionq_client._IonQClient(
@@ -90,6 +91,66 @@ class Service:
             max_retry_seconds=max_retry_seconds,
             verbose=verbose,
         )
+
+    def circuit_requires_qasm3(self, input_circuit: cirq.Circuit) -> bool:
+        """Return True when the circuit cannot be represented as a flat gate list.
+
+        Requires QASM 3 for:
+        - mid-circuit measurement followed by another operation on that qubit;
+        - reset operations;
+        - classically controlled operations;
+        - repeat-until loops;
+        - CircuitOperations with unresolved symbolic repetition counts.
+
+        Ordinary CircuitOperations and statically repeated CircuitOperations are
+        recursively expanded and inspected.
+        """
+        measured: set[cirq.Qid] = set()
+
+        def scan(circuit: cirq.AbstractCircuit) -> bool:
+            for moment in circuit:
+                for operation in moment.operations:
+                    # Remove tags so they do not hide the underlying operation.
+                    operation = operation.untagged
+
+                    # Closest Cirq equivalent to classical conditional control.
+                    if isinstance(operation, cirq.ClassicallyControlledOperation):
+                        return True
+
+                    if isinstance(operation, cirq.CircuitOperation):
+                        # Dynamic post-test loop.
+                        if operation.repeat_until is not None:
+                            return True
+
+                        # A symbolic repetition count cannot be statically flattened.
+                        if cirq.is_parameterized(operation.repetitions):
+                            return True
+
+                        # Apply qubit/key mappings and static repetitions, then inspect
+                        # the resulting nested circuit. The shared `measured` set is
+                        # intentional: it detects measurements crossing block boundaries.
+                        if scan(operation.mapped_circuit(deep=False)):
+                            return True
+
+                        continue
+
+                    gate = operation.gate
+
+                    if isinstance(gate, cirq.ResetChannel):
+                        return True
+
+                    if cirq.is_measurement(operation):
+                        measured.update(operation.qubits)
+                        continue
+
+                    # A non-measurement operation after measurement on the same qubit
+                    # makes that measurement non-terminal.
+                    if measured.intersection(operation.qubits):
+                        return True
+
+            return False
+
+        return scan(input_circuit)
 
     def run(
         self,
@@ -311,15 +372,26 @@ class Service:
         Raises:
             IonQException: If there was an error accessing the API.
         """
-        serialized_program = serializer.Serializer().serialize_single_circuit(
-            circuit,
-            job_settings=self.job_settings,
-            compilation=compilation,
-            error_mitigation=error_mitigation,
-            noise=noise,
-            metadata=metadata,
-            dry_run=dry_run,
-        )
+        if self.circuit_requires_qasm3(circuit):
+            serialized_program = serializer.OpenQASMSerializer().serialize_single_circuit(
+                circuit,
+                job_settings=self.job_settings,
+                compilation=compilation,
+                error_mitigation=error_mitigation,
+                noise=noise,
+                metadata=metadata,
+                dry_run=dry_run,
+            )
+        else:
+            serialized_program = serializer.QISSerializer().serialize_single_circuit(
+                circuit,
+                job_settings=self.job_settings,
+                compilation=compilation,
+                error_mitigation=error_mitigation,
+                noise=noise,
+                metadata=metadata,
+                dry_run=dry_run,
+            )
         result = self._client.create_job(
             serialized_program=serialized_program,
             repetitions=repetitions,
@@ -329,7 +401,7 @@ class Service:
         )
         # The returned job does not have fully populated fields, so make
         # a second call and return the results of the fully filled out job.
-        return self.get_job(result['id'])
+        return self.get_job(result["id"])
 
     def create_batch_job(
         self,
@@ -379,7 +451,15 @@ class Service:
         Raises:
             IonQException: If there was an error accessing the API.
         """
-        serialized_program = serializer.Serializer().serialize_many_circuits(
+        for circuit in circuits:
+            if self.circuit_requires_qasm3(circuit):
+                raise IonQNotSupportedMultipleCircuitsJobException(
+                    "Mid-circuit measurement, reset, and classical control flow are "
+                    "only supported for single-circuit submissions. Submit such "
+                    "circuits in separate jobs."
+                )
+
+        serialized_program = serializer.QISSerializer().serialize_many_circuits(
             circuits,
             job_settings=self.job_settings,
             compilation=compilation,
@@ -398,7 +478,7 @@ class Service:
         )
         # The returned job does not have fully populated fields, so make
         # a second call and return the results of the fully filled out job.
-        return self.get_job(result['id'])
+        return self.get_job(result["id"])
 
     def get_job(self, job_id: str) -> job.Job:
         """Gets a job that has been created on the IonQ API.
