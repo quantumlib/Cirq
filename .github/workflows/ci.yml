@@ -81,8 +81,8 @@ jobs:
         with:
           python-version: '3.11'
           architecture: 'x64'
-      - name: Install mypy
-        run: pip install -r dev_tools/requirements/mypy.env.txt
+      - name: Install type checker
+        run: pip install -r dev_tools/requirements/typecheck.env.txt
       - name: Type check
         run: FORCE_COLOR=1 check/typecheck
   changed_files:
