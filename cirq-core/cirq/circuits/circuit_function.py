@@ -49,13 +49,14 @@ class CircuitFunction:
         Args:
             name: The name of the function.
             circuit: The circuit body. If mutable, it will be frozen.
-            function_params: Optional ordered sequence of parameters to the
-                `CircuitFunction`. If None, defaults to all symbols in `circuit`.
+            function_params: The sequence of sympy Symbols that specify the parameters
+                of the CircuitFunction. If None, defaults to all symbols in `circuit`,
+                sorted alphabetically by name.
 
         Raises:
             TypeError: If `name` is not a str, `circuit` is not an `AbstractCircuit`,
                 or any item in `function_params` is not a `sympy.Symbol`.
-            ValueError: If `name` is empty.
+            ValueError: If `name` is empty or if duplicate parameters are provided.
         """
         if not isinstance(name, str):
             raise TypeError(f"Function name must be a string, got: {type(name)!r}.")
@@ -81,14 +82,17 @@ class CircuitFunction:
 
     @property
     def name(self) -> str:
+        """Returns the name of the circuit function."""
         return self._name
 
     @property
     def circuit(self) -> FrozenCircuit:
+        """Returns the unsubstituted circuit returned by the function."""
         return self._circuit
 
     @property
     def function_params(self) -> tuple[sympy.Symbol, ...]:
+        """Returns a tuple of the symbols representing the function parameters."""
         return self._function_params
 
     def all_qubits(self) -> frozenset[cirq.Qid]:
@@ -121,24 +125,43 @@ class CircuitFunction:
         return cls(name=name, circuit=circuit, function_params=function_params)
 
     def __call__(self, *args: cirq.TParamVal, **kwargs: cirq.TParamVal) -> cirq.FrozenCircuit:
-        """Call the circuit function with the given parameter values."""
+        """Call the circuit function with the given parameter values.
 
-        param_dict = dict(zip(self._function_params, args)) | kwargs
+        Args:
+            args: The values of some/all function parameters to use.
+            kwargs: The values of some/all function parameters provided as keywords.
+
+        Returns:
+            The circuit body with the function parameters substituted by the arg values.
+
+        Raises:
+            TypeError: If the CircuitFunction is called with duplicate values for a single
+                parameter, the incorrect number of parameters is provided, or an unrecognized
+                keyword argument is provided.
+        """
+
         positional_param_names = {p.name for p in self._function_params[: len(args)]}
         expected_param_names = {p.name for p in self._function_params}
 
-        if not positional_param_names.isdisjoint(kwargs.keys()):
-            raise TypeError(f"CircuitFunction {self.name} called with duplicate parameters.")
+        duplicates = positional_param_names & kwargs.keys()
+        if duplicates:
+            names = ", ".join(sorted(duplicates))
+            raise TypeError(
+                f"CircuitFunction {self.name} called with duplicate parameters: {names}."
+            )
+        unrecognized = kwargs.keys() - expected_param_names
+        if unrecognized:
+            names = ", ".join(sorted(unrecognized))
+            raise TypeError(
+                f"CircuitFunction {self.name} called with unrecognized keyword arguments: {names}."
+            )
         if len(args) + len(kwargs) != len(self._function_params):
             raise TypeError(
                 f"CircuitFunction {self.name} takes {len(self._function_params)}"
-                f" parameters but {len(args) + len(kwargs)} were provided."
-            )
-        if not set(kwargs.keys()) <= expected_param_names:
-            raise TypeError(
-                f"CircuitFunction {self.name} called with unrecognized keyword arguments."
+                f" parameter(s) but received {len(args) + len(kwargs)}."
             )
 
+        param_dict = dict(zip((p.name for p in self._function_params), args)) | kwargs
         return protocols.resolve_parameters(self._circuit, param_dict)
 
     def __repr__(self) -> str:

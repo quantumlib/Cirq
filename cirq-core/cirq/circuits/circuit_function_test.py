@@ -170,19 +170,24 @@ def test_call() -> None:
     cx = cirq.Circuit(cirq.X(qx) ** theta)
     cf = cirq.CircuitFunction("test_function", cx, function_params=[x, theta])
     assert cf(2, 3) == cirq.Circuit(cirq.X(cirq.q(2)) ** 3)
+    assert isinstance(cf(2, 3), cirq.FrozenCircuit)
     assert cf(2, theta=3) == cirq.Circuit(cirq.X(cirq.q(2)) ** 3)
 
-    with pytest.raises(TypeError, match="CircuitFunction test_function takes 2 parameters"):
+    with pytest.raises(TypeError, match=r"CircuitFunction test_function takes 2 parameter\(s\) but received 1"):
         _ = cf(2)
 
-    with pytest.raises(TypeError, match="CircuitFunction test_function called with duplicate"):
+    with pytest.raises(TypeError, match="duplicate parameters: x"):
         _ = cf(2, x=3)
 
     with pytest.raises(TypeError, match="CircuitFunction test_function called with unrecognized"):
         _ = cf(2, y=3)
 
+    with pytest.raises(TypeError, match="unrecognized keyword arguments: y"):
+        _ = cf(2, 3, y=4)
+
     cf = cirq.CircuitFunction("test_function", cx, function_params=[x])
     assert cf(2) == cirq.Circuit(cirq.X(cirq.q(2)) ** theta)
+    assert isinstance(cf(2), cirq.FrozenCircuit)
     assert cirq.resolve_parameters(cf(2), {theta: 3}) == cirq.Circuit(cirq.X(cirq.q(2)) ** 3)
 
     a, b = sympy.symbols('a b')
