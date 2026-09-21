@@ -21,7 +21,7 @@ from typing import Any, TYPE_CHECKING
 import sympy
 
 from cirq import _compat, protocols, value
-from cirq.ops import classically_controlled_operation, raw_types
+from cirq.ops import raw_types
 
 if TYPE_CHECKING:
     import cirq
@@ -32,6 +32,9 @@ class While(raw_types.Operation):
     """An operation that repeatedly executes a sub-operation while a classical condition is True.
 
     In contrast to If, this operation does NOT decompose to a `cirq.ClassicallyControlledOperation`.
+
+    Note: This is an experimental function designed as part of a prototype
+    for Cirq 2.0.  The interface for this class is subject to change between versions.
     """
 
     def __init__(
@@ -55,6 +58,14 @@ class While(raw_types.Operation):
                 will be continuously applied until `condition` is no longer true.
             sub_operation: The operation (or tree of operations) to run when
                 `condition` is satisfied.
+            *more_operations: Additional operations to run when `condition`
+                is satisfied. If provided, `sub_operation` and `more_operations`
+                are combined into a `cirq.CircuitOperation`.
+
+        Raises:
+            ValueError: If `condition` sequence is empty,
+                or if the sub-operation contains measurement keys.
+            TypeError: If an unrecognized condition type is provided.
         """
         if isinstance(condition, (str, value.MeasurementKey, value.Condition, sympy.Basic)):
             raw_conditions: Sequence[Any] = (condition,)
@@ -89,18 +100,11 @@ class While(raw_types.Operation):
             self._conditions: tuple[cirq.Condition, ...] = conds_tuple
             self._sub_operation: cirq.Operation = CircuitOperation(c.freeze())
         else:
-            # Single operation
-            if isinstance(sub_operation, While):
-                self._conditions = conds_tuple + sub_operation.conditions
-                self._sub_operation = sub_operation.sub_operation
-            elif isinstance(
-                sub_operation, classically_controlled_operation.ClassicallyControlledOperation
-            ):
-                self._conditions = conds_tuple + sub_operation._conditions
-                self._sub_operation = sub_operation._sub_operation
-            else:
-                self._conditions = conds_tuple
-                self._sub_operation = sub_operation
+            # Single operation: preserve sub_operation as-is (including nested
+            # While, If, or ClassicallyControlledOperation) so the outer While's
+            # termination condition is not altered.
+            self._conditions = conds_tuple
+            self._sub_operation = sub_operation
 
         # In contrast with "If", measurements must be allowed, otherwise the While
         # loop will get stuck in an infinite loop b/c the break condition will never
@@ -121,7 +125,7 @@ class While(raw_types.Operation):
         return frozenset(self._conditions).union(self._sub_operation.classical_controls)
 
     def without_classical_controls(self) -> cirq.Operation:
-        return self._sub_operation.without_classical_controls()
+        raise ValueError('Cannot remove classical controls from a While operation.')
 
     @property
     def qubits(self) -> tuple[cirq.Qid, ...]:
@@ -153,17 +157,15 @@ class While(raw_types.Operation):
 
     @_compat.cached_method
     def _is_parameterized_(self) -> bool:
-        return any(
-            protocols.is_parameterized(c) for c in self._conditions
-        ) or protocols.is_parameterized(self._sub_operation)
+        return protocols.is_parameterized(self._conditions) or protocols.is_parameterized(
+            self._sub_operation
+        )
 
     @_compat.cached_method
     def _parameter_names_(self) -> Set[str]:
-        names: set[str] = set()
-        for c in self._conditions:
-            names.update(protocols.parameter_names(c))
-        names.update(protocols.parameter_names(self._sub_operation))
-        return names
+        return frozenset(protocols.parameter_names(self._sub_operation)).union(
+            *(protocols.parameter_names(c) for c in self._conditions)
+        )
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> While:
         new_conditions = [
@@ -187,16 +189,23 @@ class While(raw_types.Operation):
             return NotImplemented  # pragma: no cover
         control_label_count = 0
         if args.label_map is not None:
-            control_label_count = len({k for c in self._conditions for k in c.keys})
+            # If self._sub_operation already measures or is controlled by a key
+            # that is also used in self._conditions (e.g.,
+            # cirq.While('a', cirq.measure(q0, key='a'))), sub_info.wire_symbols
+            # already includes '@' or '^' for that key and Cirq's diagram drawer
+            # deduplicates classical wire rows between measurement_key_objs(op)
+            # and control_keys(op). Subtract sub_keys so we only append '^' for
+            # control keys that don't already have a symbol from sub_info.
+            sub_keys = protocols.measurement_key_objs(self._sub_operation).union(
+                protocols.control_keys(self._sub_operation)
+            )
+            control_label_count = len({k for c in self._conditions for k in c.keys} - sub_keys)
         wire_symbols = sub_info.wire_symbols + ('^',) * control_label_count
-        if control_label_count == 0 or any(
-            not isinstance(c, value.KeyCondition) for c in self._conditions
-        ):
-            if len(self._conditions) == 1:
-                cond_str = str(self._conditions[0])
-            else:
-                cond_str = ', '.join(str(c) for c in self._conditions)
-            wire_symbols = (f'{wire_symbols[0]}(While={cond_str})', *wire_symbols[1:])
+        if len(self._conditions) == 1:
+            cond_str = str(self._conditions[0])
+        else:
+            cond_str = ', '.join(str(c) for c in self._conditions)
+        wire_symbols = (f'{wire_symbols[0]}(While={cond_str})', *wire_symbols[1:])
         exp_index = sub_info.exponent_qubit_index
         if exp_index is None:
             exp_index = len(sub_info.wire_symbols) - 1
@@ -211,6 +220,18 @@ class While(raw_types.Operation):
         while all(c.resolve(sim_state.classical_data) for c in self._conditions):
             protocols.act_on(self._sub_operation, sim_state)
         return True
+
+    @_compat.cached_method
+    def _measurement_key_names_(self) -> frozenset[str]:
+        return protocols.measurement_key_names(self._sub_operation)
+
+    @_compat.cached_method
+    def _measurement_key_objs_(self) -> frozenset[cirq.MeasurementKey]:
+        return protocols.measurement_key_objs(self._sub_operation)
+
+    @_compat.cached_method
+    def _is_measurement_(self) -> bool:
+        return protocols.is_measurement(self._sub_operation)
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> While:
         conditions = [protocols.with_measurement_key_mapping(c, key_map) for c in self._conditions]
@@ -249,18 +270,6 @@ class While(raw_types.Operation):
             raise ValueError(
                 'QASM 2.0 does not support while loops. Consider exporting with QASM 3.0.'
             )
-        from cirq.circuits import CircuitOperation
-
-        if isinstance(self._sub_operation, CircuitOperation):
-            sub_qasms: list[str] = []
-            for op in self._sub_operation.mapped_circuit().all_operations():
-                q = protocols.qasm(op, args=args, default=None)
-                if q is None:
-                    return None
-                sub_qasms.append(q)
-            condition_qasm = " && ".join(protocols.qasm(c, args=args) for c in self._conditions)
-            body = ''.join(f'  {line}\n' for q in sub_qasms for line in q.splitlines())
-            return f'while ({condition_qasm}) {{\n{body}}}\n'
         subop_qasm = protocols.qasm(self._sub_operation, args=args, qubits=qubits, default=None)
         if subop_qasm is None:
             return None

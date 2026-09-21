@@ -26,7 +26,8 @@ def test_init() -> None:
     assert op.sub_operation == cirq.X(q)
     assert op.qubits == (q,)
     assert op.classical_controls == frozenset([cirq.KeyCondition(cirq.MeasurementKey('m'))])
-    assert op.without_classical_controls() == cirq.X(q)
+    with pytest.raises(ValueError, match='Cannot remove classical controls from a While operation'):
+        _ = op.without_classical_controls()
 
 
 def test_init_condition_types() -> None:
@@ -61,23 +62,50 @@ def test_init_multiple_operations() -> None:
     assert op_list.sub_operation.circuit == cirq.Circuit(cirq.X(q0), cirq.Y(q1))
 
 
-def test_init_squash_nested_while() -> None:
-    q = cirq.LineQubit(0)
-    inner = cirq.While('a', cirq.X(q))
-    outer = cirq.While('b', inner)
-    assert outer.conditions == (
-        cirq.KeyCondition(cirq.MeasurementKey('b')),
-        cirq.KeyCondition(cirq.MeasurementKey('a')),
-    )
-    assert outer.sub_operation == cirq.X(q)
+def test_nested_while_and_if_preserved() -> None:
+    q_b, q_a, target = cirq.LineQubit.range(3)
 
-    cco = cirq.ClassicallyControlledOperation(cirq.X(q), ['a'])
-    outer_cco = cirq.While('b', cco)
-    assert outer_cco.conditions == (
-        cirq.KeyCondition(cirq.MeasurementKey('b')),
-        cirq.KeyCondition(cirq.MeasurementKey('a')),
+    inner_while = cirq.While('a', cirq.X(target))
+    outer_while = cirq.While('b', inner_while)
+    assert outer_while.conditions == (cirq.KeyCondition(cirq.MeasurementKey('b')),)
+    assert outer_while.sub_operation == inner_while
+
+    inner_if = cirq.If('a', cirq.X(target))
+    outer_if = cirq.While('b', inner_if)
+    assert outer_if.conditions == (cirq.KeyCondition(cirq.MeasurementKey('b')),)
+    assert outer_if.sub_operation == inner_if
+    assert outer_if.classical_controls == frozenset(
+        [cirq.KeyCondition(cirq.MeasurementKey('b')), cirq.KeyCondition(cirq.MeasurementKey('a'))]
     )
-    assert outer_cco.sub_operation == cirq.X(q)
+
+    cco = cirq.ClassicallyControlledOperation(cirq.X(target), ['a'])
+    outer_cco = cirq.While('b', cco)
+    assert outer_cco.conditions == (cirq.KeyCondition(cirq.MeasurementKey('b')),)
+    assert outer_cco.sub_operation == cco
+
+    # Prove that a nested If ('a') inside While ('b') does not alter the While
+    # termination condition:
+    # - Before loop: b=1 (True), a=0 (False), target=|0>.
+    # - Iteration 1: loop enters because b=1 (even though a=0). If('a', X(target))
+    #   does not fire; then q_a is flipped and measured so a becomes 1.
+    # - Iteration 2: loop runs again because b is still 1; now a=1 so If('a', X(target))
+    #   flips target to |1>, and q_b is flipped to |0> and measured so b=0 (exiting loop).
+    circuit = cirq.Circuit(
+        cirq.X(q_b),
+        cirq.measure(q_b, key='b'),
+        cirq.measure(q_a, key='a'),
+        cirq.While(
+            'b',
+            cirq.If('a', cirq.X(target)),
+            cirq.CNOT(q_a, q_b),
+            cirq.X(q_a),
+            cirq.measure(q_a, key='a'),
+            cirq.measure(q_b, key='b'),
+        ),
+    )
+    res = cirq.Simulator().simulate(circuit)
+    np.testing.assert_equal(res.measurements['b'], [0])
+    np.testing.assert_equal(res.state_vector(), [0, 1, 0, 0, 0, 0, 0, 0])
 
 
 def test_init_errors() -> None:
@@ -148,11 +176,11 @@ def test_diagram() -> None:
     cirq.testing.assert_has_diagram(
         circuit,
         """
-0: ───M───────
+0: ───M────────────────
       ║
-1: ───╫───X───
+1: ───╫───X(While=a)───
       ║   ║
-a: ═══@═══^═══
+a: ═══@═══^════════════
 """,
         use_unicode_characters=True,
     )
@@ -167,15 +195,15 @@ def test_diagram_multiple_conditions() -> None:
         circuit,
         """
       ┌──┐
-0: ────M─────────
+0: ────M─────────────────────
        ║
-1: ────╫M────────
+1: ────╫M────────────────────
        ║║
-2: ────╫╫────X───
+2: ────╫╫────X(While=a, b)───
        ║║    ║
-a: ════@╬════^═══
+a: ════@╬════^═══════════════
         ║    ║
-b: ═════@════^═══
+b: ═════@════^═══════════════
       └──┘
 """,
         use_unicode_characters=True,
@@ -226,7 +254,7 @@ def test_simulation_countdown() -> None:
     res = sim.simulate(circuit)
 
     # Final measurement is [0, 0] and state is |00>
-    assert list(res.measurements['a']) == [0, 0]
+    np.testing.assert_equal(res.measurements['a'], [0, 0])
     np.testing.assert_equal(res.state_vector(), [1, 0, 0, 0])
 
     # Verify the loop ran 3 times (initial measurement + 3 loop measurements)
@@ -246,12 +274,12 @@ def test_simulation_repeat_until_success() -> None:
         cirq.measure(q0, key='a'),
         cirq.While('a', cirq.H(q0), cirq.measure(q0, key='a')),
     )
-    # With seed=1, the coin tosses measure 1 several times before landing on 0.
-    sim = cirq.Simulator(seed=1)
+    # With seed=4, the coin tosses measure 1 several times before landing on 0.
+    sim = cirq.Simulator(seed=4)
     res = sim.simulate(circuit)
 
-    assert list(res.measurements['a']) == [0]
-    cirq.testing.assert_allclose_up_to_global_phase(res.state_vector(), np.array([1, 0]), atol=1e-6)
+    np.testing.assert_equal(res.measurements['a'], [0])
+    np.testing.assert_allclose(res.state_vector(), [1, 0], atol=1e-6)
 
     # Every recorded measurement before the last one must be (1,), and the last is (0,)
     records = res._final_simulator_state.classical_data.records[cirq.MeasurementKey('a')]
@@ -276,6 +304,26 @@ def test_key_mappings_and_scoping() -> None:
     assert rescoped == cirq.While('scope:a', cirq.X(q))
 
     assert cirq.control_keys(op) == frozenset([cirq.MeasurementKey('a')])
+    assert not cirq.is_measurement(op)
+    assert cirq.measurement_key_objs(op) == frozenset()
+    assert cirq.measurement_key_names(op) == frozenset()
+
+    op_meas = cirq.While('a', cirq.H(q), cirq.measure(q, key='b'))
+    assert cirq.is_measurement(op_meas)
+    assert cirq.measurement_key_objs(op_meas) == frozenset([cirq.MeasurementKey('b')])
+    assert cirq.measurement_key_names(op_meas) == frozenset(['b'])
+
+    circuit = cirq.Circuit(cirq.measure(q, key='a'), cirq.While('a', cirq.measure(q, key='a')))
+    assert circuit.all_measurement_key_names() == {'a'}
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ───M───M(While=a)───
+      ║   ║
+a: ═══@═══@════════════
+""",
+        use_unicode_characters=True,
+    )
 
 
 def test_has_unitary() -> None:
@@ -300,11 +348,6 @@ def test_qasm() -> None:
     qasm_str_3 = cirq.qasm(circuit_multi, args=cirq.QasmArgs(version='3.0'))
     assert 'while (m_a!=0 && m_b!=0) x q[1];' in qasm_str_3
 
-    op_block = cirq.While('a', cirq.X(q0), cirq.measure(q0, key='a'))
-    circuit_block = cirq.Circuit(cirq.measure(q0, key='a'), op_block)
-    qasm_block = cirq.qasm(circuit_block, args=cirq.QasmArgs(version='3.0'))
-    assert 'while (m_a!=0) {\n  x q[0];\n  m_a[0] = measure q[0];\n}' in qasm_block
-
 
 def test_qasm_sub_op_no_qasm() -> None:
     class NoQasmOp(cirq.Operation):
@@ -317,6 +360,3 @@ def test_qasm_sub_op_no_qasm() -> None:
 
     op = cirq.While('a', NoQasmOp())
     assert cirq.qasm(op, args=cirq.QasmArgs(version='3.0'), default=None) is None
-
-    op_block = cirq.While('a', NoQasmOp(), NoQasmOp())
-    assert cirq.qasm(op_block, args=cirq.QasmArgs(version='3.0'), default=None) is None
