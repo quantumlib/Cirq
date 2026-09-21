@@ -34,14 +34,14 @@ class CircuitFunction:
     """A function that maps from a given set of parameters to a circuit.
 
     Note: This is an experimental class designed as part of a prototype
-       for Cirq 2.0. The interface for this class is subject to change
-       between versions.
+        for Cirq 2.0. The interface for this class is subject to change
+        between versions.
     """
 
     def __init__(
         self,
         name: str,
-        circuit: cirq.AbstractCircuit,
+        circuit: AbstractCircuit,
         function_params: Sequence[sympy.Symbol] | None = None,
     ) -> None:
         """Initializes a CircuitFunction.
@@ -92,6 +92,7 @@ class CircuitFunction:
         return self._function_params
 
     def all_qubits(self) -> frozenset[cirq.Qid]:
+        """Returns the set of all qubits in the circuit."""
         return self._circuit.all_qubits()
 
     def _value_equality_values_(self) -> Any:
@@ -120,7 +121,7 @@ class CircuitFunction:
         return cls(name=name, circuit=circuit, function_params=function_params)
 
     def __call__(self, *args: cirq.TParamVal, **kwargs: cirq.TParamVal) -> cirq.FrozenCircuit:
-        """Call the circuit function with given parameters values."""
+        """Call the circuit function with the given parameter values."""
 
         param_dict = dict(zip(self._function_params, args)) | kwargs
         positional_param_names = {p.name for p in self._function_params[: len(args)]}
@@ -130,7 +131,7 @@ class CircuitFunction:
             raise TypeError(f"CircuitFunction {self.name} called with duplicate parameters.")
         if len(args) + len(kwargs) != len(self._function_params):
             raise TypeError(
-                f"CircuitFunction {self.name} takes {len(self.function_params)}"
+                f"CircuitFunction {self.name} takes {len(self._function_params)}"
                 f" parameters but {len(args) + len(kwargs)} were provided."
             )
         if not set(kwargs.keys()) <= expected_param_names:

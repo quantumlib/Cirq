@@ -29,7 +29,7 @@ def test_construction_unparameterized() -> None:
     assert not cirq.is_parameterized(cf)
     assert cf.all_qubits() == frozenset((q,))
 
-    # expose nonfunctional parameter
+    # Expose nonfunctional parameter.
     theta = sympy.Symbol('theta')
     cf = cirq.CircuitFunction("test_function", c, function_params=[theta])
     assert cf.function_params == (theta,)
@@ -38,7 +38,7 @@ def test_construction_unparameterized() -> None:
 
 
 def test_construction_basic() -> None:
-    # parameter exposed
+    # Parameter exposed.
     q = cirq.q(0)
     theta = sympy.Symbol('theta')
     c = cirq.Circuit(cirq.X(q) ** theta)
@@ -53,7 +53,7 @@ def test_construction_basic() -> None:
     cf = cirq.CircuitFunction("test_function", c)
     assert cf.function_params == (theta,)
 
-    # parameter not exposed
+    # Parameter not exposed.
     cf = cirq.CircuitFunction("test_function", c, function_params=[])
     assert cf.function_params == ()
     assert cirq.parameter_names(cf) == {theta.name}
@@ -76,7 +76,7 @@ def test_construction_basic() -> None:
 
 
 def test_construction_vqid() -> None:
-    # parameter exposed, vqid not exposed
+    # Parameter exposed, vqid not exposed.
     x = sympy.Symbol('x')
     q = cirq.VariableLineQid(x)
     theta = sympy.Symbol('theta')
@@ -89,7 +89,7 @@ def test_construction_vqid() -> None:
     assert cirq.is_parameterized(cf)
     assert cf.all_qubits() == frozenset((q,))
 
-    # parameter exposed, vqid exposed
+    # Parameter exposed, vqid exposed.
     cf = cirq.CircuitFunction("test_function", c, function_params=[theta, x])
     assert cf.function_params == (theta, x)
     assert cirq.parameter_names(cf) == set()
@@ -98,13 +98,13 @@ def test_construction_vqid() -> None:
     cf = cirq.CircuitFunction("test_function", c)
     assert cf.function_params == (theta, x)
 
-    # parameter not exposed, vqid exposed
+    # Parameter not exposed, vqid exposed.
     cf = cirq.CircuitFunction("test_function", c, function_params=[x])
     assert cf.function_params == (x,)
     assert cirq.parameter_names(cf) == {theta.name}
     assert cirq.is_parameterized(cf)
 
-    # parameter not exposed, vqid not exposed
+    # Parameter not exposed, vqid not exposed.
     cf = cirq.CircuitFunction("test_function", c, function_params=[])
     assert cf.function_params == ()
     assert cirq.parameter_names(cf) == {theta.name, x.name}
