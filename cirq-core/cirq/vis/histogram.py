@@ -43,15 +43,15 @@ def integrated_histogram(
     fidelity from the list is less than the x-value. It will look something like
     this
 
-    1.0
-    |              |
-    |           ___|
-    |           |
-    |       ____|
-    |      |
-    |      |
-    |_____|_______________
-    0.0
+    ```text
+    1.0 ┤               ┌───
+        │           ┌───┘
+        │       ┌───┘
+        │   ┌───┘
+        │   │
+    0.0 └───┴───────────────────►
+          gate fidelity ───▶
+    ```
 
     Another way of saying this is that we assume the probability distribution
     function (pdf) of gate fidelities is a set of equally weighted delta

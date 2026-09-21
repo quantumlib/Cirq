@@ -197,14 +197,14 @@ class AnalogDetuneCouplerOnly(cirq.ops.Gate):
     .. svgbob::
       :align: center
 
-            |   ,--------|---- amp_max (parsed from g_max)
-            |  /         |
-    amp_0---|-' - - - - -| - -
-    |
-    |       |-w -|       |
-    |       |---length --|
-    |
-    --------------------------(calculated from the g_0)
+                |   ,--------|---- amp_max (parsed from g_max)
+                |  /         |
+        amp_0---|-' - - - - -| - -
+        |
+        |       |-w -|       |
+        |       |---length --|
+        |
+        --------------------------(calculated from the g_0)
     """
 
     def __init__(
