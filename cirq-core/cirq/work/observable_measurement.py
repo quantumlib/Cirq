@@ -626,7 +626,7 @@ def measure_observables(
     """Measure a collection of PauliString observables for a state prepared by a Circuit.
 
     If you need more control over the process, please see `measure_grouped_settings` for a
-    lower-level API. If you would like your results returned as a pandas DataFrame,
+    lower-level API. If you would like your results returned as a Pandas DataFrame,
     please see `measure_observables_df`.
 
     Args:

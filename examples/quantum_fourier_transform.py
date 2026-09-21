@@ -46,7 +46,7 @@ def _cz_and_swap(q0, q1, rot):
     yield cirq.SWAP(q0, q1)
 
 
-# Create a quantum fourier transform circuit for 2*2 planar qubit architecture.
+# Create a quantum Fourier transform circuit for 2*2 planar qubit architecture.
 # Circuit is adopted from https://arxiv.org/pdf/quant-ph/0402196.pdf
 def generate_2x2_grid_qft_circuit():
     # Define a 2*2 square grid of qubits.

@@ -320,7 +320,7 @@ def sample_2q_xeb_circuits(
             used to incrementally save results to be analyzed later.
 
     Returns:
-        A pandas dataframe with index given by ['circuit_i', 'cycle_depth'].
+        A Pandas DataFrame with index given by ['circuit_i', 'cycle_depth'].
         Columns always include "sampled_probs". If `combinations_by_layer` is
         not `None` and you are doing parallel XEB, additional metadata columns
         will be attached to the returned DataFrame.

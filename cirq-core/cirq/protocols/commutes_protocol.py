@@ -107,9 +107,9 @@ def commutes(
 
     Args:
         v1: One of the values to check for commutativity. Can be a cirq object
-            such as an operation, or a numpy matrix.
+            such as an operation, or a NumPy matrix.
         v2: The other value to check for commutativity. Can be a cirq object
-            such as an operation, or a numpy matrix.
+            such as an operation, or a NumPy matrix.
         default: A fallback value to return, instead of raising a ValueError, if
             it is indeterminate whether or not the two values commute.
         atol: Absolute error tolerance. If all entries in v1@v2 - v2@v1 have a

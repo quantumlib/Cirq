@@ -108,9 +108,9 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         Returns:
             A dictionary from measurement gate key to measurement
             results. Measurement results are stored in a 3-dimensional
-            numpy array, the first dimension corresponding to the repetition.
+            NumPy array, the first dimension corresponding to the repetition.
             the second to the instance of that key in the circuit, and the
-            third to the actual boolean measurement results (ordered by the
+            third to the actual Boolean measurement results (ordered by the
             qubits being measured.)
         """
         raise NotImplementedError()
@@ -732,7 +732,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
             Measurement results with True corresponding to the ``|1⟩`` state.
             The outer list is for repetitions, and the inner corresponds to
             measurements ordered by the supplied qubits. These lists
-            are wrapped as a numpy ndarray.
+            are wrapped as a NumPy ndarray.
         """
         raise NotImplementedError()
 
@@ -764,8 +764,8 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
 
         Returns: A dictionary from measurement gate key to measurement
             results. Measurement results are stored in a 2-dimensional
-            numpy array, the first dimension corresponding to the repetition
-            and the second to the actual boolean measurement results (ordered
+            NumPy array, the first dimension corresponding to the repetition
+            and the second to the actual Boolean measurement results (ordered
             by the qubits being measured.)
 
         Raises:
@@ -860,7 +860,7 @@ class SimulationTrialResult(Generic[TSimulatorState]):
     Attributes:
         params: A ParamResolver of settings used for this result.
         measurements: A dictionary from measurement gate key to measurement
-            results. Measurement results are a numpy ndarray of actual boolean
+            results. Measurement results are a NumPy ndarray of actual Boolean
             measurement results (ordered by the qubits acted on by the
             measurement gate.)
     """
@@ -876,8 +876,8 @@ class SimulationTrialResult(Generic[TSimulatorState]):
         Args:
             params: A ParamResolver of settings used for this result.
             measurements: A mapping from measurement gate key to measurement
-                results. Measurement results are a numpy ndarray of actual
-                boolean measurement results (ordered by the qubits acted on by
+                results. Measurement results are a NumPy ndarray of actual
+                Boolean measurement results (ordered by the qubits acted on by
                 the measurement gate.)
             final_simulator_state: The final simulator state.
         """

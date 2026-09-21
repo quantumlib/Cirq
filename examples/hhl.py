@@ -385,7 +385,7 @@ class HHLAlgorithm:
 
         Returns:
             A pair of lists, containing for each X, Y and Z measurement goal:
-                - a numpy array with the results for successful simulations.
+                - a NumPy array with the results for successful simulations.
                 - the total number of simulation runs.
         """
         simulator = cirq.Simulator()

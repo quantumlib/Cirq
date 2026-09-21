@@ -204,8 +204,8 @@ class StabilizerStateChForm(qis.StabilizerState):
 
         where the state represents a single qubit.
 
-        Input: v,y,z are boolean; delta is an integer (mod 4)
-        Outputs: a,b,c are boolean; omega is a complex number
+        Input: v,y,z are Boolean; delta is an integer (mod 4)
+        Outputs: a,b,c are Boolean; omega is a complex number
 
         Precondition: y != z"""
         if y == z:

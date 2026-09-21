@@ -31,7 +31,7 @@ class QPUResult:
         self, counts: dict[int, int], num_qubits: int, measurement_dict: dict[str, Sequence[int]]
     ):
         # We require a consistent ordering, and here we use bitvector as such.
-        # OrderedDict can be removed in python 3.7, where it is part of the contract.
+        # OrderedDict can be removed in Python 3.7, where it is part of the contract.
         self._counts = collections.OrderedDict(sorted(counts.items()))
         self._num_qubits = num_qubits
         self._measurement_dict = measurement_dict

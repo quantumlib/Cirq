@@ -56,7 +56,7 @@ def benchmark_2q_xeb_fidelities(
 
     This uses the estimator from
     `cirq.experiments.fidelity_estimation.least_squares_xeb_fidelity_from_expectations`, but
-    adapted for use on pandas DataFrames for efficient vectorized operation.
+    adapted for use on Pandas DataFrames for efficient vectorized operation.
 
     Args:
         sampled_df: The sampled results to benchmark. This is likely produced by a call to
@@ -379,7 +379,7 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
     ) -> XEBPhasedFSimCharacterizationOptions:
         """A new Options class with {angle}_defaults inferred from `gate`.
 
-        This keeps the same settings for the characterize_{angle} booleans, but will disregard
+        This keeps the same settings for the characterize_{angle} Booleans, but will disregard
         any current {angle}_default values.
         """
         return XEBPhasedFSimCharacterizationOptions(
@@ -431,10 +431,10 @@ class XEBCharacterizationResult:
     """The result of `characterize_phased_fsim_parameters_with_xeb`.
 
     Attributes:
-        optimization_results: A mapping from qubit pair to the raw scipy OptimizeResult object
+        optimization_results: A mapping from qubit pair to the raw SciPy OptimizeResult object
         final_params: A mapping from qubit pair to a dictionary of (angle_name, angle_value)
             key-value pairs
-        fidelities_df: A dataframe containing per-cycle_depth and per-pair fidelities after
+        fidelities_df: A DataFrame containing per-cycle_depth and per-pair fidelities after
             fitting the characterization.
     """
 
@@ -454,7 +454,7 @@ def characterize_phased_fsim_parameters_with_xeb(
     verbose: bool = True,
     pool: multiprocessing.pool.Pool | futures.Executor | None = None,
 ) -> XEBCharacterizationResult:
-    """Run a classical optimization to fit phased fsim parameters to experimental data, and
+    """Run a classical optimization to fit phased FSim parameters to experimental data, and
     thereby characterize PhasedFSim-like gates.
 
     Args:
@@ -549,7 +549,7 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
     fatol: float = 1e-3,
     pool: multiprocessing.pool.Pool | futures.Executor | None = None,
 ) -> XEBCharacterizationResult:
-    """Run a classical optimization to fit phased fsim parameters to experimental data, and
+    """Run a classical optimization to fit phased FSim parameters to experimental data, and
     thereby characterize PhasedFSim-like gates grouped by pairs.
 
     This is appropriate if you have run parallel XEB on multiple pairs of qubits.
@@ -642,11 +642,11 @@ def _fit_exponential_decay(
     fidelities = np.asarray(fidelities)
 
     # Get initial guess by linear least squares with logarithm of model.
-    # This only works for positive fidelities. We use numpy fancy indexing
+    # This only works for positive fidelities. We use NumPy fancy indexing
     # with `positives` (an ndarray of bools).
     positives = fidelities > 0
     if np.sum(positives) <= 1:
-        # The sum of the boolean array is the number of `True` entries.
+        # The sum of the Boolean array is the number of `True` entries.
         # For one or fewer positive values, we cannot perform the linear fit.
         return 0, 0, np.inf, np.inf
     cycle_depths_pos = cycle_depths[positives]
@@ -678,11 +678,11 @@ def fit_exponential_decays(fidelities_df: pd.DataFrame) -> pd.DataFrame:
     Args:
          fidelities_df: A DataFrame that is the result of `benchmark_2q_xeb_fidelities`. It
             may contain results for multiple pairs of qubits identified by the "pair" column.
-            Each pair will be fit separately. At minimum, this dataframe must contain
+            Each pair will be fit separately. At minimum, this DataFrame must contain
             "cycle_depth", "fidelity", and "pair" columns.
 
     Returns:
-        A new, aggregated dataframe with index given by (pair, layer_i, pair_i); columns
+        A new, aggregated DataFrame with index given by (pair, layer_i, pair_i); columns
         for the fit parameters "a" and "layer_fid"; and nested "cycles_depths" and "fidelities"
         lists (now grouped by pair).
     """
@@ -721,10 +721,10 @@ def before_and_after_characterization(
         fidelities_df_0: A dataframe (before fitting), likely resulting from
             `benchmark_2q_xeb_fidelities`.
         characterization_result: The result of running a characterization. This contains the
-            second fidelities dataframe as well as the new parameters.
+            second fidelities DataFrame as well as the new parameters.
 
     Returns:
-          A joined dataframe with original column names suffixed by "_0" and characterized
+          A joined DataFrame with original column names suffixed by "_0" and characterized
           column names suffixed by "_c".
     """
     fit_decay_df_0 = fit_exponential_decays(fidelities_df_0)

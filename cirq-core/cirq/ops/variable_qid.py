@@ -73,14 +73,14 @@ class VariableLineQid(VariableQid):
     """
 
     def __init__(self, x: sympy.Expr, dimension: int = 2):
-        """Initializes a VariableLineQid with a sympy expression.
+        """Initializes a VariableLineQid with a SymPy expression.
 
         Args:
-            x: The sympy expression representing this Qid's 1D position.
+            x: The SymPy expression representing this Qid's 1D position.
             dimension: Dimension of the Qid, defaults to 2 (qubit).
 
         Raises:
-            TypeError: If `x` is not a sympy expression.
+            TypeError: If `x` is not a SymPy expression.
         """
         self.validate_dimension(dimension)
         if not isinstance(x, sympy.Expr):
@@ -148,15 +148,15 @@ class VariableGridQid(VariableQid):
     """
 
     def __init__(self, row: sympy.Expr | int, col: sympy.Expr | int, dimension: int = 2):
-        """Initializes a VariableGridQid with sympy expressions or ints for the row and column.
+        """Initializes a VariableGridQid with SymPy expressions or ints for the row and column.
 
         Args:
-            row: The sympy expression or int representing the row coordinate.
-            col: The sympy expression or int representing the column coordinate.
+            row: The SymPy expression or int representing the row coordinate.
+            col: The SymPy expression or int representing the column coordinate.
             dimension: Dimension of the Qid, defaults to 2 (qubit).
 
         Raises:
-            TypeError: If `row` or `col` is not a sympy expression or int.
+            TypeError: If `row` or `col` is not a SymPy expression or int.
             ValueError: If row and col are both ints (i.e. fully resolved)
         """
         self.validate_dimension(dimension)

@@ -60,7 +60,7 @@ class ResolvableValue(Protocol):
         """Returns a resolved value during parameter resolution.
 
         Use this to mark a custom type as "resolved", instead of requiring
-        further parsing like we do with Sympy symbols.
+        further parsing like we do with SymPy symbols.
         """
 
 
@@ -154,7 +154,7 @@ def resolve_parameters(
         replaced with floats or terminal symbols according to the
         given `cirq.ParamResolver`. If `val` has no `_resolve_parameters_`
         method or if it returns NotImplemented, `val` itself is returned.
-        Note that in some cases, such as when directly resolving a sympy
+        Note that in some cases, such as when directly resolving a SymPy
         Symbol, the return type could differ from the input type; however,
         for the much more common case of resolving parameters on cirq
         objects (or if resolving a Union[Symbol, float] instead of just a
@@ -188,7 +188,7 @@ def resolve_parameters(
     if result is not NotImplemented:
         return result
 
-    # Handle special cases for sympy expressions and sequences.
+    # Handle special cases for SymPy expressions and sequences.
     # These may not in fact preserve types, but we pretend they do by casting.
     if isinstance(val, sympy.Expr):
         return cast(T, param_resolver.value_of(val, recursive))

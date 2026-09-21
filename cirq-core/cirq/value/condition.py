@@ -49,7 +49,7 @@ class Condition(abc.ABC):
     @property
     @abc.abstractmethod
     def qasm(self):
-        """Returns the qasm of this condition."""
+        """Returns the QASM of this condition."""
 
     def _qasm_(self, args: cirq.QasmArgs, **kwargs) -> str | None:
         return self.qasm
@@ -247,9 +247,9 @@ class BitMaskKeyCondition(Condition):
 
 @dataclasses.dataclass(frozen=True)
 class SympyCondition(Condition):
-    """A classical control condition based on a sympy expression.
+    """A classical control condition based on a SymPy expression.
 
-    This condition resolves to True iff the sympy expression resolves to a
+    This condition resolves to True iff the SymPy expression resolves to a
     truthy value (i.e. `bool(x) == True`) when the measurement keys are
     substituted in as the free variables.
 

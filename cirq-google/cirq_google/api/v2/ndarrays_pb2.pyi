@@ -15,7 +15,7 @@ Each packed type has:
    for correcting mismatched endianness. We highly recommend client
    libraries to stick with consistent and, preferably, system-native
    endianness. Note that unspecified endianness defaults to little endian;
-   this approximately reflects how protobufs are serialized on the wire.
+   this approximately reflects how Protobufs are serialized on the wire.
 
 Note that different types are used to enforce typing in downstream data
 data sources without inspecting the proto data.  (For instance, enforcing

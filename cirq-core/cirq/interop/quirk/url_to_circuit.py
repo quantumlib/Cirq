@@ -188,7 +188,7 @@ def quirk_json_to_circuit(
     if not data.keys() <= {'cols', 'gates', 'init'}:
         raise ValueError(msg('Unrecognized Circuit JSON keys.'))
 
-    # Collect registry of quirk cell types.
+    # Collect registry of Quirk cell types.
     if isinstance(extra_cell_makers, Mapping):
         extra_makers = [
             CellMaker(
@@ -253,7 +253,7 @@ def _parse_cols_into_composite_cell(
     if not isinstance(cols, list):
         raise ValueError(f'Circuit JSON cols must be a list.\nJSON={data}')
 
-    # Parse column json into cells.
+    # Parse column JSON into cells.
     parsed_cols: list[list[Cell | None]] = []
     height = 0
     for i, col in enumerate(cols):

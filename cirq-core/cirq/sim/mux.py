@@ -79,7 +79,7 @@ def sample(
     # State vector simulation is much faster, but only works if no randomness.
     if noise_model == devices.NO_NOISE:
         if _is_clifford_circuit(program):
-            # If all non-measurement operations are clifford, use the Clifford
+            # If all non-measurement operations are Clifford, use the Clifford
             # simulator.
             return clifford_simulator.CliffordSimulator(seed=seed).run(
                 program, param_resolver=param_resolver, repetitions=repetitions
@@ -142,7 +142,7 @@ def final_state_vector(
 
     Returns:
         The state vector resulting from applying the given unitary operations to
-        the desired initial state. Specifically, a numpy array containing the
+        the desired initial state. Specifically, a NumPy array containing the
         amplitudes in np.kron order, where the order of arguments to kron
         is determined by the qubit order argument (which defaults to just
         sorting the qubits that are present into an ascending order).

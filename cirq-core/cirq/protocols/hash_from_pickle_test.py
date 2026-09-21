@@ -27,7 +27,7 @@ import cirq
 from cirq.protocols.json_serialization_test import MODULE_TEST_SPECS
 
 _EXCLUDE_JSON_FILES = (
-    # sympy - related objects
+    # SymPy - related objects
     "cirq/protocols/json_test_data/sympy.Add.json",
     "cirq/protocols/json_test_data/sympy.E.json",
     "cirq/protocols/json_test_data/sympy.Equality.json",

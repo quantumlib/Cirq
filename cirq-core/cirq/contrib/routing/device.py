@@ -50,7 +50,7 @@ def _manhattan_distance(qubit1: cirq.GridQubit, qubit2: cirq.GridQubit) -> int:
 def nx_qubit_layout(graph: nx.Graph) -> dict[cirq.Qid, tuple[float, float]]:
     """Return a layout for a graph for nodes which are qubits.
 
-    This can be used in place of nx.spring_layout or other networkx layouts.
+    This can be used in place of nx.spring_layout or other NetworkX layouts.
     GridQubits are positioned according to their row/col. LineQubits are
     positioned in a line.
 

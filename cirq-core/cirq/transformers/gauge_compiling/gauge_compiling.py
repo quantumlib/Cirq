@@ -59,7 +59,7 @@ class Gauge(abc.ABC):
 
         Args:
             gate: The two qubit gate to replace.
-            prng: A numpy random number generator.
+            prng: A NumPy random number generator.
 
         Returns:
             A ConstantGauge.
@@ -155,7 +155,7 @@ class TwoQubitGateSymbolizer:
 
         Args:
             two_qubit_gate: The 2 qubit gate to be symbolized.
-            symbols: A sequence of sympy symbols to use for parameterization.
+            symbols: A sequence of SymPy symbols to use for parameterization.
 
         Returns:
             A tuple containing the parameterized gate and a dictionary mapping
@@ -208,7 +208,7 @@ class GaugeTransformer:
 
         Args:
             target: Target two-qubit gate, a gate-family or a gate-set of two-qubit gates.
-            gauge_selector: A callable that takes a numpy random number generator
+            gauge_selector: A callable that takes a NumPy random number generator
                 as an argument and returns a Gauge.
             two_qubit_gate_symbolizer: A symbolizer to symbolize 2 qubit gates.
         """

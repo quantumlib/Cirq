@@ -15,7 +15,7 @@
 
 """Utility tool for cirq modules.
 
-It can be used as a python library for python scripts as well as a CLI tool for
+It can be used as a Python library for Python scripts as well as a CLI tool for
 bash scripts and interactive use.
 
 Features:
@@ -84,7 +84,7 @@ class Module:
 def list_modules(
     search_dir: Path = _DEFAULT_SEARCH_DIR, include_parent: bool = False
 ) -> list[Module]:
-    """Returns a list of python modules based defined by setup.py files.
+    """Returns a list of Python modules based defined by setup.py files.
 
     Args:
         include_parent: if true, a setup.py is expected in `search_dir`, and the corresponding

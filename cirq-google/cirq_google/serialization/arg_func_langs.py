@@ -39,7 +39,7 @@ ARG_RETURN_LIKE: TypeAlias = (
 FLOAT_ARG_LIKE: TypeAlias = float | sympy.Expr
 
 # Types for comparing floats
-# Includes sympy types.  Needed for arg parsing.
+# Includes SymPy types.  Needed for arg parsing.
 FLOAT_TYPES = (
     float,
     int,
@@ -51,7 +51,7 @@ FLOAT_TYPES = (
     sympy.NumberSymbol,
 )
 
-# The sympy operations supported by the proto format
+# The SymPy operations supported by the proto format
 # and their corresponding operation types
 _SUPPORTED_SYMPY_TYPE_MAPPING = {
     sympy.Add: "add",
@@ -84,7 +84,7 @@ def float_arg_to_proto(
 
     Args:
         value: The value to encode.  This must be a float or compatible
-            sympy expression. Strings and repeated booleans are not allowed.
+            SymPy expression. Strings and repeated Booleans are not allowed.
         out: The proto to write the result into. Defaults to a new instance.
 
     Returns:
@@ -272,7 +272,7 @@ def _arg_func_to_proto(value: ARG_LIKE, msg: v2.program_pb2.Arg | v2.program_pb2
         for arg in value.args:
             arg_to_proto(arg, out=msg.func.args.add())
     elif isinstance(value, sympy.Indexed):
-        # Sympy version of M[a, b]
+        # SymPy version of M[a, b]
         msg.func.type = "[]"
         arg_to_proto(value.base.label, out=msg.func.args.add())
         for arg in value.indices:
@@ -288,7 +288,7 @@ def _arg_func_to_proto(value: ARG_LIKE, msg: v2.program_pb2.Arg | v2.program_pb2
 def float_arg_from_proto(
     arg_proto: v2.program_pb2.FloatArg, *, required_arg_name: str | None = None
 ) -> FLOAT_ARG_LIKE | None:
-    """Extracts a python value from an argument value proto.
+    """Extracts a Python value from an argument value proto.
 
     This function handles `FloatArg` protos, that are required
     to be floats or symbolic expressions.
@@ -333,7 +333,7 @@ def float_arg_from_proto(
 def arg_from_proto(
     arg_proto: v2.program_pb2.Arg, *, required_arg_name: str | None = None
 ) -> ARG_RETURN_LIKE | None:
-    """Extracts a python value from an argument value proto.
+    """Extracts a Python value from an argument value proto.
 
     Args:
         arg_proto: The proto containing a serialized value.
@@ -430,7 +430,7 @@ def arg_from_proto(
 def dict_from_arg_mapping_proto(
     arg_mapping_proto: v2.program_pb2.ArgMapping, *, required_arg_name: str | None = None
 ) -> dict[ARG_LIKE, ARG_LIKE] | None:
-    """Extracts a python dictionary from an arg_mapping proto."""
+    """Extracts a Python dictionary from an arg_mapping proto."""
     if not arg_mapping_proto.entries:
         return None
     return {

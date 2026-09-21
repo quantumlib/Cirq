@@ -75,7 +75,7 @@ def pauli_expansion(
     if expansion is not NotImplemented:
         return expansion.clean(atol=atol)
 
-    # Don't attempt to derive the pauli expansion if this is a qudit gate
+    # Don't attempt to derive the Pauli expansion if this is a qudit gate
     if not all(d == 2 for d in qid_shape_protocol.qid_shape(val, default=())):
         if default is RaiseTypeErrorIfNotProvided:
             raise TypeError(f'No Pauli expansion for object {val} of type {type(val)}')

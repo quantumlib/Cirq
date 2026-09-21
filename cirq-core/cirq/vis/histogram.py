@@ -54,13 +54,13 @@ def integrated_histogram(
     0.0
 
     Another way of saying this is that we assume the probability distribution
-    function (pdf) of gate fidelities is a set of equally weighted delta
+    function (PDF) of gate fidelities is a set of equally weighted delta
     functions at each value in the list. Then, the "integrated histogram"
-    is the cumulative distribution function (cdf) for this pdf.
+    is the cumulative distribution function (CDF) for this pdf.
 
     Args:
         data: Data to histogram. If the data is a `Mapping`, we histogram the
-            values. All nans will be removed.
+            values. All NaNs will be removed.
         ax: The axis to plot on. If None, we generate one.
         cdf_on_x: If True, flip the axes compared the above example.
         axis_label: Label for x axis (y-axis if cdf_on_x is True).

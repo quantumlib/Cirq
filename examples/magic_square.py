@@ -399,7 +399,7 @@ class MagicSquareResult:
         """Generate choices from Alice and Bob's measurements.
 
         Returns:
-            Alice and Bob's choices in the game. The two numpy arrays have indices
+            Alice and Bob's choices in the game. The two NumPy arrays have indices
             signifying [query_row, query_column, repetition, index_of_output].
         """
         return self._generate_choices_from_rules()
