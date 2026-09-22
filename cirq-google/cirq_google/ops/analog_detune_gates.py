@@ -192,9 +192,6 @@ class AnalogDetuneCouplerOnly(cirq.ops.Gate):
 
     Pulse shape:
 
-    .. svgbob::
-      :align: center
-
                 |   ,--------|---- amp_max (parsed from g_max)
                 |  /         |
         amp_0---|-' - - - - -| - -
