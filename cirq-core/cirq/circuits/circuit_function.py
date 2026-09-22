@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from collections.abc import Sequence, Set
+from collections.abc import Sequence
 from typing import Any, TYPE_CHECKING
 
 import sympy
@@ -108,15 +108,6 @@ class CircuitFunction:
 
     def _value_equality_values_(self) -> Any:
         return (self._name, self._circuit, self._function_params)
-
-    def _is_parameterized_(self) -> bool:
-        """Returns true if the circuit includes non-function parameters."""
-        return bool(self._parameter_names_())
-
-    def _parameter_names_(self) -> Set[str]:
-        """Returns names of the non-function parameters."""
-        circuit_parameters = protocols.parameter_names(self._circuit)
-        return circuit_parameters - {p.name for p in self._function_params}
 
     def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['name', 'circuit', 'function_params'])
