@@ -40,7 +40,7 @@ class CheckResult:
 
 
 class Check(metaclass=abc.ABCMeta):
-    """A status check that can performed in a python environment."""
+    """A status check that can performed in a Python environment."""
 
     def __init__(self, *dependencies):
         self.dependencies = dependencies
@@ -58,11 +58,11 @@ class Check(metaclass=abc.ABCMeta):
         """Evaluates the status check and returns a pass/fail with message.
 
         Args:
-            env: Describes a prepared python 3 environment in which to run.
+            env: Describes a prepared Python 3 environment in which to run.
             verbose: When set, more progress output is produced.
 
         Returns:
-            A tuple containing a pass/fail boolean and then a details message.
+            A tuple containing a pass/fail Boolean and then a details message.
         """
 
     def needs_python2_env(self) -> bool:
@@ -74,7 +74,7 @@ class Check(metaclass=abc.ABCMeta):
         """Evaluates this check.
 
         Args:
-            env: The prepared python environment to run the check in.
+            env: The prepared Python environment to run the check in.
             verbose: When set, more progress output is produced.
             previous_failures: Checks that have already run and failed.
 
@@ -110,13 +110,13 @@ class Check(metaclass=abc.ABCMeta):
     def pick_env_and_run_and_report(
         self, env: env_tools.PreparedEnv, verbose: bool, previous_failures: set[Check]
     ) -> CheckResult:
-        """Evaluates this check in python 3 or 2.7, and reports to github.
+        """Evaluates this check in Python 3 or 2.7, and reports to github.
 
-        If the prepared environments are not linked to a github repository,
-        with a known access token, reporting to github is skipped.
+        If the prepared environments are not linked to a GitHub repository,
+        with a known access token, reporting to GitHub is skipped.
 
         Args:
-            env: A prepared python 3 environment.
+            env: A prepared Python 3 environment.
             verbose: When set, more progress output is produced.
             previous_failures: Checks that have already run and failed.
 

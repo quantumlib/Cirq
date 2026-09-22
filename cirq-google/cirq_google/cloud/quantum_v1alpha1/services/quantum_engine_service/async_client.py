@@ -135,7 +135,7 @@ class QuantumEngineServiceAsyncClient:
             file.
 
         Args:
-            filename (str): The path to the service account private key json
+            filename (str): The path to the service account private key JSON
                 file.
             args: Additional arguments to pass to the constructor.
             kwargs: Additional arguments to pass to the constructor.
@@ -350,7 +350,7 @@ class QuantumEngineServiceAsyncClient:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram:
                 -
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.CreateQuantumProgramRequest):
@@ -427,7 +427,7 @@ class QuantumEngineServiceAsyncClient:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram:
                 -
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.GetQuantumProgramRequest):
@@ -508,7 +508,7 @@ class QuantumEngineServiceAsyncClient:
                 automatically.
 
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.ListQuantumProgramsRequest):
@@ -589,7 +589,7 @@ class QuantumEngineServiceAsyncClient:
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.DeleteQuantumProgramRequest):
@@ -663,7 +663,7 @@ class QuantumEngineServiceAsyncClient:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumProgram:
                 -
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.UpdateQuantumProgramRequest):
@@ -741,7 +741,7 @@ class QuantumEngineServiceAsyncClient:
             cirq_google.cloud.quantum_v1alpha1.types.CompileQecProgramResponse:
                 -
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.CompileQecProgramRequest):
@@ -816,7 +816,7 @@ class QuantumEngineServiceAsyncClient:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumJob:
                 -
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.CreateQuantumJobRequest):
@@ -891,7 +891,7 @@ class QuantumEngineServiceAsyncClient:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumJob:
                 -
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.GetQuantumJobRequest):
@@ -972,7 +972,7 @@ class QuantumEngineServiceAsyncClient:
                 automatically.
 
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.ListQuantumJobsRequest):
@@ -1051,7 +1051,7 @@ class QuantumEngineServiceAsyncClient:
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.DeleteQuantumJobRequest):
@@ -1123,7 +1123,7 @@ class QuantumEngineServiceAsyncClient:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumJob:
                 -
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.UpdateQuantumJobRequest):
@@ -1191,7 +1191,7 @@ class QuantumEngineServiceAsyncClient:
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.CancelQuantumJobRequest):
@@ -1269,7 +1269,7 @@ class QuantumEngineServiceAsyncClient:
                 automatically.
 
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.ListQuantumJobEventsRequest):
@@ -1357,7 +1357,7 @@ class QuantumEngineServiceAsyncClient:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumResult:
                 -
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.GetQuantumResultRequest):
@@ -1438,7 +1438,7 @@ class QuantumEngineServiceAsyncClient:
                 automatically.
 
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.ListQuantumProcessorsRequest):
@@ -1526,7 +1526,7 @@ class QuantumEngineServiceAsyncClient:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumProcessor:
                 -
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.GetQuantumProcessorRequest):
@@ -1610,7 +1610,7 @@ class QuantumEngineServiceAsyncClient:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumProcessorConfig:
                 -
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Quick check: If we got a request object, we should *not* have
         #   gotten any keyword arguments that map to the request.
         flattened_params = [name]
@@ -1715,7 +1715,7 @@ class QuantumEngineServiceAsyncClient:
                 automatically.
 
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Quick check: If we got a request object, we should *not* have
         #   gotten any keyword arguments that map to the request.
         flattened_params = [parent]
@@ -1832,7 +1832,7 @@ class QuantumEngineServiceAsyncClient:
                 automatically.
 
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Quick check: If we got a request object, we should *not* have
         #   gotten any keyword arguments that map to the request.
         flattened_params = [parent]
@@ -1941,7 +1941,7 @@ class QuantumEngineServiceAsyncClient:
                 automatically.
 
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.ListQuantumCalibrationsRequest):
@@ -2029,7 +2029,7 @@ class QuantumEngineServiceAsyncClient:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumCalibration:
                 -
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.GetQuantumCalibrationRequest):
@@ -2106,7 +2106,7 @@ class QuantumEngineServiceAsyncClient:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation:
                 -
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.CreateQuantumReservationRequest):
@@ -2183,7 +2183,7 @@ class QuantumEngineServiceAsyncClient:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation:
                 -
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.CancelQuantumReservationRequest):
@@ -2253,7 +2253,7 @@ class QuantumEngineServiceAsyncClient:
                 but for metadata keys ending with the suffix `-bin`, the corresponding values must
                 be of type `bytes`.
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.DeleteQuantumReservationRequest):
@@ -2327,7 +2327,7 @@ class QuantumEngineServiceAsyncClient:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation:
                 -
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.GetQuantumReservationRequest):
@@ -2410,7 +2410,7 @@ class QuantumEngineServiceAsyncClient:
                 automatically.
 
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.ListQuantumReservationsRequest):
@@ -2498,7 +2498,7 @@ class QuantumEngineServiceAsyncClient:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumReservation:
                 -
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.UpdateQuantumReservationRequest):
@@ -2656,7 +2656,7 @@ class QuantumEngineServiceAsyncClient:
                 automatically.
 
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.ListQuantumReservationGrantsRequest):
@@ -2744,7 +2744,7 @@ class QuantumEngineServiceAsyncClient:
             cirq_google.cloud.quantum_v1alpha1.types.QuantumReservationGrant:
                 -
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.ReallocateQuantumReservationGrantRequest):
@@ -2827,7 +2827,7 @@ class QuantumEngineServiceAsyncClient:
                 automatically.
 
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.ListQuantumReservationBudgetsRequest):
@@ -2921,7 +2921,7 @@ class QuantumEngineServiceAsyncClient:
                 automatically.
 
         """
-        # Create or coerce a protobuf request object.
+        # Create or coerce a Protobuf request object.
         # - Use the request object if provided (there's no risk of modifying the input as
         #   there are no flattened fields), or create one.
         if not isinstance(request, engine.ListQuantumTimeSlotsRequest):

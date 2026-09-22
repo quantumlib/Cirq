@@ -43,7 +43,7 @@ class SupportsMixture(Protocol):
 
         A mixture is described by an iterable of tuples of the form
 
-            (probability of unitary, unitary as numpy array)
+            (probability of unitary, unitary as NumPy array)
 
         The probability components of the tuples must sum to 1.0 and be between
         0 and 1 (inclusive).
@@ -72,7 +72,7 @@ def mixture(
 
     A mixture is described by an iterable of tuples of the form
 
-        (probability of unitary, unitary as numpy array)
+        (probability of unitary, unitary as NumPy array)
 
     The probability components of the tuples must sum to 1.0 and be
     non-negative.

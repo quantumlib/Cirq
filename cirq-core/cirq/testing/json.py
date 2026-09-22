@@ -32,7 +32,7 @@ import cirq
 if TYPE_CHECKING:
     from cirq.protocols.json_serialization import ObjectFactory
 
-# This is the testing framework for json serialization
+# This is the testing framework for JSON serialization
 # The actual tests live in cirq.protocols.json_serialization_test.py.
 #
 # When registering a new module, it has to come with the following setup:
@@ -62,7 +62,7 @@ class ModuleJsonTestSpec:
     # {DeprecatedClass: deprecation_deadline} pairs to avoid deprecation errors
     # in serialization tests.
     deprecated: dict[str, str]
-    # The unqualified public name is different from the cirq_type field of the json object,
+    # The unqualified public name is different from the cirq_type field of the JSON object,
     # usually due to namespacing.
     custom_class_name_to_cirq_type: dict[str, str] = dataclasses.field(default_factory=dict)
     # Special cases where classes cannot be tested using the normal infrastructure.

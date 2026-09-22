@@ -115,8 +115,8 @@ def test_qpu_result_to_cirq_result():
     assert result.to_cirq_result() == cirq.ResultDict(
         params=cirq.ParamResolver({}), measurements={'x': np.array([[0], [1], [1]])}
     )
-    # cirq.Result only compares pandas data frame, so possible to have supplied an list of
-    # list instead of a numpy multidimensional array. Check this here.
+    # cirq.Result only compares Pandas data frame, so possible to have supplied an list of
+    # list instead of a NumPy multidimensional array. Check this here.
     assert type(result.to_cirq_result().measurements['x']) == np.ndarray
     # Results bitstreams need to be consistent between measurement keys
     # Ordering is by bitvector, so 0b01 0b01 0b10 should be the ordering for all measurement dicts.
@@ -300,8 +300,8 @@ def test_simulator_result_to_cirq_result():
     assert result.to_cirq_result(seed=2) == cirq.ResultDict(
         params=cirq.ParamResolver({}), measurements={'x': np.array([[1], [0], [1]])}
     )
-    # cirq.Result only compares pandas data frame, so possible to have supplied an list of
-    # list instead of a numpy multidimensional array. Check this here.
+    # cirq.Result only compares Pandas data frame, so possible to have supplied an list of
+    # list instead of a NumPy multidimensional array. Check this here.
     assert type(result.to_cirq_result().measurements['x']) == np.ndarray
 
 

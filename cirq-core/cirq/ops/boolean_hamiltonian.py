@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Represents Boolean functions as a series of CNOT and rotation gates. The Boolean functions are
-passed as Sympy expressions and then turned into an optimized set of gates.
+passed as SymPy expressions and then turned into an optimized set of gates.
 
 References:
 [1] On the representation of Boolean and real functions as Hamiltonians for quantum computing
@@ -40,14 +40,14 @@ from cirq.ops import raw_types
 from cirq.ops.linear_combinations import PauliSum
 from cirq.ops.pauli_string import PauliString
 
-# Binary boolean operators accepted in a boolean expression.
+# Binary Boolean operators accepted in a Boolean expression.
 _BINOP_OPERATORS = {ast.BitAnd: operator.and_, ast.BitOr: operator.or_, ast.BitXor: operator.xor}
 
 
 def _ast_to_sympy_expr(node: ast.AST, symbols: dict[str, sympy.Symbol]) -> sympy.Basic:
-    """Safely evaluates SymPy boolean expression from a parsed AST node.
+    """Safely evaluates SymPy Boolean expression from a parsed AST node.
 
-    Only the name references to `symbols` and the boolean operators `~`, `&`, `|`, `^`
+    Only the name references to `symbols` and the Boolean operators `~`, `&`, `|`, `^`
     (not, and, or, xor) are permitted.  Any other syntax raises `ValueError`.
     The expression is constructed from the AST tree avoiding the unsafe `eval` call.
 
@@ -81,7 +81,7 @@ def _parse_boolean_expr(boolean_str: str, parameter_names: Sequence[str]) -> sym
     This replaces `sympy.parsing.sympy_parser.parse_expr`, which evaluates its input with
     Python's `eval` and therefore allows arbitrary code execution when the string originates
     from an untrusted source (e.g. a circuit loaded via `cirq.read_json`). Instead, the string
-    is parsed with `ast.parse` and only a small set of boolean operations over the declared
+    is parsed with `ast.parse` and only a small set of Boolean operations over the declared
     `parameter_names` is accepted; anything else raises `ValueError`.
 
     Args:
@@ -89,11 +89,11 @@ def _parse_boolean_expr(boolean_str: str, parameter_names: Sequence[str]) -> sym
         parameter_names: The variable names that may appear in the expression.
 
     Returns:
-        The corresponding SymPy boolean expression.
+        The corresponding SymPy Boolean expression.
 
     Raises:
         ValueError: If `boolean_str` is not a syntactically valid expression or contains any
-            construct other than the allowed boolean operators over `parameter_names`.
+            construct other than the allowed Boolean operators over `parameter_names`.
     """
     try:
         tree = ast.parse(boolean_str, mode='eval')
@@ -111,7 +111,7 @@ class BooleanHamiltonianGate(raw_types.Gate):
     phases classical functions.
 
     The gate is specified by a list of parameters, $[x_0, x_1, \dots, x_{n-1}]$, a
-    list of boolean expressions that are functions of these parameters,
+    list of Boolean expressions that are functions of these parameters,
     $[f_0(x_0,\dots,x_{n-1}), f_1(x_0,\dots,x_{n-1}), \dots f_{p-1}(x_0,\dots,x_{n-1})]$
     and an angle $t$. For these parameters the gate is
 
@@ -239,7 +239,7 @@ def _simplify_commuting_cnots(
         ───────@───       ───@───────
 
     Args:
-        cnots: A list of CNOTS, encoded as integer tuples (control, target). The code does not make
+        cnots: A list of CNOTs, encoded as integer tuples (control, target). The code does not make
             any assumption as to the order of the CNOTs, but it is likely to work better if its
             inputs are from Gray-sorted Hamiltonians. Regardless of the order of the CNOTs, the
             code is conservative and should be robust to mis-ordered inputs with the only side
@@ -288,7 +288,7 @@ def _simplify_cnots_triplets(
         ───────X───       ───X───X───────
 
     Args:
-        cnots: A list of CNOTS, encoded as integer tuples (control, target).
+        cnots: A list of CNOTs, encoded as integer tuples (control, target).
         flip_control_and_target: Whether to flip control and target.
 
     Returns:
@@ -380,7 +380,7 @@ def _get_gates_from_hamiltonians(
     Args:
         hamiltonian_polynomial_list: the list of Hamiltonians, typically built by calling
             PauliSum.from_boolean_expression().
-        qubit_map: map of string (boolean variable name) to qubit.
+        qubit_map: map of string (Boolean variable name) to qubit.
         theta: A single float scaling the rotations.
     Yields:
         Gates that are the decomposition of the Hamiltonian.

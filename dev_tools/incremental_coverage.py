@@ -24,7 +24,7 @@ from dev_tools import env_tools, shell_tools
 IGNORED_FILE_PATTERNS = [
     r'^(.+/)?conftest\.py$',
     r'^dev_tools/.+',  # Environment-heavy code.
-    r'^.+_pb2(_grpc)?\.py$',  # Auto-generated protobuf code.
+    r'^.+_pb2(_grpc)?\.py$',  # Auto-generated Protobuf code.
     r'^(.+/)?setup\.py$',  # Installation code.
     r'^(.+/)?_version\.py$',  # Installation code.
     r'^cirq-google/cirq_google/cloud/.+\.py$',  # Generated gRPC client code.
@@ -187,7 +187,7 @@ def line_content_counts_as_uncovered_manual(content: str) -> bool:
             return False
 
     # TODO: multiline comments, multiline strings, etc, etc.
-    # Github issue: https://github.com/quantumlib/Cirq/issues/2968
+    # GitHub issue: https://github.com/quantumlib/Cirq/issues/2968
     return True
 
 
@@ -223,7 +223,7 @@ def determine_ignored_lines(content: str) -> set[int]:
 
 def naive_find_end_of_scope(lines: list[str], i: int) -> int:
     # TODO: deal with line continuations, which may be less indented.
-    # Github issue: https://github.com/quantumlib/Cirq/issues/2968
+    # GitHub issue: https://github.com/quantumlib/Cirq/issues/2968
     line = lines[i]
     indent = line[: len(line) - len(line.lstrip())]
     while i < len(lines) and (not lines[i].strip() or lines[i].startswith(indent)):
@@ -257,7 +257,7 @@ def line_counts_as_uncovered(line: str, is_from_cover_annotation_file: bool) -> 
 
     # Ignore end-of-line comments.
     # TODO: avoid # in strings, etc.
-    # Github issue: https://github.com/quantumlib/Cirq/issues/2968
+    # GitHub issue: https://github.com/quantumlib/Cirq/issues/2968
     if '#' in content:
         content = content[: content.index('#')].strip()
 

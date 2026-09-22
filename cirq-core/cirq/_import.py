@@ -26,7 +26,7 @@ from typing import Any, cast
 
 
 class InstrumentedFinder(abc.MetaPathFinder):
-    """A module finder used to hook the python import statement."""
+    """A module finder used to hook the Python import statement."""
 
     def __init__(
         self,
@@ -35,7 +35,7 @@ class InstrumentedFinder(abc.MetaPathFinder):
         wrap_module: Callable[[ModuleType], ModuleType | None],
         after_exec: Callable[[ModuleType], None],
     ):
-        """A module finder that uses an existing module finder to find a python
+        """A module finder that uses an existing module finder to find a Python
         module spec and intercept the execution of matching modules.
 
         Replace finders in `sys.meta_path` with instances of this class to
@@ -78,7 +78,7 @@ class InstrumentedFinder(abc.MetaPathFinder):
 
 
 class InstrumentedLoader(abc.Loader):
-    """A module loader used to hook the python import statement."""
+    """A module loader used to hook the Python import statement."""
 
     def __init__(
         self,

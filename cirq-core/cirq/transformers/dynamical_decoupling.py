@@ -93,7 +93,7 @@ def _validate_dd_sequence(dd_sequence: tuple[ops.Gate, ...]) -> None:
 def _parse_dd_sequence(
     schema: str | tuple[ops.Gate, ...],
 ) -> tuple[tuple[ops.Gate, ...], dict[ops.Gate, ops.Pauli]]:
-    """Parses and returns dynamical decoupling sequence and its associated pauli map from schema."""
+    """Parses and returns dynamical decoupling sequence and its associated Pauli map from schema."""
     dd_sequence = None
     if isinstance(schema, str):
         dd_sequence = _get_dd_sequence_from_schema_name(schema)

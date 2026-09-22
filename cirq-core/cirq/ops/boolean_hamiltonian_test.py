@@ -63,7 +63,7 @@ def test_circuit(boolean_str) -> None:
     var_names = cirq.parameter_names(boolean_expr)
     qubits = [cirq.NamedQubit(name) for name in var_names]
 
-    # We use Sympy to evaluate the expression:
+    # We use SymPy to evaluate the expression:
     n = len(var_names)
 
     expected = []
@@ -244,7 +244,7 @@ def test_simplify_cnots_triplets(
     ],
 )
 def test_decompose_rejects_malicious_boolean_strs(boolean_str: str, tmp_path: pathlib.Path) -> None:
-    # Constructing and decomposing the gate must not evaluate the malicious boolean string.
+    # Constructing and decomposing the gate must not evaluate the malicious Boolean string.
     target_file = tmp_path / "target_file.tmp"
     assert not target_file.exists()
     boolean_str = boolean_str.replace("@TARGET_FILE@", target_file.as_posix())

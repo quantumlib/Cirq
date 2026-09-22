@@ -2368,9 +2368,9 @@ def test_text_diagram_jupyter(circuit_cls) -> None:
     circuit._repr_pretty_(p, True)
     assert p.text_pretty == f'{circuit_cls.__name__}(...)'
 
-    # Test Jupyter notebook html output
+    # Test Jupyter notebook HTML output
     text_html = circuit._repr_html_()
-    # Don't enforce specific html surrounding the diagram content
+    # Don't enforce specific HTML surrounding the diagram content
     assert text_expected in text_html
 
 

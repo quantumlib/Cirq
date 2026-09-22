@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for clifford tableau."""
+"""Tests for Clifford tableau."""
 
 from __future__ import annotations
 
@@ -104,7 +104,7 @@ def test_stabilizers() -> None:
 def test_destabilizers() -> None:
     # Note: Like stabilizers, the destabilizers are not unique for one state, too.
     # We just use the one produced by the tableau algorithm.
-    # Under the clifford tableau algorithm, there are several properties that the
+    # Under the Clifford tableau algorithm, there are several properties that the
     # destablizers have to satisfy:
     #    1. destablizers[i] anti-commutes with stabilizers[i]
     #    2. destablizers[i] commutes with destablizers[j] for j!= i

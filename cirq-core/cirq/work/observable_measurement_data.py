@@ -77,7 +77,7 @@ def _stats_from_measurements(
     # standard error of the mean, but squared.
     # Wikipedia uses the term "variance of the sampling distribution
     # of the sample mean"
-    # `ddof` is the delta degrees of freedom. Please read numpy documentation
+    # `ddof` is the delta degrees of freedom. Please read NumPy documentation
     # for details. Note that we use ddof=1 everywhere. This is the default for
     # np.cov, but *not* the default for `np.var. We use 1 for both for
     # consistency.
@@ -174,7 +174,7 @@ class BitstringAccumulator:
     This object contains all raw results and can be serialized via JSON to
     keep a record of your experiment results. There are also various
     utility methods that can be used to chain a series of BitstringAccumulator
-    results into a form more suitable for analysis like a pandas DataFrame.
+    results into a form more suitable for analysis like a Pandas DataFrame.
 
     By default, this will be initialized empty. This should only be mutated
     by calling `consume_results`. Do not mutate values directly.
@@ -194,7 +194,7 @@ class BitstringAccumulator:
             as an argument (e.g. `means`, `variances`) will report all values
             for the settings in `simul_settings`.
         qubit_to_index: A mapping from qubits to contiguous indices starting
-            from zero. This allows us to store bitstrings as a 2d numpy array.
+            from zero. This allows us to store bitstrings as a 2d NumPy array.
         bitstrings: The bitstrings to record.
         chunksizes: This class accumulates bitstrings from potentially several
             "chunked" processor runs. Each chunk has a certain number of

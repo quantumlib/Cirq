@@ -88,7 +88,7 @@ def move_pauli_strings_into_circuit(
     rightmost_nodes = set(string_dag.nodes()) - {before for before, _ in string_dag.edges()}
 
     while rightmost_nodes:
-        # Sort the pauli string placements based on paulistring length and
+        # Sort the Pauli string placements based on paulistring length and
         # furthest possible distance in circuit_right
         placements = _sorted_best_string_placements(rightmost_nodes, output_ops)
         last_index = len(output_ops)
@@ -103,7 +103,7 @@ def move_pauli_strings_into_circuit(
 
             last_index = best_index
             output_ops.insert(best_index, best_string_op)
-            # Remove the best one from the dag and update rightmost_nodes
+            # Remove the best one from the DAG and update rightmost_nodes
             rightmost_nodes.remove(best_node)
             rightmost_nodes.update(
                 pred_node

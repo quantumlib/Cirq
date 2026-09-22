@@ -163,7 +163,7 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
                 private key bytes, both in PEM format. It is ignored if
                 ``api_mtls_endpoint`` is None.
             ssl_channel_credentials (grpc.ChannelCredentials): SSL credentials
-                for the grpc channel. It is ignored if a ``channel`` instance is provided.
+                for the gRPC channel. It is ignored if a ``channel`` instance is provided.
             client_cert_source_for_mtls (Optional[Callable[[], Tuple[bytes, bytes]]]):
                 A callback to provide client certificate bytes and private key bytes,
                 both in PEM format. It is used to configure a mutual TLS channel. It is
@@ -450,7 +450,7 @@ class QuantumEngineServiceGrpcTransport(QuantumEngineServiceTransport):
     def compile_qec_program(
         self,
     ) -> Callable[[engine.CompileQecProgramRequest], engine.CompileQecProgramResponse]:
-        r"""Return a callable for the compile qec program method over gRPC.
+        r"""Return a callable for the compile QEC program method over gRPC.
 
         -
 

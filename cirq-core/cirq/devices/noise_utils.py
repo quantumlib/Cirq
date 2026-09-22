@@ -118,7 +118,7 @@ def decay_constant_to_xeb_fidelity(
 def decay_constant_to_pauli_error(
     decay_constant: float, num_qubits: int = 1
 ) -> float:  # pragma: no cover
-    """Calculates pauli error from the depolarization decay constant.
+    """Calculates Pauli error from the depolarization decay constant.
 
     Args:
         decay_constant: Depolarization decay constant.
@@ -134,7 +134,7 @@ def decay_constant_to_pauli_error(
 def pauli_error_to_decay_constant(
     pauli_error: float, num_qubits: int = 1
 ) -> float:  # pragma: no cover
-    """Calculates depolarization decay constant from pauli error.
+    """Calculates depolarization decay constant from Pauli error.
 
     Args:
         pauli_error: The pauli error.
@@ -164,7 +164,7 @@ def xeb_fidelity_to_decay_constant(
 
 @deprecated(deadline='v2.0', fix='use cirq.qis.pauli_error_from_t1')
 def pauli_error_from_t1(t_ns: float, t1_ns: float) -> float:  # pragma: no cover
-    """Calculates the pauli error from T1 decay constant.
+    """Calculates the Pauli error from T1 decay constant.
 
     This computes error for a specific duration, `t`.
 

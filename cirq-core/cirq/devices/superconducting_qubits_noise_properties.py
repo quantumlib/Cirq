@@ -171,7 +171,7 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
             if p_error > 0
         }
 
-        # This adds per-qubit pauli error after ops on those qubits.
+        # This adds per-qubit Pauli error after ops on those qubits.
         noise_models.append(devices.InsertionNoiseModel(ops_added=added_pauli_errors))
 
         # This adds per-qubit measurement error BEFORE measurement on those qubits.

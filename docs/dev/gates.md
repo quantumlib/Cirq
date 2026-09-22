@@ -46,14 +46,14 @@ In some cases the default behavior of using `__str__` is sufficient.
 
 4. If the `__repr__` is cumbersome, gates should specify a `_repr_pretty_`
 method.
-This method will be used preferentially by Jupyter notebooks, iPython, etc.
+This method will be used preferentially by Jupyter notebooks, IPython, etc.
 
 5. Gates should specify an `_apply_unitary_` method.
 This is not necessary for single or two qubit gates, but it is a huge
 performance difference for larger gates.
 
 6. Gates that take parameters (e.g. a rotation angle) should generally allow for
-those parameters to be sympy objects instead of floats, and implement
+those parameters to be SymPy objects instead of floats, and implement
 corresponding `_is_parameterized_` and `_resolve_parameters_` methods.
 
 7. Prefer creating a `Gate` over creating an `Operation`.

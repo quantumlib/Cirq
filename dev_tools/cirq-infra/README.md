@@ -45,5 +45,5 @@ Currently, it is able to access Secrets, and no other APIs.
 
 ### Secret manager
 
-It is important to know that the Github API key in case of the Kubernetes
+It is important to know that the GitHub API key in case of the Kubernetes
 deployment is stored in the Cloud Secret Manager under `cirq-bot-api-key`.
