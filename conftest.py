@@ -47,16 +47,13 @@ def pytest_collection_modifyitems(config, items):
 def _config_set_xdist_worksteal(config) -> None:
     """Sets `--dist worksteal` as the default distribution mode if not
     explicitly overridden by the user."""
-    num_workers = config.getoption("numprocesses", default=None)
-    if num_workers in (None, 0, 1, "0", "1"):
-        return
 
     # Skip if dist was already set to a non-default mode.
-    if getattr(config.option, "dist", False) not in (None, "no", "load"):
+    if config.getoption("dist", default=None) not in (None, "no", "load"):
         return
 
     inv_params = getattr(config, "invocation_params", None)
-    args = list(inv_params.args) if inv_params else []
+    args: list = list(inv_params.args) if inv_params else []
     try:
         addopts = config.getini("addopts")
         if isinstance(addopts, list):
@@ -64,7 +61,7 @@ def _config_set_xdist_worksteal(config) -> None:
     except (ValueError, AttributeError):
         pass
 
-    # Apply 'worksteal' only if no explicit --dist / -d flag was given.
+    # Only apply 'worksteal' if no explicit --dist / -d flag was given.
     if not any(arg == "-d" or arg.startswith("--dist") for arg in args):
         config.option.dist = "worksteal"
 
@@ -76,9 +73,12 @@ def pytest_configure(config):
     if hasattr(config, "workerinput"):
         return
     try:
-        config.getoption("numprocesses")
+        numprocesses = config.getoption("numprocesses", default=None)
     except ValueError:
         # pytest-xdist is not being used.
+        return
+    if numprocesses in (None, 0, 1, "0", "1"):
+        # pytest-xdist is being used, but not with multiple workers.
         return
 
     _config_set_xdist_worksteal(config)
