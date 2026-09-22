@@ -98,16 +98,7 @@ def extract_paths_from_text(text: str) -> set[str]:
 
 def fetch_issue_text(*, issue_number: int, repo: str) -> str:
     completed = subprocess.run(
-        [
-            "gh",
-            "issue",
-            "view",
-            str(issue_number),
-            "--repo",
-            repo,
-            "--json",
-            "title,body",
-        ],
+        ["gh", "issue", "view", str(issue_number), "--repo", repo, "--json", "title,body"],
         check=True,
         capture_output=True,
         text=True,
@@ -122,16 +113,7 @@ def apply_issue_labels(*, issue_number: int, repo: str, labels: Iterable[str]) -
         return
 
     subprocess.run(
-        [
-            "gh",
-            "issue",
-            "edit",
-            str(issue_number),
-            "--repo",
-            repo,
-            "--add-label",
-            *label_args,
-        ],
+        ["gh", "issue", "edit", str(issue_number), "--repo", repo, "--add-label", *label_args],
         check=True,
     )
 
@@ -147,8 +129,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to the labeler configuration file.",
     )
     parser.add_argument(
-        "--text",
-        help="Free-form text to scan for repository paths (for testing or dry runs).",
+        "--text", help="Free-form text to scan for repository paths (for testing or dry runs)."
     )
     parser.add_argument(
         "--paths",

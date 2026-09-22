@@ -45,11 +45,7 @@ def test_glob_matches(glob_pattern: str, path: str, expected: bool) -> None:
 def test_labels_for_paths_applies_multiple_matches() -> None:
     config = path_area_labeler.load_labeler_config(LABELER_CONFIG)
     labels = path_area_labeler.labels_for_paths(
-        config,
-        [
-            "cirq-core/cirq/ops/common_gates.py",
-            "cirq-google/cirq_google/engine/engine.py",
-        ],
+        config, ["cirq-core/cirq/ops/common_gates.py", "cirq-google/cirq_google/engine/engine.py"]
     )
     assert labels == {"area/gates", "area/google", "area/google/engine", "interface/cirq-google"}
 
@@ -60,10 +56,7 @@ def test_extract_paths_from_text_finds_backtick_and_plain_paths() -> None:
     Also see docs/dev/triage.md for context.
     """
     paths = path_area_labeler.extract_paths_from_text(text)
-    assert paths == {
-        "cirq-core/cirq/sim/sparse_simulator.py",
-        "docs/dev/triage.md",
-    }
+    assert paths == {"cirq-core/cirq/sim/sparse_simulator.py", "docs/dev/triage.md"}
 
 
 def test_labels_for_issue_text() -> None:
