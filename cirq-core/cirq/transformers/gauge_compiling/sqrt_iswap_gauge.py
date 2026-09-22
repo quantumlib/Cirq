@@ -31,6 +31,7 @@ class RZRotation(Gauge):
     """Represents a SQRT_ISWAP Gauge composed of Rz rotations.
 
     The gauge replaces an SQRT_ISWAP gate with either
+
         0: ───Rz(t)───iSwap───────Rz(-t)───
                         │
         1: ───Rz(t)───iSwap^0.5───Rz(-t)───
@@ -44,10 +45,9 @@ class RZRotation(Gauge):
     def _rz(self, theta: float) -> ConstantGauge:
         """Returns a SQRT_ISWAP Gauge composed of Rz rotations.
 
-        0: ───Rz(theta)────iSwap───Rz(theta)───
+        0: ───Rz(theta)────iSwap───Rz(theta)──────
                             │
         1: ───Rz(theta)───iSwap^0.5───Rz(theta)───
-
         """
         rz = ops.rz(theta)
         n_rz = ops.rz(-theta)
@@ -63,6 +63,7 @@ class XYRotation(Gauge):
     """Represents a SQRT_ISWAP Gauge composed of XY rotations.
 
     The gauge replaces an SQRT_ISWAP gate with either
+
         0: ───XY(t)───iSwap───────XY(t)───
                         │
         1: ───XY(t)───iSwap^0.5───XY(t)───

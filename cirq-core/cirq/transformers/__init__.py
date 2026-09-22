@@ -168,3 +168,7 @@ from cirq.transformers.insertion_sort import (
 )
 
 from cirq.transformers.lightcone_filter import lightcone_filter as lightcone_filter
+
+from cirq.transformers.circuit_operations import (
+    apply_lazy_args_on_circuit_operation as apply_lazy_args_on_circuit_operation,
+)

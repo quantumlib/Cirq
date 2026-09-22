@@ -94,10 +94,10 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
     def sample(
         self, program: cirq.AbstractCircuit, *, repetitions: int = 1, params: cirq.Sweepable = None
     ) -> pd.DataFrame:
-        """Samples the given Circuit, producing a pandas data frame.
+        """Samples the given Circuit, producing a Pandas data frame.
 
         This interface will operate in a similar way to the `run` method
-        except that it returns a pandas data frame rather than a `cirq.Result`
+        except that it returns a Pandas data frame rather than a `cirq.Result`
         object.
 
         Args:
@@ -359,7 +359,7 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
                 'permit_terminal_measurements=True.'
             )
 
-        # Wrap input into a list of pauli sum
+        # Wrap input into a list of Pauli sum
         pauli_sums: list[cirq.PauliSum] = (
             [ops.PauliSum.wrap(o) for o in observables]
             if isinstance(observables, list)

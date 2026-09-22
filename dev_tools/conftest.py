@@ -69,7 +69,7 @@ def cloned_env(testrun_uid, worker_id):
 
     >>> def test_something_in_clean_env(cloned_env):
             # base_env will point to a pathlib.Path containing the virtual env which will
-            # have quimb, jinja and whatever reqs.txt contained.
+            # have Quimb, jinja and whatever reqs.txt contained.
             base_env = cloned_env("some_tests", "quimb", "jinja", "-r", "reqs.txt")
 
             # To install new packages (that are potentially different for each test instance)

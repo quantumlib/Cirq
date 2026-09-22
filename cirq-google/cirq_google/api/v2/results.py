@@ -34,7 +34,7 @@ class MeasureInfo:
         key: String identifying this measurement.
         qubits: List of measured qubits, in order.
         instances: The number of times a given key occurs in a circuit.
-        invert_mask: a list of booleans describing whether the results should
+        invert_mask: a list of Booleans describing whether the results should
             be flipped for each of the qubits in the qubits field.
         tags: Tags applied to this measurement gate.
     """
@@ -91,7 +91,7 @@ def _grid_qubits(op: cirq.Operation) -> list[cirq.GridQubit]:
 
 
 def pack_bits(bits: np.ndarray) -> bytes:
-    """Pack bits given as a numpy array of bools into bytes."""
+    """Pack bits given as a NumPy array of bools into bytes."""
     # Pad length to multiple of 8 if needed.
     pad = -len(bits) % 8
     if pad:
@@ -105,7 +105,7 @@ def pack_bits(bits: np.ndarray) -> bytes:
 
 
 def unpack_bits(data: bytes, repetitions: int) -> np.ndarray:
-    """Unpack bits from a byte array into numpy array of bools."""
+    """Unpack bits from a byte array into NumPy array of bools."""
     byte_arr = np.frombuffer(data, dtype='uint8').reshape((len(data), 1))
     bits = np.unpackbits(byte_arr, axis=1)[:, ::-1].reshape(-1).astype(bool)
     return bits[:repetitions]
@@ -117,7 +117,7 @@ def results_to_proto(
     *,
     out: result_pb2.Result | None = None,
 ) -> result_pb2.Result:
-    """Converts trial results from multiple sweeps to v2 protobuf message.
+    """Converts trial results from multiple sweeps to v2 Protobuf message.
 
     Args:
         trial_sweeps: Iterable over sweeps and then over trial results within

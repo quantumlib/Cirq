@@ -678,7 +678,7 @@ def merge_operations_to_circuit_op(
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         can_merge: Callable to determine whether a new operation `right_op` can be merged into an
-            existing connected component of operations `left_ops` based on boolean returned by
+            existing connected component of operations `left_ops` based on Boolean returned by
             `can_merge(left_ops, right_op)`.
         tags_to_ignore: Tagged operations marked any of `tags_to_ignore` will not be considered as
             potential candidates for any connected component.

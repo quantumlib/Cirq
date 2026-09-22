@@ -394,7 +394,7 @@ class CliffordTableau(StabilizerState):
 
         # The following computation is based on Theorem 36 in
         # https://arxiv.org/pdf/2009.03218.pdf.
-        # Any pauli string (one stabilizer) in Clifford Tableau should be able to be expressed as
+        # Any Pauli string (one stabilizer) in Clifford Tableau should be able to be expressed as
         #    (1i)^p (-1)^s X^(mx) Z^(mz)
         # where p and s are binary scalar and mx and mz are binary vectors.
         num_ys1 = np.sum(m1[:, : self.n] * m1[:, self.n :], axis=1)

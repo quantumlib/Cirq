@@ -98,7 +98,7 @@ class ExecutableGroupResultFilesystemRecord:
 
 
 def _safe_to_json(obj: Any, *, part_path: str, nominal_path: str, bak_path: str):
-    """Safely update a json file.
+    """Safely update a JSON file.
 
     1. The new value is written to a "part" file
     2. The previous file atomically replaces the previous backup file, thereby becoming the

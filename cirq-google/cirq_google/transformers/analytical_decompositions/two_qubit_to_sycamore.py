@@ -189,7 +189,7 @@ def _decompose_phased_iswap_into_syc_precomputed(
     exponent of 1, _decompose_phased_iswap_into_syc should be used instead. Converting PhasedISwap
     gates to Sycamore is not supported if neither of these constraints are satisfied.
 
-    This synthesize a PhasedISwap in terms of four sycamore gates.  This compilation converts the
+    This synthesize a PhasedISwap in terms of four Sycamore gates.  This compilation converts the
     gate into a circuit involving two CZ gates, which themselves are each represented as two
     Sycamore gates and single-qubit rotations
 
@@ -229,7 +229,7 @@ def _decompose_phased_iswap_into_syc_precomputed(
 
 
 def _decompose_cz_into_syc(a: cirq.Qid, b: cirq.Qid):
-    """Decomposes `cirq.CZ` into sycamore gates using precomputed coefficients.
+    """Decomposes `cirq.CZ` into Sycamore gates using precomputed coefficients.
 
     This should only be called when exponent of `cirq.CZPowGate` is 1. Otherwise,
     `_decompose_cphase_into_syc` should be called.
@@ -274,7 +274,7 @@ def _decompose_cphase_into_syc(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> Iter
 
 
 def _decompose_iswap_into_syc(a: cirq.Qid, b: cirq.Qid):
-    """Decomposes `cirq.ISWAP` into sycamore gates using precomputed coefficients.
+    """Decomposes `cirq.ISWAP` into Sycamore gates using precomputed coefficients.
 
     This should only be called when exponent of `cirq.ISwapPowGate` is 1. Other cases are currently
     not supported.
@@ -304,7 +304,7 @@ def _decompose_iswap_into_syc(a: cirq.Qid, b: cirq.Qid):
 
 
 def _decompose_swap_into_syc(a: cirq.Qid, b: cirq.Qid):
-    """Decomposes `cirq.SWAP` into sycamore gates using precomputed coefficients.
+    """Decomposes `cirq.SWAP` into Sycamore gates using precomputed coefficients.
 
     This should only be called when exponent of `cirq.SwapPowGate` is 1. Other cases are currently
     not supported.
@@ -435,7 +435,7 @@ def _rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> Iterator[cirq.OP_TREE]:
 
 
 def _swap_rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> Iterator[cirq.OP_TREE]:
-    """An implementation of SWAP * exp(-1j * theta * ZZ) using three sycamore gates.
+    """An implementation of SWAP * exp(-1j * theta * ZZ) using three Sycamore gates.
 
     This builds off of the _rzz method.
 

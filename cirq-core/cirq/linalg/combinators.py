@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 
 def kron(*factors: np.ndarray | complex, shape_len: int = 2) -> np.ndarray:
-    """Computes the kronecker product of a sequence of values.
+    """Computes the Kronecker product of a sequence of values.
 
     A *args version of lambda args: functools.reduce(np.kron, args).
 
@@ -39,7 +39,7 @@ def kron(*factors: np.ndarray | complex, shape_len: int = 2) -> np.ndarray:
             determines the behavior of the empty kron product.
 
     Returns:
-        The kronecker product of all the inputs.
+        The Kronecker product of all the inputs.
     """
     product: np.ndarray = np.ones(shape=(1,) * shape_len)
     for m in factors:
@@ -59,14 +59,14 @@ document(
 
 
 def kron_with_controls(*factors: np.ndarray | complex) -> np.ndarray:
-    """Computes the kronecker product of a sequence of values and control tags.
+    """Computes the Kronecker product of a sequence of values and control tags.
 
     Use `cirq.CONTROL_TAG` to represent controls. Any entry of the output
     corresponding to a situation where the control is not satisfied will
     be overwritten by identity matrix elements.
 
     The control logic works by imbuing NaN with the meaning "failed to meet one
-    or more controls". The normal kronecker product then spreads the per-item
+    or more controls". The normal Kronecker product then spreads the per-item
     NaNs to all the entries in the product that need to be replaced by identity
     matrix elements. This method rewrites those NaNs. Thus CONTROL_TAG can be
     the matrix [[NaN, 0], [0, 1]] or equivalently [[NaN, NaN], [NaN, 1]].

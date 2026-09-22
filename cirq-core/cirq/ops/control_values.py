@@ -91,7 +91,7 @@ class AbstractControlValues(abc.ABC):
         return tuple(v for v in self.expand())
 
     def __and__(self, other: AbstractControlValues) -> AbstractControlValues:
-        """Returns a cartesian product of all control values predicates in `self` x `other`.
+        """Returns a Cartesian product of all control values predicates in `self` x `other`.
 
         The `and` of two control values `cv1` and `cv2` represents a control value object
         acting on the union of qubits represented by `cv1` and `cv2`. For example:
@@ -104,7 +104,7 @@ class AbstractControlValues(abc.ABC):
           other: An instance of `AbstractControlValues`.
 
         Returns:
-          An instance of `AbstractControlValues` that represents the cartesian product of
+          An instance of `AbstractControlValues` that represents the Cartesian product of
           control values represented by `self` and `other`.
         """
         return SumOfProducts(

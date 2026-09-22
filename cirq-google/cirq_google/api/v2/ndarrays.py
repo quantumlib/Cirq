@@ -72,7 +72,7 @@ def _from_dtype(endianness: ndarrays_pb2.Endianness, dtype_base: npt.DTypeLike) 
 def to_float64_array(
     array: np.ndarray, out: ndarrays_pb2.Float64Array | None = None
 ) -> ndarrays_pb2.Float64Array:
-    """Populate a new or provided Float64Array message with given numpy array.
+    """Populate a new or provided Float64Array message with given NumPy array.
 
     Supports any float type taking <=8 bytes. If given e.g. a f4/32-bit float,
     this will recast as a 64-bit float and serialize.
@@ -91,13 +91,13 @@ def to_float64_array(
 
 
 def from_float64_array(msg: ndarrays_pb2.Float64Array) -> np.ndarray:
-    """Convert a Float64Array proto to a numpy array of the same shape.
+    """Convert a Float64Array proto to a NumPy array of the same shape.
 
     Args:
         msg: Message to extract array from.
 
     Returns:
-        Numpy array with 64-bit float type.
+        NumPy array with 64-bit float type.
     """
     return _from_float_array(msg, "f8")
 
@@ -105,7 +105,7 @@ def from_float64_array(msg: ndarrays_pb2.Float64Array) -> np.ndarray:
 def to_float32_array(
     array: np.ndarray, out: ndarrays_pb2.Float32Array | None = None
 ) -> ndarrays_pb2.Float32Array:
-    """Populate a new or provided Float32Array message with given numpy array.
+    """Populate a new or provided Float32Array message with given NumPy array.
 
     Supports any float type taking <=4 bytes. If given e.g. a f2/16-bit float,
     this will recast as a 32-bit float and serialize.
@@ -124,13 +124,13 @@ def to_float32_array(
 
 
 def from_float32_array(msg: ndarrays_pb2.Float32Array) -> np.ndarray:
-    """Convert a Float32Array proto to a numpy array of the same shape.
+    """Convert a Float32Array proto to a NumPy array of the same shape.
 
     Args:
         msg: Message to extract array from.
 
     Returns:
-        Numpy array with 32-bit float type.
+        NumPy array with 32-bit float type.
     """
     return _from_float_array(msg, "f4")
 
@@ -138,7 +138,7 @@ def from_float32_array(msg: ndarrays_pb2.Float32Array) -> np.ndarray:
 def to_float16_array(
     array: np.ndarray, out: ndarrays_pb2.Float16Array | None = None
 ) -> ndarrays_pb2.Float16Array:
-    """Populate a new or provided Float16Array message with given numpy array.
+    """Populate a new or provided Float16Array message with given NumPy array.
 
     Args:
         array: Array to add.
@@ -154,13 +154,13 @@ def to_float16_array(
 
 
 def from_float16_array(msg: ndarrays_pb2.Float16Array) -> np.ndarray:
-    """Convert a Float16Array proto to a numpy array of the same shape.
+    """Convert a Float16Array proto to a NumPy array of the same shape.
 
     Args:
         msg: Message to extract array from.
 
     Returns:
-        Numpy array with 16-bit float type.
+        NumPy array with 16-bit float type.
     """
     return _from_float_array(msg, "f2")
 
@@ -184,7 +184,7 @@ def _from_float_array(msg: TFloatMsg, dtype_base: npt.DTypeLike) -> np.ndarray:
 def to_int64_array(
     array: np.ndarray, out: ndarrays_pb2.Int64Array | None = None
 ) -> ndarrays_pb2.Int64Array:
-    """Populate a new or provided Int64Array message with given numpy array.
+    """Populate a new or provided Int64Array message with given NumPy array.
 
     Supports any int type taking <=8 bytes. If given e.g. an 8-bit or 16-bit
     integer, it will recast (sign extend) as a 64-bit integer and serialize.
@@ -205,13 +205,13 @@ def to_int64_array(
 
 
 def from_int64_array(msg: ndarrays_pb2.Int64Array) -> np.ndarray:
-    """Convert a Int64Array proto to a numpy array of the same shape.
+    """Convert a Int64Array proto to a NumPy array of the same shape.
 
     Args:
         msg: Message to extract array from.
 
     Returns:
-        Numpy array with signed integer type.
+        NumPy array with signed integer type.
     """
     return _from_int_array(msg, "i8")
 
@@ -219,7 +219,7 @@ def from_int64_array(msg: ndarrays_pb2.Int64Array) -> np.ndarray:
 def to_int32_array(
     array: np.ndarray, out: ndarrays_pb2.Int32Array | None = None
 ) -> ndarrays_pb2.Int32Array:
-    """Populate a new or provided Int32Array message with given numpy array.
+    """Populate a new or provided Int32Array message with given NumPy array.
 
     Supports any int type taking <=4 bytes. If given e.g. an 8-bit or 16-bit
     integer, it will recast (sign extend) as a 32-bit integer and serialize.
@@ -240,13 +240,13 @@ def to_int32_array(
 
 
 def from_int32_array(msg: ndarrays_pb2.Int32Array) -> np.ndarray:
-    """Convert a Int32Array proto to a numpy array of the same shape.
+    """Convert a Int32Array proto to a NumPy array of the same shape.
 
     Args:
         msg: Message to extract array from.
 
     Returns:
-        Numpy array with signed integer type.
+        NumPy array with signed integer type.
     """
     return _from_int_array(msg, "i4")
 
@@ -254,7 +254,7 @@ def from_int32_array(msg: ndarrays_pb2.Int32Array) -> np.ndarray:
 def to_int16_array(
     array: np.ndarray, out: ndarrays_pb2.Int16Array | None = None
 ) -> ndarrays_pb2.Int16Array:
-    """Populate a new or provided Int16Array message with given numpy array.
+    """Populate a new or provided Int16Array message with given NumPy array.
 
     Supports any int type taking <=4 bytes. If given e.g. an 8-bit or 16-bit
     integer, it will recast (sign extend) as a 16-bit integer and serialize.
@@ -275,13 +275,13 @@ def to_int16_array(
 
 
 def from_int16_array(msg: ndarrays_pb2.Int16Array) -> np.ndarray:
-    """Convert a Int16Array proto to a numpy array of the same shape.
+    """Convert a Int16Array proto to a NumPy array of the same shape.
 
     Args:
         msg: Message to extract array from.
 
     Returns:
-        Numpy array with signed integer type.
+        NumPy array with signed integer type.
     """
     return _from_int_array(msg, "i2")
 
@@ -289,7 +289,7 @@ def from_int16_array(msg: ndarrays_pb2.Int16Array) -> np.ndarray:
 def to_uint8_array(
     array: np.ndarray, out: ndarrays_pb2.UInt8Array | None = None
 ) -> ndarrays_pb2.UInt8Array:
-    """Populate a new or provided UInt8Array message with given numpy array.
+    """Populate a new or provided UInt8Array message with given NumPy array.
 
     Note that this only accepts unsigned integers.
 
@@ -306,13 +306,13 @@ def to_uint8_array(
 
 
 def from_uint8_array(msg: ndarrays_pb2.UInt8Array) -> np.ndarray:
-    """Convert a UInt8Array proto to a numpy array of the same shape.
+    """Convert a UInt8Array proto to a NumPy array of the same shape.
 
     Args:
         msg: Message to extract array from.
 
     Returns:
-        Numpy array with unsigned integer type.
+        NumPy array with unsigned integer type.
     """
     return _from_uint_array(msg, "u1")
 
@@ -320,7 +320,7 @@ def from_uint8_array(msg: ndarrays_pb2.UInt8Array) -> np.ndarray:
 def to_int8_array(
     array: np.ndarray, out: ndarrays_pb2.Int8Array | None = None
 ) -> ndarrays_pb2.Int8Array:
-    """Populate a new or provided Int8Array message with given numpy array.
+    """Populate a new or provided Int8Array message with given NumPy array.
 
     Args:
         array: Array to add.
@@ -335,26 +335,26 @@ def to_int8_array(
 
 
 def from_int8_array(msg: ndarrays_pb2.Int8Array) -> np.ndarray:
-    """Convert a Int8Array proto to a numpy array of the same shape.
+    """Convert a Int8Array proto to a NumPy array of the same shape.
 
     Args:
         msg: Message to extract array from.
 
     Returns:
-        Numpy array with signed integer type.
+        NumPy array with signed integer type.
     """
     return _from_int_array(msg, "i1")
 
 
 def _from_int_array(msg: TIntMsg, dtype_base: npt.DTypeLike) -> np.ndarray:
-    """Convert a Int16Array/Int32Array proto to a numpy array of the same shape.
+    """Convert a Int16Array/Int32Array proto to a NumPy array of the same shape.
 
     Args:
         msg: Message to extract array from.
         dtype_size: Number of bytes per int.
 
     Returns:
-        Numpy array with signed integer type.
+        NumPy array with signed integer type.
     """
     if not msg.shape:
         raise ValueError(f"Cannot convert unset/empty {type(msg)} message to a numpy array.")
@@ -375,14 +375,14 @@ def _from_int_array(msg: TIntMsg, dtype_base: npt.DTypeLike) -> np.ndarray:
 
 
 def _from_uint_array(msg: TUIntMsg, dtype_base: npt.DTypeLike) -> np.ndarray:
-    """Convert a uIntArray proto to a numpy array of the same shape.
+    """Convert a uIntArray proto to a NumPy array of the same shape.
 
     Args:
         msg: Message to extract array from.
         dtype_size: Number of bytes per int.
 
     Returns:
-        Numpy array with unsigned integer type.
+        NumPy array with unsigned integer type.
     """
     if not msg.shape:
         raise ValueError("Cannot convert unset/empty UIntArray message to a numpy array.")
@@ -405,7 +405,7 @@ def _from_uint_array(msg: TUIntMsg, dtype_base: npt.DTypeLike) -> np.ndarray:
 def to_complex128_array(
     array: np.ndarray, out: ndarrays_pb2.Complex128Array | None = None
 ) -> ndarrays_pb2.Complex128Array:
-    """Populate a new or provided Complex128Array msg with given numpy array.
+    """Populate a new or provided Complex128Array msg with given NumPy array.
 
     Supports any complex type taking <= 16 bytes. If given e.g. a c16/64-bit
     complex of single floats, this will recast as a 128-bit complex consisting
@@ -425,13 +425,13 @@ def to_complex128_array(
 
 
 def from_complex128_array(msg: ndarrays_pb2.Complex128Array) -> np.ndarray:
-    """Convert a Complex128Array proto to a numpy array of the same shape.
+    """Convert a Complex128Array proto to a NumPy array of the same shape.
 
     Args:
         msg: Message to extract array from.
 
     Returns:
-        Numpy complex array.
+        NumPy complex array.
     """
     return _from_complex_array(msg, "c16")
 
@@ -439,7 +439,7 @@ def from_complex128_array(msg: ndarrays_pb2.Complex128Array) -> np.ndarray:
 def to_complex64_array(
     array: np.ndarray, out: ndarrays_pb2.Complex64Array | None = None
 ) -> ndarrays_pb2.Complex64Array:
-    """Populate a new or provided Complex64Array msg with given numpy array.
+    """Populate a new or provided Complex64Array msg with given NumPy array.
 
     Supports any complex type taking <= 8 bytes. If given e.g. a c8/32-bit
     complex of single floats, this will recast as a 64-bit complex consisting
@@ -459,13 +459,13 @@ def to_complex64_array(
 
 
 def from_complex64_array(msg: ndarrays_pb2.Complex64Array) -> np.ndarray:
-    """Convert a Complex64Array proto to a numpy array of the same shape.
+    """Convert a Complex64Array proto to a NumPy array of the same shape.
 
     Args:
         msg: Message to extract array from.
 
     Returns:
-        Numpy complex array.
+        NumPy complex array.
     """
     return _from_complex_array(msg, "c8")
 
@@ -489,7 +489,7 @@ def _from_complex_array(msg: TComplexMsg, dtype_base: npt.DTypeLike) -> np.ndarr
 def to_bitarray(
     array: np.ndarray, out: ndarrays_pb2.BitArray | None = None
 ) -> ndarrays_pb2.BitArray:
-    """Populate a new or provided BitArray message with the given numpy array.
+    """Populate a new or provided BitArray message with the given NumPy array.
 
     Supports bool or uint8 arrays. If given a uint8 array where values are not
     either 0 or 1 a ValueError will be raised.
@@ -512,20 +512,20 @@ def to_bitarray(
                 f"Cannot convert array to bitarray; values must be either 0 or 1. Got {not_ok}"
             )
 
-    # Add the numpy shape to the proto.
+    # Add the NumPy shape to the proto.
     out.shape[:] = array.shape
     out.flat_bytes = np.packbits(array).tobytes()
     return out
 
 
 def from_bitarray(msg: ndarrays_pb2.BitArray) -> np.ndarray:
-    """Convert a BitArray proto to a numpy array of the same shape.
+    """Convert a BitArray proto to a NumPy array of the same shape.
 
     Args:
         msg: Message to extract array from.
 
     Returns:
-        Numpy array.
+        NumPy array.
     """
     if not msg.shape:
         raise ValueError(f"Cannot convert unset/empty {type(msg)} message to a numpy array.")

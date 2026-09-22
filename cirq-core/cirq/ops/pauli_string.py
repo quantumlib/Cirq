@@ -101,16 +101,16 @@ document(
 
 @value.value_equality(approximate=True, manual_cls=True)
 class PauliString(raw_types.Operation, Generic[TKey]):
-    """Represents a multi-qubit pauli operator or pauli observable.
+    """Represents a multi-qubit Pauli operator or Pauli observable.
 
-    `cirq.PauliString` represents a multi-qubit pauli operator, i.e.
-    a tensor product of single qubit (non identity) pauli operations,
+    `cirq.PauliString` represents a multi-qubit Pauli operator, i.e.
+    a tensor product of single qubit (non identity) Pauli operations,
     each acting on a different qubit. For  example,
 
-    - X(0) * Y(1) * Z(2): Represents a pauli string which is a tensor product of
+    - X(0) * Y(1) * Z(2): Represents a Pauli string which is a tensor product of
                           `cirq.X(q0)`, `cirq.Y(q1)` and `cirq.Z(q2)`.
 
-    If more than one pauli operation acts on the same set of qubits, their composition is
+    If more than one Pauli operation acts on the same set of qubits, their composition is
     immediately reduced to an equivalent (possibly multi-qubit) Pauli operator. Also, identity
     operations are dropped by the `PauliString` class. For example:
 
@@ -148,7 +148,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     1j*Z(q(0))
 
     Note that `cirq.PauliString`s are immutable objects. If you need a mutable version
-    of pauli strings, see `cirq.MutablePauliString`.
+    of Pauli strings, see `cirq.MutablePauliString`.
     """
 
     def __init__(
@@ -160,8 +160,8 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         """Initializes a new `PauliString` operation.
 
         Args:
-            *contents: A value or values to convert into a pauli string. This
-                can be a number, a pauli operation, a dictionary from qubit to
+            *contents: A value or values to convert into a Pauli string. This
+                can be a number, a Pauli operation, a dictionary from qubit to
                 pauli/identity gates, or collections thereof. If a list of
                 values is given, they are each individually converted and then
                 multiplied from left to right in order.
@@ -220,7 +220,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return PauliString
 
     def equal_up_to_coefficient(self, other: cirq.PauliString) -> bool:
-        """Returns true of `self` and `other` are equal pauli strings, ignoring the coefficient."""
+        """Returns true of `self` and `other` are equal Pauli strings, ignoring the coefficient."""
         return self._qubit_pauli_map == other._qubit_pauli_map
 
     def __getitem__(self, key: TKey) -> pauli_gates.Pauli:
@@ -321,12 +321,12 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         ]
 
     def keys(self) -> KeysView[TKey]:
-        """Returns the sequence of qubits on which this pauli string acts."""
+        """Returns the sequence of qubits on which this Pauli string acts."""
         return self._qubit_pauli_map.keys()
 
     @property
     def qubits(self) -> tuple[TKey, ...]:
-        """Returns a tuple of qubits on which this pauli string acts."""
+        """Returns a tuple of qubits on which this Pauli string acts."""
         return tuple(self.keys())
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> list[str]:
@@ -381,7 +381,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return self._qubit_pauli_map.values()
 
     def items(self) -> ItemsView[TKey, pauli_gates.Pauli]:
-        """Returns (cirq.Qid, cirq.Pauli) pairs representing 1-qubit operations of pauli string."""
+        """Returns (cirq.Qid, cirq.Pauli) pairs representing 1-qubit operations of Pauli string."""
         return self._qubit_pauli_map.items()
 
     def frozen(self) -> cirq.PauliString:
@@ -767,13 +767,13 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def zip_items(
         self, other: cirq.PauliString[TKey]
     ) -> Iterator[tuple[TKey, tuple[pauli_gates.Pauli, pauli_gates.Pauli]]]:
-        """Combines pauli operations from pauli strings in a qubit-by-qubit fashion.
+        """Combines Pauli operations from Pauli strings in a qubit-by-qubit fashion.
 
         For every qubit that has a `cirq.Pauli` operation acting on it in both `self` and `other`,
         the method yields a tuple corresponding to `(qubit, (pauli_in_self, pauli_in_other))`.
 
         Args:
-            other: The other `cirq.PauliString` to zip pauli operations with.
+            other: The other `cirq.PauliString` to zip Pauli operations with.
 
         Returns:
             A sequence of `(qubit, (pauli_in_self, pauli_in_other))` tuples for every `qubit`
@@ -786,13 +786,13 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def zip_paulis(
         self, other: cirq.PauliString
     ) -> Iterator[tuple[pauli_gates.Pauli, pauli_gates.Pauli]]:
-        """Combines pauli operations from pauli strings in a qubit-by-qubit fashion.
+        """Combines Pauli operations from Pauli strings in a qubit-by-qubit fashion.
 
         For every qubit that has a `cirq.Pauli` operation acting on it in both `self` and `other`,
         the method yields a tuple corresponding to `(pauli_in_self, pauli_in_other)`.
 
         Args:
-            other: The other `cirq.PauliString` to zip pauli operations with.
+            other: The other `cirq.PauliString` to zip Pauli operations with.
 
         Returns:
             A sequence of `(pauli_in_self, pauli_in_other)` tuples for every `qubit`
@@ -812,7 +812,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return self
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        """Override numpy behavior."""
+        """Override NumPy behavior."""
         if ufunc == np.exp and len(inputs) == 1 and inputs[0] is self:
             return math.e**self
         if ufunc == np.multiply and len(inputs) == 2 and inputs[1] is self:
@@ -890,13 +890,13 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         """Replaces every qubit `q` in `self.qubits` with `qubit_map[q]`.
 
         Args:
-            qubit_map: A map from qubits in the pauli string to new qubits.
+            qubit_map: A map from qubits in the Pauli string to new qubits.
 
         Returns:
             A new `PauliString` with remapped qubits.
 
         Raises:
-            ValueError: If the map does not contain an entry for all qubits in the pauli string.
+            ValueError: If the map does not contain an entry for all qubits in the Pauli string.
         """
         if not set(self.qubits) <= qubit_map.keys():
             raise ValueError(
@@ -919,7 +919,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         This method satisfies the invariant `P.dense(qubits).on(*qubits) == P`.
 
         Args:
-            qubits: The implicit sequence of qubits used by the dense pauli
+            qubits: The implicit sequence of qubits used by the dense Pauli
                 string. Specifically, if the returned dense Pauli string was
                 applied to these qubits (via its `on` method) then the result
                 would be a Pauli string equivalent to the receiving Pauli
@@ -939,7 +939,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return dense_pauli_string.DensePauliString(pauli_mask, coefficient=self.coefficient)
 
     def conjugated_by(self, clifford: cirq.OP_TREE) -> PauliString:
-        r"""Returns the Pauli string conjugated by a clifford operation.
+        r"""Returns the Pauli string conjugated by a Clifford operation.
 
         The product-of-Paulis $P$ conjugated by the Clifford operation $C$ is
 
@@ -950,9 +950,9 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         For example, conjugating a +Y operation by an S operation results in a
         +X operation (as opposed to a -X operation).
 
-        In a circuit diagram where `P` is a pauli string observable immediately
-        after a Clifford operation `C`, the pauli string `P.conjugated_by(C)` is
-        the equivalent pauli string observable just before `C`.
+        In a circuit diagram where `P` is a Pauli string observable immediately
+        after a Clifford operation `C`, the Pauli string `P.conjugated_by(C)` is
+        the equivalent Pauli string observable just before `C`.
 
             --------------------------C---P---
 
@@ -1011,7 +1011,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
             # Conjugation on the qubits of op
             conjugated = _calc_conjugation(ps, op)
-            # The pauli string on the remaining qubits
+            # The Pauli string on the remaining qubits
             remain: PauliString = PauliString(
                 *(
                     pauli(q)
@@ -1023,7 +1023,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return ps
 
     def after(self, ops: cirq.OP_TREE) -> cirq.PauliString:
-        r"""Determines the equivalent pauli string after some operations.
+        r"""Determines the equivalent Pauli string after some operations.
 
         If the PauliString is $P$ and the Clifford operation is $C$, then the
         result is $C P C^\dagger$.
@@ -1033,13 +1033,13 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 operations.
 
         Returns:
-            The result of propagating this pauli string from before to after the
+            The result of propagating this Pauli string from before to after the
             given operations.
         """
         return self.conjugated_by(protocols.inverse(ops))
 
     def before(self, ops: cirq.OP_TREE) -> cirq.PauliString:
-        r"""Determines the equivalent pauli string before some operations.
+        r"""Determines the equivalent Pauli string before some operations.
 
         If the PauliString is $P$ and the Clifford operation is $C$, then the
         result is $C^\dagger P C$.
@@ -1049,7 +1049,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 operations.
 
         Returns:
-            The result of propagating this pauli string from after to before the
+            The result of propagating this Pauli string from after to before the
             given operations.
         """
         return self.conjugated_by(ops)
@@ -1060,7 +1060,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     ) -> PauliString:  # pragma: no cover
         """Determines how the Pauli string changes when conjugated by Cliffords.
 
-        The output and input pauli strings are related by a circuit equivalence.
+        The output and input Pauli strings are related by a circuit equivalence.
         In particular, this circuit:
 
             ───ops───INPUT_PAULI_STRING───
@@ -1081,7 +1081,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         Args:
             ops: The operations to move over the string.
             after_to_before: Determines whether the operations start after the
-                pauli string, instead of before (and so are moving in the
+                Pauli string, instead of before (and so are moving in the
                 opposite direction).
         """
         if after_to_before:
@@ -1151,7 +1151,7 @@ def _validate_qubit_mapping(
 
 
 def _try_interpret_as_pauli_string(op: Any) -> PauliString | None:
-    """Return a reprepresentation of an operation as a pauli string, if it is possible."""
+    """Return a reprepresentation of an operation as a Pauli string, if it is possible."""
     if not isinstance(op, raw_types.Operation):
         return None
 
@@ -1183,7 +1183,7 @@ def _try_interpret_as_pauli_string(op: Any) -> PauliString | None:
 class SingleQubitPauliStringGateOperation(  # type: ignore[misc]
     gate_operation.GateOperation, PauliString
 ):
-    """An operation to represent single qubit pauli gates applied to a qubit.
+    """An operation to represent single qubit Pauli gates applied to a qubit.
 
     Satisfies the contract of both `cirq.GateOperation` and `cirq.PauliString`. Relies
     implicitly on the fact that PauliString({q: X}) compares as equal to
@@ -1228,13 +1228,13 @@ class SingleQubitPauliStringGateOperation(  # type: ignore[misc]
 
 @value.value_equality(unhashable=True, manual_cls=True, approximate=True)
 class MutablePauliString(Generic[TKey]):
-    """Mutable version of `cirq.PauliString`, used mainly for efficiently mutating pauli strings.
+    """Mutable version of `cirq.PauliString`, used mainly for efficiently mutating Pauli strings.
 
     `cirq.MutablePauliString` is a mutable version of `cirq.PauliString`, which is often
-    useful for mutating pauli strings efficiently instead of always creating a copy. Note
+    useful for mutating Pauli strings efficiently instead of always creating a copy. Note
     that, unlike `cirq.PauliString`, `MutablePauliString` is not a `cirq.Operation`.
 
-    It exists mainly to help mutate pauli strings efficiently and then convert back to a
+    It exists mainly to help mutate Pauli strings efficiently and then convert back to a
     frozen `cirq.PauliString` representation, which can then be used as operators or
     observables.
     """
@@ -1248,14 +1248,14 @@ class MutablePauliString(Generic[TKey]):
         """Initializes a new `MutablePauliString`.
 
         Args:
-            *contents: A value or values to convert into a pauli string. This
-                can be a number, a pauli operation, a dictionary from qubit to
+            *contents: A value or values to convert into a Pauli string. This
+                can be a number, a Pauli operation, a dictionary from qubit to
                 pauli/identity gates, or collections thereof. If a list of
                 values is given, they are each individually converted and then
                 multiplied from left to right in order.
             coefficient: Initial scalar coefficient or symbol. Defaults to 1.
             pauli_int_dict: Initial dictionary mapping qubits to integers corresponding
-                to pauli operations. Defaults to the empty dictionary. Note that, unlike
+                to Pauli operations. Defaults to the empty dictionary. Note that, unlike
                 dictionaries passed to contents, this dictionary must not contain values
                 corresponding to identity gates; i.e. all integer values must be between
                 [1, 3]. Further note that this argument specifies values that are logically
@@ -1294,7 +1294,7 @@ class MutablePauliString(Generic[TKey]):
         return -sign
 
     def keys(self) -> Set[TKey]:
-        """Returns the sequence of qubits on which this pauli string acts."""
+        """Returns the sequence of qubits on which this Pauli string acts."""
         return self.pauli_int_dict.keys()
 
     def values(self) -> Iterator[cirq.Pauli]:
@@ -1329,7 +1329,7 @@ class MutablePauliString(Generic[TKey]):
         )
 
     def items(self) -> Iterator[tuple[TKey, cirq.Pauli]]:
-        """Returns (cirq.Qid, cirq.Pauli) pairs representing 1-qubit operations of pauli string."""
+        """Returns (cirq.Qid, cirq.Pauli) pairs representing 1-qubit operations of Pauli string."""
         for k, v in self.pauli_int_dict.items():
             yield k, _INT_TO_PAULI[v - 1]
 
@@ -1363,7 +1363,7 @@ class MutablePauliString(Generic[TKey]):
         return default if result is None else _INT_TO_PAULI[result - 1]
 
     def inplace_before(self, ops: cirq.OP_TREE) -> cirq.MutablePauliString:
-        r"""Propagates the pauli string from after to before a Clifford effect.
+        r"""Propagates the Pauli string from after to before a Clifford effect.
 
         If the old value of the MutablePauliString is $P$ and the Clifford
         operation is $C$, then the new value of the MutablePauliString is
@@ -1374,7 +1374,7 @@ class MutablePauliString(Generic[TKey]):
                 operations.
 
         Returns:
-            The mutable pauli string that was mutated.
+            The mutable Pauli string that was mutated.
         """
         # An inplace impl of PauliString.conjugated_by().
         flattened_ops = list(op_tree.flatten_to_ops(ops))
@@ -1390,7 +1390,7 @@ class MutablePauliString(Generic[TKey]):
         return self
 
     def inplace_after(self, ops: cirq.OP_TREE) -> cirq.MutablePauliString:
-        r"""Propagates the pauli string from before to after a Clifford effect.
+        r"""Propagates the Pauli string from before to after a Clifford effect.
 
         If the old value of the MutablePauliString is $P$ and the Clifford
         operation is $C$, then the new value of the MutablePauliString is
@@ -1401,7 +1401,7 @@ class MutablePauliString(Generic[TKey]):
                 operations.
 
         Returns:
-            The mutable pauli string that was mutated.
+            The mutable Pauli string that was mutated.
 
         Raises:
             NotImplementedError: If any ops decompose into an unsupported
@@ -1458,14 +1458,14 @@ class MutablePauliString(Generic[TKey]):
         return self._imul_helper(other, sign)
 
     def inplace_left_multiply_by(self, other: cirq.PAULI_STRING_LIKE) -> cirq.MutablePauliString:
-        """Left-multiplies a pauli string into this pauli string.
+        """Left-multiplies a Pauli string into this Pauli string.
 
         Args:
-            other: A pauli string or `cirq.PAULI_STRING_LIKE` to left-multiply
+            other: A Pauli string or `cirq.PAULI_STRING_LIKE` to left-multiply
                 into `self`.
 
         Returns:
-            The `self` mutable pauli string that was mutated.
+            The `self` mutable Pauli string that was mutated.
 
         Raises:
             TypeError: `other` was not a `cirq.PAULI_STRING_LIKE`. `self`
@@ -1487,14 +1487,14 @@ class MutablePauliString(Generic[TKey]):
         return cls(pauli_int_dict=dict(pauli_int_dict), coefficient=coefficient)
 
     def inplace_right_multiply_by(self, other: cirq.PAULI_STRING_LIKE) -> cirq.MutablePauliString:
-        """Right-multiplies a pauli string into this pauli string.
+        """Right-multiplies a Pauli string into this Pauli string.
 
         Args:
-            other: A pauli string or `cirq.PAULI_STRING_LIKE` to right-multiply
+            other: A Pauli string or `cirq.PAULI_STRING_LIKE` to right-multiply
                 into `self`.
 
         Returns:
-            The `self` mutable pauli string that was mutated.
+            The `self` mutable Pauli string that was mutated.
 
         Raises:
             TypeError: `other` was not a `cirq.PAULI_STRING_LIKE`. `self`
@@ -1519,11 +1519,11 @@ class MutablePauliString(Generic[TKey]):
 
         Args:
             func: The qubit transformation to apply.
-            inplace: If false (the default), creates a new mutable pauli string
-                to store the result. If true, overwrites this mutable pauli
+            inplace: If false (the default), creates a new mutable Pauli string
+                to store the result. If true, overwrites this mutable Pauli
                 string's contents. Defaults to false for consistency with
                 `cirq.PauliString.transform_qubits` in situations where the
-                pauli string being used may or may not be mutable.
+                Pauli string being used may or may not be mutable.
 
         Returns:
             A transformed MutablePauliString.
@@ -1538,14 +1538,14 @@ class MutablePauliString(Generic[TKey]):
         return result
 
     def __imul__(self, other: cirq.PAULI_STRING_LIKE) -> cirq.MutablePauliString:
-        """Left-multiplies a pauli string into this pauli string.
+        """Left-multiplies a Pauli string into this Pauli string.
 
         Args:
-            other: A pauli string or `cirq.PAULI_STRING_LIKE` to left-multiply
+            other: A Pauli string or `cirq.PAULI_STRING_LIKE` to left-multiply
                 into `self`.
 
         Returns:
-            The `self` mutable pauli string that was successfully mutated.
+            The `self` mutable Pauli string that was successfully mutated.
 
             If `other` is not a `cirq.PAULI_STRING_LIKE`, `self` is not mutated
             and `NotImplemented` is returned.
@@ -1626,7 +1626,7 @@ def _calc_conjugation(ps: cirq.PauliString, clifford_op: cirq.Operation) -> cirq
     It computes $C^-1 P C$ where P is the Pauli string `ps` and C is the `clifford_op`.
     """
 
-    # Initialize the conjugation of the pauli string.
+    # Initialize the conjugation of the Pauli string.
     conjugated = dense_pauli_string.DensePauliString('I' * len(clifford_op.qubits)) * ps.coefficient
 
     # Calculate the conjugation via CliffordGate's clifford_tableau.
@@ -1635,7 +1635,7 @@ def _calc_conjugation(ps: cirq.PauliString, clifford_op: cirq.Operation) -> cirq
     if isinstance(clifford_op.gate, clifford_gate.CliffordGate):
         gate_in_clifford = clifford_op.gate
     else:
-        # Convert the clifford gate to CliffordGate type.
+        # Convert the Clifford gate to CliffordGate type.
         gate_in_clifford = clifford_gate.CliffordGate.from_op_list(
             [clifford_op], clifford_op.qubits
         )

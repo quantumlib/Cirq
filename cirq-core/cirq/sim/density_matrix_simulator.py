@@ -82,7 +82,7 @@ class DensityMatrixSimulator(
     by summing over the different measurements and their probabilities.
     The simulate methods take in two parameters that the run methods do not: a
     qubit order and an initial state. The qubit order is necessary because an
-    ordering must be chosen for the kronecker product (see
+    ordering must be chosen for the Kronecker product (see
     `DensityMatrixTrialResult` for details of this ordering). The initial
     state can be either the full density matrix, the full wave function (for
     pure states), or an integer which represents the initial state of being
@@ -347,7 +347,7 @@ class DensityMatrixTrialResult(
     Attributes:
         params: A ParamResolver of settings used for this result.
         measurements: A dictionary from measurement gate key to measurement
-            results. Measurement results are a numpy ndarray of actual boolean
+            results. Measurement results are a NumPy ndarray of actual Boolean
             measurement results (ordered by the qubits acted on by the
             measurement gate.)
         final_simulator_state: The final simulator state of the system after the

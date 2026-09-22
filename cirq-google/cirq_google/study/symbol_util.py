@@ -22,7 +22,7 @@ import tunits as tu
 
 import cirq
 
-# The gate is intended for the google internal use, hence the typing style
+# The gate is intended for the Google internal use, hence the typing style
 # follows more on the t-unit + symbol instead of float + symbol style.
 ValueOrSymbol: TypeAlias = tu.Value | sympy.Basic
 

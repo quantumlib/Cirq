@@ -41,6 +41,7 @@ long_description = pathlib.Path('README.md').read_text(encoding='utf-8')
 # This is a pure metapackage that installs all our packages
 requirements = [f'{p.name}=={p.version}' for p in modules.list_modules()]
 
+contrib_requirements = [f'cirq-core[contrib]=={__version__}']
 dev_requirements = explode('dev_tools/requirements/deps/dev-tools.txt')
 
 # filter out direct urls (https://github.com/pypa/pip/issues/6301)
@@ -56,7 +57,7 @@ setup(
     maintainer_email="quantum-oss-maintainers@google.com",
     python_requires='>=3.11.0',
     install_requires=requirements,
-    extras_require={'dev_env': dev_requirements},
+    extras_require={'contrib': contrib_requirements, 'dev_env': dev_requirements},
     license='Apache-2.0',
     description=description,
     long_description=long_description,

@@ -1085,14 +1085,14 @@ class AbstractCircuit(abc.ABC):
             ignore_terminal_measurements: When set, measurements at the end of
                 the circuit are ignored instead of causing the method to
                 fail.
-            dtype: The numpy dtype for the returned unitary. Defaults to
+            dtype: The NumPy dtype for the returned unitary. Defaults to
                 np.complex128. Specifying np.complex64 will run faster at the
                 cost of precision. `dtype` must be a complex np.dtype, unless
                 all operations in the circuit have unitary matrices with
                 exclusively real coefficients (e.g. an H + TOFFOLI circuit).
 
         Returns:
-            A (possibly gigantic) 2d numpy array corresponding to a matrix
+            A (possibly gigantic) 2d NumPy array corresponding to a matrix
             equivalent to the circuit's effect on a quantum state.
 
         Raises:
@@ -1178,7 +1178,7 @@ class AbstractCircuit(abc.ABC):
 
         Returns:
             The state vector resulting from applying the given unitary
-            operations to the desired initial state. Specifically, a numpy
+            operations to the desired initial state. Specifically, a NumPy
             array containing the amplitudes in np.kron order, where the
             order of arguments to kron is determined by the qubit order
             argument (which defaults to just sorting the qubits that are
@@ -1429,7 +1429,7 @@ class AbstractCircuit(abc.ABC):
         """Save a QASM file equivalent to the circuit.
 
         Args:
-            file_path: The location of the file where the qasm will be written.
+            file_path: The location of the file where the QASM will be written.
             header: A multi-line string that is placed in a comment at the top
                 of the QASM. Defaults to a cirq version specifier.
             precision: Number of digits to use when representing numbers.
@@ -2008,7 +2008,7 @@ class Circuit(AbstractCircuit):
         result._moments[:0] = Circuit(other)._moments
         return result
 
-    # Needed for numpy to handle multiplication by np.int64 correctly.
+    # Needed for NumPy to handle multiplication by np.int64 correctly.
     __array_priority__ = 10000
 
     def __imul__(self, repetitions: _INT_TYPE):
@@ -2591,7 +2591,7 @@ class Circuit(AbstractCircuit):
         # Work on a copy in case validation fails halfway through.
         copy = self.copy()
         shift = 0
-        # Note: python `sorted` is guaranteed to be stable. This matters.
+        # Note: Python `sorted` is guaranteed to be stable. This matters.
         insertions = sorted(insertions, key=lambda e: e[0])
         groups = _group_until_different(insertions, key=lambda e: e[0], val=lambda e: e[1])
         for i, group in groups:
@@ -2939,7 +2939,7 @@ def _apply_unitary_circuit(
         qubits: The qubits in the state tensor. Determines which axes operations
             apply to. An operation targeting the k'th qubit in this list will
             operate on the k'th axis of the state tensor.
-        dtype: The numpy dtype to use for applying the unitary. Must be a
+        dtype: The NumPy dtype to use for applying the unitary. Must be a
             complex dtype.
 
     Returns:

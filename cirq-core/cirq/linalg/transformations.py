@@ -72,8 +72,8 @@ def match_global_phase(a: np.ndarray, b: np.ndarray) -> tuple[np.ndarray, np.nda
     the two matrices.
 
     Args:
-        a: A numpy array.
-        b: Another numpy array.
+        a: A NumPy array.
+        b: Another NumPy array.
 
     Returns:
         A tuple (a', b') where a' == b' implies a == b*exp(i t) for some t.
@@ -296,7 +296,7 @@ def targeted_conjugate_about(
             buffer is used. Must have the same shape as target.
 
     Returns:
-        The result of the conjugation, as a numpy array.
+        The result of the conjugation, as a NumPy array.
     """
     conj_indices = conj_indices or [i + target.ndim // 2 for i in indices]
     first_multiply = targeted_left_multiply(tensor, target, indices, out=buffer)
@@ -314,7 +314,7 @@ def apply_matrix_to_slices(
     *,
     out: np.ndarray | None = None,
 ) -> np.ndarray:
-    r"""Left-multiplies an NxN matrix onto N slices of a numpy array.
+    r"""Left-multiplies an NxN matrix onto N slices of a NumPy array.
 
     One example is that the 4x4 matrix of a fractional SWAP gate can be expressed as
 
@@ -347,7 +347,7 @@ def apply_matrix_to_slices(
             that the matrix should operate on. May be integers or complicated
             multi-dimensional slices into a tensor. The slices must refer to
             non-overlapping sections of the input all with the same shape.
-        out: Where to write the output. If not specified, a new numpy array is
+        out: Where to write the output. If not specified, a new NumPy array is
             created, with the same shape and dtype as the target, to store the
             output.
 

@@ -83,7 +83,7 @@ class SimulatesIntermediateStateVector(
                 f'shape {bitstrings.shape}.'
             )
 
-        # 1-dimensional tuples don't trigger advanced Numpy array indexing
+        # 1-dimensional tuples don't trigger advanced NumPy array indexing
         # https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html
         if isinstance(bitstrings, tuple):
             bitstrings = list(bitstrings)

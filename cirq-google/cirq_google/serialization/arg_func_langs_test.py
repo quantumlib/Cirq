@@ -190,8 +190,8 @@ def test_none_to_none_arg_roundtrip():
 
 def test_double_value():
     """Note: due to backwards compatibility, double_val conversion is one-way.
-    double_val can be converted to python float,
-    but a python float is converted into a float_val not a double_val.
+    double_val can be converted to Python float,
+    but a Python float is converted into a float_val not a double_val.
     """
     msg = v2.program_pb2.Arg()
     msg.arg_value.double_value = 1.0
@@ -213,7 +213,7 @@ def test_serialize_sympy_constants():
     )
     assert len(packed) == 1
     assert len(packed['arg_value']) == 1
-    # protobuf 3.12+ truncates floats to 4 bytes
+    # Protobuf 3.12+ truncates floats to 4 bytes
     assert np.isclose(packed['arg_value']['float_value'], np.float32(sympy.pi), atol=1e-7)
 
 
