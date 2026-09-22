@@ -1330,7 +1330,7 @@ def test_engine_compile_circuit_with_stim_circuit(client_mock):
         qec_recipe=qec_recipe,
         processor_id=processor_id,
         config_name='default',
-        device_config_revision=Run(id='default'),
+        device_config_revision=Run(id='current'),
     )
 
 
@@ -1396,7 +1396,7 @@ def test_engine_calibrate_for_circuit_defaults(client_mock):
         project_id='proj',
         qec_circuit=qec_circuit,
         processor_id=processor_id,
-        device_config_revision=Run(id='default'),
+        device_config_revision=Run(id='current'),
         config_name="default",
     )
     client_mock().get_job_async.assert_called_once_with('proj', 'test_prog', 'test_job', False)
