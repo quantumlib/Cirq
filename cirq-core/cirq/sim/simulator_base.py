@@ -155,7 +155,7 @@ class SimulatorBase(
                 state representation.
 
         Returns:
-            A boolean representing whether the value can be added to the
+            A Boolean representing whether the value can be added to the
             `_run` prefix."""
         return protocols.has_unitary(val)
 
@@ -450,8 +450,8 @@ class SimulationTrialResultBase(
         Args:
             params: A ParamResolver of settings used for this result.
             measurements: A dictionary from measurement gate key to measurement
-                results. Measurement results are a numpy ndarray of actual
-                boolean measurement results (ordered by the qubits acted on by
+                results. Measurement results are a NumPy ndarray of actual
+                Boolean measurement results (ordered by the qubits acted on by
                 the measurement gate.)
             final_simulator_state: The final simulator state of the system after the
                 trial finishes.

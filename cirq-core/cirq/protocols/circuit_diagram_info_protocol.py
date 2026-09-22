@@ -173,11 +173,11 @@ class CircuitDiagramInfoArgs:
         known_qubit_count: The number of qubits the gate is being applied to
             None means this information is not known by the caller.
         use_unicode_characters: If true, the wire symbols are permitted to
-            include unicode characters (as long as they work well in fixed
-            width fonts). If false, use only ascii characters. ASCII is
+            include Unicode characters (as long as they work well in fixed
+            width fonts). If false, use only ASCII characters. ASCII is
             preferred in cases where UTF8 support is done poorly, or where
             the fixed-width font being used to show the diagrams does not
-            properly handle unicode characters.
+            properly handle Unicode characters.
         precision: The number of digits after the decimal to show for numbers in
             the text diagram. None means use full precision.
         label_map: The map from label entities to diagram positions.
@@ -366,7 +366,7 @@ class SupportsCircuitDiagramInfo(Protocol):
         Args:
             args: A DiagramInfoArgs instance encapsulating various pieces of
                 information (e.g. how many qubits are we being applied to) as
-                well as user options (e.g. whether to avoid unicode characters).
+                well as user options (e.g. whether to avoid Unicode characters).
 
         Returns:
             A DiagramInfo instance describing what to show.

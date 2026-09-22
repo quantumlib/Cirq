@@ -322,7 +322,7 @@ class AnalogSimulationCircuitBuilder:
         which includes higher levels and higher-order nonlocal interactions.
         * Ramps faster than 2-3 nanoseconds are not possible on hardware; filters
         smooth out such fast ramps but are not simulated here.
-        * Sympy symbols are not supported. Please resolve all parameters.
+        * SymPy symbols are not supported. Please resolve all parameters.
 
         Args:
             trotter_step: The Trotter step size used for simulation. Should divide the total

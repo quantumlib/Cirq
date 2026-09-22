@@ -33,8 +33,6 @@ class AnalogDetuneQubit(cirq.ops.Gate):
 
     Pulse shape:
 
-    .. svgbob::
-      :align: center
                    |   ,--------|---- amp (calculated from target freq using analog model)
                    |  /         |
         prev_amp---|-' - - - - -| - -
@@ -194,17 +192,14 @@ class AnalogDetuneCouplerOnly(cirq.ops.Gate):
 
     Pulse shape:
 
-    .. svgbob::
-      :align: center
-
-            |   ,--------|---- amp_max (parsed from g_max)
-            |  /         |
-    amp_0---|-' - - - - -| - -
-    |
-    |       |-w -|       |
-    |       |---length --|
-    |
-    --------------------------(calculated from the g_0)
+                |   ,--------|---- amp_max (parsed from g_max)
+                |  /         |
+        amp_0---|-' - - - - -| - -
+        |
+        |       |-w -|       |
+        |       |---length --|
+        |
+        --------------------------(calculated from the g_0)
     """
 
     def __init__(

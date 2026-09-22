@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-r"""Converts Cirq circuits to Quantikz LaTeX (using modern quantikz syntax).
+r"""Converts Cirq circuits to Quantikz LaTeX (using modern Quantikz syntax).
 
 This module provides a class, `CircuitToQuantikz`, to translate `cirq.Circuit`
 objects into LaTeX code using the `quantikz` package. It aims to offer
@@ -89,7 +89,7 @@ DEFAULT_PREAMBLE_TEMPLATE = r"""
 _Pauli_gate_style = r"style={fill=blue!20}"
 _green_gate_style = r"style={fill=green!20}"
 _yellow_gate_style = r"style={fill=yellow!20}"  # For H
-_orange_gate_style = r"style={fill=orange!20}"  # For FSim, iSwap, etc.
+_orange_gate_style = r"style={fill=orange!20}"  # For FSim, iSWAP, etc.
 _gray_gate_style = r"style={fill=gray!20}"  # For Measure
 _noisy_channel_style = r"style={fill=red!20}"
 
@@ -115,7 +115,7 @@ GATE_STYLES_COLORFUL = {
     "iSwap_pow": _orange_gate_style,  # For ISwapPowGate(exponent!=1)
     "CZ_pow": _orange_gate_style,  # For CZPowGate(exponent!=1)
     "CX_pow": _orange_gate_style,  # For CNotPowGate(exponent!=1)
-    "CXideal": "",  # No fill for \ctrl \targ, let quantikz draw default
+    "CXideal": "",  # No fill for \ctrl \targ, let Quantikz draw default
     "CZideal": "",  # No fill for \ctrl \control
     "Swapideal": "",  # No fill for \swap \targX
     "Measure": _gray_gate_style,
@@ -187,7 +187,7 @@ class CircuitToQuantikz:
             - `"index"`: Labels as $0, 1, \dots$
             - `"qid"`: Labels as the string representation of the `cirq.Qid`
             - Any other value defaults to `"qid"`.
-        show_parameters: A boolean indicating whether gate parameters (e.g.,
+        show_parameters: A Boolean indicating whether gate parameters (e.g.,
             exponents for `XPowGate`, angles for `Rx`) should be displayed
             in the gate labels.
         gate_name_map: An optional dictionary mapping Cirq gate names (strings)
@@ -335,7 +335,7 @@ class CircuitToQuantikz:
             if not is_symbolic_or_special:  # If it looks like a number
                 try:
                     py_float = float(sympy.N(exponent))
-                    # If the sympy evaluated float is an integer value
+                    # If the SymPy evaluated float is an integer value
                     if py_float.is_integer():
                         exp_str = str(int(py_float))
                     else:
@@ -353,7 +353,7 @@ class CircuitToQuantikz:
                     exp_str = s_exponent
             else:  # Symbolic expression
                 exp_str = s_exponent
-        else:  # For other types (int, strings not sympy objects)
+        else:  # For other types (int, strings not SymPy objects)
             exp_str = str(exponent)
 
         return self._escape_string(exp_str)

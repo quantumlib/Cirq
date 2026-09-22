@@ -21,7 +21,7 @@ import pytest
 
 
 def pytest_configure(config) -> None:
-    # Use matplotlib agg backend which does not require a display.
+    # Use Matplotlib agg backend which does not require a display.
     plt.switch_backend('agg')
     os.environ['CIRQ_TESTING'] = "true"
 

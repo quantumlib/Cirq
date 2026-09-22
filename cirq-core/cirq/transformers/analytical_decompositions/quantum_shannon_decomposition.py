@@ -65,7 +65,7 @@ def quantum_shannon_decomposition(
 
     Args:
         qubits: List of qubits in order of significance
-        u: Numpy array for unitary matrix representing gate to be decomposed
+        u: NumPy array for unitary matrix representing gate to be decomposed
         atol: Absolute tolerance of floating point checks.
 
     Calls:
@@ -158,7 +158,7 @@ def _recursive_decomposition(qubits: Sequence[cirq.Qid], u: np.ndarray) -> Itera
 
     Args:
         qubits: List of qubits in order of significance
-        u: Numpy array for unitary matrix representing gate to be decomposed
+        u: NumPy array for unitary matrix representing gate to be decomposed
 
     Calls:
         1. _msb_demuxer
@@ -231,7 +231,7 @@ def _single_qubit_decomposition(qubit: cirq.Qid, u: np.ndarray) -> Iterator[cirq
 
     Args:
         qubit: Qubit on which to apply operations
-        u: (2 x 2) Numpy array for unitary representing 1-qubit gate to be decomposed
+        u: (2 x 2) NumPy array for unitary representing 1-qubit gate to be decomposed
 
     Yields:
         A single operation from OP TREE of 3 operations (rz,ry,ZPowGate)

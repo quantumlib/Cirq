@@ -186,13 +186,13 @@ def simple_noise_from_calibration_metrics(
         }
     if damping_noise:
         # TODO: implement per-gate amplitude damping noise.
-        # Github issue: https://github.com/quantumlib/Cirq/issues/2807
+        # GitHub issue: https://github.com/quantumlib/Cirq/issues/2807
         raise NotImplementedError('Gate damping is not yet supported.')
 
     if readout_decay_noise:
         # Copied from Sycamore readout duration in known_devices.py
         # TODO: replace with polling from DeviceSpecification.
-        # Github issue: https://github.com/quantumlib/Cirq/issues/2832
+        # GitHub issue: https://github.com/quantumlib/Cirq/issues/2832
         readout_micros = 1
         readout_decay_probs = {
             calibration.key_to_qubit(qubit): 1

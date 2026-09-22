@@ -176,7 +176,7 @@ def value_equality(
     the scenes by a `_value_equality_values_cls_` method added to the class.
 
     Args:
-        cls: The type to decorate. Automatically passed in by python when using
+        cls: The type to decorate. Automatically passed in by Python when using
             the @cirq.value_equality decorator notation on a class.
         unhashable: When set, the __hash__ method will be set to None instead of
             to a hash of the equality class and equality values. Useful for
@@ -203,7 +203,7 @@ def value_equality(
             specified.
     """
 
-    # If keyword arguments were specified, python invokes the decorator method
+    # If keyword arguments were specified, Python invokes the decorator method
     # without a `cls` argument, then passes `cls` into the result.
     if cls is None:
         return lambda deferred_cls: value_equality(

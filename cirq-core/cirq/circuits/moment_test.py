@@ -296,7 +296,7 @@ def test_resolve_parameters() -> None:
     moment = cirq.Moment(cirq.X(a) ** sympy.Symbol('v'), cirq.Y(b) ** sympy.Symbol('w'))
     resolved_moment = cirq.resolve_parameters(moment, cirq.ParamResolver({'v': 0.1, 'w': 0.2}))
     assert resolved_moment == cirq.Moment(cirq.X(a) ** 0.1, cirq.Y(b) ** 0.2)
-    # sympy constant is resolved to a Python number
+    # SymPy constant is resolved to a Python number
     moment = cirq.Moment(cirq.Rz(rads=sympy.pi).on(a))
     resolved_moment = cirq.resolve_parameters(moment, {'pi': np.pi})
     assert resolved_moment == cirq.Moment(cirq.Rz(rads=np.pi).on(a))

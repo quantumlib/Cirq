@@ -104,7 +104,7 @@ def env_with_temporary_pip_target() -> Iterator[dict[str, str]]:
 def test_notebooks_against_cirq_head(
     notebook_path, require_packages_not_changed, env_with_temporary_pip_target, papermill_scheduler
 ) -> None:
-    """Test that jupyter notebooks execute.
+    """Test that Jupyter notebooks execute.
 
     In order to speed up the execution of these tests an auxiliary file may be supplied which
     performs substitutions on the notebook to make it faster.
