@@ -68,11 +68,18 @@ def test_construction_basic() -> None:
     with pytest.raises(TypeError, match='Expected circuit of type AbstractCircuit'):
         _ = cirq.CircuitFunction("test_function", 5)  # type: ignore[arg-type]
 
-    with pytest.raises(TypeError, match='All parameters must be sympy Symbols.'):
-        _ = cirq.CircuitFunction("test_function", c, function_params=[5])
+    with pytest.raises(
+        TypeError, match=r"All parameters must be sympy Symbols, got: 5 \(int\), x \(str\)"
+    ):
+        _ = cirq.CircuitFunction("test_function", c, function_params=[5, 'x'])
 
-    with pytest.raises(ValueError, match='CircuitFunctions may not have duplicate parameters.'):
+    with pytest.raises(ValueError, match='duplicate parameters: theta'):
         _ = cirq.CircuitFunction("test_function", c, function_params=[theta, theta])
+
+    x1 = sympy.Symbol('x', positive=True)
+    x2 = sympy.Symbol('x', positive=False)
+    with pytest.raises(ValueError, match='duplicate parameters: x'):
+        cf = cirq.CircuitFunction("test_function", c, function_params=[x1, x2])
 
 
 def test_construction_vqid() -> None:
@@ -161,6 +168,7 @@ def test_eq() -> None:
         cirq.CircuitFunction("test_function", cx, function_params=[]),
         cirq.CircuitFunction("test_function", cx.freeze(), function_params=[]),
     )
+    eq.add_equality_group(cirq.CircuitFunction("test_function", cx, function_params=[x, theta]))
 
 
 def test_call() -> None:
@@ -172,9 +180,17 @@ def test_call() -> None:
     assert cf(2, 3) == cirq.Circuit(cirq.X(cirq.q(2)) ** 3)
     assert isinstance(cf(2, 3), cirq.FrozenCircuit)
     assert cf(2, theta=3) == cirq.Circuit(cirq.X(cirq.q(2)) ** 3)
+    assert cf(x=2, theta=3) == cirq.Circuit(cirq.X(cirq.q(2)) ** 3)
+    assert cf(theta=3, x=2) == cirq.Circuit(cirq.X(cirq.q(2)) ** 3)
 
-    with pytest.raises(TypeError, match=r"CircuitFunction test_function takes 2 parameter\(s\) but received 1"):
+    with pytest.raises(TypeError, match=r"test_function takes 2 parameter\(s\) but received 0"):
+        _ = cf()
+
+    with pytest.raises(TypeError, match=r"test_function takes 2 parameter\(s\) but received 1"):
         _ = cf(2)
+
+    with pytest.raises(TypeError, match=r"test_function takes 2 parameter\(s\) but received 3"):
+        _ = cf(2, 3, 4)
 
     with pytest.raises(TypeError, match="duplicate parameters: x"):
         _ = cf(2, x=3)

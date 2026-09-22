@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from collections.abc import Sequence, Set
 from typing import Any, TYPE_CHECKING
 
@@ -74,11 +75,17 @@ class CircuitFunction:
             self._function_params = tuple(sorted(circuit_symbols, key=lambda s: s.name))
         else:
             self._function_params = tuple(function_params)
-            if not all(isinstance(p, sympy.Symbol) for p in self._function_params):
-                raise TypeError("All parameters must be sympy Symbols.")
+            non_symbols = [p for p in self._function_params if not isinstance(p, sympy.Symbol)]
+            if non_symbols:
+                details = ", ".join(f"{p} ({type(p).__name__})" for p in non_symbols)
+                raise TypeError(f"All parameters must be sympy Symbols, got: {details}.")
             param_names = [p.name for p in self._function_params]
-            if len(set(param_names)) != len(param_names):
-                raise ValueError("CircuitFunctions may not have duplicate parameters.")
+            duplicates = [p for p, count in Counter(param_names).items() if count > 1]
+            if duplicates:
+                raise ValueError(
+                    f"Cannot create CircuitFunction {name} with duplicate parameters: "
+                    f"{', '.join(duplicates)}."
+                )
 
     @property
     def name(self) -> str:
