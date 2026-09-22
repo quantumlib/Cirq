@@ -1,0 +1,191 @@
+# Path-based label rules for pull requests and issues.
+#
+# Used by actions/labeler (PRs) and dev_tools/path_area_labeler.py (issues).
+# See dev_tools/labels/README.md for how to extend these rules.
+#
+# Copyright 2026 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# --- Hardware provider interfaces ---
+
+'interface/cirq-google':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-google/**'
+  - any-glob-to-any-file: 'docs/google/**'
+
+'interface/cirq-ionq':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-ionq/**'
+  - any-glob-to-any-file: 'docs/hardware/ionq/**'
+
+'interface/cirq-aqt':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-aqt/**'
+  - any-glob-to-any-file: 'docs/hardware/aqt/**'
+
+'interface/cirq-pasqal':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-pasqal/**'
+  - any-glob-to-any-file: 'docs/hardware/pasqal/**'
+
+'interface/cirq-web':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-web/**'
+
+# --- Google Quantum Engine sub-areas ---
+
+'area/google/engine':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-google/cirq_google/engine/**'
+
+'area/google/device':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-google/cirq_google/devices/**'
+
+'area/google/protos':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-google/cirq_google/api/**'
+  - any-glob-to-any-file: 'cirq-google/cirq_google/cloud/**'
+
+'area/google':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-google/**'
+  - any-glob-to-any-file: 'docs/google/**'
+
+# --- Cirq core sub-areas ---
+
+'area/gates':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-core/cirq/ops/**'
+
+'area/simulation':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-core/cirq/sim/**'
+
+'area/transformers':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-core/cirq/transformers/**'
+  - any-glob-to-any-file: 'cirq-google/cirq_google/transformers/**'
+
+'area/experiments':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-core/cirq/experiments/**'
+  - any-glob-to-any-file: 'cirq-google/cirq_google/experimental/**'
+
+'area/protocols':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-core/cirq/protocols/**'
+
+'area/linalg':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-core/cirq/linalg/**'
+
+'area/devices':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-core/cirq/devices/**'
+
+'area/circuits':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-core/cirq/circuits/**'
+
+'area/contrib':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-core/cirq/contrib/**'
+
+'area/workflow':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-core/cirq/work/**'
+  - any-glob-to-any-file: 'cirq-google/cirq_google/workflow/**'
+
+'area/variational':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-core/cirq/study/**'
+  - any-glob-to-any-file: 'cirq-google/cirq_google/study/**'
+
+'area/qis':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-core/cirq/qis/**'
+
+'area/visualization':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-core/cirq/vis/**'
+
+'area/interop':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-core/cirq/interop/**'
+
+'area/serialization':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-google/cirq_google/serialization/**'
+
+'area/routing':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-core/cirq/transformers/routing/**'
+  - any-glob-to-any-file: 'cirq-core/cirq/contrib/routing/**'
+
+'area/noise':
+- changed-files:
+  - any-glob-to-any-file: 'docs/noise/**'
+
+'area/testing':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-core/cirq/testing/**'
+
+# --- Repository infrastructure ---
+
+'area/javascript':
+- changed-files:
+  - any-glob-to-any-file: 'cirq-web/cirq_web/**'
+
+'area/docs':
+- changed-files:
+  - any-glob-to-any-file: 'docs/**'
+
+'area/examples':
+- changed-files:
+  - any-glob-to-any-file: 'examples/**'
+
+'area/performance':
+- changed-files:
+  - any-glob-to-any-file: 'benchmarks/**'
+  - any-glob-to-any-file: 'dev_tools/profiling/**'
+
+'area/devops':
+- changed-files:
+  - any-glob-to-any-file: 'dev_tools/**'
+  - any-glob-to-any-file: 'check/**'
+
+'area/ci':
+- changed-files:
+  - any-glob-to-any-file: '.github/workflows/**'
+  - any-glob-to-any-file: 'dev_tools/requirements/**'
+
+'area/github':
+- changed-files:
+  - any-glob-to-any-file: '.github/**'
+
+'area/python':
+- changed-files:
+  - any-glob-to-any-file: '**/setup.py'
+  - any-glob-to-any-file: '**/pyproject.toml'
+  - any-glob-to-any-file: 'dev_tools/requirements/deps/**'
+
+'area/dependencies':
+- changed-files:
+  - any-glob-to-any-file: '**/*.lock'
+  - any-glob-to-any-file: 'dev_tools/requirements/**'
+
+'area/releases':
+- changed-files:
+  - any-glob-to-any-file: '.github/workflows/release-*.yml'
