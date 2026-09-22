@@ -220,21 +220,23 @@ def _simplify_commuting_cnots(
     (flip_control_target=True) of [4]:
     When flip_control_target=True:
 
-         CNOT(j, i) @ CNOT(j, k) = CNOT(j, k) @ CNOT(j, i)
-    ───X───────       ───────X───
-       │                     │
-    ───@───@───   =   ───@───@───
-           │             │
-    ───────X───       ───X───────
+             CNOT(j, i) @ CNOT(j, k) = CNOT(j, k) @ CNOT(j, i)
+
+        ───X───────       ───────X───
+           │                     │
+        ───@───@───   =   ───@───@───
+               │             │
+        ───────X───       ───X───────
 
     When flip_control_target=False:
 
-    CNOT(i, j) @ CNOT(k, j) = CNOT(k, j) @ CNOT(i, j)
-    ───@───────       ───────@───
-       │                     │
-    ───X───X───   =   ───X───X───
-           │             │
-    ───────@───       ───@───────
+        CNOT(i, j) @ CNOT(k, j) = CNOT(k, j) @ CNOT(i, j)
+
+        ───@───────       ───────@───
+           │                     │
+        ───X───X───   =   ───X───X───
+               │             │
+        ───────@───       ───@───────
 
     Args:
         cnots: A list of CNOTs, encoded as integer tuples (control, target). The code does not make
@@ -277,12 +279,13 @@ def _simplify_cnots_triplets(
 ) -> tuple[bool, list[tuple[int, int]]]:
     """Simplifies CNOT pairs according to equation 11 of [4].
 
-    CNOT(i, j) @ CNOT(j, k) == CNOT(j, k) @ CNOT(i, k) @ CNOT(i, j)
-    ───@───────       ───────@───@───
-       │                     │   │
-    ───X───@───   =   ───@───┼───X───
-           │             │   │
-    ───────X───       ───X───X───────
+        CNOT(i, j) @ CNOT(j, k) == CNOT(j, k) @ CNOT(i, k) @ CNOT(i, j)
+
+        ───@───────       ───────@───@───
+           │                     │   │
+        ───X───@───   =   ───@───┼───X───
+               │             │   │
+        ───────X───       ───X───X───────
 
     Args:
         cnots: A list of CNOTs, encoded as integer tuples (control, target).

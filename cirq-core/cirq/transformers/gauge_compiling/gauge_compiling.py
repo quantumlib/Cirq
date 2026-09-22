@@ -41,9 +41,10 @@ if TYPE_CHECKING:
 
 class Gauge(abc.ABC):
     """A gauge replaces a two qubit gate with an equivalent subcircuit.
-    0: pre_q0───────two_qubit_gate───────post_q0
-                        |
-    1: pre_q1───────two_qubit_gate───────post_q1
+
+        0: pre_q0───────two_qubit_gate───────post_q0
+                            |
+        1: pre_q1───────two_qubit_gate───────post_q1
 
     The Gauge class in general represents a family of closely related gauges
     (e.g. random z-rotations); Use `sample` method to get a specific gauge.

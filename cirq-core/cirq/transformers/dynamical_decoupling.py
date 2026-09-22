@@ -210,11 +210,13 @@ class _Grid:
     backtracking.
 
     An example labeled circuit is shown below:
-         |  0  |  1  |  2  |  3  |  4  |
-    -----+-----+-----+-----+-----+-----+
-    q(0) |  d  |  i  | i,s |  d  |  w  |
-    q(1) |  d  |  i  | d,s |  w  |  w  |
-    q(2) |  d  |  d  | d,s |  w  |  w  |
+
+             |  0  |  1  |  2  |  3  |  4  |
+        -----+-----+-----+-----+-----+-----+
+        q(0) |  d  |  i  | i,s |  d  |  w  |
+        q(1) |  d  |  i  | d,s |  w  |  w  |
+        q(2) |  d  |  d  | d,s |  w  |  w  |
+
     where `w`=WALL, `d`=DOOR, `i`=INSERTABLE. `s` represents a stop gate,
     meaning that any unfinished DD sequences must be merged at this gate.
     """

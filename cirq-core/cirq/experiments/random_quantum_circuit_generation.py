@@ -41,21 +41,21 @@ class GridInteractionLayer(Container[GridQubitPairT]):
     Layers of this type have two different basic structures,
     aligned:
 
-    *-* *-* *-*
-    *-* *-* *-*
-    *-* *-* *-*
-    *-* *-* *-*
-    *-* *-* *-*
-    *-* *-* *-*
+        *-* *-* *-*
+        *-* *-* *-*
+        *-* *-* *-*
+        *-* *-* *-*
+        *-* *-* *-*
+        *-* *-* *-*
 
     and staggered:
 
-    *-* *-* *-*
-    * *-* *-* *
-    *-* *-* *-*
-    * *-* *-* *
-    *-* *-* *-*
-    * *-* *-* *
+        *-* *-* *-*
+        * *-* *-* *
+        *-* *-* *-*
+        * *-* *-* *
+        *-* *-* *-*
+        * *-* *-* *
 
     Other variants are obtained by offsetting these lattices to the right by
     some number of columns, and/or transposing into the vertical orientation.
@@ -64,13 +64,13 @@ class GridInteractionLayer(Container[GridQubitPairT]):
     The 2x2 unit cells for the aligned and staggered versions of this layer
     are, respectively:
 
-    *-*
-    *-*
+        *-*
+        *-*
 
     and
 
-    *-*
-    * *-
+        *-*
+        * *-
 
     with left/top qubits at (0, 0) and (1, 0) in the aligned case, or
     (0, 0) and (1, 1) in the staggered case. Other variants have the same unit
