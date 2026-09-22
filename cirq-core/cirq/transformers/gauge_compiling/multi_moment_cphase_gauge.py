@@ -142,6 +142,7 @@ def _pull_through_single_cphase(
     cphase: ops.CZPowGate, input0: _PauliAndZPow, input1: _PauliAndZPow
 ) -> tuple[ops.CZPowGate, _PauliAndZPow, _PauliAndZPow]:
     """Pulls input0 and input1 through a CZPowGate.
+
     Input:                      Output:
     0: ─(input0)─@─────         0: ─@────────(output0)─
                  │        ==>       │

@@ -36,9 +36,9 @@ def is_topologically_sorted(
 
     For example, suppose the (transitive reduction of the) circuit DAG is
 
-         ╭─> Op2 ─╮
-    Op1 ─┤        ├─> Op4
-         ╰─> Op3 ─╯
+             ╭─> Op2 ─╮
+        Op1 ─┤        ├─> Op4
+             ╰─> Op3 ─╯
 
     Then [Op1, Op2, Op3, Op4] and [Op1, Op3, Op2, Op4] (and any operations
     tree that flattens to one of them) are topologically sorted according

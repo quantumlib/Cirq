@@ -166,17 +166,17 @@ class TiltedSquareLattice(NamedTopology):
     An example diagram of this topology is shown below. It is a
     "tilted-square-lattice-6-4" with width 6 and height 4.
 
-              x
-              │
-         x────X────x
-         │    │    │
-    x────X────x────X────x
-         │    │    │    │
-         x────X────x────X───x
-              │    │    │
-              x────X────x
-                   │
-                   x
+                  x
+                  │
+             x────X────x
+             │    │    │
+        x────X────x────X────x
+             │    │    │    │
+             x────X────x────X───x
+                  │    │    │
+                  x────X────x
+                       │
+                       x
 
     Nodes are 2-tuples of integers which may be negative. Please see `get_placements` for
     mapping this topology to a GridQubit Device.
