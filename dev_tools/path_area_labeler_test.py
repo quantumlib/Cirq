@@ -185,6 +185,13 @@ def test_main_issue_number_without_matching_labels(monkeypatch: pytest.MonkeyPat
     assert rc == 0
 
 
-def test_main_requires_github_repository_for_issue_number() -> None:
+def test_main_requires_github_repository_for_issue_number(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("GITHUB_REPOSITORY", raising=False)
     with pytest.raises(SystemExit, match="GITHUB_REPOSITORY"):
         path_area_labeler.main(["--issue-number", "1"])
+
+
+def test_require_env_raises_for_missing_variable(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("GITHUB_REPOSITORY", raising=False)
+    with pytest.raises(SystemExit, match="GITHUB_REPOSITORY"):
+        path_area_labeler._require_env("GITHUB_REPOSITORY")
