@@ -43,7 +43,7 @@ def integrated_histogram(
     fidelity from the list is less than the x-value. It will look something like
     this
 
-        1.0 
+        1.0
             │           │
             │       ┌───┘
             │       │
