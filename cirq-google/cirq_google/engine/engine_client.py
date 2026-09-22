@@ -1171,7 +1171,7 @@ class EngineClient:
         stim_circuit: str | stim.Circuit,
         qec_recipe: list[str],
         processor_id: str,
-        device_config_revision: DeviceConfigRevision = Run(id='default'),
+        device_config_revision: DeviceConfigRevision = Run(id='current'),
         config_name: str = 'default',
     ) -> cirq.Circuit:
         """Takes the given Stim circuit and compiles it to a cirq Circuit.
