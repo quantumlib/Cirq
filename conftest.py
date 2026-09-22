@@ -50,7 +50,7 @@ def _config_set_xdist_worksteal(config) -> None:
 
     # Skip if dist was already set to a non-default mode.
     if config.getoption("dist", default=None) not in (None, "no", "load"):
-        return
+        return  # pragma: no cover
 
     inv_params = getattr(config, "invocation_params", None)
     args: list = list(inv_params.args) if inv_params else []
@@ -58,7 +58,7 @@ def _config_set_xdist_worksteal(config) -> None:
         addopts = config.getini("addopts")
         if isinstance(addopts, list):
             args.extend(addopts)
-    except (ValueError, AttributeError):
+    except (ValueError, AttributeError):  # pragma: no cover
         pass
 
     # Only apply 'worksteal' if no explicit --dist / -d flag was given.
@@ -71,14 +71,14 @@ def pytest_configure(config):
 
     # Only run in the controlling process, before workers are started.
     if hasattr(config, "workerinput"):
-        return
+        return  # pragma: no cover
     try:
         numprocesses = config.getoption("numprocesses", default=None)
     except ValueError:
         # pytest-xdist is not being used.
-        return
+        return  # pragma: no cover
     if numprocesses in (None, 0, 1, "0", "1"):
         # pytest-xdist is being used, but not with multiple workers.
-        return
+        return  # pragma: no cover
 
     _config_set_xdist_worksteal(config)
