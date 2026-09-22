@@ -15,6 +15,8 @@
 from __future__ import annotations
 
 import pathlib
+import subprocess
+import sys
 from unittest import mock
 
 import pytest
@@ -195,3 +197,20 @@ def test_require_env_raises_for_missing_variable(monkeypatch: pytest.MonkeyPatch
     monkeypatch.delenv("GITHUB_REPOSITORY", raising=False)
     with pytest.raises(SystemExit, match="GITHUB_REPOSITORY"):
         path_area_labeler._require_env("GITHUB_REPOSITORY")
+
+
+def test_main_module_entrypoint_via_subprocess() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "dev_tools.path_area_labeler",
+            "--text",
+            "docs/dev/triage.md",
+            "--dry-run",
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "area/docs" in result.stdout
