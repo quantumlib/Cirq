@@ -33,8 +33,6 @@ class AnalogDetuneQubit(cirq.ops.Gate):
 
     Pulse shape:
 
-    .. svgbob::
-      :align: center
                    |   ,--------|---- amp (calculated from target freq using analog model)
                    |  /         |
         prev_amp---|-' - - - - -| - -
