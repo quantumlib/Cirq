@@ -74,9 +74,9 @@ def pytest_configure(config):
         return  # pragma: no cover
     try:
         numprocesses = config.getoption("numprocesses", default=None)
-    except ValueError:
+    except ValueError:  # pragma: no cover
         # pytest-xdist is not being used.
-        return  # pragma: no cover
+        return
     if numprocesses in (None, 0, 1, "0", "1"):
         # pytest-xdist is being used, but not with multiple workers.
         return  # pragma: no cover
