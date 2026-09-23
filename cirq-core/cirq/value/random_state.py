@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any, cast
 
 import numpy as np
@@ -38,6 +39,27 @@ document(
     """,
 )
 
+PRNG_OR_SEED_LIKE = Any
+document(
+    PRNG_OR_SEED_LIKE,
+    """A pseudorandom number generator or object that can be converted to one.
+
+    If None, a new `np.random.Generator` is created using the default
+    `np.random.default_rng()` (which uses the system entropy).
+
+    If an integer or `np.random.SeedSequence`, a new `np.random.Generator` is
+    created using `np.random.default_rng(seed)`.
+
+    If an instance of `np.random.Generator`, it is returned unmodified.
+
+    If an instance of `np.random.RandomState`, a deprecation warning is issued
+    and it is returned unmodified (or converted if the context requires a
+    Generator, but `RandomState` does not have `Generator` interface, so it
+    is kept as is for backward compatibility in this helper, though callers
+    should migrate to `Generator`).
+    """,
+)
+
 
 def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.RandomState:
     """Interpret an object as a pseudorandom number generator.
@@ -53,10 +75,45 @@ def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.Ran
 
     Returns:
         The pseudorandom number generator object.
+
+    Note:
+        This function is deprecated. Use `parse_random_generator` instead.
     """
+    warnings.warn(
+        "parse_random_state is deprecated. Use parse_random_generator instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     if random_state is None:
         return cast(np.random.RandomState, np.random)
     elif isinstance(random_state, int):
         return np.random.RandomState(random_state)
     else:
         return cast(np.random.RandomState, random_state)
+
+
+def parse_random_generator(random_state: PRNG_OR_SEED_LIKE) -> np.random.Generator:
+    """Interpret an object as a pseudorandom number generator.
+
+    If `random_state` is None, returns a new `np.random.Generator` created
+    via `np.random.default_rng()`.
+    If `random_state` is an integer or `np.random.SeedSequence`, returns
+    `np.random.default_rng(random_state)`.
+    If `random_state` is a `np.random.Generator`, returns it unmodified.
+    Otherwise, returns `random_state` unmodified.
+
+    Args:
+        random_state: The object to be used as or converted to a pseudorandom
+            number generator.
+
+    Returns:
+        The pseudorandom number generator object.
+    """
+    if random_state is None:
+        return np.random.default_rng()
+    elif isinstance(random_state, np.random.Generator):
+        return random_state
+    elif isinstance(random_state, (int, np.random.SeedSequence)):
+        return np.random.default_rng(random_state)
+    else:
+        return cast(np.random.Generator, random_state)
