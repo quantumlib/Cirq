@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import abc
 import collections
+import functools
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from typing import Any, cast, Generic, TYPE_CHECKING, TypeVar
 
@@ -82,11 +83,28 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         if not program.has_measurements():
             raise ValueError("Circuit has no measurements to sample.")
 
+        @functools.cache
+        def _zero_repetition_records() -> dict[str, np.ndarray]:
+            """Returns records dictionary for a zero-repetition simulation.
+
+            Collects measurement keys in the circuit, number of their instances and
+            number of qubits measured to produce correct shape of zero-size records arrays.
+            """
+            num_instances: dict[str, int] = collections.defaultdict(int)
+            num_qubits: dict[str, int] = {}
+            for _, op, _ in program.findall_operations_with_gate_type(ops.MeasurementGate):
+                key = protocols.measurement_key_name(op)
+                num_instances[key] += 1
+                num_qubits[key] = protocols.num_qubits(op)
+            return {
+                key: np.empty((0, num_instances[key], num_qubits[key]))
+                for key in num_instances.keys()
+            }
+
         for param_resolver in study.to_resolvers(params):
             records = {}
             if repetitions == 0:
-                for _, op, _ in program.findall_operations_with_gate_type(ops.MeasurementGate):
-                    records[protocols.measurement_key_name(op)] = np.empty([0, 1, 1])
+                records = _zero_repetition_records()
             else:
                 records = self._run(
                     circuit=program, param_resolver=param_resolver, repetitions=repetitions
