@@ -106,14 +106,13 @@ jobs:
         with:
           ref: ${{github.event.repository.default_branch}}
           sparse-checkout: |
-            .github/labeler.yml
+            .github/labeler.yaml
 
       - name: Label the PR with area labels
-        continue-on-error: true
-        uses: actions/labeler@8558fd74291d67161a8a78ce36a881fa63b766a9 # v5.0.0
+        uses: actions/labeler@f27b608878404679385c85cfa523b85ccb86e213 # v6.1.0
         with:
           repo-token: ${{secrets.GITHUB_TOKEN}}
-          configuration-path: .github/labeler.yml
+          configuration-path: .github/labeler.yaml
           sync-labels: false
           dot: true
           pr-number: ${{inputs.pr-number || github.event.pull_request.number}}

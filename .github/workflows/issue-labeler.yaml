@@ -53,28 +53,3 @@ jobs:
         run: |
           gh issue edit "${ISSUE_NUMBER}" --repo "${{github.repository}}" \
             --add-label "triage/discuss"
-
-  label-issue-area:
-    if: github.repository_owner == 'quantumlib'
-    name: Add area labels from mentioned paths
-    runs-on: ubuntu-slim
-    timeout-minutes: 5
-    permissions:
-      contents: read
-      issues: write
-    steps:
-      - name: Check out labeler configuration
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          sparse-checkout: |
-            .github/labeler.yml
-            dev_tools/path_area_labeler.py
-
-      - name: Add area labels when paths are mentioned
-        continue-on-error: true
-        env:
-          GH_TOKEN: '${{secrets.GITHUB_TOKEN}}'
-          GITHUB_REPOSITORY: '${{github.repository}}'
-          ISSUE_NUMBER: ${{inputs.issue-number || github.event.issue.number}}
-        run: |
-          python3 dev_tools/path_area_labeler.py --issue-number "${ISSUE_NUMBER}"
