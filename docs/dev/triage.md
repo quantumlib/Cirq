@@ -92,7 +92,7 @@ Path-based `area/*` and `interface/*` labels are applied automatically for pull 
 from changed files. Rules are defined in
 [`.github/labeler.yaml`](https://github.com/quantumlib/Cirq/blob/main/.github/labeler.yaml);
 see
-[`dev_tools/labels/README.md`](https://github.com/quantumlib/Cirq/blob/main/dev_tools/labels/README.md)
+[`dev_tools/labels/README.md`](../../dev_tools/labels/README.md)
 for how to extend them.
 
 
