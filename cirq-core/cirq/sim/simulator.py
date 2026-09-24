@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import abc
 import collections
+import functools
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from typing import Any, cast, Generic, TYPE_CHECKING, TypeVar
 
@@ -82,11 +83,19 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         if not program.has_measurements():
             raise ValueError("Circuit has no measurements to sample.")
 
+        @functools.cache
+        def _zero_repetition_records() -> dict[str, np.ndarray]:
+            """Returns records dictionary for a zero-repetition simulation."""
+            shapes = self._get_measurement_shapes(program)
+            return {
+                k: np.empty((0, num_instances, len(qid_shape)), dtype=np.uint8)
+                for k, (num_instances, qid_shape) in shapes.items()
+            }
+
         for param_resolver in study.to_resolvers(params):
             records = {}
             if repetitions == 0:
-                for _, op, _ in program.findall_operations_with_gate_type(ops.MeasurementGate):
-                    records[protocols.measurement_key_name(op)] = np.empty([0, 1, 1])
+                records = _zero_repetition_records()
             else:
                 records = self._run(
                     circuit=program, param_resolver=param_resolver, repetitions=repetitions
