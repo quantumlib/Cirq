@@ -127,7 +127,10 @@ def test_run_simulator_with_zero_repetitions() -> None:
         cirq.measure(q0, key='m0'),
     )
     expected_result = cirq.ResultDict(
-        records={'m0': np.empty((0, 2, 1)), 'm12': np.empty((0, 3, 2))}
+        records={
+            'm0': np.empty((0, 2, 1), dtype=np.uint8),
+            'm12': np.empty((0, 3, 2), dtype=np.uint8),
+        }
     )
     assert expected_result == simulator.run(program=circuit, repetitions=0)
 
