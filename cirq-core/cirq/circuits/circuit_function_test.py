@@ -1,0 +1,206 @@
+# Copyright 2026 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import pytest
+import sympy
+
+import cirq
+
+
+def test_construction_unparameterized() -> None:
+    q = cirq.q(0)
+    c = cirq.Circuit(cirq.X(q))
+    cf = cirq.CircuitFunction("test_function", c)
+    assert cf.name == "test_function"
+    assert cf.circuit == c.freeze()
+    assert cf.function_params == ()
+    assert cf.all_qubits() == frozenset((q,))
+
+    # Expose nonfunctional parameter.
+    theta = sympy.Symbol('theta')
+    cf = cirq.CircuitFunction("test_function", c, function_params=[theta])
+    assert cf.function_params == (theta,)
+
+
+def test_construction_basic() -> None:
+    # Parameter exposed.
+    q = cirq.q(0)
+    theta = sympy.Symbol('theta')
+    c = cirq.Circuit(cirq.X(q) ** theta)
+    cf = cirq.CircuitFunction("test_function", c, function_params=[theta])
+    assert cf.name == "test_function"
+    assert cf.circuit == c.freeze()
+    assert cf.function_params == (theta,)
+    assert cf.all_qubits() == frozenset((q,))
+
+    cf = cirq.CircuitFunction("test_function", c)
+    assert cf.function_params == (theta,)
+
+    # Parameter not exposed.
+    cf = cirq.CircuitFunction("test_function", c, function_params=[])
+    assert cf.function_params == ()
+
+    with pytest.raises(TypeError, match='Function name must be a string'):
+        _ = cirq.CircuitFunction(10, c)  # type: ignore[arg-type]
+
+    with pytest.raises(ValueError, match='Function name must be a non-empty string'):
+        _ = cirq.CircuitFunction("", c)
+
+    with pytest.raises(TypeError, match='Expected circuit of type AbstractCircuit'):
+        _ = cirq.CircuitFunction("test_function", 5)  # type: ignore[arg-type]
+
+    with pytest.raises(
+        TypeError, match=r"All parameters must be sympy Symbols, got: 5 \(int\), x \(str\)"
+    ):
+        _ = cirq.CircuitFunction("test_function", c, function_params=[5, 'x'])
+
+    with pytest.raises(ValueError, match='duplicate parameters: theta'):
+        _ = cirq.CircuitFunction("test_function", c, function_params=[theta, theta])
+
+    x1 = sympy.Symbol('x', positive=True)
+    x2 = sympy.Symbol('x', positive=False)
+    with pytest.raises(ValueError, match='duplicate parameters: x'):
+        cf = cirq.CircuitFunction("test_function", c, function_params=[x1, x2])
+
+
+def test_construction_vqid() -> None:
+    # Parameter exposed, vqid not exposed.
+    x = sympy.Symbol('x')
+    q = cirq.VariableLineQid(x)
+    theta = sympy.Symbol('theta')
+    c = cirq.Circuit(cirq.X(q) ** theta)
+    cf = cirq.CircuitFunction("test_function", c, function_params=[theta])
+    assert cf.name == "test_function"
+    assert cf.circuit == c.freeze()
+    assert cf.function_params == (theta,)
+    assert cf.all_qubits() == frozenset((q,))
+
+    # Parameter exposed, vqid exposed.
+    cf = cirq.CircuitFunction("test_function", c, function_params=[theta, x])
+    assert cf.function_params == (theta, x)
+
+    cf = cirq.CircuitFunction("test_function", c)
+    assert cf.function_params == (theta, x)
+
+    # Parameter not exposed, vqid exposed.
+    cf = cirq.CircuitFunction("test_function", c, function_params=[x])
+    assert cf.function_params == (x,)
+
+    # Parameter not exposed, vqid not exposed.
+    cf = cirq.CircuitFunction("test_function", c, function_params=[])
+    assert cf.function_params == ()
+
+
+def test_repr() -> None:
+    x = sympy.Symbol('x')
+    qx = cirq.VariableLineQid(x)
+    q0 = cirq.q(0)
+    theta = sympy.Symbol('theta')
+    cx = cirq.Circuit(cirq.X(qx) ** theta)
+    c0 = cirq.Circuit(cirq.X(q0) ** theta)
+    cirq.testing.assert_equivalent_repr(
+        cirq.CircuitFunction("test_function", c0, function_params=[theta])
+    )
+    cirq.testing.assert_equivalent_repr(
+        cirq.CircuitFunction("test_function", cx, function_params=[])
+    )
+    cirq.testing.assert_equivalent_repr(
+        cirq.CircuitFunction("test_function", cx, function_params=[theta])
+    )
+    cirq.testing.assert_equivalent_repr(
+        cirq.CircuitFunction("test_function", cx, function_params=[theta, x])
+    )
+
+
+def test_str() -> None:
+    x = sympy.Symbol('x')
+    qx = cirq.VariableLineQid(x)
+    theta = sympy.Symbol('theta')
+    cx = cirq.Circuit(cirq.X(qx) ** theta)
+    assert str(cirq.CircuitFunction("test_function", cx, function_params=[])) == "test_function()"
+    assert (
+        str(cirq.CircuitFunction("test_function", cx, function_params=[theta]))
+        == "test_function(theta)"
+    )
+    assert str(cirq.CircuitFunction("test_function", cx)) == "test_function(theta, x)"
+
+
+def test_eq() -> None:
+    x = sympy.Symbol('x')
+    qx = cirq.VariableLineQid(x)
+    theta = sympy.Symbol('theta')
+    cx = cirq.Circuit(cirq.X(qx) ** theta)
+
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(
+        cirq.CircuitFunction("test_function", cx),
+        cirq.CircuitFunction("test_function", cx, function_params=[theta, x]),
+    )
+    eq.add_equality_group(cirq.CircuitFunction("test_function2", cx))
+    eq.add_equality_group(
+        cirq.CircuitFunction("test_function", cx, function_params=[]),
+        cirq.CircuitFunction("test_function", cx.freeze(), function_params=[]),
+    )
+    eq.add_equality_group(cirq.CircuitFunction("test_function", cx, function_params=[x, theta]))
+
+
+def test_call() -> None:
+    x = sympy.Symbol('x')
+    qx = cirq.VariableLineQid(x)
+    theta = sympy.Symbol('theta')
+    cx = cirq.Circuit(cirq.X(qx) ** theta)
+    cf = cirq.CircuitFunction("test_function", cx, function_params=[x, theta])
+    assert cf(2, 3) == cirq.Circuit(cirq.X(cirq.q(2)) ** 3)
+    assert isinstance(cf(2, 3), cirq.FrozenCircuit)
+    assert cf(2, theta=3) == cirq.Circuit(cirq.X(cirq.q(2)) ** 3)
+    assert cf(x=2, theta=3) == cirq.Circuit(cirq.X(cirq.q(2)) ** 3)
+    assert cf(theta=3, x=2) == cirq.Circuit(cirq.X(cirq.q(2)) ** 3)
+
+    with pytest.raises(TypeError, match=r"test_function takes 2 parameter\(s\) but received 0"):
+        _ = cf()
+
+    with pytest.raises(TypeError, match=r"test_function takes 2 parameter\(s\) but received 1"):
+        _ = cf(2)
+
+    with pytest.raises(TypeError, match=r"test_function takes 2 parameter\(s\) but received 3"):
+        _ = cf(2, 3, 4)
+
+    with pytest.raises(TypeError, match="duplicate parameters: x"):
+        _ = cf(2, x=3)
+
+    with pytest.raises(TypeError, match="CircuitFunction test_function called with unrecognized"):
+        _ = cf(2, y=3)
+
+    with pytest.raises(TypeError, match="unrecognized keyword arguments: y"):
+        _ = cf(2, 3, y=4)
+
+    cf = cirq.CircuitFunction("test_function", cx, function_params=[x])
+    assert cf(2) == cirq.Circuit(cirq.X(cirq.q(2)) ** theta)
+    assert isinstance(cf(2), cirq.FrozenCircuit)
+    assert cirq.resolve_parameters(cf(2), {theta: 3}) == cirq.Circuit(cirq.X(cirq.q(2)) ** 3)
+
+    a, b = sympy.symbols('a b')
+    assert cf(a + b) == cirq.Circuit(cirq.X(cirq.VariableLineQid(a + b)) ** theta)
+    assert cf(sympy.Integer(2)) == cirq.Circuit(cirq.X(cirq.q(2)) ** theta)
+
+
+def test_resolve_parameters() -> None:
+    x = sympy.Symbol('x')
+    qx = cirq.VariableLineQid(x)
+    theta = sympy.Symbol('theta')
+    cx = cirq.Circuit(cirq.X(qx) ** theta)
+    cf = cirq.CircuitFunction("test_function", cx, function_params=[x])
+
+    # resolve parameters should do nothing
+    assert cirq.resolve_parameters(cf, {x: 2, theta: 3}) == cf
