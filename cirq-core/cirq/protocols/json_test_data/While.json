@@ -1,0 +1,102 @@
+[
+  {
+    "cirq_type": "While",
+    "condition": [
+      {
+        "cirq_type": "KeyCondition",
+        "index": -1,
+        "key": {
+          "cirq_type": "MeasurementKey",
+          "name": "a",
+          "path": []
+        }
+      },
+      {
+        "cirq_type": "KeyCondition",
+        "index": -1,
+        "key": {
+          "cirq_type": "MeasurementKey",
+          "name": "b",
+          "path": []
+        }
+      }
+    ],
+    "sub_operation": {
+      "cirq_type": "SingleQubitPauliStringGateOperation",
+      "pauli": {
+        "cirq_type": "_PauliY",
+        "exponent": 1.0,
+        "global_shift": 0.0
+      },
+      "qubit": {
+        "cirq_type": "NamedQubit",
+        "name": "target"
+      }
+    }
+  },
+  {
+    "cirq_type": "While",
+    "condition": [
+      {
+        "cirq_type": "KeyCondition",
+        "index": -1,
+        "key": {
+          "cirq_type": "MeasurementKey",
+          "name": "a",
+          "path": []
+        }
+      }
+    ],
+    "sub_operation": {
+      "cirq_type": "CircuitOperation",
+      "circuit": {
+        "cirq_type": "VAL",
+        "key": 0,
+        "val": {
+          "cirq_type": "FrozenCircuit",
+          "moments": [
+            {
+              "cirq_type": "Moment",
+              "operations": [
+                {
+                  "cirq_type": "SingleQubitPauliStringGateOperation",
+                  "pauli": {
+                    "cirq_type": "_PauliX",
+                    "exponent": 1.0,
+                    "global_shift": 0.0
+                  },
+                  "qubit": {
+                    "cirq_type": "LineQubit",
+                    "x": 0
+                  }
+                },
+                {
+                  "cirq_type": "SingleQubitPauliStringGateOperation",
+                  "pauli": {
+                    "cirq_type": "_PauliY",
+                    "exponent": 1.0,
+                    "global_shift": 0.0
+                  },
+                  "qubit": {
+                    "cirq_type": "LineQubit",
+                    "x": 1
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "measurement_key_map": {},
+      "param_resolver": {
+        "cirq_type": "ParamResolver",
+        "param_dict": []
+      },
+      "parent_path": [],
+      "qubit_map": [],
+      "repetition_ids": null,
+      "repetitions": 1,
+      "use_repetition_ids": false
+    }
+  }
+]
