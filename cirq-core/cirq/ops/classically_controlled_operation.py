@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import textwrap
 from collections.abc import Mapping, Sequence, Set
 from typing import Any, TYPE_CHECKING
 
@@ -239,5 +240,16 @@ class ClassicallyControlledOperation(raw_types.Operation):
         subop_qasm = protocols.qasm(self._sub_operation, args=args)
         if not self._conditions:
             return subop_qasm
+
         condition_qasm = " && ".join(protocols.qasm(c, args=args) for c in self._conditions)
-        return f'if ({condition_qasm}) {subop_qasm}'
+
+        if subop_qasm.count('\n') <= 1:
+            return f'if ({condition_qasm}) {subop_qasm}'
+
+        if args.version == "2.0":
+            return "".join(
+                f"if ({condition_qasm}) {line}" for line in subop_qasm.splitlines(keepends=True)
+            )
+
+        body = textwrap.indent(subop_qasm, "    ")
+        return f"if ({condition_qasm}) {{\n{body}}}\n"
