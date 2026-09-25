@@ -1,7 +1,6 @@
 # Path-based label rules for pull requests.
 #
 # Used by actions/labeler in the Pull request labeler workflow.
-# See dev_tools/labels/README.md for how to extend these rules.
 #
 # Copyright 2026 The Cirq Developers
 #
