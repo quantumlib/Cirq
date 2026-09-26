@@ -35,38 +35,38 @@ spec:
 
     spec:
       containers:
-      - name: triage-party
-        image: triageparty/triage-party
-        imagePullPolicy: Always
-        args: ["/app/main", "--min-refresh","1m", "--max-refresh", "3m"]
-        env:
-        - name: GITHUB_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: triage-party-github-token
-              key: token
+        - name: triage-party
+          image: triageparty/triage-party
+          imagePullPolicy: Always
+          args: ["/app/main", "--min-refresh", "1m", "--max-refresh", "3m"]
+          env:
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: triage-party-github-token
+                  key: token
 
-        volumeMounts:
-        - name: config
-          mountPath: /app/config
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
 
-        - name: custom-css-volume
-          mountPath: /app/site/static/css/custom.css
-          subPath: custom.css
+            - name: custom-css-volume
+              mountPath: /app/site/static/css/custom.css
+              subPath: custom.css
 
-        - name: favicon-volume
-          mountPath: /app/site/static/img/favicon-32x32.png
-          subPath: favicon-32x32.png
+            - name: favicon-volume
+              mountPath: /app/site/static/img/favicon-32x32.png
+              subPath: favicon-32x32.png
 
       volumes:
-      - name: config
-        configMap:
-          name: triage-party-config
+        - name: config
+          configMap:
+            name: triage-party-config
 
-      - name: custom-css-volume
-        configMap:
-          name: cirq-triage-party-css
+        - name: custom-css-volume
+          configMap:
+            name: cirq-triage-party-css
 
-      - name: favicon-volume
-        configMap:
-          name: triage-party-favicon
+        - name: favicon-volume
+          configMap:
+            name: triage-party-favicon
