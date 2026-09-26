@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import numbers
 from typing import Any, cast
 
 import numpy as np
@@ -35,6 +36,18 @@ document(
     at hand. For example, it might be an existing instance of
     `np.random.RandomState` or a custom pseudorandom number generator
     implementation.
+    """,
+)
+
+PRNG_OR_SEED_LIKE = None | int | np.random.RandomState | np.random.Generator
+document(
+    PRNG_OR_SEED_LIKE,
+    """A pseudorandom number generator or object that can be converted to one.
+
+    If None, turns into a `np.random.Generator`.
+    If an integer, turns into a `np.random.Generator` seeded with that value.
+    If an instance of `np.random.Generator` or a subclass of it, returns it unmodified.
+    If an instance of `np.random.RandomState`, turns into a `np.random.Generator`.
     """,
 )
 
@@ -60,3 +73,32 @@ def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.Ran
         return np.random.RandomState(random_state)
     else:
         return cast(np.random.RandomState, random_state)
+
+
+def parse_random_generator(prng_or_seed: PRNG_OR_SEED_LIKE) -> np.random.Generator:
+    """Interpret an object as a pseudorandom number generator.
+
+    If `prng_or_seed` is an `np.random.Generator`, return it unmodified.
+    If `prng_or_seed` is None or an integer, returns a new `np.random.Generator`.
+    If `prng_or_seed` is an instance of `np.random.RandomState`,
+    returns `np.random.default_rng(prng_or_seed._bit_generator)`.
+
+    Args:
+        prng_or_seed: The object to be used as or converted to a pseudorandom
+            number generator.
+
+    Returns:
+        The pseudorandom number generator object.
+
+    Raises:
+        TypeError: If `prng_or_seed` can't be converted to an `np.random.Generator`.
+    """
+    if prng_or_seed is None:
+        return np.random.default_rng()
+    if isinstance(prng_or_seed, numbers.Integral):
+        return np.random.default_rng(int(prng_or_seed))
+    if isinstance(prng_or_seed, np.random.Generator):
+        return prng_or_seed
+    if isinstance(prng_or_seed, np.random.RandomState):
+        return np.random.default_rng(prng_or_seed._bit_generator)
+    raise TypeError(f"{prng_or_seed} cannot be converted to an np.random.Generator.")
