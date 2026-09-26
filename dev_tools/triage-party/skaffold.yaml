@@ -25,4 +25,4 @@ metadata:
 deploy:
   kustomize:
     paths:
-    - dev_tools/triage-party/kubernetes
+      - dev_tools/triage-party/kubernetes
