@@ -44,3 +44,27 @@ def test_parse_random_state() -> None:
     vals = [prng.rand() for prng in prngs1]
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(*vals)
+
+
+def test_parse_random_generator() -> None:
+    prngs = [
+        cirq.value.parse_random_generator(42),
+        cirq.value.parse_random_generator(np.random.default_rng(42)),
+    ]
+    vals = [prng.random() for prng in prngs]
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(*vals)
+
+    prng = cirq.value.parse_random_generator(None)
+    assert isinstance(prng, np.random.Generator)
+
+    prngs1 = [
+        cirq.value.parse_random_generator(np.random.RandomState(42)),
+        cirq.value.parse_random_generator(np.random.RandomState(42)),
+    ]
+    vals = [prng.random() for prng in prngs1]
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(*vals)
+
+    generator = np.random.default_rng(42)
+    assert cirq.value.parse_random_generator(generator) is generator
