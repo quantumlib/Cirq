@@ -76,6 +76,7 @@ def test_compilation_of_base_gate_itself(base_gate_name: str) -> None:
     assert result.num_base_gates == 1
     assert len(result.local_unitaries) == 2
     assert result.decomposition_fidelity >= 1 - 1e-8
+    cirq.testing.assert_allclose_up_to_global_phase(result.actual_gate, base_gate, atol=1e-6)
 
 
 def test_compilation_of_locally_equivalent_target() -> None:
@@ -177,8 +178,7 @@ def test_local_unitaries_reconstruct_actual_gate() -> None:
 def test_actual_gate_matches_target_up_to_global_phase() -> None:
     target = random_special_unitary(4, random_state=value.parse_random_state(78))
     result = two_qubit_gate_numerical_compilation(target, _CZ, random_state=17)
-    phase = np.trace(result.actual_gate.conj().T @ target) / 4
-    assert np.allclose(result.actual_gate * phase, target, atol=1e-6)
+    cirq.testing.assert_allclose_up_to_global_phase(result.actual_gate, target, atol=1e-6)
 
 
 def test_determinism_with_seed() -> None:
@@ -233,7 +233,9 @@ def test_numerical_compiler_equality() -> None:
     eq.add_equality_group(TwoQubitNumericalCompiler(base_gates=(_ISWAP,), random_state=3))
     eq.add_equality_group(TwoQubitNumericalCompiler(base_gates=(_CZ, _ISWAP), random_state=3))
     eq.add_equality_group(TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=4))
-    eq.add_equality_group(TwoQubitNumericalCompiler(base_gates=(_CZ,), max_layers=2))
+    eq.add_equality_group(
+        TwoQubitNumericalCompiler(base_gates=(_CZ,), max_layers=2, random_state=3)
+    )
 
 
 def test_numerical_compiler_repr() -> None:

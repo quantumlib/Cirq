@@ -155,7 +155,7 @@ def _template_unitary(params: np.ndarray, base_gate: np.ndarray, num_layers: int
 
 def _decomposition_fidelity(actual: np.ndarray, target: np.ndarray) -> float:
     r"""$F_d = |\mathrm{Tr}(U_d^\dagger U_t)| / \dim(U_t)$."""
-    return abs(np.trace(actual.conj().T @ target)) / target.shape[0]
+    return abs(np.vdot(actual, target)) / target.shape[0]
 
 
 def _optimize_template(
@@ -237,7 +237,7 @@ def two_qubit_gate_numerical_compilation(
     max_layers: int = 3,
     base_gate_error_rates: Sequence[float] | None = None,
     single_qubit_error_rates: float | tuple[float, float] = 0.0,
-    num_restarts: int = 3,
+    num_restarts: int = 10,
     maxiter: int = 1000,
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> TwoQubitNumericalCompilationResult:
@@ -346,15 +346,12 @@ def two_qubit_gate_numerical_compilation(
                 f'base_gate_error_rates must be in [0, 1], got {base_gate_error_rates}'
             )
     sqe = np.atleast_1d(np.asarray(single_qubit_error_rates, dtype=float))
-    if sqe.size == 1:
-        single_qubit_error_rate_pair = (sqe[0], sqe[0])
-    elif sqe.size == 2:
-        single_qubit_error_rate_pair = (sqe[0], sqe[1])
-    else:
+    if not 1 <= sqe.size <= 2:
         raise ValueError(
             'single_qubit_error_rates must be a single rate or a pair of rates '
             f'(one per qubit), got {single_qubit_error_rates}'
         )
+    single_qubit_error_rate_pair = (sqe[0], sqe[-1])
     if any(not 0 <= p <= 1 for p in single_qubit_error_rate_pair):
         raise ValueError(
             f'single_qubit_error_rates must be in [0, 1], got {single_qubit_error_rates}'
@@ -434,7 +431,7 @@ class TwoQubitNumericalCompiler:
     target_fidelity: float = 1 - 1e-8
     max_layers: int = 3
     single_qubit_error_rates: float | tuple[float, float] = 0.0
-    num_restarts: int = 3
+    num_restarts: int = 10
     maxiter: int = 1000
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None
     _cache: OrderedDict[bytes, TwoQubitNumericalCompilationResult] = dataclasses.field(
