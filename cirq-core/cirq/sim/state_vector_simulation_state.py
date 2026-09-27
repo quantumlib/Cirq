@@ -272,6 +272,30 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         )
         return bits
 
+    def post_select(self, axes: Sequence[int], subspaces: Sequence[Sequence[int]]) -> None:
+        """Projects the state vector onto a subspace of the computational basis.
+
+        Args:
+            axes: The axes to post-select on.
+            subspaces: The computational basis states spanning the subspace. Each one gives the
+                values of the post-selected axes, in the order of `axes`.
+
+        Raises:
+            ValueError: If the state vector has no support on the subspace. The state vector is
+                left unchanged in that case.
+        """
+        self._buffer.fill(0)
+        for subspace in subspaces:
+            index: list[slice | int] = [slice(None)] * self._state_vector.ndim
+            for axis, digit in zip(axes, subspace):
+                index[axis] = digit
+            self._buffer[tuple(index)] = self._state_vector[tuple(index)]
+        norm = np.linalg.norm(self._buffer)
+        if norm <= 10 * np.finfo(self._buffer.dtype).eps:
+            raise ValueError('The state has no support on the post-selected subspace.')
+        self._buffer /= norm
+        self._swap_target_tensor_for(self._buffer)
+
     def sample(
         self, axes: Sequence[int], repetitions: int = 1, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
     ) -> np.ndarray:

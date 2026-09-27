@@ -101,6 +101,23 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
             value.MeasurementKey.parse_serialized(key), corrected, qubits
         )
 
+    def post_select(self, qubits: Sequence[cirq.Qid], subspaces: Sequence[Sequence[int]]) -> None:
+        """Projects the state onto a subspace of the computational basis and renormalizes.
+
+        Args:
+            qubits: The qubits to post-select on.
+            subspaces: The computational basis states spanning the subspace. Each one gives the
+                values of the post-selected qubits, in the order of `qubits`.
+
+        Raises:
+            ValueError: If the state has no support on the subspace.
+            NotImplementedError: If the state representation does not support post-selection.
+        """
+        if self._state is not None:
+            self._state.post_select(self.get_axes(qubits), subspaces)
+            return
+        raise NotImplementedError()
+
     def get_axes(self, qubits: Sequence[cirq.Qid]) -> list[int]:
         return [self.qubit_map[q] for q in qubits]
 

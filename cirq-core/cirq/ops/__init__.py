@@ -216,6 +216,8 @@ from cirq.ops.phased_x_gate import PhasedXPowGate as PhasedXPowGate
 
 from cirq.ops.phased_x_z_gate import PhasedXZGate as PhasedXZGate
 
+from cirq.ops.post_selection_gate import PostSelectionGate as PostSelectionGate
+
 from cirq.ops.qid_util import q as q
 
 from cirq.ops.random_gate_channel import RandomGateChannel as RandomGateChannel

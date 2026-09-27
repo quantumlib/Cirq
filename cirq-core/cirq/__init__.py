@@ -289,6 +289,7 @@ from cirq.ops import (
     PhasedXZGate as PhasedXZGate,
     PhaseFlipChannel as PhaseFlipChannel,
     StatePreparationChannel as StatePreparationChannel,
+    PostSelectionGate as PostSelectionGate,
     ProductOfSums as ProductOfSums,
     ProjectorString as ProjectorString,
     ProjectorSum as ProjectorSum,

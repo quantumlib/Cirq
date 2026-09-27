@@ -52,6 +52,22 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
             The measurements in order.
         """
 
+    def post_select(self, axes: Sequence[int], subspaces: Sequence[Sequence[int]]) -> None:
+        """Projects the state onto a subspace of the computational basis and renormalizes.
+
+        The state must be left unchanged if the projection fails.
+
+        Args:
+            axes: The axes to post-select on.
+            subspaces: The computational basis states spanning the subspace. Each one gives the
+                values of the post-selected axes, in the order of `axes`.
+
+        Raises:
+            ValueError: If the state has no support on the subspace.
+            NotImplementedError: If the state representation does not support post-selection.
+        """
+        raise NotImplementedError(f'{type(self).__name__} does not support post-selection.')
+
     def sample(
         self, axes: Sequence[int], repetitions: int = 1, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
     ) -> np.ndarray:
