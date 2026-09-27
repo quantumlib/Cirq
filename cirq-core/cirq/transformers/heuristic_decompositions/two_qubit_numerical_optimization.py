@@ -100,8 +100,10 @@ class TwoQubitNumericalCompilationResult(NamedTuple):
         hardware_fidelity: $F_h = \prod_g (1 - p_g)$ over all gates $g$ in
             the decomposition, or None if no error rates were provided.
         num_base_gates: Number of base gate applications (layers) used.
-        success: Whether `decomposition_fidelity` meets the target fidelity
-            requested from the compiler.
+        success: Whether the returned decomposition meets the requested
+            `target_fidelity`; measured by `decomposition_fidelity` $F_d$,
+            or by the overall fidelity $F_u = F_d \cdot F_h$ when error
+            rates were provided to the compiler.
     """
 
     base_gate_unitary: np.ndarray
@@ -270,7 +272,9 @@ def two_qubit_gate_numerical_compilation(
     $F_h$ is the product of (1 - error_rate) over all gates in the
     decomposition. This can deliberately select an approximate decomposition
     with fewer base gates when hardware noise dominates the decomposition
-    error, and selects the best base gate type for each target unitary.
+    error, and selects the best base gate type for each target unitary. In
+    this mode `success` reports whether the selected decomposition meets
+    `target_fidelity` in terms of $F_u$.
 
     Args:
         target_unitary: The 4x4 unitary to compile.
@@ -281,6 +285,11 @@ def two_qubit_gate_numerical_compilation(
             once it is met; `success` in the result reports whether the
             returned decomposition meets it. Should be a float slightly below
             1, e.g. 1 - 1e-8 for exact compilation or 0.99 for approximate.
+            When `base_gate_error_rates` is given, the threshold instead
+            applies to the overall fidelity $F_u = F_d \cdot F_h$ and should
+            be chosen accordingly: the default 1 - 1e-8 is essentially
+            unattainable on noisy hardware ($F_h < 1$), so noise-adaptive
+            callers should set it explicitly, e.g. 0.95.
         max_layers: Maximum number of base gate applications allowed.
         base_gate_error_rates: Optional hardware error rate of each base gate,
             one per entry of `base_gates`. When given, the compiler maximizes
@@ -405,7 +414,7 @@ def two_qubit_gate_numerical_compilation(
                         target,
                         num_layers,
                         hardware_fidelity,
-                        success=fidelity >= target_fidelity,
+                        success=fidelity * hardware_fidelity >= target_fidelity,
                     )
 
     assert best is not None

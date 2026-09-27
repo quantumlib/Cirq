@@ -122,12 +122,14 @@ def test_noise_adaptive_compilation_prefers_higher_overall_fidelity() -> None:
     With CZ at 94% fidelity and sqrt-iSWAP at 70% fidelity, the compiler
     chooses an approximate 2-CZ decomposition (Fu = Fd * 0.94^2) over the exact
     3-CZ decomposition (Fu = 0.94^3) and over any sqrt-iSWAP decomposition.
+    With error rates given, `success` is measured by Fu.
     """
     target = random_special_unitary(4, random_state=value.parse_random_state(122))
     result = two_qubit_gate_numerical_compilation(
         target,
         [_CZ, _SQRT_ISWAP],
         base_gate_error_rates=[0.06, 0.30],
+        target_fidelity=0.85,
         max_layers=3,
         random_state=14,
     )
@@ -138,6 +140,34 @@ def test_noise_adaptive_compilation_prefers_higher_overall_fidelity() -> None:
     assert result.hardware_fidelity == pytest.approx(0.94**2)
     overall = result.decomposition_fidelity * result.hardware_fidelity
     assert overall > 0.94**3  # Beats the exact 3-CZ decomposition.
+    assert result.success  # Fu > 0.85, even though Fd < 1 - 1e-8.
+
+
+def test_noise_adaptive_compilation_prefers_more_reliable_gates() -> None:
+    """More applications of a reliable base gate can beat fewer of a noisy one.
+
+    Target: sqrt-iSWAP, decomposable exactly with either 1 sqrt-iSWAP or
+    2 CZ layers. With CZ at 1% error and sqrt-iSWAP at 30% error, the 2-CZ
+    decomposition (Fu = 0.99^2) wins over the 1-sqrt-iSWAP one (Fu = 0.7).
+    With error rates given, `success` is measured by Fu: despite the exact
+    Fd, Fu = 0.99^2 does not meet a 0.99 overall bar.
+    """
+    result = two_qubit_gate_numerical_compilation(
+        _SQRT_ISWAP,
+        [_CZ, _SQRT_ISWAP],
+        base_gate_error_rates=[0.01, 0.30],
+        target_fidelity=0.99,
+        random_state=21,
+    )
+    assert np.array_equal(result.base_gate_unitary, _CZ)
+    assert result.base_gate_index == 0
+    assert result.num_base_gates == 2
+    assert result.decomposition_fidelity >= 1 - 1e-8
+    assert result.hardware_fidelity is not None
+    assert result.hardware_fidelity == pytest.approx(0.99**2)
+    overall = result.decomposition_fidelity * result.hardware_fidelity
+    assert overall > 0.7  # Beats the exact 1-sqrt-iSWAP decomposition.
+    assert not result.success  # Fu = 0.99^2 < 0.99, despite the exact Fd.
 
 
 def test_noise_adaptive_compilation_single_qubit_error_rates() -> None:
