@@ -248,10 +248,12 @@ class AxisAngleDecomposition:
 
     The unitary $U$ is decomposed as follows:
 
-    $$U = g e^{-i \theta/2 (xX + yY + zZ)}$$
+    $$
+    U = g e^{-i \theta/2 (xX + yY + zZ)}
+    $$
 
-    where $\theta$ is the rotation angle, (x, y, z) is a unit vector along the
-    rotation axis, and g is the global phase.
+    where $\theta$ is the rotation angle, $(x, y, z)$ is a unit vector along the
+    rotation axis; $X$, $Y$, and $Z$ are the Pauli matrices; and $g$ is the global phase.
     """
 
     def __init__(self, *, angle: float, axis: tuple[float, float, float], global_phase: complex):
