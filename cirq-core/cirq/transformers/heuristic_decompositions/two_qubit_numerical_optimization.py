@@ -63,9 +63,6 @@ if TYPE_CHECKING:
 
 _SingleQubitGatePair = tuple[np.ndarray, np.ndarray]
 
-# Maximum number of compilation results memoized by TwoQubitNumericalCompiler.
-_MAX_CACHE_SIZE = 128
-
 
 class TwoQubitNumericalCompilationResult(NamedTuple):
     r"""Represents a numerical compilation of a target 2-qubit gate onto a base gate.
@@ -442,19 +439,26 @@ class TwoQubitNumericalCompiler:
     single_qubit_error_rates: float | tuple[float, float] = 0.0
     num_restarts: int = 10
     maxiter: int = 1000
+    max_cache_size: int = 128
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None
     _cache: OrderedDict[bytes, TwoQubitNumericalCompilationResult] = dataclasses.field(
-        default_factory=OrderedDict, repr=False
+        default_factory=OrderedDict, repr=False, init=False, compare=False
     )
+
+    def __post_init__(self) -> None:
+        if self.max_cache_size < 1:
+            raise ValueError(f'max_cache_size must be at least 1, got {self.max_cache_size}')
 
     def compile_two_qubit_gate(self, unitary: np.ndarray) -> TwoQubitNumericalCompilationResult:
         """Compile the given 4x4 unitary onto this compiler's base gate(s).
 
-        Results are memoized (least-recently-used, up to 128 entries):
-        compiling an identical unitary again returns the cached result
-        instead of re-running the numerical optimization.
+        Results are memoized (least-recently-used, up to `max_cache_size`
+        entries): compiling the same unitary again returns the cached result
+        instead of re-running the numerical optimization. Entries are rounded
+        to 10 decimals for the cache key, so unitaries differing only by
+        floating-point noise (e.g. from different fusion orders) still hit.
         """
-        key = np.asarray(unitary, dtype=complex).tobytes()
+        key = np.round(np.asarray(unitary, dtype=complex), 10).tobytes()
         if key in self._cache:
             self._cache.move_to_end(key)
             return self._cache[key]
@@ -470,7 +474,7 @@ class TwoQubitNumericalCompiler:
             random_state=self.random_state,
         )
         self._cache[key] = result
-        if len(self._cache) > _MAX_CACHE_SIZE:
+        if len(self._cache) > self.max_cache_size:
             self._cache.popitem(last=False)
         return result
 
@@ -489,6 +493,7 @@ class TwoQubitNumericalCompiler:
             'single_qubit_error_rates': self.single_qubit_error_rates,
             'num_restarts': self.num_restarts,
             'maxiter': self.maxiter,
+            'max_cache_size': self.max_cache_size,
             'random_state': self.random_state,
         }
 
@@ -502,6 +507,7 @@ class TwoQubitNumericalCompiler:
         single_qubit_error_rates,
         num_restarts,
         maxiter,
+        max_cache_size,
         random_state,
         **kwargs,
     ):
@@ -519,6 +525,7 @@ class TwoQubitNumericalCompiler:
             ),
             num_restarts=num_restarts,
             maxiter=maxiter,
+            max_cache_size=max_cache_size,
             random_state=random_state,
         )
 
@@ -534,6 +541,7 @@ class TwoQubitNumericalCompiler:
             f'single_qubit_error_rates={self.single_qubit_error_rates!r}, '
             f'num_restarts={self.num_restarts!r}, '
             f'maxiter={self.maxiter!r}, '
+            f'max_cache_size={self.max_cache_size!r}, '
             f'random_state={self.random_state!r})'
         )
 
@@ -552,5 +560,6 @@ class TwoQubitNumericalCompiler:
             and self.single_qubit_error_rates == other.single_qubit_error_rates
             and self.num_restarts == other.num_restarts
             and self.maxiter == other.maxiter
+            and self.max_cache_size == other.max_cache_size
             and self.random_state == other.random_state
         )

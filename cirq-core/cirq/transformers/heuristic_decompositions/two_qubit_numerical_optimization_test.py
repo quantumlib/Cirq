@@ -255,16 +255,25 @@ def test_numerical_compiler_wrapper() -> None:
 
 
 def test_numerical_compiler_equality() -> None:
+    # A non-empty memoization cache does not affect equality.
+    cached_compiler = TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=3)
+    cached_compiler.compile_two_qubit_gate(
+        random_special_unitary(4, random_state=value.parse_random_state(83))
+    )
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(
         TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=3),
         TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=3),
+        cached_compiler,
     )
     eq.add_equality_group(TwoQubitNumericalCompiler(base_gates=(_ISWAP,), random_state=3))
     eq.add_equality_group(TwoQubitNumericalCompiler(base_gates=(_CZ, _ISWAP), random_state=3))
     eq.add_equality_group(TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=4))
     eq.add_equality_group(
         TwoQubitNumericalCompiler(base_gates=(_CZ,), max_layers=2, random_state=3)
+    )
+    eq.add_equality_group(
+        TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=3, max_cache_size=64)
     )
 
 
@@ -314,21 +323,32 @@ def test_numerical_compiler_memoizes_results() -> None:
         assert wrapped.call_count == 2
 
 
+def test_numerical_compiler_cache_tolerates_numerical_noise() -> None:
+    """Unitaries differing only by floating-point noise share a cache entry."""
+    compiler = TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=8)
+    target = random_special_unitary(4, random_state=value.parse_random_state(103))
+    other = random_special_unitary(4, random_state=value.parse_random_state(104))
+    # Mathematically the same unitary, recomputed in a different order.
+    noisy = (target @ other) @ other.conj().T
+    assert noisy.tobytes() != target.tobytes()
+    with mock.patch(
+        'cirq.transformers.heuristic_decompositions.two_qubit_numerical_optimization'
+        '.two_qubit_gate_numerical_compilation',
+        wraps=two_qubit_gate_numerical_compilation,
+    ) as wrapped:
+        result = compiler.compile_two_qubit_gate(target)
+        assert compiler.compile_two_qubit_gate(noisy) is result
+        assert wrapped.call_count == 1
+
+
 def test_numerical_compiler_cache_evicts_least_recently_used() -> None:
-    """When the cache exceeds _MAX_CACHE_SIZE, the oldest entry is evicted."""
-    compiler = TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=7)
+    """When the cache exceeds max_cache_size, the oldest entry is evicted."""
+    compiler = TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=7, max_cache_size=2)
     targets = [np.full((4, 4), fill, dtype=complex) for fill in (1, 2, 3)]
-    with (
-        mock.patch(
-            'cirq.transformers.heuristic_decompositions.two_qubit_numerical_optimization'
-            '.two_qubit_gate_numerical_compilation'
-        ) as fake_compile,
-        mock.patch(
-            'cirq.transformers.heuristic_decompositions.two_qubit_numerical_optimization'
-            '._MAX_CACHE_SIZE',
-            2,
-        ),
-    ):
+    with mock.patch(
+        'cirq.transformers.heuristic_decompositions.two_qubit_numerical_optimization'
+        '.two_qubit_gate_numerical_compilation'
+    ) as fake_compile:
         for target in targets:
             compiler.compile_two_qubit_gate(target)
         assert fake_compile.call_count == 3
@@ -336,6 +356,11 @@ def test_numerical_compiler_cache_evicts_least_recently_used() -> None:
         assert fake_compile.call_count == 3
         compiler.compile_two_qubit_gate(targets[0])  # Evicted: recompiled.
         assert fake_compile.call_count == 4
+
+
+def test_numerical_compiler_invalid_max_cache_size() -> None:
+    with pytest.raises(ValueError, match='max_cache_size must be at least 1'):
+        TwoQubitNumericalCompiler(base_gates=(_CZ,), max_cache_size=0)
 
 
 def test_input_validation() -> None:

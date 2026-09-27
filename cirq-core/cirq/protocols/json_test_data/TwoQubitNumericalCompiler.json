@@ -191,5 +191,6 @@
   "single_qubit_error_rates": 0.0,
   "num_restarts": 3,
   "maxiter": 1000,
+  "max_cache_size": 128,
   "random_state": 5
 }
