@@ -106,8 +106,8 @@ class StabilizerStateChForm(qis.StabilizerState):
         return f'StabilizerStateChForm(num_qubits={self.n!r})'
 
     def inner_product_of_state_and_x(self, x: int) -> complex:
-        """Returns the amplitude of x'th element of
-        the state vector, i.e. <x|psi>"""
+        r"""Returns the amplitude of x'th element of
+        the state vector, i.e. $\langle x|\psi\rangle$"""
         if type(x) == int:
             y = cirq.big_endian_int_to_bits(x, bit_count=self.n)
 
