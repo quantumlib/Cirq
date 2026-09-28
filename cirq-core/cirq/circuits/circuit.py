@@ -675,19 +675,19 @@ class AbstractCircuit(abc.ABC):
 
         An operation is considered blocking if both of the following hold:
 
-        - It is in the 'light cone' of start_frontier.
+        - It is in the 'light cone' of `start_frontier`.
         - `is_blocker` returns a truthy value, or it acts on a blocked qubit
 
         Every qubit acted on by a blocking operation is thereafter itself
         blocked.
 
         The notion of reachability here differs from that in
-        reachable_frontier_from in two respects:
+        `reachable_frontier_from` in two respects:
 
         - An operation is not considered blocking only because it is in a
-            moment before the start_frontier of one of the qubits on which it
+            moment before the `start_frontier` of one of the qubits on which it
             acts.
-        - Operations that act on qubits not in start_frontier are not
+        - Operations that act on qubits not in `start_frontier` are not
             automatically blocking.
 
         For every (moment_index, operation) returned:
@@ -1216,7 +1216,7 @@ class AbstractCircuit(abc.ABC):
                 allowed (as opposed to ascii-only diagrams).
             transpose: Arranges qubit wires vertically instead of horizontally.
             include_tags: Controls which tags attached to operations are
-                included. ``True`` includes all tags, ``False`` includes none,
+                included. `True` includes all tags, `False` includes none,
                 or a collection of tag classes may be specified to include only
                 those tags.
             precision: Number of digits to display in text diagram
@@ -1261,7 +1261,7 @@ class AbstractCircuit(abc.ABC):
             qubit_namer: Names qubits in diagram. Defaults to using `_circuit_diagram_info_` or str.
             transpose: Arranges qubit wires vertically instead of horizontally.
             include_tags: Controls which tags attached to operations are
-                included. ``True`` includes all tags, ``False`` includes none,
+                included. `True` includes all tags, `False` includes none,
                 or a collection of tag classes may be specified to include only
                 those tags.
             draw_moment_groups: Whether to draw moment symbol or not
