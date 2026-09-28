@@ -379,7 +379,7 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
     ) -> XEBPhasedFSimCharacterizationOptions:
         """A new Options class with `{angle}_defaults` inferred from `gate`.
 
-        This keeps the same settings for the `characterize_{angle}` booleans, but will disregard
+        This keeps the same settings for the `characterize_{angle}` Booleans, but will disregard
         any current `{angle}_default` values.
         """
         return XEBPhasedFSimCharacterizationOptions(
