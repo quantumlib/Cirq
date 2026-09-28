@@ -71,7 +71,7 @@ def test_prepare_two_qubit_state_using_cz(state) -> None:
     assert ops_cz == ops_2q
     assert len(ops_cz) <= 1
     assert cirq.allclose_up_to_global_phase(
-        circuit.final_state_vector(ignore_terminal_measurements=False, dtype=np.complex64), state
+        circuit.final_state_vector(ignore_terminal_measurements=False), state
     )
 
 
@@ -89,7 +89,7 @@ def test_prepare_two_qubit_state_using_iswap(state, use_iswap_inv) -> None:
     assert ops_iswap == ops_2q
     assert len(ops_iswap) <= 1
     assert cirq.allclose_up_to_global_phase(
-        circuit.final_state_vector(ignore_terminal_measurements=False, dtype=np.complex64), state
+        circuit.final_state_vector(ignore_terminal_measurements=False), state
     )
 
 
@@ -109,5 +109,5 @@ def test_prepare_two_qubit_state_using_sqrt_iswap(state, use_sqrt_iswap_inv) -> 
     assert ops_iswap == ops_2q
     assert len(ops_iswap) <= 1
     assert cirq.allclose_up_to_global_phase(
-        circuit.final_state_vector(ignore_terminal_measurements=False, dtype=np.complex64), state
+        circuit.final_state_vector(ignore_terminal_measurements=False), state
     )
