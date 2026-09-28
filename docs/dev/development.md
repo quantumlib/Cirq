@@ -153,7 +153,7 @@ get picked up!
 ## Protocol buffers
 
 [Protocol buffers](https://developers.google.com/protocol-buffers) ("protobufs") are used in Cirq for converting circuits, gates, and other objects into a standard form that can be written and read by other programs.
-Cirq's protobufs live at [cirq-google/api/v2](https://github.com/quantumlib/Cirq/tree/main/cirq-google/cirq_google/api/v2) and may need to be changed or extended from time to time.
+Cirq's Protobufs live at [cirq-google/api/v2](https://github.com/quantumlib/Cirq/tree/main/cirq-google/cirq_google/api/v2) and may need to be changed or extended from time to time.
 
 If any protos are updated, their dependents can be rebuilt by calling the script
 [dev_tools/build-protos.sh](https://github.com/quantumlib/Cirq/blob/main/dev_tools/build-protos.sh).

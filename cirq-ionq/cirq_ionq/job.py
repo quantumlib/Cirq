@@ -204,12 +204,12 @@ class Job:
         | list[results.QPUResult]
         | list[results.SimulatorResult]
     ):
-        """Polls the IonQ api for results.
+        """Polls the IonQ API for results.
 
         Args:
             timeout_seconds: The total number of seconds to poll for.
             polling_seconds: The interval with which to poll.
-            sharpen: A boolean that determines how to aggregate error mitigated.
+            sharpen: A Boolean that determines how to aggregate error mitigated.
                 If True, apply majority vote mitigation; if False, apply average mitigation.
             extra_query_params: Specify any parameters to include in the request.
 

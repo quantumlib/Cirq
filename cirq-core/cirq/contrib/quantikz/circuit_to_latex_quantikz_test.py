@@ -169,7 +169,7 @@ def test_custom_preamble_and_postamble():
 
 
 def test_quantikz_options():
-    """Test global quantikz options."""
+    """Test global Quantikz options."""
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q))
     options = "column sep=1em, row sep=0.5em"

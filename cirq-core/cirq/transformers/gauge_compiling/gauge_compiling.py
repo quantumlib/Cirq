@@ -41,9 +41,10 @@ if TYPE_CHECKING:
 
 class Gauge(abc.ABC):
     """A gauge replaces a two qubit gate with an equivalent subcircuit.
-    0: pre_q0───────two_qubit_gate───────post_q0
-                        |
-    1: pre_q1───────two_qubit_gate───────post_q1
+
+        0: pre_q0───────two_qubit_gate───────post_q0
+                            |
+        1: pre_q1───────two_qubit_gate───────post_q1
 
     The Gauge class in general represents a family of closely related gauges
     (e.g. random z-rotations); Use `sample` method to get a specific gauge.
@@ -59,7 +60,7 @@ class Gauge(abc.ABC):
 
         Args:
             gate: The two qubit gate to replace.
-            prng: A numpy random number generator.
+            prng: A NumPy random number generator.
 
         Returns:
             A ConstantGauge.
@@ -155,7 +156,7 @@ class TwoQubitGateSymbolizer:
 
         Args:
             two_qubit_gate: The 2 qubit gate to be symbolized.
-            symbols: A sequence of sympy symbols to use for parameterization.
+            symbols: A sequence of SymPy symbols to use for parameterization.
 
         Returns:
             A tuple containing the parameterized gate and a dictionary mapping
@@ -208,7 +209,7 @@ class GaugeTransformer:
 
         Args:
             target: Target two-qubit gate, a gate-family or a gate-set of two-qubit gates.
-            gauge_selector: A callable that takes a numpy random number generator
+            gauge_selector: A callable that takes a NumPy random number generator
                 as an argument and returns a Gauge.
             two_qubit_gate_symbolizer: A symbolizer to symbolize 2 qubit gates.
         """

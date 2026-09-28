@@ -35,7 +35,7 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
     r"""A channel that depolarizes asymmetrically along different directions.
 
     This channel applies one of $4^n$ disjoint possibilities: nothing (the
-    identity channel) or one of the $4^n - 1$ pauli gates.
+    identity channel) or one of the $4^n - 1$ Pauli gates.
 
     This channel evolves a density matrix via
 
@@ -208,7 +208,7 @@ def asymmetric_depolarize(
     r"""Returns an `AsymmetricDepolarizingChannel` with the given parameters.
 
     This channel applies one of $4^n$ disjoint possibilities: nothing (the
-    identity channel) or one of the $4^n - 1$ pauli gates.
+    identity channel) or one of the $4^n - 1$ Pauli gates.
 
     This channel evolves a density matrix via
 
@@ -247,7 +247,7 @@ class DepolarizingChannel(raw_types.Gate):
     r"""A channel that depolarizes one or several qubits.
 
     This channel applies one of $4^n$ disjoint possibilities: nothing (the
-    identity channel) or one of the $4^n - 1$ pauli gates. The disjoint
+    identity channel) or one of the $4^n - 1$ Pauli gates. The disjoint
     probabilities of the non-identity Pauli gates are all the same,
     $p / (4^n - 1)$, and the identity is done with probability $1 - p$. The
     supplied probability must be a valid probability or else this
@@ -348,7 +348,7 @@ def depolarize(p: float, n_qubits: int = 1) -> DepolarizingChannel:
     r"""Returns a DepolarizingChannel with given probability of error.
 
     This channel applies one of $4^n$ disjoint possibilities: nothing (the
-    identity channel) or one of the $4^n - 1$ pauli gates. The disjoint
+    identity channel) or one of the $4^n - 1$ Pauli gates. The disjoint
     probabilities of the non-identity Pauli gates are all the same,
     $p / (4^n - 1)$, and the identity is done with probability 1 - p. The
     supplied probability must be a valid probability or else this constructor
@@ -576,7 +576,7 @@ class AmplitudeDampingChannel(raw_types.Gate):
         return 1
 
     def _kraus_(self) -> Iterable[np.ndarray]:
-        # just return first two kraus ops, we don't care about
+        # just return first two Kraus ops, we don't care about
         # the last two.
         return list(self._delegate._kraus_())[:2]
 

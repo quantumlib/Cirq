@@ -45,7 +45,7 @@ class QuirkArithmeticGate(ops.ArithmeticGate):
         """Inits QuirkArithmeticGate.
 
         Args:
-            identifier: The quirk identifier string for this operation.
+            identifier: The Quirk identifier string for this operation.
             target: The target qubit register.
             inputs: Qubit registers, which correspond to the qid shape of the
                 qubits from which the input will be read, or classical

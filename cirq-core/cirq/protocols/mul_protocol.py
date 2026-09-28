@@ -55,7 +55,7 @@ def mul(lhs: Any, rhs: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
         right_mul = getattr(rhs, '__rmul__', None)
         result = NotImplemented if right_mul is None else right_mul(lhs)
 
-    # Don't build up factors of 1.0 vs sympy Symbols.
+    # Don't build up factors of 1.0 vs SymPy Symbols.
     if lhs == 1 and is_parameterized(rhs):
         result = rhs
     if rhs == 1 and is_parameterized(lhs):

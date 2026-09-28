@@ -470,7 +470,7 @@ def parse_arguments(args):
     # TODO: Offer some guidance on how to set this flag. Maybe have an
     # option to do an exhaustive sample and do numerical studies to know which
     # choice is the best.
-    # Github issue: https://github.com/quantumlib/Cirq/issues/2802
+    # GitHub issue: https://github.com/quantumlib/Cirq/issues/2802
     parser.add_argument(
         '--n_measured_operators',
         default=10,

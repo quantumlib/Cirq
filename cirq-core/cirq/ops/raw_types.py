@@ -708,7 +708,7 @@ class Operation(metaclass=abc.ABCMeta):
 
         Args:
             *conditions: A list of measurement keys, strings that can be parsed
-                into measurement keys, or sympy expressions where the free
+                into measurement keys, or SymPy expressions where the free
                 symbols are measurement key strings.
 
         Returns:

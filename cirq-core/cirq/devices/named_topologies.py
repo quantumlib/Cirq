@@ -41,7 +41,7 @@ class NamedTopology(metaclass=abc.ABCMeta):
     Attributes:
         name: A name that uniquely identifies this topology.
         n_nodes: The number of nodes in the topology.
-        graph: A networkx graph representation of the topology.
+        graph: A NetworkX graph representation of the topology.
     """
 
     name: str = NotImplemented
@@ -70,12 +70,12 @@ def draw_gridlike(
 ) -> dict[_GRIDLIKE_NODE, tuple[int, int]]:
     """Draw a grid-like graph using Matplotlib.
 
-    This wraps nx.draw_networkx to produce a matplotlib drawing of the graph. Nodes
+    This wraps nx.draw_networkx to produce a Matplotlib drawing of the graph. Nodes
     should be two-dimensional gridlike objects.
 
     Args:
         graph: A NetworkX graph whose nodes are (row, column) coordinates or cirq.GridQubits.
-        ax: Optional matplotlib axis to use for drawing.
+        ax: Optional Matplotlib axis to use for drawing.
         tilted: If True, directly position as (row, column); otherwise,
             rotate 45 degrees to accommodate google-style diagonal grids.
         **kwargs: Additional arguments to pass to `nx.draw_networkx`.
@@ -127,7 +127,7 @@ class LineTopology(NamedTopology):
         """Draw this graph using Matplotlib.
 
         Args:
-            ax: Optional matplotlib axis to use for drawing.
+            ax: Optional Matplotlib axis to use for drawing.
             tilted: If True, draw as a horizontal line. Otherwise, draw on a diagonal.
             **kwargs: Additional arguments to pass to `nx.draw_networkx`.
         """
@@ -166,17 +166,17 @@ class TiltedSquareLattice(NamedTopology):
     An example diagram of this topology is shown below. It is a
     "tilted-square-lattice-6-4" with width 6 and height 4.
 
-              x
-              │
-         x────X────x
-         │    │    │
-    x────X────x────X────x
-         │    │    │    │
-         x────X────x────X───x
-              │    │    │
-              x────X────x
-                   │
-                   x
+                  x
+                  │
+             x────X────x
+             │    │    │
+        x────X────x────X────x
+             │    │    │    │
+             x────X────x────X───x
+                  │    │    │
+                  x────X────x
+                       │
+                       x
 
     Nodes are 2-tuples of integers which may be negative. Please see `get_placements` for
     mapping this topology to a GridQubit Device.
@@ -225,7 +225,7 @@ class TiltedSquareLattice(NamedTopology):
         """Draw this graph using Matplotlib.
 
         Args:
-            ax: Optional matplotlib axis to use for drawing.
+            ax: Optional Matplotlib axis to use for drawing.
             tilted: If True, directly position as (row, column); otherwise,
                 rotate 45 degrees to accommodate the diagonal nature of this topology.
             **kwargs: Additional arguments to pass to `nx.draw_networkx`.
@@ -354,8 +354,8 @@ def draw_placements(
             nodes.
         max_plots: To prevent an explosion of open Matplotlib figures, we only show the first
             `max_plots` plots.
-        axes: Optional list of matplotlib Axes to contain the drawings.
-        tilted: Whether to draw gridlike graphs in the ordinary cartesian or tilted plane.
+        axes: Optional list of Matplotlib Axes to contain the drawings.
+        tilted: Whether to draw gridlike graphs in the ordinary Cartesian or tilted plane.
         bad_placement_callback: If provided, we check that the given mappings are valid. If not,
             this callback is called. The callback should accept `ax` and `i` keyword arguments
             for the current axis and mapping index, respectively.
@@ -396,5 +396,5 @@ def draw_placements(
         ax.axis('equal')
         if call_show:
             # poor man's multi-axis figure: call plt.show() after each plot
-            # and jupyter will put the plots one after another.
+            # and Jupyter will put the plots one after another.
             plt.show()  # pragma: no cover

@@ -124,7 +124,7 @@ def render_circuit(
             output. If `None`, the circuit is not folded. Passed to `CircuitToQuantikz`.
         wire_labels: A string specifying how qubit wire labels should be
             rendered. Passed to `CircuitToQuantikz`.
-        show_parameters: A boolean indicating whether gate parameters (e.g.,
+        show_parameters: A Boolean indicating whether gate parameters (e.g.,
             exponents for `XPowGate`, angles for `Rx`) should be displayed
             in the gate labels. Passed to `CircuitToQuantikz`.
         gate_name_map: An optional dictionary mapping Cirq gate names (strings)

@@ -174,7 +174,7 @@ def apply_mixture(
     B. Construct an ApplyUnitaryArgs object `uargs` from `args` and then
         try to use `cirq.apply_unitary(val, uargs, None)`.
         1. If `None` is returned then go to step C.
-        2. If a numpy array is returned forward this result back to the caller
+        2. If a NumPy array is returned forward this result back to the caller
             and return.
 
     C. Try to use `val._mixture_()`.

@@ -63,7 +63,7 @@ def _conjugate_with_hadamard(U: npt.NDArray) -> npt.NDArray:
 
 
 def unitary_to_pauli_string(U: npt.NDArray, eps: float = 1e-15) -> DensePauliString | None:
-    """Attempts to find a pauli string (with possible phase) equivalent to U up to eps.
+    """Attempts to find a Pauli string (with possible phase) equivalent to U up to eps.
 
         Based on this answer https://shorturl.at/aA079.
         Let x_mask be the index of the maximum number of the first column of U

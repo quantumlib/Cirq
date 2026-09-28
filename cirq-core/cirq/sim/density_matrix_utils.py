@@ -59,7 +59,7 @@ def sample_density_matrix(
         Measurement results with True corresponding to the ``|1⟩`` state.
         The outer list is for repetitions, and the inner corresponds to
         measurements ordered by the supplied qubits. These lists
-        are wrapped as a numpy ndarray.
+        are wrapped as a NumPy ndarray.
 
     Raises:
         ValueError: ``repetitions`` is less than one or size of ``matrix`` is
@@ -128,9 +128,9 @@ def measure_density_matrix(
         seed: A seed for the pseudorandom number generator.
 
     Returns:
-        A tuple of a list and a numpy array. The list is an array of booleans
+        A tuple of a list and a NumPy array. The list is an array of Booleans
         corresponding to the measurement values (ordered by the indices). The
-        numpy array is the post measurement matrix. This matrix has the same
+        NumPy array is the post measurement matrix. This matrix has the same
         shape and dtype as the input matrix.
 
     Raises:

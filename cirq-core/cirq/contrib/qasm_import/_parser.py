@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 
 class Qasm:
-    """Qasm stores the final result of the Qasm parsing."""
+    """Qasm stores the final result of the QASM parsing."""
 
     def __init__(
         self,
@@ -104,7 +104,7 @@ class QasmGateStatement:
         num_params: int,
         num_args: int,
     ):
-        """Initializes a Qasm gate statement.
+        """Initializes a QASM gate statement.
 
         Args:
             qasm_gate: The symbol of the QASM gate.
@@ -189,7 +189,7 @@ class QasmParser:
     """
 
     def __init__(self) -> None:
-        """Initializes the Qasm parser.
+        """Initializes the QASM parser.
 
         Attributes:
             gate_set: The gates available to use in the circuit, including those from

@@ -87,7 +87,7 @@ class CircuitOperation(ops.Operation):
         Args:
             circuit: The FrozenCircuit wrapped by this operation.
             repetitions: How many times the circuit should be repeated. This can be
-                integer, or a sympy expression. If sympy, the expression must
+                integer, or a SymPy expression. If SymPy, the expression must
                 resolve to an integer, or float within 0.001 of integer, at
                 runtime.
             qubit_map: Remappings for qubits in the circuit.
@@ -120,7 +120,7 @@ class CircuitOperation(ops.Operation):
                 with repetitions or repetition_ids.
 
         Raises:
-            TypeError: if repetitions is not an integer or sympy expression, or if
+            TypeError: if repetitions is not an integer or SymPy expression, or if
                 the provided circuit is not a FrozenCircuit.
             ValueError: if any of the following conditions is met.
                 - Negative repetitions on non-invertible circuit
@@ -635,7 +635,7 @@ class CircuitOperation(ops.Operation):
         Returns:
             A copy of this operation repeated `repetitions` times with the
             appropriate `repetition_ids`. The output `repetition_ids` are the
-            cartesian product of input `repetition_ids` with the base
+            Cartesian product of input `repetition_ids` with the base
             operation's `repetition_ids`. If the base operation has unset
             `repetition_ids` (indicates {-1, 0, 1} `repetitions` with no custom
             IDs), the input `repetition_ids` are directly used.

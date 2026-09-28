@@ -407,8 +407,8 @@ class DeviceParametersDiff(_message.Message):
         type_descriptor: _builtins.str
         """Type description of the value representation. Eg. if the following value
         bytes field is a JSON string, type_descriptor can be its JSON namespace;
-        or if the following value field is a protobuf serialization,
-        type_descriptor can be its protobuf definition URL.
+        or if the following value field is a Protobuf serialization,
+        type_descriptor can be its Protobuf definition URL.
         """
         value: _builtins.bytes
         """The value in client's encoding."""
@@ -656,7 +656,7 @@ class ConstValue(_message.Message):
     STRING_VALUE_FIELD_NUMBER: _builtins.int
     WITH_UNIT_VALUE_FIELD_NUMBER: _builtins.int
     is_none: _builtins.bool
-    """This value should always be true if set, which represents the python None
+    """This value should always be true if set, which represents the Python None
     object.
     """
     float_value: _builtins.float

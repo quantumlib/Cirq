@@ -38,6 +38,7 @@ from cirq_google.ops import (
     LeakageISWAP,
     LZSResetViaResonator,
     MultilevelResetViaResonator,
+    MultiStepMultiLevelReset,
     NoSyncTag,
     PhysicalZTag,
     SycamoreGate,
@@ -396,7 +397,9 @@ class CircuitSerializer(serializer.Serializer):
             )
         elif isinstance(gate, cirq.ResetChannel):
             arg_func_langs.arg_to_proto(gate.dimension, out=msg.resetgate.arguments['dimension'])
-        elif isinstance(gate, (MultilevelResetViaResonator, LZSResetViaResonator)):
+        elif isinstance(
+            gate, (MultilevelResetViaResonator, LZSResetViaResonator, MultiStepMultiLevelReset)
+        ):
             msg.resetgate.reset_type = type(gate).__name__
         elif isinstance(gate, CouplerPulse):
             arg_func_langs.float_arg_to_proto(
@@ -927,6 +930,8 @@ class CircuitSerializer(serializer.Serializer):
                     op = LZSResetViaResonator()(*qubits)
                 case "MultilevelResetViaResonator":
                     op = MultilevelResetViaResonator()(*qubits)
+                case "MultiStepMultiLevelReset":
+                    op = MultiStepMultiLevelReset()(*qubits)
                 case _:
                     op = cirq.ResetChannel(dimension=dimensions)(*qubits)
         elif which_gate_type == 'internalgate':

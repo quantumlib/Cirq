@@ -124,7 +124,7 @@ def fidelity(
             prod *= np.abs(np.vdot(s1.state_vector(), s2.state_vector()))
         return prod**2
 
-    # Two numpy arrays that are either state vector, state tensor, or
+    # Two NumPy arrays that are either state vector, state tensor, or
     # density matrix
     if (
         isinstance(state1, np.ndarray)

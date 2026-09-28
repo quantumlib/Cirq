@@ -31,7 +31,7 @@ def _make_qubits(n) -> list[cirq.NamedQubit]:
 
 def _sample_qubit_pauli_maps() -> list[dict[cirq.NamedQubit, cirq.Pauli]]:
     """All combinations of having a Pauli or nothing on 3 qubits.
-    Yields 64 qubit pauli maps
+    Yields 64 qubit Pauli maps
     """
     qubits = _make_qubits(3)
     paulis_or_none = (None, cirq.X, cirq.Y, cirq.Z)
@@ -1547,9 +1547,9 @@ def test_conjugated_by_common_single_qubit_gates() -> None:
     single_qubit_gates = [g**i for i in range(4) for g in base_single_qubit_gates]
     for p in [cirq.X, cirq.Y, cirq.Z]:
         for g in single_qubit_gates:
-            # pauli gate on a, clifford on b: pauli gate preserves.
+            # Pauli gate on a, Clifford on b: Pauli gate preserves.
             assert_conjugation(p(a), g(b), p(a))
-            # pauli gate on a, clifford on a: check conjugation in matrices.
+            # Pauli gate on a, Clifford on a: check conjugation in matrices.
             assert_conjugation(p(a), g(a))
 
 
@@ -1577,9 +1577,9 @@ def test_conjugated_by_common_two_qubit_gates() -> None:
             pd: cirq.DensePauliString = cirq.DensePauliString([p1, p2])  # type: ignore[list-item]
             p = pd.sparse([a, b])
             for g in two_qubit_gates:
-                # pauli_string on (a,b), clifford on (c,d): pauli_string preserves.
+                # pauli_string on (a,b), Clifford on (c,d): pauli_string preserves.
                 assert_conjugation(p, g(c, d), p)
-                # pauli_string on (a,b), clifford on (a,b): compare unitaries of
+                # pauli_string on (a,b), Clifford on (a,b): compare unitaries of
                 # the conjugated_by and actual matrix conjugation.
                 assert_conjugation(p, g.on(a, b))
 

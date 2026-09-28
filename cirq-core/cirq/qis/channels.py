@@ -85,7 +85,7 @@ def choi_to_kraus(choi: np.ndarray, atol: float = 1e-10) -> Sequence[np.ndarray]
 
     Args:
         choi: Choi matrix of the channel.
-        atol: Tolerance used in checking if choi is positive and in deciding which Kraus
+        atol: Tolerance used in checking if Choi is positive and in deciding which Kraus
             operators to omit.
 
     Returns:
@@ -93,7 +93,7 @@ def choi_to_kraus(choi: np.ndarray, atol: float = 1e-10) -> Sequence[np.ndarray]
         Kraus operators with Frobenius norm smaller than atol are omitted.
 
     Raises:
-        ValueError: when choi is not a positive square matrix.
+        ValueError: when Choi is not a positive square matrix.
     """
     d = int(np.round(np.sqrt(choi.shape[0])))
     if choi.shape != (d * d, d * d):

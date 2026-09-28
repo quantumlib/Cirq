@@ -70,7 +70,7 @@ class SharedRuntimeInfo:
 
 
 def _try_tuple(k: Any) -> Any:
-    """If we serialize a dictionary that had tuple keys, they get turned to json lists."""
+    """If we serialize a dictionary that had tuple keys, they get turned to JSON lists."""
     if isinstance(k, list):
         return tuple(k)
     return k  # pragma: no cover
@@ -188,7 +188,7 @@ class QuantumRuntimeConfiguration:
         run_id: A unique `str` identifier for a run. If data already exists for the specified
             `run_id`, an exception will be raised. If not specified, we will generate a UUID4
             run identifier.
-        random_seed: An initial seed to make the run deterministic. Otherwise, the default numpy
+        random_seed: An initial seed to make the run deterministic. Otherwise, the default NumPy
             seed will be used.
         qubit_placer: A `cg.QubitPlacer` implementation to map executable qubits to device qubits.
             The placer is only called if a given `cg.QuantumExecutable` has a `problem_topology`.
