@@ -28,7 +28,7 @@ from cirq.value import big_endian_int_to_digits, random_state
 class StabilizerStateChForm(qis.StabilizerState):
     r"""A representation of stabilizer states using the CH form,
 
-        $|\psi> = \omega U_C U_H |s>$
+    $$|\psi\rangle = \omega U_C U_H |s\rangle$$
 
     This representation keeps track of overall phase.
 
