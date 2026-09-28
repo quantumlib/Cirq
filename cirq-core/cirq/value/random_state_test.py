@@ -70,6 +70,7 @@ def test_parse_random_generator() -> None:
     generator = np.random.default_rng(42)
     assert cirq.value.parse_random_generator(generator) is generator
 
+
 def test_parse_random_generator_invalid() -> None:
     with pytest.raises(TypeError):
         cirq.value.parse_random_generator(np.random)  # type: ignore[arg-type]
