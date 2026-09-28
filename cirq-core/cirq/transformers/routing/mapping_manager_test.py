@@ -248,7 +248,6 @@ def test_shortest_path_with_directed_graph():
     np.testing.assert_array_equal(
         q_int[::-1], mm.shortest_path(q_int[2], q_int[0], undirected=True)
     )
-    
     # Self-path should return single-element list
     for qi in q_int:
         assert list(mm.shortest_path(qi, qi)) == [qi]

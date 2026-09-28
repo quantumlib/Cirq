@@ -226,7 +226,6 @@ class MappingManager:
         """
         if lq1 == lq2:
             return [lq1]
-        
         predecessors = self._undirected_predecessors if undirected else self._predecessors
         try:
             path = nx.reconstruct_path(*self.logical_to_physical[[lq1, lq2]], predecessors)
