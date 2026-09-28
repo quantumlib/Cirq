@@ -638,12 +638,12 @@ def density_matrix_from_state_vector(
     indices = None
     gives us
 
-        $$
-        \rho = \begin{bmatrix}
-                0.5 & 0.5 \\
-                0.5 & 0.5
-        \end{bmatrix}
-        $$
+    $$
+    \rho = \begin{bmatrix}
+            0.5 & 0.5 \\
+            0.5 & 0.5
+    \end{bmatrix}
+    $$
 
     Args:
         state_vector: A sequence representing a state vector in which

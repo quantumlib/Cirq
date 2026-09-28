@@ -49,15 +49,15 @@ class SupportsKraus(Protocol):
         r"""A list of Kraus matrices describing the quantum channel.
 
         These matrices are the terms in the operator sum representation of a
-        quantum channel. If the returned matrices are ${A_0,A_1,..., A_{r-1}}$,
+        quantum channel. If the returned matrices are $\{A_0, A_1, \ldots, A_{r-1}\}$,
         then this describes the channel:
-            $$
-            \rho \rightarrow \sum_{k=0}^{r-1} A_k \rho A_k^\dagger
-            $$
+        $$
+        \rho \rightarrow \sum_{k=0}^{r-1} A_k \rho A_k^\dagger
+        $$
         These matrices are required to satisfy the trace preserving condition
-            $$
-            \sum_{k=0}^{r-1} A_k^\dagger A_k = I
-            $$
+        $$
+        \sum_{k=0}^{r-1} A_k^\dagger A_k = I
+        $$
         where $I$ is the identity matrix. The matrices $A_k$ are sometimes
         called Kraus or noise operators.
 
@@ -141,15 +141,15 @@ def kraus(
     r"""Returns a list of matrices describing the channel for the given value.
 
     These matrices are the terms in the operator sum representation of
-    a quantum channel. If the returned matrices are ${A_0,A_1,..., A_{r-1}}$,
+    a quantum channel. If the returned matrices are $\{A_0, A_1, \ldots, A_{r-1}\}$,
     then this describes the channel:
-        $$
-        \rho \rightarrow \sum_{k=0}^{r-1} A_k \rho A_k^\dagger
-        $$
+    $$
+    \rho \rightarrow \sum_{k=0}^{r-1} A_k \rho A_k^\dagger
+    $$
     These matrices are required to satisfy the trace preserving condition
-        $$
-        \sum_{k=0}^{r-1} A_k^\dagger A_k = I
-        $$
+    $$
+    \sum_{k=0}^{r-1} A_k^\dagger A_k = I
+    $$
     where $I$ is the identity matrix. The matrices $A_k$ are sometimes called
     Kraus or noise operators.
 

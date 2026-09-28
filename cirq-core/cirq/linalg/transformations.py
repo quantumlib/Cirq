@@ -324,6 +324,7 @@ def apply_matrix_to_slices(
         & X**t & \\
         & & 1 \\
     \end{bmatrix}
+    $$
 
     Where X is the 2x2 Pauli X gate and t is the power of the swap with t=1
     being a full swap. X**t is a power of the Pauli X gate's matrix.
