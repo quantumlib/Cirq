@@ -191,6 +191,14 @@ def _map_operations_impl(
     """
     tags_to_ignore_set = frozenset(tags_to_ignore)
 
+    def subset_error(
+        mapped_ops: list[cirq.Operation], op: cirq.Operation
+    ) -> ValueError:
+        return ValueError(
+            f"Mapped operations {mapped_ops} should act on a subset "
+            f"of qubits of the original operation {op}"
+        )
+
     def apply_map_func(op: cirq.Operation, idx: int) -> list[cirq.Operation]:
         if not tags_to_ignore_set.isdisjoint(op.tags):
             return [op]
@@ -207,31 +215,23 @@ def _map_operations_impl(
                 )
             ).with_tags(*op.tags)
         res = map_func(op, idx)
-        if isinstance(res, ops.Operation):
-            mapped_ops = [res]
-        else:
-            mapped_ops = [*ops.flatten_to_ops(res)]
-        if len(mapped_ops) <= 1:
+        mapped_ops = [res] if isinstance(res, ops.Operation) else [*ops.flatten_to_ops(res)]
+        if not mapped_ops:
+            return []
+        if len(mapped_ops) == 1:
             if (
-                mapped_ops
-                and raise_if_add_qubits
+                raise_if_add_qubits
                 and mapped_ops[0].qubits != op.qubits
                 and not set(op.qubits).issuperset(mapped_ops[0].qubits)
             ):
-                raise ValueError(
-                    f"Mapped operations {mapped_ops} should act on a subset "
-                    f"of qubits of the original operation {op}"
-                )
+                raise subset_error(mapped_ops, op)
             return mapped_ops
         op_qubits = set(op.qubits)
         mapped_ops_qubits: set[cirq.Qid] = set()
         has_overlapping_ops = False
         for mapped_op in mapped_ops:
             if raise_if_add_qubits and not op_qubits.issuperset(mapped_op.qubits):
-                raise ValueError(
-                    f"Mapped operations {mapped_ops} should act on a subset "
-                    f"of qubits of the original operation {op}"
-                )
+                raise subset_error(mapped_ops, op)
             if not mapped_ops_qubits.isdisjoint(mapped_op.qubits):
                 has_overlapping_ops = True
             mapped_ops_qubits.update(mapped_op.qubits)
