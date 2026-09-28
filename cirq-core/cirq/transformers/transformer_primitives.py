@@ -206,7 +206,23 @@ def _map_operations_impl(
                     preserve_moments=preserve_moments,
                 )
             ).with_tags(*op.tags)
-        mapped_ops = [*ops.flatten_to_ops(map_func(op, idx))]
+        res = map_func(op, idx)
+        if isinstance(res, ops.Operation):
+            mapped_ops = [res]
+        else:
+            mapped_ops = [*ops.flatten_to_ops(res)]
+        if len(mapped_ops) <= 1:
+            if (
+                mapped_ops
+                and raise_if_add_qubits
+                and mapped_ops[0].qubits != op.qubits
+                and not set(op.qubits).issuperset(mapped_ops[0].qubits)
+            ):
+                raise ValueError(
+                    f"Mapped operations {mapped_ops} should act on a subset "
+                    f"of qubits of the original operation {op}"
+                )
+            return mapped_ops
         op_qubits = set(op.qubits)
         mapped_ops_qubits: set[cirq.Qid] = set()
         has_overlapping_ops = False

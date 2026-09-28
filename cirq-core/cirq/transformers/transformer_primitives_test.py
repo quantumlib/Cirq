@@ -432,6 +432,12 @@ def test_map_operations_raises_qubits_not_subset():
         _ = cirq.map_operations(
             cirq.Circuit(cirq.CNOT(q[0], q[1])), lambda op, i: cirq.CNOT(q[1], q[2])
         )
+    with pytest.raises(ValueError, match='should act on a subset'):
+        _ = cirq.map_operations(
+            cirq.Circuit(cirq.CNOT(q[0], q[1])), lambda op, i: [cirq.X(q[1]), cirq.X(q[2])]
+        )
+    c_subset = cirq.map_operations(cirq.Circuit(cirq.CNOT(q[0], q[1])), lambda op, i: cirq.X(q[1]))
+    cirq.testing.assert_same_circuits(c_subset, cirq.Circuit(cirq.X(q[1])))
 
 
 def test_map_operations_can_add_qubits_if_flag_false():
