@@ -209,7 +209,7 @@ Cirq releases take place approximately every quarter.
 *   Have questions about Cirq? Post them to the [Quantum Computing
     Stack Exchange] and tag them with [`cirq`]. You can also search past
     questions using that tag – it's a great way to learn!
-*   Want meet other Cirq developers and participate in discussions? Join
+*   Want to meet other Cirq developers and participate in discussions? Join
     _Cirq Cynq_, our biweekly virtual meeting of contributors. Sign up
     to [_cirq-dev_] to get an automatic meeting invitation!
 
