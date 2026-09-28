@@ -167,7 +167,7 @@ def apply_mixture(
             go to step B.
         2. If `_apply_mixture_` is present and returns None conclude that
             `val` has no effect and return.
-        3. If `_apply_mixture_` is present and returns a numpy array conclude
+        3. If `_apply_mixture_` is present and returns a NumPy array conclude
             that the mixture was applied successfully and forward result to
             caller.
 
