@@ -48,7 +48,6 @@ from __future__ import annotations
 
 import dataclasses
 import numbers
-from collections import OrderedDict
 from collections.abc import Sequence
 from typing import Any, NamedTuple, TYPE_CHECKING
 
@@ -418,6 +417,12 @@ def two_qubit_gate_numerical_compilation(
     return best
 
 
+# Maximum elementwise distance under which a cached compilation is reused for
+# a new query unitary. Covers floating-point noise in the input (e.g. from
+# different fusion orders); far below any meaningful decomposition error.
+_CACHE_TOLERANCE = 1e-10
+
+
 @dataclasses.dataclass(frozen=True, eq=False)
 class TwoQubitNumericalCompiler:
     r"""A two-qubit gate compiler based on numerical optimization (NuOp).
@@ -441,8 +446,8 @@ class TwoQubitNumericalCompiler:
     maxiter: int = 1000
     max_cache_size: int = 128
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None
-    _cache: OrderedDict[bytes, TwoQubitNumericalCompilationResult] = dataclasses.field(
-        default_factory=OrderedDict, repr=False, init=False, compare=False
+    _cache: list[tuple[np.ndarray, TwoQubitNumericalCompilationResult]] = dataclasses.field(
+        default_factory=list, repr=False, init=False, compare=False
     )
 
     def __post_init__(self) -> None:
@@ -453,15 +458,17 @@ class TwoQubitNumericalCompiler:
         """Compile the given 4x4 unitary onto this compiler's base gate(s).
 
         Results are memoized (least-recently-used, up to `max_cache_size`
-        entries): compiling the same unitary again returns the cached result
-        instead of re-running the numerical optimization. Entries are rounded
-        to 10 decimals for the cache key, so unitaries differing only by
+        entries): compiling a unitary whose entries are all within 1e-10 of
+        a cached unitary returns the cached result instead of re-running the
+        numerical optimization, so unitaries differing only by
         floating-point noise (e.g. from different fusion orders) still hit.
         """
-        key = np.round(np.asarray(unitary, dtype=complex), 10).tobytes()
-        if key in self._cache:
-            self._cache.move_to_end(key)
-            return self._cache[key]
+        query = np.array(unitary, dtype=complex)
+        for i in range(len(self._cache) - 1, -1, -1):
+            cached_unitary, result = self._cache[i]
+            if np.max(np.abs(cached_unitary - query)) <= _CACHE_TOLERANCE:
+                self._cache.append(self._cache.pop(i))  # Mark as most recently used.
+                return result
         result = two_qubit_gate_numerical_compilation(
             unitary,
             self.base_gates,
@@ -473,9 +480,9 @@ class TwoQubitNumericalCompiler:
             maxiter=self.maxiter,
             random_state=self.random_state,
         )
-        self._cache[key] = result
+        self._cache.append((query, result))
         if len(self._cache) > self.max_cache_size:
-            self._cache.popitem(last=False)
+            self._cache.pop(0)
         return result
 
     def _json_dict_(self) -> dict[str, Any]:

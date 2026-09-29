@@ -341,6 +341,17 @@ def test_numerical_compiler_cache_tolerates_numerical_noise() -> None:
         assert wrapped.call_count == 1
 
 
+def test_numerical_compiler_cache_tolerates_signed_zero_noise() -> None:
+    """Tiny perturbations of opposite sign at an exact-zero entry share a cache entry."""
+    compiler = TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=9)
+    gate1 = _CZ.copy()
+    gate1[0, 1] = 1e-12
+    gate2 = _CZ.copy()
+    gate2[0, 1] = -1e-12
+    result = compiler.compile_two_qubit_gate(gate1)
+    assert compiler.compile_two_qubit_gate(gate2) is result
+
+
 def test_numerical_compiler_cache_evicts_least_recently_used() -> None:
     """When the cache exceeds max_cache_size, the oldest entry is evicted."""
     compiler = TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=7, max_cache_size=2)
