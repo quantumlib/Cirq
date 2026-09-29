@@ -240,7 +240,7 @@ class StabilizerStateChForm(qis.StabilizerState):
 
         return arr
 
-    def _measure(self, q, prng: np.random.RandomState) -> int:
+    def _measure(self, q, prng: np.random.Generator) -> int:
         """Measures the q'th qubit.
 
         Reference: Section 4.1 "Simulating measurements"
@@ -250,7 +250,7 @@ class StabilizerStateChForm(qis.StabilizerState):
         w = self.s.copy()
         for i, v_i in enumerate(self.v):
             if v_i == 1:
-                w[i] = bool(prng.randint(2))
+                w[i] = bool(prng.integers(2))
         x_i = sum(w & self.G[q, :]) % 2
         # Project the state to the above measurement outcome.
         self.project_Z(q, x_i)
@@ -390,9 +390,15 @@ class StabilizerStateChForm(qis.StabilizerState):
         self.omega *= coefficient
 
     def measure(
-        self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+        self, axes: Sequence[int], seed: cirq.PRNG_OR_SEED_LIKE = None
     ) -> list[int]:
-        return [self._measure(axis, random_state.parse_random_state(seed)) for axis in axes]
+        # Older simulation-state instances can still carry the legacy
+        # np.random module as their PRNG. Treat it as an unspecified seed when
+        # converting to the new Generator-based API.
+        if seed is np.random:
+            seed = None
+        prng = random_state.parse_random_generator(seed)
+        return [self._measure(axis, prng) for axis in axes]
 
 
 def _phase(exponent, global_shift):

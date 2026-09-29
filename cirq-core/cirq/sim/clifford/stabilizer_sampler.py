@@ -28,14 +28,14 @@ from cirq.work import sampler
 class StabilizerSampler(sampler.Sampler):
     """An efficient sampler for stabilizer circuits."""
 
-    def __init__(self, *, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
+    def __init__(self, *, seed: cirq.PRNG_OR_SEED_LIKE = None):
         """Inits StabilizerSampler.
 
         Args:
             seed: The random seed or generator to use when sampling.
         """
         self.init = True
-        self._prng = value.parse_random_state(seed)
+        self._prng = value.parse_random_generator(seed)
 
     def run_sweep(
         self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1

@@ -266,7 +266,7 @@ def test_trial_result_str() -> None:
     q0 = cirq.LineQubit(0)
     final_simulator_state = ccq.mps_simulator.MPSState(
         qubits=(q0,),
-        prng=value.parse_random_state(0),
+        prng=value.parse_random_generator(0),
         simulation_options=ccq.mps_simulator.MPSOptions(),
     )
     result = ccq.mps_simulator.MPSTrialResult(
@@ -281,7 +281,7 @@ def test_trial_result_repr_pretty() -> None:
     q0 = cirq.LineQubit(0)
     final_simulator_state = ccq.mps_simulator.MPSState(
         qubits=(q0,),
-        prng=value.parse_random_state(0),
+        prng=value.parse_random_generator(0),
         simulation_options=ccq.mps_simulator.MPSOptions(),
     )
     result = ccq.mps_simulator.MPSTrialResult(
@@ -312,17 +312,17 @@ def test_state_equal() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     state0 = ccq.mps_simulator.MPSState(
         qubits=(q0,),
-        prng=value.parse_random_state(0),
+        prng=value.parse_random_generator(0),
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1e-3, sum_prob_atol=1e-3),
     )
     state1a = ccq.mps_simulator.MPSState(
         qubits=(q1,),
-        prng=value.parse_random_state(0),
+        prng=value.parse_random_generator(0),
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1e-3, sum_prob_atol=1e-3),
     )
     state1b = ccq.mps_simulator.MPSState(
         qubits=(q1,),
-        prng=value.parse_random_state(0),
+        prng=value.parse_random_generator(0),
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1729.0, sum_prob_atol=1e-3),
     )
     assert state0 == state0  # noqa: PLR0124
@@ -348,7 +348,7 @@ def test_random_circuits_equal_more_cols() -> None:
 
 def test_tensor_index_names() -> None:
     qubits = cirq.LineQubit.range(12)
-    state = ccq.mps_simulator.MPSState(qubits=qubits, prng=value.parse_random_state(0))
+    state = ccq.mps_simulator.MPSState(qubits=qubits, prng=value.parse_random_generator(0))
 
     assert state.i_str(0) == "i_00"
     assert state.i_str(11) == "i_11"
@@ -400,7 +400,7 @@ def test_sample_seed() -> None:
     result = simulator.run(circuit, repetitions=20)
     measured = result.measurements['q']
     result_string = ''.join(str(int(x[0])) for x in measured)
-    assert result_string == '01011001110111011011'
+    assert result_string == '10100000100111111001'
 
 
 def test_run_no_repetitions() -> None:
@@ -476,7 +476,7 @@ def test_simulation_state_initializer() -> None:
     )
     s = ccq.mps_simulator.MPSState(
         qubits=(cirq.LineQubit(0),),
-        prng=np.random.RandomState(0),
+        prng=np.random.default_rng(0),
         classical_data=expected_classical_data,
     )
     assert s.qubits == (cirq.LineQubit(0),)
@@ -489,7 +489,7 @@ def test_simulation_state_initializer() -> None:
 
 
 def test_act_on_gate() -> None:
-    args = ccq.mps_simulator.MPSState(qubits=cirq.LineQubit.range(3), prng=np.random.RandomState(0))
+    args = ccq.mps_simulator.MPSState(qubits=cirq.LineQubit.range(3), prng=np.random.default_rng(0))
 
     cirq.act_on(cirq.X, args, [cirq.LineQubit(1)])
     np.testing.assert_allclose(

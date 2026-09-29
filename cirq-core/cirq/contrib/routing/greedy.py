@@ -75,7 +75,7 @@ def route_circuit_greedily(
                 to use. Defaults to a greedy initialization.
             can_reorder: A predicate that determines if two operations may be
                 reordered.
-            random_state: Random state or random state seed.
+            random_state: A pseudorandom number generator or object that can be converted to one.
     """
 
     router = _GreedyRouter(circuit, device_graph, **kwargs)
@@ -100,10 +100,10 @@ class _GreedyRouter:
         can_reorder: Callable[[ops.Operation, ops.Operation], bool] = lambda op1, op2: set(
             op1.qubits
         ).isdisjoint(op2.qubits),
-        random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+        random_state: cirq.PRNG_OR_SEED_LIKE = None,
     ):
 
-        self.prng = value.parse_random_state(random_state)
+        self.prng = value.parse_random_generator(random_state)
 
         self.device_graph = device_graph
         self.physical_distances: dict[QidPair, int] = {

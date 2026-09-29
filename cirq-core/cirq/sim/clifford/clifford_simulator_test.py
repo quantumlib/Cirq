@@ -480,7 +480,7 @@ def test_sample_seed() -> None:
     result = simulator.run(circuit, repetitions=20)
     measured = result.measurements['q']
     result_string = ''.join(str(int(x[0])) for x in measured)
-    assert result_string == '11010001111100100000'
+    assert result_string == '11100100001010101110'
 
 
 def test_is_supported_operation() -> None:

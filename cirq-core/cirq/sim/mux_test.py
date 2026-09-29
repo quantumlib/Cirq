@@ -55,7 +55,7 @@ def test_sample_seed_unitary() -> None:
     measurements = result.measurements['q']
     assert np.all(
         measurements
-        == [[False], [False], [False], [False], [False], [False], [False], [False], [True], [False]]
+        == [[True], [False], [True], [False], [False], [False], [False], [False], [True], [False]]
     )
 
 
@@ -65,7 +65,7 @@ def test_sample_seed_non_unitary() -> None:
     result = cirq.sample(circuit, repetitions=10, seed=1234)
     assert np.all(
         result.measurements['q']
-        == [[False], [False], [False], [True], [True], [False], [False], [True], [True], [True]]
+        == [[True], [False], [True], [False], [False], [False], [False], [False], [True], [False]]
     )
 
 
@@ -108,9 +108,9 @@ def test_sample_sweep_seed() -> None:
     results = cirq.sample_sweep(
         circuit, [cirq.ParamResolver({'t': 0.5})] * 3, repetitions=2, seed=1234
     )
-    assert np.all(results[0].measurements['q'] == [[False], [True]])
-    assert np.all(results[1].measurements['q'] == [[False], [True]])
-    assert np.all(results[2].measurements['q'] == [[True], [False]])
+    assert np.all(results[0].measurements['q'] == [[True], [False]])
+    assert np.all(results[1].measurements['q'] == [[True], [False]])
+    assert np.all(results[2].measurements['q'] == [[False], [False]])
 
     results = cirq.sample_sweep(
         circuit,
@@ -357,7 +357,7 @@ def test_final_density_matrix_seed_with_collapsing() -> None:
         cirq.final_density_matrix(
             [cirq.X(a) ** 0.5, cirq.measure(a)], seed=124, ignore_measurement_results=False
         ),
-        [[1, 0], [0, 0]],
+        [[0, 0], [0, 1]],
         atol=1e-4,
     )
 

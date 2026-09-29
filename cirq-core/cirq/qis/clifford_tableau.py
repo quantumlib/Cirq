@@ -519,7 +519,7 @@ class CliffordTableau(StabilizerState):
         generators above generate the full Pauli group on n qubits."""
         return [self._row_to_dense_pauli(i) for i in range(self.n)]
 
-    def _measure(self, q, prng: np.random.RandomState) -> int:
+    def _measure(self, q, prng: np.random.Generator) -> int:
         """Performs a projective measurement on the q'th qubit.
 
         Returns: the result (0 or 1) of the measurement.
@@ -554,7 +554,7 @@ class CliffordTableau(StabilizerState):
 
         self.zs[p, q] = True
 
-        self.rs[p] = bool(prng.randint(2))
+        self.rs[p] = bool(prng.integers(2))
 
         return int(self.rs[p])
 
@@ -655,9 +655,9 @@ class CliffordTableau(StabilizerState):
         pass
 
     def measure(
-        self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+        self, axes: Sequence[int], seed: cirq.PRNG_OR_SEED_LIKE = None
     ) -> list[int]:
-        return [self._measure(axis, random_state.parse_random_state(seed)) for axis in axes]
+        return [self._measure(axis, random_state.parse_random_generator(seed)) for axis in axes]
 
     @cached_method
     def __hash__(self) -> int:

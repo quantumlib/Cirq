@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 
 def random_superposition(
-    dim: int, *, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+    dim: int, *, random_state: cirq.PRNG_OR_SEED_LIKE = None
 ) -> np.ndarray[tuple[int], np.dtype[np.complex128]]:
     """Returns a random unit-length vector from the uniform distribution.
 
@@ -40,14 +40,14 @@ def random_superposition(
     Returns:
         The sampled unit-length vector.
     """
-    random_state = value.parse_random_state(random_state)
-    state_vector = random_state.randn(2 * dim).view(np.complex128)
+    random_state = value.parse_random_generator(random_state)
+    state_vector = random_state.standard_normal(2 * dim).view(np.complex128)
     state_vector /= np.linalg.norm(state_vector)
     return state_vector
 
 
 def random_density_matrix(
-    dim: int, *, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+    dim: int, *, random_state: cirq.PRNG_OR_SEED_LIKE = None
 ) -> np.ndarray:
     """Returns a random density matrix distributed with Hilbert-Schmidt measure.
 
@@ -62,14 +62,16 @@ def random_density_matrix(
         'Random Bures mixed states and the distribution of their purity'
         https://arxiv.org/abs/0909.5094
     """
-    random_state = value.parse_random_state(random_state)
+    random_state = value.parse_random_generator(random_state)
 
-    mat = random_state.randn(dim, dim) + 1j * random_state.randn(dim, dim)
+    mat = random_state.standard_normal((dim, dim)) + 1j * random_state.standard_normal(
+        (dim, dim)
+    )
     mat = mat @ mat.T.conj()
     return mat / np.trace(mat)
 
 
-def random_unitary(dim: int, *, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None) -> np.ndarray:
+def random_unitary(dim: int, *, random_state: cirq.PRNG_OR_SEED_LIKE = None) -> np.ndarray:
     """Returns a random unitary matrix distributed with Haar measure.
 
     Args:
@@ -83,16 +85,18 @@ def random_unitary(dim: int, *, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = N
         'How to generate random matrices from the classical compact groups'
         http://arxiv.org/abs/math-ph/0609050
     """
-    random_state = value.parse_random_state(random_state)
+    random_state = value.parse_random_generator(random_state)
 
-    z = random_state.randn(dim, dim) + 1j * random_state.randn(dim, dim)
+    z = random_state.standard_normal((dim, dim)) + 1j * random_state.standard_normal(
+        (dim, dim)
+    )
     q, r = np.linalg.qr(z)
     d = np.diag(r)
     return q * (d / abs(d))
 
 
 def random_orthogonal(
-    dim: int, *, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+    dim: int, *, random_state: cirq.PRNG_OR_SEED_LIKE = None
 ) -> np.ndarray:
     """Returns a random orthogonal matrix distributed with Haar measure.
 
@@ -109,16 +113,16 @@ def random_orthogonal(
         'How to generate random matrices from the classical compact groups'
         http://arxiv.org/abs/math-ph/0609050
     """
-    random_state = value.parse_random_state(random_state)
+    random_state = value.parse_random_generator(random_state)
 
-    m = random_state.randn(dim, dim)
+    m = random_state.standard_normal((dim, dim))
     q, r = np.linalg.qr(m)
     d = np.diag(r)
     return q * (d / abs(d))
 
 
 def random_special_unitary(
-    dim: int, *, random_state: np.random.RandomState | None = None
+    dim: int, *, random_state: cirq.PRNG_OR_SEED_LIKE = None
 ) -> np.ndarray:
     """Returns a random special unitary distributed with Haar measure.
 
@@ -138,7 +142,7 @@ def random_special_unitary(
 
 
 def random_special_orthogonal(
-    dim: int, *, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+    dim: int, *, random_state: cirq.PRNG_OR_SEED_LIKE = None
 ) -> np.ndarray:
     """Returns a random special orthogonal matrix distributed with Haar measure.
 

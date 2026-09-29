@@ -62,7 +62,7 @@ class MPSSimulator(
     def __init__(
         self,
         noise: cirq.NOISE_MODEL_LIKE = None,
-        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+        seed: cirq.PRNG_OR_SEED_LIKE = None,
         simulation_options: MPSOptions = MPSOptions(),
         grouping: dict[cirq.Qid, int] | None = None,
     ):
@@ -70,7 +70,7 @@ class MPSSimulator(
 
         Args:
             noise: A noise model to apply while simulating.
-            seed: The random seed to use for this simulator.
+            seed: A pseudorandom number generator or object that can be converted to one.
             simulation_options: Numerical options for the simulation.
             grouping: How to group qubits together, if None all are individual.
 
@@ -382,7 +382,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         """An alias for the state vector."""
         return self.state_vector()
 
-    def apply_op(self, op: Any, axes: Sequence[int], prng: np.random.RandomState):
+    def apply_op(self, op: Any, axes: Sequence[int], prng: np.random.Generator):
         """Applies a unitary operation, mutating the object to represent the new state.
 
         op:
@@ -484,7 +484,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         }
 
     def _measure(
-        self, axes: Sequence[int], prng: np.random.RandomState, collapse_state_vector=True
+        self, axes: Sequence[int], prng: np.random.Generator, collapse_state_vector=True
     ) -> list[int]:
         results: list[int] = []
 
@@ -523,33 +523,33 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         return results
 
     def measure(
-        self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+        self, axes: Sequence[int], seed: cirq.PRNG_OR_SEED_LIKE = None
     ) -> list[int]:
         """Measures the MPS.
 
         Args:
             axes: The axes to measure.
-            seed: The random number seed to use.
+            seed: A pseudorandom number generator or object that can be converted to one.
         Returns:
             The measurements in axis order.
         """
-        return self._measure(axes, value.parse_random_state(seed))
+        return self._measure(axes, value.parse_random_generator(seed))
 
     def sample(
-        self, axes: Sequence[int], repetitions: int = 1, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+        self, axes: Sequence[int], repetitions: int = 1, seed: cirq.PRNG_OR_SEED_LIKE = None
     ) -> np.ndarray:
         """Samples the MPS.
 
         Args:
             axes: The axes to sample.
             repetitions: The number of samples to make.
-            seed: The random number seed to use.
+            seed: A pseudorandom number generator or object that can be converted to one.
         Returns:
             The samples in order.
         """
 
         measurements: list[list[int]] = []
-        prng = value.parse_random_state(seed)
+        prng = value.parse_random_generator(seed)
 
         for _ in range(repetitions):
             measurements.append(self._measure(axes, prng, collapse_state_vector=False))
@@ -565,7 +565,7 @@ class MPSState(SimulationState[_MPSHandler]):
         self,
         *,
         qubits: Sequence[cirq.Qid],
-        prng: np.random.RandomState,
+        prng: np.random.Generator,
         simulation_options: MPSOptions = MPSOptions(),
         grouping: dict[cirq.Qid, int] | None = None,
         initial_state: int = 0,

@@ -41,7 +41,7 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def measure(
-        self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+        self, axes: Sequence[int], seed: cirq.PRNG_OR_SEED_LIKE = None
     ) -> list[int]:
         """Measures the state.
 
@@ -53,7 +53,7 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
         """
 
     def sample(
-        self, axes: Sequence[int], repetitions: int = 1, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+        self, axes: Sequence[int], repetitions: int = 1, seed: cirq.PRNG_OR_SEED_LIKE = None
     ) -> np.ndarray:
         """Samples the state. Subclasses can override with more performant method.
 
@@ -64,7 +64,7 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
         Returns:
             The samples in order.
         """
-        prng = value.parse_random_state(seed)
+        prng = value.parse_random_generator(seed)
         measurements = []
         for _ in range(repetitions):
             state = self.copy()
