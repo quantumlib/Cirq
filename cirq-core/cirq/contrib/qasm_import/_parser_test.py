@@ -277,9 +277,7 @@ def test_classical_control_multi_qubit_register() -> None:
     assert len(operations) == 5
     assert all(isinstance(op, cirq.ClassicallyControlledOperation) for op in operations[1:])
 
-    expected_controls = frozenset(
-        [cirq.SympyCondition(sympy.Eq(sympy.Symbol('a_0'), 1))]
-    )
+    expected_controls = frozenset([cirq.SympyCondition(sympy.Eq(sympy.Symbol('a_0'), 1))])
     assert all(op.classical_controls == expected_controls for op in operations[1:])
 
 
