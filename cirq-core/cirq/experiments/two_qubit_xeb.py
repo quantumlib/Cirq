@@ -407,7 +407,7 @@ def parallel_xeb_workflow(
     n_combinations: int = 10,
     n_circuits: int = 20,
     cycle_depths: Sequence[int] = (5, 25, 50, 100, 200, 300),
-    random_state: cirq.PRNG_OR_SEED_LIKE = None,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ax: plt.Axes | None = None,
     pairs: Sequence[tuple[cirq.GridQubit, cirq.GridQubit]] | None = None,
     pool: multiprocessing.pool.Pool | futures.Executor | None = None,
@@ -447,7 +447,7 @@ def parallel_xeb_workflow(
     Raises:
         ValueError: If qubits are not specified and the sampler has no device.
     """
-    rs = value.parse_random_generator(random_state)
+    rs = value.parse_random_state(random_state)
 
     qubits, pairs = qubits_and_pairs(sampler, qubits, pairs)
     graph = nx.Graph(pairs)
@@ -497,7 +497,7 @@ def parallel_two_qubit_xeb(
     n_combinations: int = 10,
     n_circuits: int = 20,
     cycle_depths: Sequence[int] = (5, 25, 50, 100, 200, 300),
-    random_state: cirq.PRNG_OR_SEED_LIKE = None,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ax: plt.Axes | None = None,
     pairs: Sequence[tuple[cirq.GridQubit, cirq.GridQubit]] | None = None,
     batch_size: int = 9,
@@ -557,7 +557,7 @@ def run_rb_and_xeb(
     entangling_gate: cirq.Gate = ops.CZ,
     depths_xeb: Sequence[int] = (5, 25, 50, 100, 200, 300),
     xeb_combinations: int = 10,
-    random_state: cirq.PRNG_OR_SEED_LIKE = None,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     pairs: Sequence[tuple[cirq.GridQubit, cirq.GridQubit]] | None = None,
     batch_size: int = 9,
     tags: Sequence[Any] = (),

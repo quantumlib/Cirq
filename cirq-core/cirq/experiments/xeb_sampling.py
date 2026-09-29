@@ -291,7 +291,7 @@ def sample_2q_xeb_circuits(
     batch_size: int = 9,
     progress_bar: Callable[..., AbstractContextManager] | None = tqdm.tqdm,
     combinations_by_layer: list[CircuitLibraryCombination] | None = None,
-    shuffle: cirq.PRNG_OR_SEED_LIKE | None = None,
+    shuffle: cirq.RANDOM_STATE_OR_SEED_LIKE | None = None,
     dataset_directory: str | None = None,
 ) -> pd.DataFrame:
     """Sample two-qubit XEB circuits given a sampler.
@@ -343,7 +343,7 @@ def sample_2q_xeb_circuits(
     # Construct truncated-with-measurement circuits to run.
     tasks = _generate_sample_2q_xeb_tasks(zipped_circuits, cycle_depths)
     if shuffle is not None:
-        prng = value.parse_random_generator(shuffle)
+        prng = value.parse_random_state(shuffle)
         prng.shuffle(tasks)  # type: ignore[arg-type]
 
     # Batch and run tasks.

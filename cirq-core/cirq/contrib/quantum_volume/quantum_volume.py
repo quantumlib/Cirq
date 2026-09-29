@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 
 def generate_model_circuit(
-    num_qubits: int, depth: int, *, random_state: cirq.PRNG_OR_SEED_LIKE = None
+    num_qubits: int, depth: int, *, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None
 ) -> cirq.Circuit:
     """Generates a model circuit with the given number of qubits and depth.
 
@@ -39,7 +39,7 @@ def generate_model_circuit(
     # Setup the circuit and its qubits.
     qubits = cirq.LineQubit.range(num_qubits)
     circuit = cirq.Circuit()
-    random_state = cirq.value.parse_random_generator(random_state)
+    random_state = cirq.value.parse_random_state(random_state)
 
     # For each layer.
     for _ in range(depth):
@@ -332,7 +332,7 @@ def prepare_circuits(
     num_qubits: int,
     depth: int,
     num_circuits: int,
-    random_state: cirq.PRNG_OR_SEED_LIKE = None,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> list[tuple[cirq.Circuit, list[int]]]:
     """Generates circuits and computes their heavy set.
 
@@ -428,7 +428,7 @@ def calculate_quantum_volume(
     num_circuits: int,
     device_graph: nx.Graph,
     samplers: list[cirq.Sampler],
-    random_state: cirq.PRNG_OR_SEED_LIKE = None,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     compiler: Callable[[cirq.Circuit], cirq.Circuit] | None = None,
     repetitions=10_000,
     routing_attempts=30,
