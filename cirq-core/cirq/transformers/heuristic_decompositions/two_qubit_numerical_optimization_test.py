@@ -179,7 +179,12 @@ def test_noise_adaptive_compilation_prefers_more_reliable_gates() -> None:
 def test_noise_adaptive_compilation_single_qubit_error_rates() -> None:
     target = random_special_unitary(4, random_state=value.parse_random_state(5))
     result = _compile(
-        target, _CZ, base_gate_error_rates=[0.06], single_qubit_error_rates=0.001, random_state=15
+        target,
+        _CZ,
+        base_gate_error_rates=[0.06],
+        single_qubit_error_rates=0.001,
+        target_fidelity=0.9,
+        random_state=15,
     )
     num_1q_gates = 2 * (result.num_base_gates + 1)
     expected_fh = 0.94**result.num_base_gates * 0.999**num_1q_gates
@@ -194,6 +199,7 @@ def test_noise_adaptive_compilation_per_qubit_error_rates() -> None:
         _CZ,
         base_gate_error_rates=[0.06],
         single_qubit_error_rates=(0.01, 0.02),
+        target_fidelity=0.9,
         random_state=15,
     )
     n = result.num_base_gates
@@ -284,7 +290,10 @@ def test_numerical_compiler_equality() -> None:
 def test_numerical_compiler_repr() -> None:
     cirq.testing.assert_equivalent_repr(
         TwoQubitNumericalCompiler(
-            base_gates=(_CZ, _SQRT_ISWAP), base_gate_error_rates=(0.01, 0.05), random_state=5
+            base_gates=(_CZ, _SQRT_ISWAP),
+            base_gate_error_rates=(0.01, 0.05),
+            target_fidelity=0.9,
+            random_state=5,
         )
     )
     cirq.testing.assert_equivalent_repr(
@@ -294,13 +303,19 @@ def test_numerical_compiler_repr() -> None:
 
 def test_numerical_compiler_json_roundtrip() -> None:
     compiler = TwoQubitNumericalCompiler(
-        base_gates=(_CZ, _SQRT_ISWAP), base_gate_error_rates=(0.01, 0.05), random_state=5
+        base_gates=(_CZ, _SQRT_ISWAP),
+        base_gate_error_rates=(0.01, 0.05),
+        target_fidelity=0.9,
+        random_state=5,
     )
     cirq.testing.assert_json_roundtrip_works(compiler)
     compiler_no_rates = TwoQubitNumericalCompiler(base_gates=(_CZ,))
     cirq.testing.assert_json_roundtrip_works(compiler_no_rates)
     compiler_pair = TwoQubitNumericalCompiler(
-        base_gates=(_CZ,), single_qubit_error_rates=(0.01, 0.02), random_state=5
+        base_gates=(_CZ,),
+        single_qubit_error_rates=(0.01, 0.02),
+        target_fidelity=0.9,
+        random_state=5,
     )
     cirq.testing.assert_json_roundtrip_works(compiler_pair)
 
@@ -384,6 +399,12 @@ def test_input_validation() -> None:
         _compile(np.eye(2), _CZ)
     with pytest.raises(ValueError, match='target_fidelity must be in'):
         _compile(target, _CZ, target_fidelity=1.5)
+    with pytest.raises(ValueError, match='target_fidelity must be set explicitly'):
+        _compile(target, _CZ, base_gate_error_rates=[0.06])
+    with pytest.raises(ValueError, match='target_fidelity must be set explicitly'):
+        _compile(target, _CZ, single_qubit_error_rates=0.01)
+    with pytest.raises(ValueError, match='target_fidelity must be set explicitly'):
+        TwoQubitNumericalCompiler(base_gates=(_CZ,), base_gate_error_rates=(0.06,))
     with pytest.raises(ValueError, match='max_layers must be at least 1'):
         _compile(target, _CZ, max_layers=0)
     with pytest.raises(ValueError, match='num_restarts must be at least 1'):

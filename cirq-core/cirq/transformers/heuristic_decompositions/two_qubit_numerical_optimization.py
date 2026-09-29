@@ -231,7 +231,7 @@ def two_qubit_gate_numerical_compilation(
     target_unitary: np.ndarray,
     base_gates: np.ndarray | Sequence[np.ndarray],
     *,
-    target_fidelity: float = 1 - 1e-8,
+    target_fidelity: float | None = None,
     max_layers: int = 3,
     base_gate_error_rates: Sequence[float] | None = None,
     single_qubit_error_rates: float | tuple[float, float] = 0.0,
@@ -280,12 +280,10 @@ def two_qubit_gate_numerical_compilation(
         target_fidelity: Decomposition fidelity threshold. Layer growth stops
             once it is met; `success` in the result reports whether the
             returned decomposition meets it. Should be a float slightly below
-            1, e.g. 1 - 1e-8 for exact compilation or 0.99 for approximate.
-            When `base_gate_error_rates` is given, the threshold instead
-            applies to the overall fidelity $F_u = F_d \cdot F_h$ and should
-            be chosen accordingly: the default 1 - 1e-8 is essentially
-            unattainable on noisy hardware ($F_h < 1$), so noise-adaptive
-            callers should set it explicitly, e.g. 0.95.
+            1, e.g. 1 - 1e-8 (the default) for exact compilation or 0.99 for
+            approximate. Required when hardware error rates are given: the
+            threshold then applies to the overall fidelity $F_u = F_d \cdot
+            F_h$.
         max_layers: Maximum number of base gate applications allowed.
         base_gate_error_rates: Optional hardware error rate of each base gate,
             one per entry of `base_gates`. When given, the compiler maximizes
@@ -311,9 +309,10 @@ def two_qubit_gate_numerical_compilation(
         ValueError: If `target_unitary` is not a finite 4x4 unitary,
             `base_gates` is empty, malformed, or contains non-finite or
             non-unitary matrices, `base_gate_error_rates` does not match
-            `base_gates`, or `target_fidelity`, `max_layers`, `num_restarts`,
-            `maxiter`, `base_gate_error_rates` or `single_qubit_error_rates`
-            are out of range.
+            `base_gates`, `target_fidelity` is not set while hardware error
+            rates are given, or `target_fidelity`, `max_layers`,
+            `num_restarts`, `maxiter`, `base_gate_error_rates` or
+            `single_qubit_error_rates` are out of range.
     """
     target = np.asarray(target_unitary)
     if target.shape != (4, 4):
@@ -322,8 +321,6 @@ def two_qubit_gate_numerical_compilation(
         raise ValueError('target_unitary must contain only finite values')
     if not linalg.is_unitary(target):
         raise ValueError('target_unitary must be unitary')
-    if not 0 < target_fidelity < 1:
-        raise ValueError(f'target_fidelity must be in (0, 1), got {target_fidelity}')
     if max_layers < 1:
         raise ValueError(f'max_layers must be at least 1, got {max_layers}')
     if num_restarts < 1:
@@ -361,6 +358,15 @@ def two_qubit_gate_numerical_compilation(
         raise ValueError(
             f'single_qubit_error_rates must be in [0, 1], got {single_qubit_error_rates}'
         )
+    if target_fidelity is None:
+        if base_gate_error_rates is not None or np.any(sqe != 0):
+            raise ValueError(
+                'target_fidelity must be set explicitly when base_gate_error_rates or '
+                'single_qubit_error_rates is given'
+            )
+        target_fidelity = 1 - 1e-8
+    if not 0 < target_fidelity < 1:
+        raise ValueError(f'target_fidelity must be in (0, 1), got {target_fidelity}')
 
     rng = value.parse_random_state(random_state)
 
@@ -439,7 +445,7 @@ class TwoQubitNumericalCompiler:
 
     base_gates: tuple[np.ndarray, ...]
     base_gate_error_rates: tuple[float, ...] | None = None
-    target_fidelity: float = 1 - 1e-8
+    target_fidelity: float | None = None
     max_layers: int = 3
     single_qubit_error_rates: float | tuple[float, float] = 0.0
     num_restarts: int = 5
@@ -453,6 +459,14 @@ class TwoQubitNumericalCompiler:
     def __post_init__(self) -> None:
         if self.max_cache_size < 1:
             raise ValueError(f'max_cache_size must be at least 1, got {self.max_cache_size}')
+        sqe = np.atleast_1d(np.asarray(self.single_qubit_error_rates, dtype=float))
+        if self.target_fidelity is None and (
+            self.base_gate_error_rates is not None or np.any(sqe != 0)
+        ):
+            raise ValueError(
+                'target_fidelity must be set explicitly when base_gate_error_rates or '
+                'single_qubit_error_rates is given'
+            )
 
     def compile_two_qubit_gate(self, unitary: np.ndarray) -> TwoQubitNumericalCompilationResult:
         """Compile the given 4x4 unitary onto this compiler's base gate(s).
