@@ -1149,7 +1149,7 @@ class AbstractCircuit(abc.ABC):
         ignore_terminal_measurements: bool = False,
         dtype: type[np.complexfloating] = np.complex128,
         param_resolver: cirq.ParamResolverOrSimilarType = None,
-        seed: cirq.PRNG_OR_SEED_LIKE = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:
         """Returns the state vector resulting from acting operations on a state.
 
