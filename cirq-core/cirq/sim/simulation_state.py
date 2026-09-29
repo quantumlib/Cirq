@@ -160,20 +160,9 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         """Creates a final merged state."""
         return self
 
-    def add_qubits(self: Self, qubits: Sequence[cirq.Qid]) -> Self:
-        """Add `qubits` in the `|0>` state to a new state space and take the kron product.
-
-        Args:
-            qubits: Sequence of qubits to be added.
-
-        Returns:
-            NotImplemented: If the subclass does not implement this method.
-            Self: A `cirq.SimulationState` with qubits added or `self` if there are no qubits to
-                add.
-        """
-        if not qubits:
-            return self
-        return NotImplemented
+    def create_empty_state(self, qubits: Sequence[cirq.Qid]) -> Self:
+        """Creates a new state with the given qubits in the |0> state"""
+        raise NotImplementedError("This simulation state does not implement create_empty_state.")
 
     def remove_qubits(self: Self, qubits: Sequence[cirq.Qid]) -> Self:
         """Remove `qubits` from the state space.

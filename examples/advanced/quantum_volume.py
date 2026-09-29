@@ -3,7 +3,7 @@
 https://arxiv.org/abs/1811.12926. By default, this runs on the Bristlecone
 device.
 
-Usage: python examples/advanced/quantum_volume.py \
+Usage: Python examples/advanced/quantum_volume.py \
          --num_qubits=4 --depth=4 --num_circuits=1 [--seed=int]
 
 Output:

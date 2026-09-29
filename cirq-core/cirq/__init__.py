@@ -567,6 +567,7 @@ from cirq.value import (
     MeasurementType as MeasurementType,
     PeriodicValue as PeriodicValue,
     RANDOM_STATE_OR_SEED_LIKE as RANDOM_STATE_OR_SEED_LIKE,
+    PRNG_OR_SEED_LIKE as PRNG_OR_SEED_LIKE,
     state_vector_to_probabilities as state_vector_to_probabilities,
     SympyCondition as SympyCondition,
     Timestamp as Timestamp,
@@ -714,6 +715,6 @@ from cirq.json_resolver_cache import _class_resolver_dictionary
 
 _register_resolver(_class_resolver_dictionary)
 
-# contrib's json resolver cache depends on cirq.DEFAULT_RESOLVER
+# contrib's JSON resolver cache depends on cirq.DEFAULT_RESOLVER
 
 from cirq import contrib  # noqa: E402

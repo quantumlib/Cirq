@@ -32,7 +32,7 @@ def _accept(random_sample: float, cost_diff: float, temp: float) -> tuple[bool, 
         temp: Current temperature.
 
     Returns:
-        Tuple of boolean and float, with boolean equal to True if solution is
+        Tuple of Boolean and float, with Boolean equal to True if solution is
         accepted, and False otherwise. The float value is acceptance
         probability.
     """
@@ -82,7 +82,7 @@ def anneal_minimize(
             This is going to be called at each algorithm step for the arguments:
             solution candidate (T), current temperature (float), candidate cost
             (float), probability of accepting candidate (float), and acceptance
-            decision (boolean).
+            decision (Boolean).
 
     Returns:
         The best solution found.

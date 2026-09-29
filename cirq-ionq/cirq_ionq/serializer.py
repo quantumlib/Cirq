@@ -68,7 +68,7 @@ class SerializedProgram:
 
 
 class Serializer:
-    """Takes gates supported by IonQ's API and converts them to IonQ json form.
+    """Takes gates supported by IonQ's API and converts them to IonQ JSON form.
 
     Note that this does only serialization, it does not do any decomposition into the supported
     gate set.

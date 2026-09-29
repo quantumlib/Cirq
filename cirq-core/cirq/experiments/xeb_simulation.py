@@ -107,7 +107,7 @@ def simulate_2q_xeb_circuits(
             interface.
 
     Returns:
-        A dataframe with index ['circuit_i', 'cycle_depth'] and column
+        A DataFrame with index ['circuit_i', 'cycle_depth'] and column
         "pure_probs" containing the pure-state probabilities for each row.
     """
     if simulator is None:

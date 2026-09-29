@@ -115,7 +115,7 @@ This can include both incoherent as well as coherent error.
 Note: gate durations are subject to change based on device or
 configuration.  To get gates durations for a specific device, see the
 [Device specification](./specification.md#gate-durations) page.  Also
-note that some gates (such as Z gates or Fsim gates) have multiple
+note that some gates (such as Z gates or FSim gates) have multiple
 variations that can have different durations.
 
 ### One qubit gates

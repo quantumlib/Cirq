@@ -52,10 +52,10 @@ class PauliMeasurementGate(raw_types.Gate):
         Args:
             observable: Pauli observable to measure. Any `Iterable[cirq.Pauli]`
                 is a valid Pauli observable (with a +1 coefficient by default).
-                If you wish to measure pauli observables with coefficient -1,
+                If you wish to measure Pauli observables with coefficient -1,
                 then pass a `cirq.DensePauliString` as observable.
             key: The string key of the measurement.
-            confusion_matrix: A 2x2 numpy array representing the confusion matrix
+            confusion_matrix: A 2x2 NumPy array representing the confusion matrix
                 for the measurement qubit.
 
         Raises:
@@ -100,7 +100,7 @@ class PauliMeasurementGate(raw_types.Gate):
         return False
 
     def with_key(self, key: str | cirq.MeasurementKey) -> PauliMeasurementGate:
-        """Creates a pauli measurement gate with a new key but otherwise identical."""
+        """Creates a Pauli measurement gate with a new key but otherwise identical."""
         if key == self.key:
             return self
         return PauliMeasurementGate(
@@ -124,7 +124,7 @@ class PauliMeasurementGate(raw_types.Gate):
     def with_observable(
         self, observable: cirq.BaseDensePauliString | Iterable[cirq.Pauli]
     ) -> PauliMeasurementGate:
-        """Creates a pauli measurement gate with the new observable and same key."""
+        """Creates a Pauli measurement gate with the new observable and same key."""
         if (
             observable
             if isinstance(observable, dps.BaseDensePauliString)

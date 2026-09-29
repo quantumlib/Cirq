@@ -28,7 +28,7 @@ def relative_luminance(color: ArrayLike) -> float:
     Spec: https://www.w3.org/TR/WCAG21/#dfn-relative-luminance.
 
     Args:
-        color: a numpy array with the first 3 elements red, green, and blue
+        color: a NumPy array with the first 3 elements red, green, and blue
             with values in [0, 1].
     Returns:
         relative luminance of color in [0, 1].

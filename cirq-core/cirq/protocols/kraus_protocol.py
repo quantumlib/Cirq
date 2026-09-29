@@ -49,15 +49,15 @@ class SupportsKraus(Protocol):
         r"""A list of Kraus matrices describing the quantum channel.
 
         These matrices are the terms in the operator sum representation of a
-        quantum channel. If the returned matrices are ${A_0,A_1,..., A_{r-1}}$,
+        quantum channel. If the returned matrices are $\{A_0, A_1, \ldots, A_{r-1}\}$,
         then this describes the channel:
-            $$
-            \rho \rightarrow \sum_{k=0}^{r-1} A_k \rho A_k^\dagger
-            $$
+        $$
+        \rho \rightarrow \sum_{k=0}^{r-1} A_k \rho A_k^\dagger
+        $$
         These matrices are required to satisfy the trace preserving condition
-            $$
-            \sum_{k=0}^{r-1} A_k^\dagger A_k = I
-            $$
+        $$
+        \sum_{k=0}^{r-1} A_k^\dagger A_k = I
+        $$
         where $I$ is the identity matrix. The matrices $A_k$ are sometimes
         called Kraus or noise operators.
 
@@ -101,7 +101,7 @@ def _strat_kraus_from_apply_channel(val: Any, atol: float) -> tuple[np.ndarray, 
     This is very expensive (O(16^N)), so only do this as a last resort.
 
     Args:
-        val: value to calculate kraus channels from.
+        val: value to calculate Kraus channels from.
         atol: Absolute tolerance for super-operator calculation.
             Matrices with all entries less than this will be dropped."""
     method = getattr(val, '_apply_channel_', None)
@@ -129,7 +129,7 @@ def _strat_kraus_from_apply_channel(val: Any, atol: float) -> tuple[np.ndarray, 
         return None
     n = np.prod(qid_shape) ** 2
     # Note that super-operator calculations can be numerically unstable
-    # and we want to avoid returning kraus channels with "almost zero"
+    # and we want to avoid returning Kraus channels with "almost zero"
     # components
     kraus_ops = qis.superoperator_to_kraus(superop.reshape((n, n)), atol=atol)
     return tuple(kraus_ops)
@@ -141,15 +141,15 @@ def kraus(
     r"""Returns a list of matrices describing the channel for the given value.
 
     These matrices are the terms in the operator sum representation of
-    a quantum channel. If the returned matrices are ${A_0,A_1,..., A_{r-1}}$,
+    a quantum channel. If the returned matrices are $\{A_0, A_1, \ldots, A_{r-1}\}$,
     then this describes the channel:
-        $$
-        \rho \rightarrow \sum_{k=0}^{r-1} A_k \rho A_k^\dagger
-        $$
+    $$
+    \rho \rightarrow \sum_{k=0}^{r-1} A_k \rho A_k^\dagger
+    $$
     These matrices are required to satisfy the trace preserving condition
-        $$
-        \sum_{k=0}^{r-1} A_k^\dagger A_k = I
-        $$
+    $$
+    \sum_{k=0}^{r-1} A_k^\dagger A_k = I
+    $$
     where $I$ is the identity matrix. The matrices $A_k$ are sometimes called
     Kraus or noise operators.
 
@@ -206,7 +206,7 @@ def kraus(
         return tuple(channel_result)  # pragma: no cover
 
     # Last-resort fallback: try to derive Kraus from _apply_channel_.
-    # Note: _apply_channel can lead to kraus being called again, so if default
+    # Note: _apply_channel can lead to Kraus being called again, so if default
     # is None, this can trigger an infinite loop.
     if default is not None:
         result = _strat_kraus_from_apply_channel(val, atol)

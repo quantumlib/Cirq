@@ -99,7 +99,7 @@ class Result(abc.ABC):
     def measurements(self) -> Mapping[str, np.ndarray]:
         """A mapping from measurement gate key to measurement results.
 
-        The value for each key is a 2-D array of booleans, with the first index
+        The value for each key is a 2-D array of Booleans, with the first index
         running over the repetitions, and the second index running over the
         qubits for the corresponding measurements.
         """
@@ -109,7 +109,7 @@ class Result(abc.ABC):
     def records(self) -> Mapping[str, np.ndarray]:
         """A mapping from measurement key to measurement records.
 
-        The value for each key is a 3-D array of booleans, with the first index
+        The value for each key is a 3-D array of Booleans, with the first index
         running over circuit repetitions, the second index running over instances
         of the measurement key in the circuit, and the third index running over
         the qubits for the corresponding measurements.
@@ -118,7 +118,7 @@ class Result(abc.ABC):
     @property
     @abc.abstractmethod
     def data(self) -> pd.DataFrame:
-        """Measurements converted to a pandas dataframe.
+        """Measurements converted to a Pandas dataframe.
 
         The rows in the returned data frame correspond to repetitions of the
         circuit, and the columns correspond to measurement keys, where each
@@ -129,7 +129,7 @@ class Result(abc.ABC):
 
     @staticmethod
     def dataframe_from_measurements(measurements: Mapping[str, np.ndarray]) -> pd.DataFrame:
-        """Converts the given measurements to a pandas dataframe.
+        """Converts the given measurements to a Pandas dataframe.
 
         This can be used by subclasses as a default implementation for the data
         property. Note that subclasses should typically memoize the result to
@@ -380,7 +380,7 @@ class ResultDict(Result):
 
     Stores results of executing a circuit for multiple repetitions with one
     fixed set of parameters. The values for each measurement key are stored as a
-    2D numpy array. The first (row) index in each array is the repetition
+    2D NumPy array. The first (row) index in each array is the repetition
     number, and the second (column) index is the qubit.
 
     Attributes:
@@ -399,12 +399,12 @@ class ResultDict(Result):
         Args:
             params: A ParamResolver of settings used for this result.
             measurements: A dictionary from measurement gate key to measurement
-                results. The value for each key is a 2-D array of booleans,
+                results. The value for each key is a 2-D array of Booleans,
                 with the first index running over the repetitions, and the
                 second index running over the qubits for the corresponding
                 measurements.
             records: A dictionary from measurement gate key to measurement
-                results. The value for each key is a 3D array of booleans,
+                results. The value for each key is a 3D array of Booleans,
                 with the first index running over the repetitions, the second
                 index running over "instances" of that key in the circuit, and
                 the last index running over the qubits for the corresponding
@@ -473,7 +473,7 @@ class ResultDict(Result):
         return f'cirq.ResultDict(params={self.params!r}, records={self._record_dict_repr()})'
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
-        """Output to show in ipython and Jupyter notebooks."""
+        """Output to show in IPython and Jupyter notebooks."""
         if cycle:
             # There should never be a cycle.  This is just in case.
             p.text('ResultDict(...)')
@@ -514,11 +514,11 @@ class ResultDict(Result):
 
 
 def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> tuple[str, bool]:
-    """Returns a string of packed digits and a boolean indicating whether the
+    """Returns a string of packed digits and a Boolean indicating whether the
     digits were packed as binary values.
 
     Args:
-        digits: A numpy array.
+        digits: A NumPy array.
         pack_bits: If 'auto' (the default), automatically pack binary digits
             using `np.packbits` to save space. If 'never', do not pack binary
             digits. If 'force', use `np.packbits` without checking for
@@ -557,7 +557,7 @@ def _unpack_digits(
     """The opposite of `_pack_digits`.
 
     Args:
-        packed_digits: The hex-encoded string representing a numpy array of
+        packed_digits: The hex-encoded string representing a NumPy array of
             digits. This is the first return value of `_pack_digits`.
         binary: Whether the digits have been packed as binary. This is the
             second return value of `_pack_digits`.

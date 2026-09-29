@@ -187,11 +187,11 @@ def flatten_with_params(
 
 
 class _ParamFlattener(resolver.ParamResolver):
-    """A `ParamResolver` that resolves sympy expressions to unique symbols.
+    """A `ParamResolver` that resolves SymPy expressions to unique symbols.
 
     This is a mutable object that stores new expression to symbol mappings
     when it is used to resolve parameters with `cirq.resolve_parameters` or
-    `_ParamFlattener.flatten_circuit`.  It is useful for replacing sympy
+    `_ParamFlattener.flatten_circuit`.  It is useful for replacing SymPy
     expressions from circuits with single symbols and transforming parameter
     sweeps to match.
     """
@@ -210,11 +210,11 @@ class _ParamFlattener(resolver.ParamResolver):
 
         Args:
             param_dict: A default initial mapping from some parameter names,
-                symbols, or expressions to other symbols or values.  Only sympy
+                symbols, or expressions to other symbols or values.  Only SymPy
                 expressions and symbols not specified in `param_dict` will be
                 flattened.
             get_param_name: A callback function that returns a new parameter
-                name for a given sympy expression or symbol.  If this function
+                name for a given SymPy expression or symbol.  If this function
                 returns the same value for two different expressions, `'_#'` is
                 appended to the name to avoid name collision where `#` is the
                 number of previous collisions.  By default, returns the
@@ -315,7 +315,7 @@ class _ParamFlattener(resolver.ParamResolver):
 
 
 class ExpressionMap(dict):
-    """A dictionary with sympy expressions and symbols for keys and sympy
+    """A dictionary with SymPy expressions and symbols for keys and SymPy
     symbols for values.
 
     This is returned by `cirq.flatten`.  See `ExpressionMap.transform_sweep` and
@@ -325,7 +325,7 @@ class ExpressionMap(dict):
     def __init__(self, *args, **kwargs):
         """Initializes the `ExpressionMap`.
 
-        Takes the same arguments as the builtin `dict`.  Keys must be sympy
+        Takes the same arguments as the builtin `dict`.  Keys must be SymPy
         expressions or symbols (instances of `sympy.Expr`).
         """
         super().__init__(*args, **kwargs)

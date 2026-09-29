@@ -329,7 +329,7 @@ def transformer(cls_or_func: Any = None, *, add_deep_support: bool = False) -> A
         Decorated class / function which includes additional logging boilerplate.
     """
 
-    # If keyword arguments were specified, python invokes the decorator method
+    # If keyword arguments were specified, Python invokes the decorator method
     # without a `cls` argument, then passes `cls` into the result.
     if cls_or_func is None:
         return lambda deferred_cls_or_func: transformer(
