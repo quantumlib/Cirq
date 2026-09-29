@@ -82,7 +82,7 @@ class SimulatorBase(
         *,
         dtype: type[np.complexfloating] = np.complex64,
         noise: cirq.NOISE_MODEL_LIKE = None,
-        seed: cirq.PRNG_OR_SEED_LIKE = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         split_untangled_states: bool = False,
     ):
         """Initializes the simulator.
@@ -90,13 +90,13 @@ class SimulatorBase(
         Args:
             dtype: The `numpy.dtype` used by the simulation.
             noise: A noise model to apply while simulating.
-            seed: A pseudorandom number generator or object that can be converted to one.
+            seed: The random seed to use for this simulator.
             split_untangled_states: If True, optimizes simulation by running
                 unentangled qubit sets independently and merging those states
                 at the end.
         """
         self._dtype = dtype
-        self._prng = value.parse_random_generator(seed)
+        self._prng = value.parse_random_state(seed)
         self._noise = devices.NoiseModel.from_noise_model_like(noise)
         self._split_untangled_states = split_untangled_states
 
@@ -429,7 +429,7 @@ class StepResultBase(
         self,
         qubits: list[cirq.Qid],
         repetitions: int = 1,
-        seed: cirq.PRNG_OR_SEED_LIKE = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:
         return self._sim_state.sample(qubits, repetitions, seed)
 

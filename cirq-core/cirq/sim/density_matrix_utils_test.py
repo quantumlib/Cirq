@@ -80,7 +80,7 @@ def test_sample_density_matrix_seed() -> None:
     samples = cirq.sample_density_matrix(density_matrix, [0], repetitions=10, seed=1234)
     assert np.array_equal(
         samples,
-        [[True], [False], [True], [False], [False], [False], [False], [False], [True], [False]],
+        [[False], [True], [False], [True], [True], [False], [False], [True], [True], [True]],
     )
 
     samples = cirq.sample_density_matrix(
@@ -253,25 +253,14 @@ def test_measure_density_matrix_seed() -> None:
     matrix = np.eye(2**n) / 2**n
 
     bits, out_matrix1 = cirq.measure_density_matrix(matrix, range(n), seed=1234)
-    assert bits == [True, True, True, True, True]
+    assert bits == [False, False, True, True, False]
 
     bits, out_matrix2 = cirq.measure_density_matrix(
         matrix, range(n), seed=np.random.RandomState(1234)
     )
     assert bits == [False, False, True, True, False]
 
-    # Integer seeds now use np.random.Generator, while an explicit
-    # RandomState preserves the legacy random sequence. Their post-measurement
-    # states therefore differ, so compare each result with its expected basis state.
-    expected_state1 = np.zeros(2**n)
-    expected_state1[31] = 1
-    expected_matrix1 = np.outer(expected_state1, expected_state1)
-    np.testing.assert_allclose(out_matrix1, expected_matrix1)
-
-    expected_state2 = np.zeros(2**n)
-    expected_state2[6] = 1
-    expected_matrix2 = np.outer(expected_state2, expected_state2)
-    np.testing.assert_allclose(out_matrix2, expected_matrix2)
+    np.testing.assert_allclose(out_matrix1, out_matrix2)
 
 
 def test_measure_density_matrix_out_is_matrix() -> None:

@@ -35,7 +35,7 @@ def sample_density_matrix(
     *,  # Force keyword arguments
     qid_shape: tuple[int, ...] | None = None,
     repetitions: int = 1,
-    seed: cirq.PRNG_OR_SEED_LIKE = None,
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> np.ndarray:
     """Samples repeatedly from measurements in the computational basis.
 
@@ -56,7 +56,7 @@ def sample_density_matrix(
         seed: A seed for the pseudorandom number generator.
 
     Returns:
-        Measurement results with True corresponding to the ``|1âŸ©`` state.
+        Measurement results with True corresponding to the ``|1⟩`` state.
         The outer list is for repetitions, and the inner corresponds to
         measurements ordered by the supplied qubits. These lists
         are wrapped as a NumPy ndarray.
@@ -79,7 +79,7 @@ def sample_density_matrix(
     if repetitions == 0 or len(indices) == 0:
         return np.zeros(shape=(repetitions, len(indices)), dtype=np.int8)
 
-    prng = value.parse_random_generator(seed)
+    prng = value.parse_random_state(seed)
 
     # Calculate the measurement probabilities.
     probs = _probs(density_matrix, indices, qid_shape)
@@ -100,7 +100,7 @@ def measure_density_matrix(
     indices: Sequence[int],
     qid_shape: tuple[int, ...] | None = None,
     out: np.ndarray | None = None,
-    seed: cirq.PRNG_OR_SEED_LIKE = None,
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> tuple[list[int], np.ndarray]:
     """Performs a measurement of the density matrix in the computational basis.
 
@@ -158,7 +158,7 @@ def measure_density_matrix(
     if len(indices) == 0:
         return ([], arrout)
 
-    prng = value.parse_random_generator(seed)
+    prng = value.parse_random_state(seed)
 
     # Calculate the measurement probabilities and then make the measurement.
     probs = _probs(density_matrix, indices, qid_shape)

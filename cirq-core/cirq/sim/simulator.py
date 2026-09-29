@@ -228,7 +228,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
         self,
         circuit: cirq.AbstractCircuit,
         param_resolver: cirq.ParamResolverOrSimilarType,
-        seed: cirq.PRNG_OR_SEED_LIKE,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE,
         repetitions: int = 1,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ) -> dict[int, int]:
@@ -261,7 +261,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
             ValueError: if 'circuit' has non-unitary elements, as differences
                 in behavior between sampling steps break this algorithm.
         """
-        prng = value.parse_random_generator(seed)
+        prng = value.parse_random_state(seed)
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         base_circuit = circuits.Circuit(ops.I(q) for q in qubits) + circuit.unfreeze()
         qmap = {q: i for i, q in enumerate(qubits)}
@@ -725,7 +725,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
         self,
         qubits: list[cirq.Qid],
         repetitions: int = 1,
-        seed: cirq.PRNG_OR_SEED_LIKE = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:
         """Samples from the system at this point in the computation.
 
@@ -749,7 +749,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
         self,
         measurement_ops: list[cirq.GateOperation],
         repetitions: int = 1,
-        seed: cirq.PRNG_OR_SEED_LIKE = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         *,
         _allow_repeated=False,
     ) -> dict[str, np.ndarray]:
@@ -839,13 +839,13 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
         bits: np.ndarray,
         qubits: Sequence[cirq.Qid],
         confusion_map: dict[tuple[int, ...], np.ndarray],
-        seed: cirq.PRNG_OR_SEED_LIKE = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> None:
         """Mutates `bits` using the confusion_map.
 
         Compare with _confuse_result in cirq-core/cirq/sim/simulation_state.py.
         """
-        prng = value.parse_random_generator(seed)
+        prng = value.parse_random_state(seed)
         for rep in bits:
             dims = [q.dimension for q in qubits]
             for indices, confuser in confusion_map.items():

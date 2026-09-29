@@ -173,7 +173,7 @@ def sample_state_vector(
     *,  # Force keyword args
     qid_shape: tuple[int, ...] | None = None,
     repetitions: int = 1,
-    seed: cirq.PRNG_OR_SEED_LIKE = None,
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> np.ndarray:
     """Samples repeatedly from measurements in the computational basis.
 
@@ -214,7 +214,7 @@ def sample_state_vector(
     if repetitions == 0 or len(indices) == 0:
         return np.zeros(shape=(repetitions, len(indices)), dtype=np.uint8)
 
-    prng = value.parse_random_generator(seed)
+    prng = value.parse_random_state(seed)
 
     # Calculate the measurement probabilities.
     probs = (state_vector * state_vector.conj()).real
@@ -238,7 +238,7 @@ def measure_state_vector(
     *,  # Force keyword args
     qid_shape: tuple[int, ...] | None = None,
     out: np.ndarray | None = None,
-    seed: cirq.PRNG_OR_SEED_LIKE = None,
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> tuple[list[int], np.ndarray]:
     """Performs a measurement of the state in the computational basis.
 
@@ -285,7 +285,7 @@ def measure_state_vector(
         # Final else: if out is state then state will be modified in place.
         return ([], out)
 
-    prng = value.parse_random_generator(seed)
+    prng = value.parse_random_state(seed)
 
     # Calculate the measurement probabilities and then make the measurement.
     probs = (state_vector * state_vector.conj()).real

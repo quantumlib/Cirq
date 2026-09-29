@@ -57,7 +57,7 @@ def sample(
     param_resolver: cirq.ParamResolver | None = None,
     repetitions: int = 1,
     dtype: type[np.complexfloating] = np.complex64,
-    seed: cirq.PRNG_OR_SEED_LIKE = None,
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> cirq.Result:
     """Simulates sampling from the given circuit.
 
@@ -114,7 +114,7 @@ def final_state_vector(
     qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ignore_terminal_measurements: bool = False,
     dtype: type[np.complexfloating] = np.complex64,
-    seed: cirq.PRNG_OR_SEED_LIKE = None,
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> np.ndarray:
     """Returns the state vector resulting from acting operations on a state.
 
@@ -184,7 +184,7 @@ def sample_sweep(
     noise: cirq.NOISE_MODEL_LIKE = None,
     repetitions: int = 1,
     dtype: type[np.complexfloating] = np.complex64,
-    seed: cirq.PRNG_OR_SEED_LIKE = None,
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> Sequence[cirq.Result]:
     """Runs the supplied Circuit, mimicking quantum hardware.
 
@@ -206,7 +206,7 @@ def sample_sweep(
         Result list for this run; one for each possible parameter
         resolver.
     """
-    prng = value.parse_random_generator(seed)
+    prng = value.parse_random_state(seed)
 
     trial_results: list[study.Result] = []
     for param_resolver in study.to_resolvers(params):
@@ -230,7 +230,7 @@ def final_density_matrix(
     param_resolver: cirq.ParamResolverOrSimilarType = None,
     qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     dtype: type[np.complexfloating] = np.complex64,
-    seed: cirq.PRNG_OR_SEED_LIKE = None,
+    seed: int | np.random.RandomState | None = None,
     ignore_measurement_results: bool = True,
 ) -> np.ndarray:
     """Returns the density matrix resulting from simulating the circuit.
