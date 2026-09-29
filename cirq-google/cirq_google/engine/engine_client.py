@@ -448,11 +448,11 @@ class EngineClient:
         # Create job.
         if snapshot_id:
             selector = quantum.DeviceConfigSelector(
-                snapshot_id=snapshot_id or None, config_alias=device_config_name or 'default'
+                snapshot_id=snapshot_id, config_alias=device_config_name
             )
         else:
             selector = quantum.DeviceConfigSelector(
-                run_name=run_name or 'default', config_alias=device_config_name or 'default'
+                run_name=run_name, config_alias=device_config_name
             )
         job_name = _job_name_from_ids(project_id, program_id, job_id) if job_id else ''
         job = quantum.QuantumJob(
@@ -1101,8 +1101,8 @@ class EngineClient:
         self,
         project_id: str,
         processor_id: str,
-        config_name: str = 'default',
-        device_config_revision: DeviceConfigRevision = Run(id='default'),
+        config_name: str = '',
+        device_config_revision: DeviceConfigRevision = Run(id=''),
     ) -> quantum.QuantumProcessorConfig | None:
         """Returns the QuantumProcessorConfig for the given snapshot id.
 
@@ -1141,7 +1141,7 @@ class EngineClient:
         self,
         project_id: str,
         processor_id: str,
-        device_config_revision: DeviceConfigRevision = Run(id='default'),
+        device_config_revision: DeviceConfigRevision = Run(id=''),
     ) -> list[quantum.QuantumProcessorConfig]:
         """Returns the QuantumProcessorConfig for the given snapshot id.
 
@@ -1171,8 +1171,8 @@ class EngineClient:
         stim_circuit: str | stim.Circuit,
         qec_recipe: list[str],
         processor_id: str,
-        device_config_revision: DeviceConfigRevision = Run(id='current'),
-        config_name: str = 'default',
+        device_config_revision: DeviceConfigRevision = Run(id=''),
+        config_name: str = '',
     ) -> cirq.Circuit:
         """Takes the given Stim circuit and compiles it to a cirq Circuit.
 
@@ -1193,7 +1193,7 @@ class EngineClient:
                 snapshot_id=device_config_revision.id or None, config_alias=config_name
             )
         else:
-            run_name = device_config_revision.id if device_config_revision else 'default'
+            run_name = device_config_revision.id if device_config_revision else ''
             selector = quantum.DeviceConfigSelector(
                 run_name=run_name or None, config_alias=config_name
             )
@@ -1217,8 +1217,8 @@ class EngineClient:
         project_id: str,
         qec_circuit: cirq.Circuit,
         processor_id: str,
-        device_config_revision: DeviceConfigRevision = Run(id='current'),
-        config_name: str = 'default',
+        device_config_revision: DeviceConfigRevision = Run(id=''),
+        config_name: str = '',
     ) -> quantum.QuantumJob:
         """Calibrates the given QEC circuit on Quantum Engine.
 
@@ -1235,12 +1235,12 @@ class EngineClient:
         validate_device_config_revision(device_config_revision)
         if isinstance(device_config_revision, Snapshot):
             selector = quantum.DeviceConfigSelector(
-                snapshot_id=device_config_revision.id or None, config_alias=config_name
+                snapshot_id=device_config_revision.id, config_alias=config_name
             )
         else:
-            run_name = device_config_revision.id if device_config_revision else 'default'
+            run_name = device_config_revision.id if device_config_revision else ''
             selector = quantum.DeviceConfigSelector(
-                run_name=run_name or None, config_alias=config_name
+                run_name=run_name, config_alias=config_name
             )
 
         program_id, _ = await self.create_program_async(
@@ -1305,14 +1305,14 @@ def _ids_from_processor_name(processor_name: str) -> tuple[str, str]:
 def _quantum_processor_revision_path(
     project_id: str,
     processor_id: str,
-    device_config_revision: DeviceConfigRevision = Run(id='default'),
+    device_config_revision: DeviceConfigRevision = Run(id=''),
 ) -> str:
     validate_device_config_revision(device_config_revision)
     processor_resource_name = _processor_name_from_ids(project_id, processor_id)
     if isinstance(device_config_revision, Snapshot):
         return f'{processor_resource_name}/configSnapshots/{device_config_revision.id}'
 
-    default_run_name = 'default'
+    default_run_name = ''
     run_id = device_config_revision.id if device_config_revision else default_run_name
     return f'{processor_resource_name}/configAutomationRuns/{run_id}'
 

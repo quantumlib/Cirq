@@ -716,8 +716,8 @@ class Engine(abstract_engine.AbstractEngine):
     async def get_processor_config_async(
         self,
         processor_id: str,
-        device_config_revision: processor_config.DeviceConfigRevision = Run(id='default'),
-        config_name: str = 'default',
+        device_config_revision: processor_config.DeviceConfigRevision = Run(id=''),
+        config_name: str = '',
     ) -> processor_config.ProcessorConfig | None:
         """Returns a ProcessorConfig from this project and the given processor id.
 
@@ -751,7 +751,7 @@ class Engine(abstract_engine.AbstractEngine):
     async def list_processor_configs_async(
         self,
         processor_id: str,
-        device_config_revision: processor_config.DeviceConfigRevision = Run(id='default'),
+        device_config_revision: processor_config.DeviceConfigRevision = Run(id=''),
     ) -> list[processor_config.ProcessorConfig]:
         """Returns list of ProcessorConfigs from an automation run.
 
@@ -784,8 +784,8 @@ class Engine(abstract_engine.AbstractEngine):
         stim_circuit: str | stim.Circuit,
         qec_recipe: list[str],
         processor_id: str,
-        device_config_revision: processor_config.DeviceConfigRevision = Run(id='current'),
-        config_name: str = 'default',
+        device_config_revision: processor_config.DeviceConfigRevision = Run(id=''),
+        config_name: str = '',
     ) -> cirq.Circuit:
         """Takes the given Stim circuit and compiles it to a cirq Circuit.
 
@@ -815,9 +815,9 @@ class Engine(abstract_engine.AbstractEngine):
         qec_circuit: cirq.Circuit,
         processor_id: str,
         device_config_revision: processor_config.DeviceConfigRevision = processor_config.Run(
-            id='current'
+            id=''
         ),
-        config_name: str = 'default',
+        config_name: str = '',
     ) -> cirq.ParamResolver:
         """Calibrates the given QEC circuit.
 

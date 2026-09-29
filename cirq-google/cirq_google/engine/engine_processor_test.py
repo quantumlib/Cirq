@@ -1053,10 +1053,12 @@ def test_get_config_from_run(client):
 def test_get_default_config(client):
     project_id = "test_project_id"
     processor_id = "test_proc_id"
+    default_run = 'example_run'
+    default_config = 'config_alias'
     name = (
         f'projects/{project_id}/'
         f'processors/{processor_id}/'
-        'configAutomationRuns/default/configs/default'
+        f'configAutomationRuns/{default_run}/configs/{default_config}'
     )
 
     quantum_config = quantum.QuantumProcessorConfig(
@@ -1066,8 +1068,6 @@ def test_get_default_config(client):
     )
     client().get_quantum_processor_config_async.return_value = quantum_config
 
-    default_run = 'default'
-    default_config = 'config_alias'
     processor = cg.EngineProcessor(
         project_id=project_id,
         processor_id=processor_id,

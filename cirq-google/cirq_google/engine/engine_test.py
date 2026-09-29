@@ -1197,14 +1197,14 @@ def test_list_processor_configs_from_run_default(list_processor_configs_async):
     results = cg.Engine(project_id=project_id).list_processor_configs(processor_id=processor_id)
 
     list_processor_configs_async.assert_called_once_with(
-        project_id=project_id, processor_id=processor_id, device_config_revision=Run(id='default')
+        project_id=project_id, processor_id=processor_id, device_config_revision=Run(id='')
     )
     assert [
         (config.config_name, config.processor_id, config.run_name, config.snapshot_id)
         for config in results
     ] == [
-        ('test_config_1', processor_id, 'default', snapshot_id),
-        ('test_config_2', processor_id, 'default', snapshot_id),
+        ('test_config_1', processor_id, '', snapshot_id),
+        ('test_config_2', processor_id, '', snapshot_id),
     ]
 
 
