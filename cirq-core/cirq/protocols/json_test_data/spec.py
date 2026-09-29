@@ -156,6 +156,7 @@ TestSpec = ModuleJsonTestSpec(
         'QUANTUM_STATE_LIKE',
         'QubitOrderOrList',
         'RANDOM_STATE_OR_SEED_LIKE',
+        'PRNG_OR_SEED_LIKE',
         'STATE_VECTOR_LIKE',
         'Sweepable',
         'TParamKey',
