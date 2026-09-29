@@ -48,10 +48,7 @@ def test_parse_random_state() -> None:
 
 
 def test_parse_random_generator() -> None:
-    prngs = [
-        cirq.value.parse_random_generator(42),
-        cirq.value.parse_random_generator(np.random.default_rng(42)),
-    ]
+    prngs = [cirq.value.parse_random_generator(42), cirq.value.parse_random_generator(np.int32(42))]
     vals = [prng.random() for prng in prngs]
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(*vals)
@@ -63,7 +60,7 @@ def test_parse_random_generator() -> None:
         cirq.value.parse_random_generator(np.random.RandomState(42)),
         cirq.value.parse_random_generator(np.random.RandomState(42)),
     ]
-    vals = [prng.random() for prng in prngs1]
+    vals = [prng.random() for prng in prngs1] + [np.random.RandomState(42).rand()]
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(*vals)
 

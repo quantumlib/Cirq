@@ -14,7 +14,6 @@
 
 from __future__ import annotations
 
-import numbers
 from typing import Any, cast
 
 import numpy as np
@@ -39,7 +38,7 @@ document(
     """,
 )
 
-PRNG_OR_SEED_LIKE = None | int | np.random.RandomState | np.random.Generator
+PRNG_OR_SEED_LIKE = None | int | np.integer | np.random.RandomState | np.random.Generator
 document(
     PRNG_OR_SEED_LIKE,
     """A pseudorandom number generator or object that can be converted to one.
@@ -95,10 +94,10 @@ def parse_random_generator(prng_or_seed: PRNG_OR_SEED_LIKE) -> np.random.Generat
     """
     if prng_or_seed is None:
         return np.random.default_rng()
-    if isinstance(prng_or_seed, numbers.Integral):
-        return np.random.default_rng(int(prng_or_seed))
+    if isinstance(prng_or_seed, (int, np.integer)):
+        return np.random.default_rng(prng_or_seed)
     if isinstance(prng_or_seed, np.random.Generator):
         return prng_or_seed
     if isinstance(prng_or_seed, np.random.RandomState):
-        return np.random.default_rng(prng_or_seed._bit_generator)
+        return np.random.default_rng(prng_or_seed)
     raise TypeError(f"{prng_or_seed} cannot be converted to an np.random.Generator.")
