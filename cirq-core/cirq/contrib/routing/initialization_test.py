@@ -33,7 +33,7 @@ def get_seeded_initial_mapping(graph_seed, init_seed) -> dict[cirq.Qid, cirq.Qid
 
 @pytest.mark.parametrize('seed', [random.randint(0, 2**32) for _ in range(10)])
 def test_initialization_reproducible_with_seed(seed) -> None:
-    wrappers = (lambda s: s, np.random.default_rng)
+    wrappers = (lambda s: s, np.random.RandomState)
     mappings = [
         get_seeded_initial_mapping(seed, wrapper(seed)) for wrapper in wrappers for _ in range(5)
     ]
@@ -43,7 +43,11 @@ def test_initialization_reproducible_with_seed(seed) -> None:
 
 def test_initialization_with_no_seed() -> None:
     graph_seed = random.randint(0, 2**32)
-    mappings = [get_seeded_initial_mapping(graph_seed, 0) for _ in range(3)]
+    state = np.random.get_state()
+    mappings = []
+    for _ in range(3):
+        np.random.set_state(state)
+        mappings.append(get_seeded_initial_mapping(graph_seed, None))
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(*mappings)
 
@@ -55,11 +59,11 @@ def test_initialization_reproducible_between_runs() -> None:
     device_graph = ccr.get_grid_device_graph(2, 3)
     initial_mapping = ccr.initialization.get_initial_mapping(logical_graph, device_graph, seed)
     expected_mapping = {
+        cirq.GridQubit(0, 0): cirq.LineQubit(5),
         cirq.GridQubit(0, 1): cirq.LineQubit(0),
-        cirq.GridQubit(0, 2): cirq.LineQubit(5),
-        cirq.GridQubit(1, 1): cirq.LineQubit(1),
-        cirq.GridQubit(0, 0): cirq.LineQubit(4),
+        cirq.GridQubit(0, 2): cirq.LineQubit(2),
         cirq.GridQubit(1, 0): cirq.LineQubit(3),
-        cirq.GridQubit(1, 2): cirq.LineQubit(2),
+        cirq.GridQubit(1, 1): cirq.LineQubit(4),
+        cirq.GridQubit(1, 2): cirq.LineQubit(1),
     }
     assert initial_mapping == expected_mapping

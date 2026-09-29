@@ -54,7 +54,7 @@ def test_route_circuit(n_moments, algo, circuit_seed, routing_seed) -> None:
 def test_route_circuit_reproducible_with_seed(algo, seed) -> None:
     circuit = cirq.testing.random_circuit(8, 20, 0.5, random_state=seed)
     device_graph = ccr.get_grid_device_graph(4, 3)
-    random_states = [seed, seed, seed] + [np.random.default_rng(seed) for _ in range(3)]
+    random_states = [seed, seed, seed] + [np.random.RandomState(seed) for _ in range(3)]
 
     swap_networks = []
     for random_state in random_states:
@@ -73,10 +73,24 @@ def test_route_circuit_reproducible_between_runs(algo) -> None:
     circuit = cirq.testing.random_circuit(6, 5, 0.5, random_state=seed)
     device_graph = ccr.get_grid_device_graph(2, 3)
 
-    swap_network_1 = ccr.route_circuit(circuit, device_graph, algo_name=algo, random_state=seed)
-    swap_network_2 = ccr.route_circuit(circuit, device_graph, algo_name=algo, random_state=seed)
-
-    assert swap_network_1 == swap_network_2
+    swap_network = ccr.route_circuit(circuit, device_graph, algo_name=algo, random_state=seed)
+    swap_network_str = str(swap_network).lstrip('\n').rstrip()
+    expected_swap_network_str = """
+               ┌──┐       ┌────┐       ┌──────┐
+(0, 0): ───4────Z─────4────@───────4──────────────4───
+                           │
+(0, 1): ───2────@─────2────┼1↦0────5────@─────────5───
+                │          ││           │
+(0, 2): ───5────┼─────5────┼0↦1────2────┼iSwap────2───
+                │          │            ││
+(1, 0): ───3────┼T────3────@───────3────┼┼────────3───
+                │                       ││
+(1, 1): ───1────@─────1────────────1────X┼────────1───
+                                         │
+(1, 2): ───0────X─────0────────────0─────iSwap────0───
+               └──┘       └────┘       └──────┘
+    """.lstrip('\n').rstrip()
+    assert swap_network_str == expected_swap_network_str
 
 
 @pytest.mark.parametrize(
