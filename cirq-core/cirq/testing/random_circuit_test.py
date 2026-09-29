@@ -97,24 +97,16 @@ def test_random_circuit(
 
 @pytest.mark.parametrize('seed', [random.randint(0, 2**32) for _ in range(10)])
 def test_random_circuit_reproducible_with_seed(seed) -> None:
-    int_seed_circuits = [
+    wrappers = (lambda s: s, np.random.RandomState)
+    circuits = [
         cirq.testing.random_circuit(
-            qubits=10, n_moments=10, op_density=0.7, random_state=seed
+            qubits=10, n_moments=10, op_density=0.7, random_state=wrapper(seed)
         )
+        for wrapper in wrappers
         for _ in range(2)
     ]
-    random_state_circuits = [
-        cirq.testing.random_circuit(
-            qubits=10, n_moments=10, op_density=0.7, random_state=np.random.RandomState(seed)
-        )
-        for _ in range(2)
-    ]
-
     eq = cirq.testing.EqualsTester()
-    # Repeated calls with the same integer seed are equal to each other.
-    eq.add_equality_group(*int_seed_circuits)
-    # Repeated calls with the same explicit RandomState seed are equal to each other.
-    eq.add_equality_group(*random_state_circuits)
+    eq.add_equality_group(*circuits)
 
 
 def test_random_circuit_not_expected_number_of_qubits() -> None:
@@ -127,11 +119,21 @@ def test_random_circuit_not_expected_number_of_qubits() -> None:
 
 
 def test_random_circuit_reproducible_between_runs() -> None:
-    circuit1 = cirq.testing.random_circuit(5, 8, 0.5, random_state=77)
-    circuit2 = cirq.testing.random_circuit(5, 8, 0.5, random_state=77)
+    circuit = cirq.testing.random_circuit(5, 8, 0.5, random_state=77)
+    expected_diagram = """
+                  ┌──┐
+0: ────────────────S─────iSwap───────Y───X───
+                         │
+1: ───────────Y──────────iSwap───────Y───────
 
-    # A fixed integer seed should produce the same circuit on repeated runs.
-    assert circuit1 == circuit2
+2: ─────────────────X────T───────────S───S───
+                    │
+3: ───────@────────S┼────H───────────────Z───
+          │         │
+4: ───────@─────────@────────────────────X───
+                  └──┘
+    """
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)
 
 
 def test_random_two_qubit_circuit_with_czs() -> None:
