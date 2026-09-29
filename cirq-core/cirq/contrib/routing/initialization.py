@@ -34,7 +34,7 @@ def get_center(graph: nx.Graph) -> Hashable:
 def get_initial_mapping(
     logical_graph: nx.Graph,
     device_graph: nx.Graph,
-    random_state: cirq.PRNG_OR_SEED_LIKE = None,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> dict[ops.Qid, ops.Qid]:
     """Gets an initial mapping of logical to physical qubits for routing.
 
@@ -42,7 +42,7 @@ def get_initial_mapping(
         logical_graph: The graph whose edges correspond to pairs of qubits that
             should be mapped to nearby physical qubits.
         device_graph: The graph of the device.
-        random_state: A pseudorandom number generator or object that can be converted to one.
+        random_state: Random state or random state seed.
 
     The mapping starts by mapping the center of the logical graph to the center
     of the physical graph. Subsequent logical qubits are mapped to physical
@@ -52,7 +52,7 @@ def get_initial_mapping(
     qubits that minimizes the average distance to already mapped logical
     neighbors is selected.
     """
-    prng = value.parse_random_generator(random_state)
+    prng = value.parse_random_state(random_state)
 
     unplaced_vertices = set(logical_graph)
 
