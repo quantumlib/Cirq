@@ -69,5 +69,8 @@ def test_parse_random_generator() -> None:
 
 
 def test_parse_random_generator_invalid() -> None:
-    with pytest.raises(TypeError):
-        cirq.value.parse_random_generator(np.random)  # type: ignore[arg-type]
+    invalid_inputs = [3.14, 42.0, np.float64(42), "42", np.random]
+
+    for invalid_input in invalid_inputs:
+        with pytest.raises(TypeError):
+            cirq.value.parse_random_generator(invalid_input)  # type: ignore[arg-type]
