@@ -44,7 +44,7 @@ document(
     """A pseudorandom number generator or object that can be converted to one.
 
     If None, turns into a `np.random.Generator`.
-    If an integer, turns into a `np.random.Generator` seeded with that value.
+    If an integer or NumPy integer, turns into a `np.random.Generator` seeded with that value.
     If an instance of `np.random.Generator` or a subclass of it, returns it unmodified.
     If an instance of `np.random.RandomState`, turns into a `np.random.Generator`.
     """,
@@ -78,9 +78,9 @@ def parse_random_generator(prng_or_seed: PRNG_OR_SEED_LIKE) -> np.random.Generat
     """Interpret an object as a pseudorandom number generator.
 
     If `prng_or_seed` is an `np.random.Generator`, return it unmodified.
-    If `prng_or_seed` is None or an integer, returns a new `np.random.Generator`.
+    If `prng_or_seed` is None or an integer or NumPy integer, returns a new `np.random.Generator`.
     If `prng_or_seed` is an instance of `np.random.RandomState`,
-    returns `np.random.default_rng(prng_or_seed._bit_generator)`.
+    returns `np.random.default_rng(prng_or_seed)`.
 
     Args:
         prng_or_seed: The object to be used as or converted to a pseudorandom
