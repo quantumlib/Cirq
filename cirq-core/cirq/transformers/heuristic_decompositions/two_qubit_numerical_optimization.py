@@ -235,7 +235,7 @@ def two_qubit_gate_numerical_compilation(
     max_layers: int = 3,
     base_gate_error_rates: Sequence[float] | None = None,
     single_qubit_error_rates: float | tuple[float, float] = 0.0,
-    num_restarts: int = 10,
+    num_restarts: int = 5,
     maxiter: int = 1000,
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> TwoQubitNumericalCompilationResult:
@@ -442,7 +442,7 @@ class TwoQubitNumericalCompiler:
     target_fidelity: float = 1 - 1e-8
     max_layers: int = 3
     single_qubit_error_rates: float | tuple[float, float] = 0.0
-    num_restarts: int = 10
+    num_restarts: int = 5
     maxiter: int = 1000
     max_cache_size: int = 128
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None
