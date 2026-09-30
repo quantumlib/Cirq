@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence, Set
+from collections.abc import Mapping, Sequence
 from types import NotImplementedType
 from typing import Any, TYPE_CHECKING
 
@@ -33,7 +33,7 @@ class While(raw_types.Operation):
 
     In contrast to If, this operation does NOT decompose to a `cirq.ClassicallyControlledOperation`.
 
-    Note: This is an experimental function designed as part of a prototype
+    Note: This is an experimental class designed as part of a prototype
     for Cirq 2.0.  The interface for this class is subject to change between versions.
     """
 
@@ -63,8 +63,7 @@ class While(raw_types.Operation):
                 are combined into a `cirq.CircuitOperation`.
 
         Raises:
-            ValueError: If `condition` sequence is empty,
-                or if the sub-operation contains measurement keys.
+            ValueError: If `condition` sequence is empty.
             TypeError: If an unrecognized condition type is provided.
         """
         if isinstance(condition, (str, value.MeasurementKey, value.Condition, sympy.Basic)):
@@ -125,7 +124,7 @@ class While(raw_types.Operation):
         return frozenset(self._conditions).union(self._sub_operation.classical_controls)
 
     def without_classical_controls(self) -> cirq.Operation:
-        raise ValueError('Cannot remove classical controls from a While operation.')
+        return self
 
     @property
     def qubits(self) -> tuple[cirq.Qid, ...]:
@@ -134,7 +133,7 @@ class While(raw_types.Operation):
     def with_qubits(self, *new_qubits: cirq.Qid) -> While:
         return While(self._conditions, self._sub_operation.with_qubits(*new_qubits))
 
-    # Note: We intentionaly omit _decompose_with_context_ and _decompose here (as
+    # Note: We intentionally omit _decompose_with_context_ and _decompose here (as
     # opposed to If, which requires it) because this While loop cannot be
     # statically decomposed ahead of time. Instead, we have to tell cirq that this
     # construct isn't unitary.
@@ -162,7 +161,7 @@ class While(raw_types.Operation):
         )
 
     @_compat.cached_method
-    def _parameter_names_(self) -> Set[str]:
+    def _parameter_names_(self) -> frozenset[str]:
         return frozenset(protocols.parameter_names(self._sub_operation)).union(
             *(protocols.parameter_names(c) for c in self._conditions)
         )
@@ -186,7 +185,7 @@ class While(raw_types.Operation):
         )
         sub_info = protocols.circuit_diagram_info(self._sub_operation, sub_args, None)
         if sub_info is None:
-            return NotImplemented  # pragma: no cover
+            return NotImplemented
         control_label_count = 0
         if args.label_map is not None:
             # If self._sub_operation already measures or is controlled by a key
@@ -262,9 +261,7 @@ class While(raw_types.Operation):
         self, *, args: cirq.QasmArgs | None = None, qubits: Sequence[cirq.Qid] | None = None
     ) -> str | None:
         if args is None:
-            from cirq.protocols.qasm import QasmArgs
-
-            args = QasmArgs()
+            args = protocols.QasmArgs()
         args.validate_version('2.0', '3.0')
         if args.version == "2.0":
             raise ValueError(
