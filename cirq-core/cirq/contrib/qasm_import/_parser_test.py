@@ -264,21 +264,46 @@ if (m_a_0==1) cx q[0],q[1];
 def test_classical_control_multi_qubit_register() -> None:
     qasm = """OPENQASM 2.0;
         include "qelib1.inc";
-        qreg q[4];
+        qreg q[2];
         creg a[1];
         measure q[0] -> a[0];
         if (a==1) x q;
     """
     parser = QasmParser()
 
+    q_0 = cirq.NamedQubit('q_0')
+    q_1 = cirq.NamedQubit('q_1')
+
+    expected_circuit = cirq.Circuit(
+        cirq.measure(q_0, key='a_0'),
+        cirq.X(q_0).with_classical_controls(sympy.Eq(sympy.Symbol('a_0'), 1)),
+        cirq.X(q_1).with_classical_controls(sympy.Eq(sympy.Symbol('a_0'), 1)),
+    )
+
     parsed_qasm = parser.parse(qasm)
 
-    operations = list(parsed_qasm.circuit.all_operations())
-    assert len(operations) == 5
-    assert all(isinstance(op, cirq.ClassicallyControlledOperation) for op in operations[1:])
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
 
-    expected_controls = frozenset([cirq.SympyCondition(sympy.Eq(sympy.Symbol('a_0'), 1))])
-    assert all(op.classical_controls == expected_controls for op in operations[1:])
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 2}
+
+    expected_generated_qasm = f"""// Generated from Cirq v{cirq.__version__}
+
+OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [q_0, q_1]
+qreg q[2];
+creg m_a_0[1];
+
+
+measure q[0] -> m_a_0[0];
+if (m_a_0==1) x q[0];
+if (m_a_0==1) x q[1];
+"""
+    assert cirq.qasm(parsed_qasm.circuit) == expected_generated_qasm
 
 
 def test_classical_control_multi_bit() -> None:
