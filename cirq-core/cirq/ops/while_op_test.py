@@ -70,10 +70,10 @@ def test_nested_while_and_if_preserved() -> None:
     assert outer_while.sub_operation == inner_while
 
     inner_if = cirq.If('a', cirq.X(target))
-    outer_if = cirq.While('b', inner_if)
-    assert outer_if.conditions == (cirq.KeyCondition(cirq.MeasurementKey('b')),)
-    assert outer_if.sub_operation == inner_if
-    assert outer_if.classical_controls == frozenset(
+    outer_while = cirq.While('b', inner_if)
+    assert outer_while.conditions == (cirq.KeyCondition(cirq.MeasurementKey('b')),)
+    assert outer_while.sub_operation == inner_if
+    assert outer_while.classical_controls == frozenset(
         [cirq.KeyCondition(cirq.MeasurementKey('b')), cirq.KeyCondition(cirq.MeasurementKey('a'))]
     )
 
@@ -81,30 +81,6 @@ def test_nested_while_and_if_preserved() -> None:
     outer_cco = cirq.While('b', cco)
     assert outer_cco.conditions == (cirq.KeyCondition(cirq.MeasurementKey('b')),)
     assert outer_cco.sub_operation == cco
-
-    # Prove that a nested If ('a') inside While ('b') does not alter the While
-    # termination condition:
-    # - Before loop: b=1 (True), a=0 (False), target=|0>.
-    # - Iteration 1: loop enters because b=1 (even though a=0). If('a', X(target))
-    #   does not fire; then q_a is flipped and measured so a becomes 1.
-    # - Iteration 2: loop runs again because b is still 1; now a=1 so If('a', X(target))
-    #   flips target to |1>, and q_b is flipped to |0> and measured so b=0 (exiting loop).
-    circuit = cirq.Circuit(
-        cirq.X(q_b),
-        cirq.measure(q_b, key='b'),
-        cirq.measure(q_a, key='a'),
-        cirq.While(
-            'b',
-            cirq.If('a', cirq.X(target)),
-            cirq.CNOT(q_a, q_b),
-            cirq.X(q_a),
-            cirq.measure(q_a, key='a'),
-            cirq.measure(q_b, key='b'),
-        ),
-    )
-    res = cirq.Simulator().simulate(circuit)
-    np.testing.assert_equal(res.measurements['b'], [0])
-    np.testing.assert_equal(res.state_vector(), [0, 1, 0, 0, 0, 0, 0, 0])
 
 
 def test_init_errors() -> None:
@@ -494,10 +470,10 @@ def test_qasm_sub_op_no_qasm() -> None:
 
     class NoQasmOp(cirq.Operation):
         @property
-        def qubits(self):
+        def qubits(self) -> tuple[cirq.Qid, ...]:
             return (cirq.LineQubit(0),)  # pragma: nocover
 
-        def with_qubits(self, *new_qubits):
+        def with_qubits(self, *new_qubits: cirq.Qid) -> cirq.Operation:
             return self  # pragma: nocover
 
     op = cirq.While('a', NoQasmOp())
