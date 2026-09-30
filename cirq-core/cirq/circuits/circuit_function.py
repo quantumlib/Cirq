@@ -93,7 +93,7 @@ class CircuitFunction:
         return self._name
 
     @property
-    def circuit(self) -> FrozenCircuit:
+    def circuit(self) -> cirq.FrozenCircuit:
         """Returns the unsubstituted circuit returned by the function."""
         return self._circuit
 
@@ -118,7 +118,7 @@ class CircuitFunction:
         name: str,
         circuit: cirq.FrozenCircuit,
         function_params: Sequence[sympy.Symbol],
-        **kwargs,
+        **kwargs: Any,
     ) -> CircuitFunction:
         return cls(name=name, circuit=circuit, function_params=function_params)
 
