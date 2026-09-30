@@ -27,7 +27,6 @@ from cirq.circuits.circuit import AbstractCircuit
 
 if TYPE_CHECKING:
     import cirq
-    from cirq.circuits.frozen_circuit import FrozenCircuit
 
 
 @value.value_equality
@@ -160,7 +159,7 @@ class CircuitFunction:
             )
 
         param_dict = dict(zip((p.name for p in self._function_params), args)) | kwargs
-        return protocols.resolve_parameters(self._circuit, param_dict)
+        return protocols.resolve_parameters(self._circuit, param_dict, recursive=False)
 
     def __repr__(self) -> str:
         param_items = ", ".join(_compat.proper_repr(p) for p in self._function_params)

@@ -194,6 +194,14 @@ def test_call() -> None:
     assert cf(a + b) == cirq.Circuit(cirq.X(cirq.VariableLineQid(a + b)) ** theta)
     assert cf(sympy.Integer(2)) == cirq.Circuit(cirq.X(cirq.q(2)) ** theta)
 
+    y, z = sympy.symbols('y z')
+    qy = cirq.VariableLineQid(y)
+    qz = cirq.VariableLineQid(z)
+    circ = cirq.Circuit(cirq.X(qx), cirq.Y(qy))
+    cf = cirq.CircuitFunction("test_function", circ, function_params=[x, y])
+    assert cf(y, x) == cirq.Circuit(cirq.X(qy), cirq.Y(qx))
+    assert cf(y, z) == cirq.Circuit(cirq.X(qy), cirq.Y(qz))
+
 
 def test_resolve_parameters() -> None:
     x = sympy.Symbol('x')
