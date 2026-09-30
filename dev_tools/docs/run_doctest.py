@@ -242,7 +242,10 @@ def import_file(file_path: str) -> ModuleType:
 def main():
     quiet = len(sys.argv) >= 2 and sys.argv[1] == '-q'
 
-    file_names = glob.glob('cirq**/cirq**/**/*.py', recursive=True)
+    file_names = [
+        pathlib.Path(file_name).as_posix()
+        for file_name in glob.glob('cirq**/cirq**/**/*.py', recursive=True)
+    ]
     assert file_names
     excluded = (
         'cirq-core/cirq/testing/_compat_test_data/',

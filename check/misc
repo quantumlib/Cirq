@@ -26,7 +26,7 @@ fi
 # Check for whitespace errors.  Flag files that do not end with the newline.
 empty_tree=4b825dc642cb6eb9a060e54bf8d69288fbee4904
 GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null \
-  git -c core.whitespace=incomplete-line --no-pager diff --check \
+  git -c core.whitespace=incomplete-line,cr-at-eol --no-pager diff --check \
   "${empty_tree}" -- ':(attr:!linguist-generated)'
 RESULT=$?
 if (( RESULT )); then

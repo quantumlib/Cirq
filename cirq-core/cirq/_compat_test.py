@@ -409,7 +409,7 @@ def _from_parent_import_deprecated():
 
 
 def _import_deprecated_assert_sub():
-    import cirq.testing._compat_test_data.fake_a  # type: ignore[import-not-found]
+    import cirq.testing._compat_test_data.fake_a  # type: ignore[import-untyped]
 
     assert cirq.testing._compat_test_data.fake_a.module_b.MODULE_B_ATTRIBUTE == 'module_b'
 
@@ -476,7 +476,7 @@ def _from_deprecated_import_sub_of_sub():
     from cirq.testing._compat_test_data.module_a.module_b import module_c
 
     assert module_c.MODULE_C_ATTRIBUTE == 'module_c'
-    from cirq.testing._compat_test_data.fake_a.module_b import (  # type: ignore[import-not-found]
+    from cirq.testing._compat_test_data.fake_a.module_b import (  # type: ignore[import-untyped]
         module_c,
     )
 
@@ -491,14 +491,14 @@ def _import_multiple_deprecated():
     from cirq.testing._compat_test_data.fake_a.module_b import module_c
 
     assert module_c.MODULE_C_ATTRIBUTE == 'module_c'
-    from cirq.testing._compat_test_data.fake_b import module_c  # type: ignore[import-not-found]
+    from cirq.testing._compat_test_data.fake_b import module_c  # type: ignore[import-untyped]
 
     assert module_c.MODULE_C_ATTRIBUTE == 'module_c'
 
 
 def _deprecate_grandchild_assert_attributes_in_sys_modules():
     """Ensure submodule attributes are identical to sys.modules values."""
-    import cirq.testing._compat_test_data.module_a.fake_ab  # type: ignore[import-not-found]
+    import cirq.testing._compat_test_data.module_a.fake_ab  # type: ignore[import-untyped]
 
     assert (
         cirq.testing._compat_test_data.module_a.fake_ab
@@ -512,7 +512,7 @@ def _deprecate_grandchild_assert_attributes_in_sys_modules():
 
 
 def _new_module_in_different_parent():
-    from cirq.testing._compat_test_data.fake_ops import raw_types  # type: ignore[import-not-found]
+    from cirq.testing._compat_test_data.fake_ops import raw_types  # type: ignore[import-untyped]
 
     assert raw_types.Qid == cirq.Qid
 
@@ -542,14 +542,14 @@ def _import_parent_use_constant_from_deprecated_module_attribute():
 def _import_deprecated_sub_use_constant():
     """to ensure that submodule initializations set attributes correctly"""
     # sets up the DeprecationFinders
-    import cirq.testing._compat_test_data.fake_a.dupe  # type: ignore[import-not-found]
+    import cirq.testing._compat_test_data.fake_a.dupe  # type: ignore[import-untyped]
 
     # should have a DUPE_CONSTANT as its defined on it, set to False
     assert cirq.testing._compat_test_data.fake_a.dupe.DUPE_CONSTANT is False
 
 
 def _import_deprecated_same_name_in_earlier_subtree():
-    from cirq.testing._compat_test_data.fake_a.sub.subsub.dupe import (  # type: ignore[import-not-found]
+    from cirq.testing._compat_test_data.fake_a.sub.subsub.dupe import (  # type: ignore[import-untyped]
         DUPE_CONSTANT,
     )
 
@@ -559,7 +559,7 @@ def _import_deprecated_same_name_in_earlier_subtree():
 def _import_top_level_deprecated():
     import numpy.random
 
-    from cirq.testing._compat_test_data.fake_numpy import random  # type: ignore[import-not-found]
+    from cirq.testing._compat_test_data.fake_numpy import random  # type: ignore[import-untyped]
 
     assert random.normal is numpy.random.normal
 
@@ -567,7 +567,7 @@ def _import_top_level_deprecated():
 def _repeated_import_path():
     """to ensure that the highly unlikely repeated subpath import doesn't interfere"""
 
-    from cirq.testing._compat_test_data.repeated_child.cirq.testing._compat_test_data.repeated_child import (  # type: ignore[import-not-found]  # noqa: E501
+    from cirq.testing._compat_test_data.repeated_child.cirq.testing._compat_test_data.repeated_child import (  # type: ignore[import-untyped]  # noqa: E501
         child,
     )
 
@@ -814,7 +814,7 @@ def _test_broken_module_1_inner():
     with pytest.raises(
         DeprecatedModuleImportError, match="missing_module cannot be imported. The typical reasons"
     ):
-        import cirq.testing._compat_test_data.broken_ref as br  # type: ignore[import-not-found] # noqa: F401
+        import cirq.testing._compat_test_data.broken_ref as br  # type: ignore[import-untyped] # noqa: F401
 
 
 def _test_broken_module_2_inner():

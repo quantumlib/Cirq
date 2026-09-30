@@ -17,8 +17,8 @@ from __future__ import annotations
 import pytest
 
 import cirq
-import cirq_google
-from cirq_google.api.v2 import program_pb2
+import cirq_google  # pylint: disable=wrong-import-order
+from cirq_google.api.v2 import program_pb2  # pylint: disable=wrong-import-order
 
 
 def test_equality() -> None:
@@ -50,7 +50,7 @@ def test_invalid_args() -> None:
         _ = cirq_google.NoSyncTag(forward=-1)
 
     with pytest.raises(TypeError):
-        _ = cirq_google.NoSyncTag(1)  # type: ignore[misc]
+        _ = cirq_google.NoSyncTag(1)  # type: ignore[call-arg]
 
 
 def test_str_repr() -> None:
