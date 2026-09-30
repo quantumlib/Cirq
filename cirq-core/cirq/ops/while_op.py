@@ -121,7 +121,7 @@ class While(raw_types.Operation):
 
     @property
     def classical_controls(self) -> frozenset[cirq.Condition]:
-        return frozenset(self._conditions).union(self._sub_operation.classical_controls)
+        return frozenset(self._conditions)
 
     def without_classical_controls(self) -> cirq.Operation:
         return self
@@ -145,9 +145,12 @@ class While(raw_types.Operation):
 
     def __str__(self) -> str:
         if len(self._conditions) == 1:
-            return f'While({self._conditions[0]}, {self._sub_operation})'
-        keys = ', '.join(str(c) for c in self._conditions)
-        return f'While([{keys}], {self._sub_operation})'
+            prefix = f'While({self._conditions[0]}, '
+        else:
+            keys = ', '.join(str(c) for c in self._conditions)
+            prefix = f'While([{keys}], '
+        sub_op_str = str(self._sub_operation).replace('\n', '\n' + ' ' * len(prefix))
+        return f'{prefix}{sub_op_str})'
 
     def __repr__(self) -> str:
         if len(self._conditions) == 1:

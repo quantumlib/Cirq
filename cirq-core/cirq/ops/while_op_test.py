@@ -74,7 +74,7 @@ def test_nested_while_and_if_preserved() -> None:
     assert outer_while.conditions == (cirq.KeyCondition(cirq.MeasurementKey('b')),)
     assert outer_while.sub_operation == inner_if
     assert outer_while.classical_controls == frozenset(
-        [cirq.KeyCondition(cirq.MeasurementKey('b')), cirq.KeyCondition(cirq.MeasurementKey('a'))]
+        [cirq.KeyCondition(cirq.MeasurementKey('b'))]
     )
 
     cco = cirq.ClassicallyControlledOperation(cirq.X(target), ['a'])
@@ -111,6 +111,13 @@ def test_value_equality() -> None:
     eq.add_equality_group(cirq.While('b', cirq.X(q0)))
     eq.add_equality_group(cirq.While('a', cirq.X(q1)))
     eq.add_equality_group(cirq.While(['a', 'b'], cirq.X(q0)))
+    eq.add_equality_group(
+        cirq.While('a', cirq.X(q0), cirq.Y(q1)),
+        cirq.While('a', [cirq.X(q0), cirq.Y(q1)]),
+        cirq.While('a', cirq.Circuit(cirq.X(q0), cirq.Y(q1))),
+        cirq.While('a', cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q0), cirq.Y(q1)))),
+    )
+    eq.add_equality_group(cirq.While('a', cirq.Y(q0), cirq.X(q1)))
 
 
 def test_str_and_repr() -> None:
@@ -129,6 +136,13 @@ def test_str_and_repr() -> None:
         "cirq.KeyCondition(cirq.MeasurementKey(name='b'))], cirq.X(cirq.LineQubit(0)))"
     )
     assert eval(repr(op2)) == op2
+
+    q0, q1 = cirq.LineQubit.range(2)
+    op_multiline = cirq.While(sympy.S.true, cirq.X(q0), cirq.X(q1))
+    assert str(op_multiline) == """\
+While(True, [ 0: ───X─── ]
+            [            ]
+            [ 1: ───X─── ])"""
 
 
 def test_parameterized_and_resolve() -> None:
