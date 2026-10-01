@@ -31,7 +31,7 @@ def random_state(seed: float) -> np.ndarray:
 
 def states_with_phases(st: np.ndarray) -> Iterator[np.ndarray]:
     """Returns several states similar to st with modified global phases."""
-    st = np.array(st, dtype="complex64")
+    st = np.array(st, dtype=complex)
     yield st
     phases = [np.exp(1j * np.pi / 6), -1j, 1j, -1, np.exp(-1j * np.pi / 28)]
     random = np.random.RandomState(1)
