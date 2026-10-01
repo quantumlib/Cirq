@@ -31,16 +31,16 @@ def test_kak_vector_infidelity_ignore_equivalent_nontrivial() -> None:
 
 
 def test_random_qubit_unitary_shape() -> None:
-    rng = value.parse_random_state(11)
+    rng = value.parse_random_generator(11)
     actual = random_qubit_unitary((3, 4, 5), True, rng).ravel()
-    rng = value.parse_random_state(11)
+    rng = value.parse_random_generator(11)
     expected = random_qubit_unitary((3 * 4 * 5,), True, rng).ravel()
     np.testing.assert_almost_equal(actual, expected)
 
 
 def test_random_qubit_default() -> None:
-    rng = value.parse_random_state(11)
+    rng = value.parse_random_generator(11)
     actual = random_qubit_unitary(randomize_global_phase=True, rng=rng).ravel()
-    rng = value.parse_random_state(11)
+    rng = value.parse_random_generator(11)
     expected = random_qubit_unitary((1, 1, 1), True, rng=rng).ravel()
     np.testing.assert_almost_equal(actual, expected)
