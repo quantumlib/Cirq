@@ -27,11 +27,7 @@ def test_parse_random_state() -> None:
         np.random.set_state(global_state)
         return prng.rand()
 
-    prngs = [
-        np.random,
-        cirq.value.parse_random_state(np.random),
-        cirq.value.parse_random_state(None),
-    ]
+    prngs = [np.random, cirq.value.parse_random_state(None)]
     vals = [rand(prng) for prng in prngs]
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(*vals)

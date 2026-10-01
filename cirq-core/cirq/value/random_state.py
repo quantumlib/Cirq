@@ -14,39 +14,23 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import cast
 
 import numpy as np
 
 from cirq._doc import document
 
-RANDOM_STATE_OR_SEED_LIKE = Any
+RANDOM_STATE_OR_SEED_LIKE = None | int | np.integer | np.random.RandomState | np.random.Generator
 document(
     RANDOM_STATE_OR_SEED_LIKE,
     """A pseudorandom number generator or object that can be converted to one.
 
-    If None, turns into the module `np.random`.
-
-    If an integer, turns into a `np.random.RandomState` seeded with that
-    integer.
-
-    If none of the above, it is used unmodified. In this case, it is assumed
-    that the object implements whatever methods are required for the use case
-    at hand. For example, it might be an existing instance of
-    `np.random.RandomState` or a custom pseudorandom number generator
-    implementation.
-    """,
-)
-
-PRNG_OR_SEED_LIKE = None | int | np.integer | np.random.RandomState | np.random.Generator
-document(
-    PRNG_OR_SEED_LIKE,
-    """A pseudorandom number generator or object that can be converted to one.
-
-    If None, turns into a `np.random.Generator`.
-    If an integer or NumPy integer, turns into a `np.random.Generator` seeded with that value.
-    If an instance of `np.random.Generator` or a subclass of it, returns it unmodified.
-    If an instance of `np.random.RandomState`, turns into a `np.random.Generator`.
+    If None, turns into a new, unseeded `np.random.Generator`.
+    If an integer or NumPy integer, turns into a `np.random.Generator` seeded
+    with that value.
+    If an instance of `np.random.Generator`, it is used unmodified.
+    If an instance of `np.random.RandomState`, it is wrapped in a
+    `np.random.Generator` that shares its underlying bit generator.
     """,
 )
 
@@ -74,7 +58,7 @@ def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.Ran
         return cast(np.random.RandomState, random_state)
 
 
-def parse_random_generator(prng_or_seed: PRNG_OR_SEED_LIKE) -> np.random.Generator:
+def parse_random_generator(prng_or_seed: RANDOM_STATE_OR_SEED_LIKE) -> np.random.Generator:
     """Interpret an object as a pseudorandom number generator.
 
     If `prng_or_seed` is an `np.random.Generator`, return it unmodified.
