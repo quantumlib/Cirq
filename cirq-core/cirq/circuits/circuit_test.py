@@ -18,6 +18,7 @@ import itertools
 import os
 import pathlib
 import time
+import warnings
 from collections import defaultdict
 from collections.abc import Iterator, Sequence
 from random import randint, random, randrange, sample
@@ -5169,3 +5170,57 @@ def test_insert_moment_with_same_measurement_control_keys() -> None:
     assert c2 == cirq.Circuit(
         cirq.Moment(cirq.measure(q0, key="k"), cirq.X(q1).with_classical_controls("k"))
     )
+
+
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_to_text_diagram_style(circuit_cls) -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    sub_op = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.H(q0), cirq.CX(q0, q1)))
+    c = circuit_cls(sub_op)
+
+    expected_simple = """\
+      [ 0: ───H───@─── ]
+0: ───[           │    ]───
+      [ 1: ───────X─── ]
+      │
+1: ───#2───────────────────"""
+
+    expected_boxy = """\
+      ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+      ╎0: ───H───●───╎
+0: ───╎          │   ╎───
+      ╎1: ───────X───╎
+      └╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘
+      │
+1: ───#2─────────────────"""
+
+    assert c.to_text_diagram() == expected_simple
+    assert c.to_text_diagram(style=None) == expected_simple
+    assert c.to_text_diagram(style='simple') == expected_simple
+    assert c.to_text_diagram(use_unicode_characters=True, style='simple') == expected_simple
+
+    assert c.to_text_diagram(style='boxy') == expected_boxy
+    assert c.to_text_diagram(use_unicode_characters=True, style='boxy') == expected_boxy
+    assert (
+        c.to_text_diagram_drawer(style='boxy').render()
+        == c.to_text_diagram_drawer(use_unicode_characters=True, style='boxy').render()
+    )
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('error', UserWarning)
+        ascii_default = c.to_text_diagram(use_unicode_characters=False)
+
+    for style in ('simple', 'boxy'):
+        with pytest.warns(
+            UserWarning, match='Cannot select a diagram style when use_unicode_characters=False'
+        ):
+            assert c.to_text_diagram(use_unicode_characters=False, style=style) == ascii_default
+        with pytest.warns(
+            UserWarning, match='Cannot select a diagram style when use_unicode_characters=False'
+        ):
+            _ = c.to_text_diagram_drawer(use_unicode_characters=False, style=style)
+
+    with pytest.raises(ValueError, match="Unrecognized diagram style: 'invalid'"):
+        _ = c.to_text_diagram(style='invalid')
+    with pytest.raises(ValueError, match="Unrecognized diagram style: 'invalid'"):
+        _ = c.to_text_diagram_drawer(style='invalid')

@@ -505,11 +505,22 @@ class CircuitOperation(ops.Operation):
         indented_args = args.replace('\n', '\n    ')
         return f'cirq.CircuitOperation({indented_args[:-4]})'
 
-    def __str__(self):
+    def _diagram_str(self, style: str | None = None) -> str:
+        # TODO: support diagram info adjustments to circuit diagram Stage 2
         # TODO: support out-of-line subcircuit definition in string format.
-        msg_lines = str(self.circuit).split('\n')
+        sub_style = style if style == 'boxy' else None
+        msg_lines = self.circuit.to_text_diagram(style=sub_style).split('\n')
         msg_width = max(len(line) for line in msg_lines)
-        circuit_msg = '\n'.join(f'[ {line:<{msg_width}} ]' for line in msg_lines)
+        if style == 'boxy':
+            circuit_msg = '\n'.join(
+                [
+                    f'┌{"╌" * msg_width}┐',
+                    *(f'╎{line:<{msg_width}}╎' for line in msg_lines),
+                    f'└{"╌" * msg_width}┘',
+                ]
+            )
+        else:
+            circuit_msg = '\n'.join(f'[ {line:<{msg_width}} ]' for line in msg_lines)
         args = []
 
         def dict_str(d: Mapping) -> str:
@@ -538,6 +549,9 @@ class CircuitOperation(ops.Operation):
         if not args:
             return circuit_msg
         return f'{circuit_msg}({", ".join(args)})'
+
+    def __str__(self) -> str:
+        return self._diagram_str()
 
     @cached_property
     def _hash(self) -> int:
