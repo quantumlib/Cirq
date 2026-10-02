@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import itertools
 import random
+import time
 from unittest import mock
 
 import numpy as np
@@ -1585,3 +1586,106 @@ def test_sweep_unparameterized_prefix_not_repeated_even_non_unitaries() -> None:
     simulator.simulate_sweep(program=circuit, params=params)
     assert op1.count == 1
     assert op2.count == 2
+
+
+def _trace_drift_regression_circuit() -> cirq.Circuit:
+    """Circuit from https://github.com/quantumlib/Cirq/issues/5916 that previously
+    drifted trace under re-simulation."""
+    q0 = cirq.NamedQubit('q0')
+    q1 = cirq.NamedQubit('q1')
+    circuit = cirq.Circuit()
+    circuit.append(cirq.CNOT.on(q1, q0))
+    circuit.append(cirq.H.on(q1))
+    circuit.append(cirq.measure(q1))
+    return circuit
+
+
+def _density_matrix_trace(density_matrix: np.ndarray) -> complex:
+    size = int(np.prod(density_matrix.shape[: len(density_matrix.shape) // 2]))
+    return np.trace(density_matrix.reshape(size, size))
+
+
+def _assert_density_matrix_trace_one(density_matrix: np.ndarray, *, atol: float = 1e-6) -> None:
+    trace = _density_matrix_trace(density_matrix)
+    assert np.isclose(trace, 1.0, atol=atol), trace
+
+
+def test_density_matrix_trace_after_each_moment_gh5916() -> None:
+    """Regression for https://github.com/quantumlib/Cirq/issues/5916:
+    trace must stay normalized after each moment."""
+    circuit = _trace_drift_regression_circuit()
+    sim = cirq.DensityMatrixSimulator(dtype=np.complex128)
+    for step in sim.simulate_moment_steps(circuit):
+        _assert_density_matrix_trace_one(step.density_matrix())
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_density_matrix_trace_stable_under_repeated_simulation(
+    dtype: type[np.complexfloating],
+) -> None:
+    """Regression for https://github.com/quantumlib/Cirq/issues/5916:
+    reusing final_density_matrix must not drift trace."""
+    circuit = _trace_drift_regression_circuit()
+    sim = cirq.DensityMatrixSimulator(dtype=dtype)
+    initial_state = None
+    for _ in range(50):
+        result = sim.simulate(circuit, initial_state=initial_state)
+        _assert_density_matrix_trace_one(result.final_density_matrix)
+        initial_state = result.final_density_matrix
+
+
+@pytest.mark.parametrize(
+    'circuit',
+    [
+        cirq.Circuit(
+            cirq.CNOT.on(cirq.LineQubit(1), cirq.LineQubit(0)),
+            cirq.H(cirq.LineQubit(1)),
+            cirq.measure(cirq.LineQubit(1)),
+        ),
+        cirq.Circuit(
+            cirq.H(cirq.LineQubit(0)),
+            cirq.CNOT.on(cirq.LineQubit(0), cirq.LineQubit(1)),
+            cirq.measure(cirq.LineQubit(0)),
+        ),
+        cirq.Circuit(
+            cirq.H(cirq.LineQubit(0)),
+            cirq.H(cirq.LineQubit(1)),
+            cirq.H(cirq.LineQubit(2)),
+            cirq.CCX(*cirq.LineQubit.range(3)),
+            cirq.measure(*cirq.LineQubit.range(3)),
+        ),
+    ],
+)
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_density_matrix_trace_stable_across_circuit_families(
+    circuit: cirq.Circuit, dtype: type[np.complexfloating]
+) -> None:
+    sim = cirq.DensityMatrixSimulator(dtype=dtype)
+    initial_state = None
+    for _ in range(20):
+        result = sim.simulate(circuit, initial_state=initial_state)
+        _assert_density_matrix_trace_one(result.final_density_matrix)
+        for step in sim.simulate_moment_steps(circuit, initial_state=initial_state):
+            _assert_density_matrix_trace_one(step.density_matrix())
+        initial_state = result.final_density_matrix
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_density_matrix_trace_repeated_simulation_performance_smoke(
+    dtype: type[np.complexfloating],
+) -> None:
+    """Smoke test: repeated simulation stays within existing suite runtime scale."""
+    q0 = cirq.LineQubit(0)
+    q1 = cirq.LineQubit(1)
+    circuit = cirq.Circuit()
+    circuit.append(cirq.CNOT(q1, q0))
+    circuit.append(cirq.H(q1))
+    circuit.append(cirq.measure(q1))
+    sim = cirq.DensityMatrixSimulator(dtype=dtype)
+    initial_state = None
+    start = time.perf_counter()
+    for _ in range(100):
+        result = sim.simulate(circuit, initial_state=initial_state)
+        initial_state = result.final_density_matrix
+    elapsed = time.perf_counter() - start
+    assert elapsed < 5.0
