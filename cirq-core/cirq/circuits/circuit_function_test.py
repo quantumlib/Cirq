@@ -202,6 +202,8 @@ def test_call() -> None:
     assert cf(y, x) == cirq.Circuit(cirq.X(qy), cirq.Y(qx))
     assert cf(y, z) == cirq.Circuit(cirq.X(qy), cirq.Y(qz))
 
+    cf0 = cirq.CircuitFunction("test_function", cx, function_params=[])
+    assert cf0() == cx.freeze()
 
 def test_resolve_parameters() -> None:
     x = sympy.Symbol('x')
