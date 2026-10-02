@@ -200,6 +200,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'PhasedXPowGate': cirq.PhasedXPowGate,
         'PhasedXZGate': cirq.PhasedXZGate,
         'Points': cirq.Points,
+        'PostSelectionGate': cirq.PostSelectionGate,
         'Product': cirq.Product,
         'ProductState': cirq.ProductState,
         'ProductOfSums': cirq.ProductOfSums,

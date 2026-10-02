@@ -1,0 +1,12 @@
+[
+  {
+    "cirq_type": "PostSelectionGate",
+    "qid_shape": [2, 2],
+    "subspaces": [[0, 0], [1, 1]]
+  },
+  {
+    "cirq_type": "PostSelectionGate",
+    "qid_shape": [3],
+    "subspaces": [[0], [2]]
+  }
+]

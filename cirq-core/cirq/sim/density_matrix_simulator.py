@@ -183,6 +183,17 @@ class DensityMatrixSimulator(
         )
 
     def _can_be_in_run_prefix(self, val: Any):
+        # `cirq.PostSelectionGate` is a nonlinear, non-trace-preserving projection, not a linear
+        # map on the density matrix like a unitary or Kraus channel. Unlike those, its result can
+        # depend on which branch of an earlier, not-yet-measured entangled qubit the trajectory is
+        # actually in, so it must not be pulled ahead of a later measurement on a qubit entangled
+        # with the ones it acts on -- even though it touches no measurement key itself, which is
+        # what this method otherwise uses to decide what is safe to share. This check is
+        # deliberately narrow (naming the gate) rather than a general "is this operation linear"
+        # rule, so it does not change prefix eligibility for anything else.
+        gate = getattr(val, 'gate', None)
+        if isinstance(gate, ops.PostSelectionGate):
+            return False
         return not protocols.measurement_keys_touched(val)
 
     def _create_step_result(

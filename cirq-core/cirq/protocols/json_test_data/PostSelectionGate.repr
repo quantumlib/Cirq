@@ -1,0 +1,4 @@
+[
+    cirq.PostSelectionGate((2, 2), [(0, 0), (1, 1)]),
+    cirq.PostSelectionGate((3,), [(0,), (2,)]),
+]

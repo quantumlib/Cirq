@@ -207,6 +207,38 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
         )
         return bits
 
+    def post_select(self, axes: Sequence[int], subspaces: Sequence[Sequence[int]]) -> None:
+        """Projects the density matrix onto a subspace of the computational basis.
+
+        Args:
+            axes: The axes to post-select on.
+            subspaces: The computational basis states spanning the subspace. Each one gives the
+                values of the post-selected axes, in the order of `axes`.
+
+        Raises:
+            ValueError: If the density matrix has no support on the subspace. The density matrix
+                is left unchanged in that case.
+        """
+        num_axes = len(self._qid_shape)
+        buffer = self._buffer[0]
+        buffer.fill(0)
+        for ket in subspaces:
+            for bra in subspaces:
+                index: list[slice | int] = [slice(None)] * (2 * num_axes)
+                for axis, ket_digit, bra_digit in zip(axes, ket, bra):
+                    index[axis] = ket_digit
+                    index[axis + num_axes] = bra_digit
+                buffer[tuple(index)] = self._density_matrix[tuple(index)]
+        dim = int(np.prod(self._qid_shape, dtype=np.int64))
+        trace = np.trace(buffer.reshape(dim, dim)).real
+        if trace <= 10 * np.finfo(buffer.dtype).eps:
+            raise ValueError('The state has no support on the post-selected subspace.')
+        buffer /= trace
+        # `self._buffer` is a plain list, so this rebinds its element rather than writing
+        # into `buffer`'s own memory -- it must stay that way for this swap to be correct.
+        self._buffer[0] = self._density_matrix
+        self._density_matrix = buffer
+
     def sample(
         self, axes: Sequence[int], repetitions: int = 1, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
     ) -> np.ndarray:
