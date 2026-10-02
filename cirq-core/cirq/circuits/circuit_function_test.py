@@ -205,6 +205,7 @@ def test_call() -> None:
     cf0 = cirq.CircuitFunction("test_function", cx, function_params=[])
     assert cf0() == cx.freeze()
 
+
 def test_resolve_parameters() -> None:
     x = sympy.Symbol('x')
     qx = cirq.VariableLineQid(x)
