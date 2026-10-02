@@ -710,7 +710,8 @@ def factor_density_matrix(
         `extracted` means the sub-matrix which corresponds to the axes
         requested, and with the axes in the requested order, and where
         `remainder` means the sub-matrix on the remaining axes, in the same
-        order as the original density matrix.
+        order as the original density matrix. Both are renormalized to
+        have trace 1.
 
     Raises:
         ValueError: If the tensor cannot be factored along the given aces.
@@ -718,6 +719,26 @@ def factor_density_matrix(
     extracted = partial_trace(t, axes)
     remaining_axes = [i for i in range(t.ndim // 2) if i not in axes]
     remainder = partial_trace(t, remaining_axes)
+
+    # `partial_trace` performs a single einsum contraction with no
+    # normalization step, so each call introduces a small amount of
+    # floating-point error. Left uncorrected, that error compounds every
+    # time this function runs (e.g. once per measurement or reset when
+    # `split_untangled_states` is enabled), eventually drifting the trace
+    # of the returned factors away from 1 and producing invalid states.
+    # Renormalizing here is safe: partial trace always preserves total
+    # trace (Tr(partial_trace(t, axes)) == Tr(t)) regardless of whether t
+    # is separable, so as long as `t` itself has trace 1 -- which this
+    # function's precondition already requires -- the true trace of each
+    # factor is always 1 by construction. This runs unconditionally, not
+    # only under `validate`, because the actual trigger for this bug,
+    # `SimulationProductState._act_on_fallback_`, always factors with
+    # `validate=False`. See #5916.
+    extracted_dim = int(np.prod(extracted.shape[: len(axes)], dtype=np.int64))
+    extracted /= np.trace(extracted.reshape(extracted_dim, extracted_dim))
+    remainder_dim = int(np.prod(remainder.shape[: len(remaining_axes)], dtype=np.int64))
+    remainder /= np.trace(remainder.reshape(remainder_dim, remainder_dim))
+
     if validate:
         t1 = density_matrix_kronecker_product(extracted, remainder)
         product_axes = list(axes) + remaining_axes
