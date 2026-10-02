@@ -327,6 +327,12 @@ class AbstractCircuit(abc.ABC):
             + '</pre>'
         )
 
+    def _repr_svg_(self) -> str:
+        """Render the circuit as SVG in Jupyter notebooks."""
+        from cirq.contrib.svg import circuit_to_svg
+
+        return circuit_to_svg(self)
+
     def _first_moment_operating_on(
         self, qubits: Iterable[cirq.Qid], indices: Iterable[int]
     ) -> int | None:

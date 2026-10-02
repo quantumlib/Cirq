@@ -2372,7 +2372,15 @@ def test_text_diagram_jupyter(circuit_cls) -> None:
     text_html = circuit._repr_html_()
     # Don't enforce specific HTML surrounding the diagram content
     assert text_expected in text_html
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_repr_svg_(circuit_cls) -> None:
+    q = cirq.LineQubit(0)
+    circuit = circuit_cls(cirq.H(q), cirq.measure(q, key='result'))
 
+    svg = circuit._repr_svg_()
+
+    assert svg.startswith('<svg')
+    assert '<line' in svg
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_circuit_to_unitary_matrix(circuit_cls) -> None:
