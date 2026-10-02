@@ -221,3 +221,14 @@ def test_classically_controlled_op() -> None:
         cirq.H(q0), cirq.measure(q0, key='m'), cirq.X(q1).with_classical_controls('m')
     )
     assert_optimizes(before=circuit, after=circuit)
+
+
+def test_repeated_measurement_key_not_reordered() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.X(q1),
+        cirq.measure(q0, key='key1'),
+        cirq.measure(q1, key='key1'),
+        cirq.measure(q1, key='key2'),
+    )
+    assert_optimizes(before=circuit, after=circuit)
