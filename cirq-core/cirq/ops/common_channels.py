@@ -801,6 +801,11 @@ class PhaseDampingChannel(raw_types.Gate):
           \end{bmatrix}
     \end{aligned}
     $$
+    
+    This channel is equvalent to a phase flip channel with probability
+    $p = (1 - \sqrt{1 - \gamma}) / 2$, so it also has a mixture 
+    representation: apply the identity with probability $1 - p$ and 
+    $Z$ with probability $p$.
     """
 
     def __init__(self, gamma: float) -> None:
@@ -842,6 +847,13 @@ class PhaseDampingChannel(raw_types.Gate):
     def _has_kraus_(self) -> bool:
         return True
 
+    def _mixture_(self) -> Sequence[tuple[float, np.ndarray]]:
+        p = (1 - np.sqrt(1 - self._gamma)) / 2
+        return ((1 - p, protocols.unitary(identity.I)), (p, protocols.unitary(pauli_gates.Z)))
+    
+    def _has_mixture_(self) -> bool:
+        return True
+    
     def _value_equality_values_(self):
         return self._gamma
 
