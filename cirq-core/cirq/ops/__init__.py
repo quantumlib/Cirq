@@ -275,3 +275,5 @@ from cirq.ops.variable_qid import (
     VariableLineQid as VariableLineQid,
     VariableQid as VariableQid,
 )
+
+from cirq.ops.while_op import While as While

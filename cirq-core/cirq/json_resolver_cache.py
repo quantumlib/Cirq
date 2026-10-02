@@ -242,6 +242,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'VarianceStoppingCriteria': cirq.work.VarianceStoppingCriteria,
         'VirtualTag': cirq.VirtualTag,
         'WaitGate': cirq.WaitGate,
+        'While': cirq.While,
         # The formatter keeps putting this back
         'XEBPhasedFSimCharacterizationOptions': cirq.experiments.XEBPhasedFSimCharacterizationOptions,  # noqa: E501
         '_XEigenState': cirq.value.product_state._XEigenState,
