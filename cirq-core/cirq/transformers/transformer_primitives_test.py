@@ -432,6 +432,12 @@ def test_map_operations_raises_qubits_not_subset():
         _ = cirq.map_operations(
             cirq.Circuit(cirq.CNOT(q[0], q[1])), lambda op, i: cirq.CNOT(q[1], q[2])
         )
+    with pytest.raises(ValueError, match='should act on a subset'):
+        _ = cirq.map_operations(
+            cirq.Circuit(cirq.CNOT(q[0], q[1])), lambda op, i: [cirq.X(q[1]), cirq.X(q[2])]
+        )
+    c_subset = cirq.map_operations(cirq.Circuit(cirq.CNOT(q[0], q[1])), lambda op, i: cirq.X(q[1]))
+    cirq.testing.assert_same_circuits(c_subset, cirq.Circuit(cirq.X(q[1])))
 
 
 def test_map_operations_can_add_qubits_if_flag_false():
@@ -460,6 +466,48 @@ def test_map_operations_can_drop_operations():
     cirq.testing.assert_same_circuits(c_mapped, c_expected)
 
 
+@pytest.mark.parametrize(
+    "map_func,expected_moments",
+    [
+        pytest.param(
+            lambda op, _: cirq.CZ(*op.qubits),
+            [cirq.Moment(cirq.CZ(cirq.LineQubit(0), cirq.LineQubit(1)))],
+            id="single_operation",
+        ),
+        pytest.param(
+            lambda op, _: (cirq.X(q) for q in op.qubits),
+            [cirq.Moment(cirq.X(cirq.LineQubit(0)), cirq.X(cirq.LineQubit(1)))],
+            id="generator",
+        ),
+        pytest.param(
+            lambda op, _: [cirq.X(op.qubits[0]), cirq.Y(op.qubits[1])],
+            [cirq.Moment(cirq.X(cirq.LineQubit(0)), cirq.Y(cirq.LineQubit(1)))],
+            id="list",
+        ),
+        pytest.param(
+            lambda op, _: (cirq.X(op.qubits[0]), cirq.Y(op.qubits[1])),
+            [cirq.Moment(cirq.X(cirq.LineQubit(0)), cirq.Y(cirq.LineQubit(1)))],
+            id="tuple",
+        ),
+        pytest.param(
+            lambda op, _: [[cirq.X(op.qubits[0])], ((cirq.Y(op.qubits[1]),), [])],
+            [cirq.Moment(cirq.X(cirq.LineQubit(0)), cirq.Y(cirq.LineQubit(1)))],
+            id="nested_op_tree",
+        ),
+        pytest.param(lambda op, _: [], [], id="empty_list"),
+    ],
+)
+def test_map_operations_return_types(map_func, expected_moments) -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.CNOT(q0, q1))
+    cirq.testing.assert_same_circuits(
+        cirq.map_operations(c, map_func), cirq.Circuit(expected_moments or [cirq.Moment()])
+    )
+    cirq.testing.assert_same_circuits(
+        cirq.map_operations_and_unroll(c, map_func), cirq.Circuit(expected_moments)
+    )
+
+
 @pytest.mark.parametrize('transform_choice', ["map_operations", "map_operations_and_unroll"])
 def test_map_operations_preserve_moments_duplicate_measurement_key(transform_choice: str) -> None:
     transform = (
@@ -476,7 +524,7 @@ def test_map_operations_preserve_moments_duplicate_measurement_key(transform_cho
         c_mapped, cirq.Circuit(cirq.Moment(cirq.M(q0, key='m')), cirq.Moment(cirq.M(q1, key='m')))
     )
 
-    # With the flag - moments with shared measurment keys are preserved.
+    # With the flag - moments with shared measurement keys are preserved.
     c_mapped = transform(c, lambda op, _: op, preserve_moments=True)
     cirq.testing.assert_same_circuits(c_mapped, c)
 
