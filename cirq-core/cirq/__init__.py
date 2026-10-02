@@ -68,6 +68,7 @@ from cirq.circuits import (
     AbstractCircuit as AbstractCircuit,
     Alignment as Alignment,
     Circuit as Circuit,
+    CircuitFunction as CircuitFunction,
     CircuitOperation as CircuitOperation,
     FrozenCircuit as FrozenCircuit,
     InsertStrategy as InsertStrategy,

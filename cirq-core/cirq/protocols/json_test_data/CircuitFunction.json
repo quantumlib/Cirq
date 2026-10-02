@@ -1,0 +1,49 @@
+{
+  "cirq_type": "CircuitFunction",
+  "name": "test_func",
+  "circuit": {
+    "cirq_type": "VAL",
+    "key": 0,
+    "val": {
+      "cirq_type": "FrozenCircuit",
+      "moments": [
+        {
+          "cirq_type": "Moment",
+          "operations": [
+            {
+              "cirq_type": "GateOperation",
+              "gate": {
+                "cirq_type": "XPowGate",
+                "exponent": {
+                  "cirq_type": "sympy.Symbol",
+                  "name": "theta"
+                },
+                "global_shift": 0.0
+              },
+              "qubits": [
+                {
+                  "cirq_type": "VariableLineQid",
+                  "x": {
+                    "cirq_type": "sympy.Symbol",
+                    "name": "qx"
+                  },
+                  "dimension": 2
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "function_params": [
+    {
+      "cirq_type": "sympy.Symbol",
+      "name": "qx"
+    },
+    {
+      "cirq_type": "sympy.Symbol",
+      "name": "theta"
+    }
+  ]
+}

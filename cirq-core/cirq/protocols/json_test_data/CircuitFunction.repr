@@ -1,0 +1,9 @@
+cirq.CircuitFunction(
+    name='test_func',
+    circuit=cirq.FrozenCircuit([
+        cirq.Moment(
+            (cirq.X**sympy.Symbol('theta')).on(cirq.VariableLineQid(sympy.Symbol('qx'), dimension=2)),
+        ),
+    ]),
+    function_params=[sympy.Symbol('qx'), sympy.Symbol('theta')],
+)
