@@ -4,30 +4,30 @@ title: Noise management for running circuits
 landing_page:
   nav: left
   rows:
-  - heading: Manage noise when running circuits
-    description: Running circuits on quantum hardware devices means dealing with the
-      noise those devices introduce to the computation. Cirq provides the following
-      ways of managing that noise, to improve the quality of the measured results.
-    options:
-    - cards
-    items:
-    - heading: Representing Noise
-      description: Noise models and channels and what types of error they replicate.
-      path: /cirq/noise/representing_noise
-  - heading: Characterization and compensation
-    description: Characterize the error a device is exhibiting, then compensate for
-      that error by changing the circuit or reinterpreting the results.
-    options:
-    - cards
-    items:
-    - heading: Cross-Entropy Benchmarking (XEB)
-      description: A characterization benchmarking method using cross entropy.
-      path: /cirq/noise/qcvv/xeb_theory
-  - heading: Visualizing noise
-    description: Graphing and plotting methods for visualizing noise.
-    options:
-    - cards
-    items:
-    - heading: Heatmaps
-      description: Functions to plot noise characteristics across a 2D grid device.
-      path: /cirq/noise/heatmaps
+    - heading: Manage noise when running circuits
+      description: Running circuits on quantum hardware devices means dealing with the noise those devices
+        introduce to the computation. Cirq provides the following ways of managing that noise, to improve
+        the quality of the measured results.
+      options:
+        - cards
+      items:
+        - heading: Representing Noise
+          description: Noise models and channels and what types of error they replicate.
+          path: /cirq/noise/representing_noise
+    - heading: Characterization and compensation
+      description: Characterize the error a device is exhibiting, then compensate for that error by changing
+        the circuit or reinterpreting the results.
+      options:
+        - cards
+      items:
+        - heading: Cross-Entropy Benchmarking (XEB)
+          description: A characterization benchmarking method using cross entropy.
+          path: /cirq/noise/qcvv/xeb_theory
+    - heading: Visualizing noise
+      description: Graphing and plotting methods for visualizing noise.
+      options:
+        - cards
+      items:
+        - heading: Heatmaps
+          description: Functions to plot noise characteristics across a 2D grid device.
+          path: /cirq/noise/heatmaps
