@@ -677,6 +677,20 @@ def test_factor_state_vector(state_1: int, state_2: int) -> None:
         assert np.allclose(b1, b)
 
 
+def test_factor_density_matrix_renormalizes() -> None:
+    # partial_trace performs a single einsum contraction with no normalization step, so
+    # repeated calls to factor_density_matrix compound floating point error and can drift the
+    # trace of the returned factors away from 1 over time (see #5916). Simulate that drift by
+    # perturbing an otherwise-valid separable density matrix, and check that
+    # factor_density_matrix corrects for it.
+    a = cirq.testing.random_density_matrix(2, random_state=1)
+    b = cirq.testing.random_density_matrix(2, random_state=2)
+    t = np.reshape(np.kron(a, b), (2, 2, 2, 2)) * (1 + 1e-6)
+    extracted, remainder = cirq.linalg.transformations.factor_density_matrix(t, [0], validate=False)
+    np.testing.assert_allclose(np.trace(extracted), 1, atol=1e-9, rtol=0)
+    np.testing.assert_allclose(np.trace(remainder), 1, atol=1e-9, rtol=0)
+
+
 @pytest.mark.parametrize('num_dimensions', [*range(1, 7)])
 def test_transpose_flattened_array(num_dimensions) -> None:
     np.random.seed(0)

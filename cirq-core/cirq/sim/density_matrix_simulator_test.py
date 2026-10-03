@@ -1585,3 +1585,21 @@ def test_sweep_unparameterized_prefix_not_repeated_even_non_unitaries() -> None:
     simulator.simulate_sweep(program=circuit, params=params)
     assert op1.count == 1
     assert op2.count == 2
+
+
+def test_repeated_measurement_does_not_drift_density_matrix_trace() -> None:
+    # Regression test for https://github.com/quantumlib/Cirq/issues/5916. With
+    # split_untangled_states enabled (the default), every measurement factors the density
+    # matrix via `factor_density_matrix`, which used to leave the resulting factors'
+    # trace un-renormalized. The error compounded across repeated simulate() calls that feed
+    # the previous final_density_matrix back in as the next initial_state, eventually failing
+    # density matrix validation. dtype=np.complex128 reproduces the drift the fastest.
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.CNOT(q1, q0), cirq.H(q1), cirq.measure(q1))
+    simulator = cirq.DensityMatrixSimulator(dtype=np.complex128, split_untangled_states=True)
+
+    state: np.ndarray | None = None
+    for _ in range(300):
+        result = simulator.simulate(circuit, initial_state=state)
+        state = result.final_density_matrix
+        np.testing.assert_allclose(np.trace(state), 1, atol=1e-8, rtol=0)
