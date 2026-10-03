@@ -52,15 +52,29 @@ def test_gate_compilation_matches_expected_max_infidelity(tabulation, target) ->
 
 
 @pytest.mark.parametrize('tabulation', [sycamore_tabulation, sqrt_iswap_tabulation])
-def test_gate_compilation_on_base_gate_standard(tabulation) -> None:
-    base_gate = tabulation.base_gate
+@pytest.mark.parametrize(
+    'phase_angle',
+    [0.0, *np.random.uniform(0, 2 * np.pi, 4).tolist()],
+    ids=[f"phase_angle{i}" for i in range(5)],
+)
+def test_gate_compilation_on_base_gate_standard(
+    tabulation: TwoQubitGateTabulation, phase_angle: float
+) -> None:
+    phased_base_gate = np.exp(1j * phase_angle) * tabulation.base_gate
 
-    result = tabulation.compile_two_qubit_gate(base_gate)
+    result = tabulation.compile_two_qubit_gate(phased_base_gate)
 
     assert len(result.local_unitaries) == 2
     assert result.success
-    fidelity = unitary_entanglement_fidelity(result.actual_gate, base_gate)
+    expected_actual_gate = (
+        np.kron(*result.local_unitaries[1])
+        @ result.base_gate_unitary
+        @ np.kron(*result.local_unitaries[0])
+    )
+    np.testing.assert_allclose(result.actual_gate, expected_actual_gate)
+    fidelity = unitary_entanglement_fidelity(result.actual_gate, phased_base_gate)
     assert fidelity > 0.99999
+    np.testing.assert_allclose(result.actual_gate, phased_base_gate, atol=1e-8)
 
 
 def test_gate_compilation_on_base_gate_identity() -> None:
