@@ -73,7 +73,7 @@ are `qpu` and `simulator`.
 
 Another method to get results from the IonQ API is to use a sampler. A sampler
 is specifically design to be a lightweight interface for obtaining results
-in a [pandas](https://pandas.pydata.org/) dataframe and is the interface
+in a [pandas](https://pandas.pydata.org/) DataFrame and is the interface
 used by other classes in Cirq for objects that process data. Here is a
 simple example showing how to get a sampler and use it.
 
@@ -98,7 +98,7 @@ print(result)
 
 The above two methods, using run and the sampler, both block waiting for
 results. This can be problematic when the queueing time for the service
-is long. Instead, it is recommended that you use the job api directly.
+is long. Instead, it is recommended that you use the job API directly.
 In this pattern, you can first create the job with the quantum circuit you
 wish to run, and the service immediately returns an object that has
 the id of the job. This job id can be recorded, and at any time in

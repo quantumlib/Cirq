@@ -324,17 +324,10 @@ def test_equality() -> None:
 
 
 def test_repr() -> None:
+    cirq.testing.assert_equivalent_repr(cirq.study.sweeps.Product(cirq.UnitSweep))
+    cirq.testing.assert_equivalent_repr(cirq.study.sweeps.Zip(cirq.UnitSweep))
     cirq.testing.assert_equivalent_repr(
-        cirq.study.sweeps.Product(cirq.UnitSweep),
-        setup_code='import cirq\nfrom collections import OrderedDict',
-    )
-    cirq.testing.assert_equivalent_repr(
-        cirq.study.sweeps.Zip(cirq.UnitSweep),
-        setup_code='import cirq\nfrom collections import OrderedDict',
-    )
-    cirq.testing.assert_equivalent_repr(
-        cirq.ListSweep(cirq.Linspace('a', start=0, stop=3, length=4)),
-        setup_code='import cirq\nfrom collections import OrderedDict',
+        cirq.ListSweep(cirq.Linspace('a', start=0, stop=3, length=4))
     )
     cirq.testing.assert_equivalent_repr(cirq.Points('zero&pi', [0, 3.14159]))
     cirq.testing.assert_equivalent_repr(cirq.Linspace('I/10', 0, 1, 10))

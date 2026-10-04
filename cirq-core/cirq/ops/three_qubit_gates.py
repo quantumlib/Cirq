@@ -90,11 +90,11 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _decompose_(self, qubits):
         """An adjacency-respecting decomposition.
 
-        0: ───p───@──────────────@───────@──────────@──────────
-                  │              │       │          │
-        1: ───p───X───@───p^-1───X───@───X──────@───X──────@───
-                      │              │          │          │
-        2: ───p───────X───p──────────X───p^-1───X───p^-1───X───
+            0: ───p───@──────────────@───────@──────────@──────────
+                      │              │       │          │
+            1: ───p───X───@───p^-1───X───@───X──────@───X──────@───
+                          │              │          │          │
+            2: ───p───────X───p──────────X───p^-1───X───p^-1───X───
 
         where p = T**self._exponent
         """
@@ -275,11 +275,11 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
     def _decompose_(self, qubits):
         """An adjacency-respecting decomposition.
 
-        0: ───p_0───@──────────────@───────@──────────@──────────
-                    │              │       │          │
-        1: ───p_1───X───@───p_3────X───@───X──────@───X──────@───
-                        │              │          │          │
-        2: ───p_2───────X───p_4────────X───p_5────X───p_6────X───
+            0: ───p_0───@──────────────@───────@──────────@──────────
+                        │              │       │          │
+            1: ───p_1───X───@───p_3────X───@───X──────@───X──────@───
+                            │              │          │          │
+            2: ───p_2───────X───p_4────────X───p_5────X───p_6────X───
 
         where p_i = T**(4*x_i) and x_i solve the system of equations
                     [0, 0, 1, 0, 1, 1, 1][x_0]   [r_1]

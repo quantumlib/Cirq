@@ -815,7 +815,7 @@ class Engine(abstract_engine.AbstractEngine):
         qec_circuit: cirq.Circuit,
         processor_id: str,
         device_config_revision: processor_config.DeviceConfigRevision = processor_config.Run(
-            id='current'
+            id='default'
         ),
         config_name: str = 'default',
     ) -> cirq.ParamResolver:

@@ -26,7 +26,7 @@ from cirq_ionq import calibration, ionq_client, job, results, sampler, serialize
 class Service:
     """A class to access IonQ's API.
 
-    To access the API, this class requires a remote host url and an API key. These can be
+    To access the API, this class requires a remote host URL and an API key. These can be
     specified in the constructor via the parameters `remote_host` and `api_key`. Alternatively
     these can be specified by setting the environment variables `IONQ_REMOTE_HOST` and
     `IONQ_API_KEY`.
@@ -45,7 +45,7 @@ class Service:
         """Creates the Service to access IonQ's API.
 
         Args:
-            remote_host: The location of the api in the form of an url. If this is None,
+            remote_host: The location of the API in the form of an url. If this is None,
                 then this instance will use the environment variable `IONQ_REMOTE_HOST`. If that
                 variable is not set, then this uses `https://api.ionq.co/{api_version}`, where
                 `{api_version}` is the `api_version` specified below.
@@ -127,10 +127,10 @@ class Service:
                 and:
                 `Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`
                 Valid keys include: ``debiasing`` False or True.
-                - 'debiasing': A boolean indicating whether to use the debiasing technique for
+                - 'debiasing': A Boolean indicating whether to use the debiasing technique for
                   aggregating results. This technique is used to reduce the bias in the results
                   caused by measurement error and can improve the accuracy of the output.
-            sharpen: A boolean that determines how to aggregate error mitigated.
+            sharpen: A Boolean that determines how to aggregate error mitigated.
                 If True, apply majority vote mitigation; if False, apply average mitigation.
                 See:
                 `Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`
@@ -200,10 +200,10 @@ class Service:
                 and:
                 `Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`
                 Valid keys include: ``debiasing`` False or True.
-                - 'debiasing': A boolean indicating whether to use the debiasing technique for
+                - 'debiasing': A Boolean indicating whether to use the debiasing technique for
                   aggregating results. This technique is used to reduce the bias in the results
                   caused by measurement error and can improve the accuracy of the output.
-            sharpen: A boolean that determines how to aggregate error mitigated.
+            sharpen: A Boolean that determines how to aggregate error mitigated.
                 If True, apply majority vote mitigation; if False, apply average mitigation. See
                 `Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`
             noise (dict): {"model": str (required), "seed": int (optional)}. Defaults to None.
@@ -292,10 +292,10 @@ class Service:
                 and:
                 `Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`
                 Valid keys include: ``debiasing`` False or True.
-                - 'debiasing': A boolean indicating whether to use the debiasing technique for
+                - 'debiasing': A Boolean indicating whether to use the debiasing technique for
                   aggregating results. This technique is used to reduce the bias in the results
                   caused by measurement error and can improve the accuracy of the output.
-            sharpen: A boolean that determines how to aggregate error mitigated.
+            sharpen: A Boolean that determines how to aggregate error mitigated.
                 If True, apply majority vote mitigation; if False, apply average mitigation. See
                 `Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`
             noise (dict): {"model": str (required), "seed": int (optional)}. Defaults to None.
@@ -360,10 +360,10 @@ class Service:
                 and:
                 `Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`
                 Valid keys include: ``debiasing`` False or True.
-                - 'debiasing': A boolean indicating whether to use the debiasing technique for
+                - 'debiasing': A Boolean indicating whether to use the debiasing technique for
                   aggregating results. This technique is used to reduce the bias in the results
                   caused by measurement error and can improve the accuracy of the output.
-            sharpen: A boolean that determines how to aggregate error mitigated.
+            sharpen: A Boolean that determines how to aggregate error mitigated.
                 If True, apply majority vote mitigation; if False, apply average mitigation. See
                 `Debiasing and Sharpening <https://ionq.com/resources/debiasing-and-sharpening>`
             noise (dict): {"model": str (required), "seed": int (optional)}. Defaults to None.
@@ -425,7 +425,7 @@ class Service:
         Args:
             status: If supplied will filter to only jobs with this status.
             limit: The maximum number of jobs to return.
-            batch_size: The size of the batches requested per http GET call.
+            batch_size: The size of the batches requested per HTTP GET call.
 
         Returns:
             A sequence of jobs.
@@ -467,7 +467,7 @@ class Service:
             start: If supplied, only calibrations after this date and time. Accurate to seconds.
             end: If supplied, only calibrations before this date and time. Accurate to seconds.
             limit: The maximum number of calibrations to return.
-            batch_size: The size of the batches requested per http GET call.
+            batch_size: The size of the batches requested per HTTP GET call.
 
         Returns:
             A sequence of calibrations.

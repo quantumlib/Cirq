@@ -481,8 +481,8 @@ class PauliSum:
         quantum computing" by Stuart Hadfield, https://arxiv.org/abs/1804.09130
 
         Args:
-            boolean_expr: A Sympy expression containing symbols and Boolean operations
-            qubit_map: map of string (boolean variable name) to qubit.
+            boolean_expr: A SymPy expression containing symbols and Boolean operations
+            qubit_map: map of string (Boolean variable name) to qubit.
 
         Return:
             The PauliSum that represents the Boolean expression.
@@ -692,7 +692,7 @@ class PauliSum:
 
         # TODO: Avoid enforce specific complex type. This is necessary to
         # prevent an `apply_unitary` bug.
-        # Github issue: https://github.com/quantumlib/Cirq/issues/2041
+        # GitHub issue: https://github.com/quantumlib/Cirq/issues/2041
         if state_vector.dtype.kind != 'c':
             raise TypeError("Input state dtype must be np.complex64 or np.complex128")
 

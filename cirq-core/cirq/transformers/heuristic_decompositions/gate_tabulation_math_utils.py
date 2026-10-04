@@ -199,7 +199,7 @@ def in_weyl_chamber(kak_vec: np.ndarray) -> np.ndarray:
             broadcastable with shape (...,3).
 
     Returns:
-        np.ndarray of boolean values denoting whether the given coordinates
+        np.ndarray of Boolean values denoting whether the given coordinates
         are in the Weyl chamber.
     """
     kak_vec = np.asarray(kak_vec)

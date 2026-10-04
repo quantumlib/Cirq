@@ -145,7 +145,7 @@ def obj_to_dict_helper(obj: Any, attribute_names: Iterable[str]) -> dict[str, An
     is the string name of the type of `obj`.
 
     Args:
-        obj: A python object with attributes to be placed in the dictionary.
+        obj: A Python object with attributes to be placed in the dictionary.
         attribute_names: The names of attributes to serve as keys in the
             resultant dictionary. The values will be the attribute values.
     """
@@ -208,9 +208,9 @@ class CirqEncoder(json.JSONEncoder):
 
      - Python complex numbers get saved as a dictionary keyed by 'real'
        and 'imag'.
-     - Numpy ndarrays are converted to lists to use the json module's
+     - NumPy ndarrays are converted to lists to use the JSON module's
        built-in support for lists.
-     - Preliminary support for Sympy objects. Currently only sympy.Symbol.
+     - Preliminary support for SymPy objects. Currently only sympy.Symbol.
        See https://github.com/quantumlib/Cirq/issues/2014
     """
 
@@ -236,9 +236,9 @@ class CirqEncoder(json.JSONEncoder):
             val = self._cache[oid] = _json_dict_with_cirq_type(o)
             return val
 
-        # Sympy object? (Must come before general number checks.)
-        # TODO: More support for sympy
-        # Github issue: https://github.com/quantumlib/Cirq/issues/2014
+        # SymPy object? (Must come before general number checks.)
+        # TODO: More support for SymPy
+        # GitHub issue: https://github.com/quantumlib/Cirq/issues/2014
 
         if isinstance(o, sympy.Symbol):
             return {'cirq_type': 'sympy.Symbol', 'name': o.name}
@@ -294,7 +294,7 @@ class CirqEncoder(json.JSONEncoder):
         if isinstance(o, numbers.Complex):
             return {'cirq_type': 'complex', 'real': o.real, 'imag': o.imag}
 
-        # Numpy object?
+        # NumPy object?
         if isinstance(o, np.bool_):
             return bool(o)
         if isinstance(o, np.ndarray):

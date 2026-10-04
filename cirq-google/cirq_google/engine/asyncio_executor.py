@@ -32,7 +32,7 @@ P = ParamSpec("P")
 class AsyncioExecutor:
     """Runs asyncio coroutines in a thread, exposes the results as duet futures.
 
-    This lets us bridge between an asyncio event loop (which is what async grpc
+    This lets us bridge between an asyncio event loop (which is what async gRPC
     code uses) and duet (which is what cirq uses for asynchrony).
     """
 

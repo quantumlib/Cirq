@@ -1281,7 +1281,7 @@ def test_from_boolean_expression(boolean_expr, expected_pauli_sum) -> None:
     actual = cirq.PauliSum.from_boolean_expression(boolean, qubit_map)
     # Instead of calling str() directly, first make sure that the items are sorted and their
     # coefficients normalized to have "+0j" imaginary component (instead of "-0j") as in the
-    # expected_pauli_sum.  This is to make the unit test more robust should Sympy change its
+    # expected_pauli_sum.  This is to make the unit test more robust should SymPy change its
     # parsing order.
     actual_items = sorted(str(pauli_string).replace('-0j', '+0j') for pauli_string in actual)
     assert expected_pauli_sum == actual_items
@@ -1307,7 +1307,7 @@ def test_expectation_from_state_vector_invalid_input() -> None:
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     psum = cirq.X(q0) + 2 * cirq.Y(q1) + 3 * cirq.Z(q3)
     q_map = {q0: 0, q1: 1, q3: 2}
-    wf = np.array([1, 0, 0, 0, 0, 0, 0], dtype=np.complex64)
+    wf: np.ndarray = np.array([1, 0, 0, 0, 0, 0, 0], dtype=np.complex64)
 
     im_psum = (1j + 1) * psum
     with pytest.raises(NotImplementedError, match='non-Hermitian'):

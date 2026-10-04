@@ -443,7 +443,7 @@ def test_json_bit_packing_force() -> None:
 
 
 def test_json_unpack_compat() -> None:
-    """Test reading old json with serialized measurements array."""
+    """Test reading old JSON with serialized measurements array."""
     old_json = """
         {
             "cirq_type": "ResultDict",

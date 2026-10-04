@@ -56,14 +56,12 @@ def test_invalid_args() -> None:
 def test_str_repr() -> None:
     assert str(cirq_google.NoSyncTag()) == 'NoSyncTag()'
     assert repr(cirq_google.NoSyncTag()) == 'cirq_google.NoSyncTag()'
-    cirq.testing.assert_equivalent_repr(
-        cirq_google.NoSyncTag(), setup_code='import cirq\nimport cirq_google\n'
-    )
+    cirq.testing.assert_equivalent_repr(cirq_google.NoSyncTag(), setup_code='import cirq_google')
 
     tag = cirq_google.NoSyncTag(reverse=2, forward=1)
     assert str(tag) == 'NoSyncTag(reverse=2, forward=1)'
     assert repr(tag) == 'cirq_google.NoSyncTag(reverse=2, forward=1)'
-    cirq.testing.assert_equivalent_repr(tag, setup_code='import cirq\nimport cirq_google\n')
+    cirq.testing.assert_equivalent_repr(tag, setup_code='import cirq_google')
 
     tag_bool = cirq_google.NoSyncTag(remove_all_syncs_before=True, remove_all_syncs_after=True)
     assert str(tag_bool) == 'NoSyncTag(remove_all_syncs_before=True, remove_all_syncs_after=True)'
@@ -71,7 +69,7 @@ def test_str_repr() -> None:
         repr(tag_bool)
         == 'cirq_google.NoSyncTag(remove_all_syncs_before=True, remove_all_syncs_after=True)'
     )
-    cirq.testing.assert_equivalent_repr(tag_bool, setup_code='import cirq\nimport cirq_google\n')
+    cirq.testing.assert_equivalent_repr(tag_bool, setup_code='import cirq_google')
 
 
 def test_proto() -> None:

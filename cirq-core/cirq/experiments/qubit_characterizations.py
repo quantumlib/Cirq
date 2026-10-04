@@ -24,7 +24,7 @@ import attrs
 import numpy as np
 from matplotlib import pyplot as plt
 
-# this is for older systems with matplotlib <3.2 otherwise 3d projections fail
+# this is for older systems with Matplotlib <3.2 otherwise 3d projections fail
 from scipy.optimize import curve_fit
 
 import cirq.vis.heatmap as cirq_heatmap
@@ -295,7 +295,7 @@ class RBParameters:
         repetitions: The number of repetitions of each circuit.
         use_xy_basis: Determines if the Clifford gates are built with x and y
             rotations (True) or x and z rotations (False).
-        strict_basis: whether to use only cliffords that can be represented by at
+        strict_basis: whether to use only Cliffords that can be represented by at
             most 2 gates of the choses basis. For example,
             if True and use_xy_basis is True, this excludes $I, Z, \sqrt(Z), \-sqrt(Z)^\dagger$.
             if True and use_xy_basis is False, this excludes $I, Y, \sqrt(Y), -\sqrt(Y)^\dagger$.

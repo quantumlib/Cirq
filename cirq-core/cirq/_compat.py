@@ -132,7 +132,7 @@ def _method_cache_name(func: Callable) -> str:
 
 
 def proper_repr(value: Any) -> str:
-    """Overrides sympy and numpy returning repr strings that don't parse."""
+    """Overrides SymPy and NumPy returning repr strings that don't parse."""
 
     if isinstance(value, sympy.Basic):
         # HACK: work around https://github.com/sympy/sympy/issues/16074
@@ -233,9 +233,9 @@ def dataclass_repr(value: Any, namespace: str = 'cirq') -> str:
 def proper_eq(a: Any, b: Any) -> bool:
     """Compares objects for equality, working around __eq__ not always working.
 
-    For example, in numpy a == b broadcasts and returns an array instead of
+    For example, in NumPy a == b broadcasts and returns an array instead of
     doing what np.array_equal(a, b) does. This method uses np.array_equal(a, b)
-    when dealing with numpy arrays.
+    when dealing with NumPy arrays.
     """
     if type(a) == type(b):
         if isinstance(a, np.ndarray):
@@ -633,7 +633,7 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
         deadline: str,
         broken_module_exception: BaseException | None,
     ):
-        """An aliasing module finder that uses existing module finders to find a python
+        """An aliasing module finder that uses existing module finders to find a Python
         module spec and intercept the execution of matching modules.
         """
         self.new_module_name = new_module_name

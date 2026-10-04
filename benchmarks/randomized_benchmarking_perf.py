@@ -32,9 +32,9 @@ class TestSingleQubitRandomizedBenchmarking:
 
     Given a combination of `depth`, `num_qubits` and `num_circuits`, the benchmark constructs
     `num_circuits` different circuits, each spanning `num_qubits` and containing `depth` moments.
-    Each moment of the circuit contains a single qubit clifford operation for each qubit.
+    Each moment of the circuit contains a single qubit Clifford operation for each qubit.
 
-    Thus, the generated circuits have `depth * num_qubits` single qubit clifford operations.
+    Thus, the generated circuits have `depth * num_qubits` single qubit Clifford operations.
     """
 
     group = "randomized_benchmarking"

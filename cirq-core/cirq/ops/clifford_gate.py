@@ -57,7 +57,7 @@ def _to_clifford_tableau(
     x_to: tuple[Pauli, bool] | None = None,
     z_to: tuple[Pauli, bool] | None = None,
 ) -> qis.CliffordTableau:
-    """Transfer the rotation map to clifford tableau representation"""
+    """Transfer the rotation map to Clifford tableau representation"""
     if x_to is None and z_to is None and rotation_map is None:
         raise ValueError(
             "The function either takes rotation_map or a combination "
@@ -373,7 +373,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         #   ---(CliffordGate^-1)---ZI---CliffordGate---
         # = unitary(CliffordGate)@unitary(ZI)@unitary(CliffordGate).conj().T
         # = -ZI.
-        # (Note the real clifford tableau has to satisfy the Symplectic property.
+        # (Note the real Clifford tableau has to satisfy the Symplectic property.
         # here is just for illustration)
         object.__setattr__(self, '_clifford_tableau', _clifford_tableau.copy())
 
@@ -649,7 +649,7 @@ class SingleQubitCliffordGate(CliffordGate):
     def pauli_tuple(self, pauli: Pauli) -> tuple[Pauli, bool]:
         """Returns a tuple of a Pauli operator and a boolean.
 
-        The pauli is the operator of the transform and the boolean
+        The Pauli is the operator of the transform and the Boolean
         determines whether the operator should be flipped.  For instance,
         it is True if the coefficient is -1, and False if the coefficient
         is 1.
@@ -802,11 +802,11 @@ class SingleQubitCliffordGate(CliffordGate):
         return mat
 
     def decompose_gate(self) -> Sequence[cirq.Gate]:
-        """Decomposes this clifford into a series of H and pauli rotation gates.
+        """Decomposes this Clifford into a series of H and Pauli rotation gates.
 
         Returns:
-            A sequence of H and pauli rotation gates which are equivalent to this
-            clifford gate if applied in order. This decomposition agrees with
+            A sequence of H and Pauli rotation gates which are equivalent to this
+            Clifford gate if applied in order. This decomposition agrees with
             cirq.unitary(self), including global phase.
         """
         return self._decompose_gate
@@ -819,7 +819,7 @@ class SingleQubitCliffordGate(CliffordGate):
         return [r ** (qt / 2) for r, qt in rotations]
 
     def decompose_rotation(self) -> Sequence[tuple[Pauli, int]]:
-        """Decomposes this clifford into a series of pauli rotations.
+        """Decomposes this Clifford into a series of Pauli rotations.
 
         Each rotation is given as a tuple of (axis, quarter_turns),
         where axis is a Pauli giving the axis to rotate about. The
@@ -935,7 +935,7 @@ class SingleQubitCliffordGate(CliffordGate):
         return self._clifford_tableau.matrix().tobytes() + self._clifford_tableau.rs.tobytes()
 
     def _value_equality_values_cls_(self):
-        """To make it with compatible to compare with clifford gate."""
+        """To make it with compatible to compare with Clifford gate."""
         return CliffordGate
 
 

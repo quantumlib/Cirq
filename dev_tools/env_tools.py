@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 
 def get_unhidden_ungenerated_python_files(directory: str) -> Iterator[str]:
-    """Iterates through relevant python files within the given directory.
+    """Iterates through relevant Python files within the given directory.
 
     Args:
         directory: The top-level directory to explore.
@@ -80,7 +80,7 @@ def prepare_temporary_test_environment(
         destination_directory: The location to put files. The caller is
             responsible for deleting the directory, whether or not this method
              succeeds or fails.
-        repository: The github repository to download content from, if a pull
+        repository: The GitHub repository to download content from, if a pull
             request number is given.
         pull_request_number: If set, test content is fetched from github.
             Otherwise copies of local files are used.

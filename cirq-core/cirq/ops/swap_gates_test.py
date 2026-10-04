@@ -95,7 +95,7 @@ def test_iswap_unitary() -> None:
     # yapf: disable
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(cirq.ISWAP),
-        # Reference for the iswap gate's matrix using +i instead of -i:
+        # Reference for the iSWAP gate's matrix using +i instead of -i:
         # https://quantumcomputing.stackexchange.com/questions/2594/
         np.array([[1, 0, 0, 0],
                    [0, 0, 1j, 0],
@@ -109,7 +109,7 @@ def test_iswap_inv_unitary() -> None:
     # yapf: disable
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(cirq.ISWAP_INV),
-        # Reference for the iswap gate's matrix using +i instead of -i:
+        # Reference for the iSWAP gate's matrix using +i instead of -i:
         # https://quantumcomputing.stackexchange.com/questions/2594/
         np.array([[1, 0, 0, 0],
                   [0, 0, -1j, 0],

@@ -57,7 +57,7 @@ class AnnealSequenceSearch:
             annealing step with arguments: solution candidate (list of linear
             sequences on the chip), current temperature (float), candidate cost
             (float), probability of accepting candidate (float), and acceptance
-            decision (boolean).
+            decision (Boolean).
 
         Returns:
           List of linear sequences on the chip found by this method.
@@ -344,7 +344,7 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
                         candidate (list of linear sequences on the chip),
                         current temperature (float), candidate cost (float),
                         probability of accepting candidate (float), and
-                        acceptance decision (boolean).
+                        acceptance decision (Boolean).
             seed: Optional seed value for random number generator.
 
         Returns:

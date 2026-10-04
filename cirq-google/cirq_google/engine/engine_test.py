@@ -1396,7 +1396,7 @@ def test_engine_calibrate_for_circuit_defaults(client_mock):
         project_id='proj',
         qec_circuit=qec_circuit,
         processor_id=processor_id,
-        device_config_revision=Run(id='current'),
+        device_config_revision=Run(id='default'),
         config_name="default",
     )
     client_mock().get_job_async.assert_called_once_with('proj', 'test_prog', 'test_job', False)
