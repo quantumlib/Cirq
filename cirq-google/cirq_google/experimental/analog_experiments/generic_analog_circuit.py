@@ -329,7 +329,7 @@ class AnalogSimulationCircuitBuilder:
                 time.
             interaction_pattern: The pattern of two-qubit gates to use for the simulation.
                 Shouldn't matter as long as the Trotter step size is sufficiently small.
-            trotter_order: The order of the Trotter approximation (1 and 2 are are the only
+            trotter_order: The order of the Trotter approximation (1 and 2 are the only
                 supported options).
                 (otherwise use first-order).
             idle_freq_map: The qubit idle frequencies. If not provided, set to 0.

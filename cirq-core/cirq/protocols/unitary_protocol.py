@@ -200,7 +200,7 @@ def _strat_unitary_from_decompose(val: Any) -> np.ndarray | None:
     state_len = np.prod(val_qid_shape, dtype=np.int64)
     result = result.reshape((state_len, state_len))
     # Assuming borrowable qubits are restored to their original state and
-    # clean qubits restord to the zero state then the desired unitary is
+    # clean qubits restored to the zero state then the desired unitary is
     # the upper left square.
     work_state_len = np.prod(val_qid_shape[len(ancillas) :], dtype=np.int64)
     return result[:work_state_len, :work_state_len]
