@@ -98,8 +98,11 @@ def mixture(
 
     unitary_getter = getattr(val, '_unitary_', None)
     result = NotImplemented if unitary_getter is None else unitary_getter()
-    if result is not NotImplemented:
+    if result is not NotImplemented and result is not None:
         return ((1.0, result),)
+
+    if has_unitary(val):
+        return ((1.0, unitary(val)),)
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default

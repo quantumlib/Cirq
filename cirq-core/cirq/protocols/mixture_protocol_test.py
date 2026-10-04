@@ -144,3 +144,15 @@ def test_invalid_mixture(val, message) -> None:
 def test_missing_mixture() -> None:
     with pytest.raises(TypeError, match='_mixture_'):
         cirq.validate_mixture(NoMethod)  # type: ignore[arg-type]
+
+
+def test_mixture_decomposable_unitary() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    for val in [
+        cirq.Moment(cirq.H(q0), cirq.X(q1)),
+        cirq.CircuitOperation(cirq.FrozenCircuit(cirq.H(q0), cirq.CNOT(q0, q1))),
+    ]:
+        assert cirq.has_mixture(val)
+        prob, u = cirq.mixture(val)[0]
+        assert prob == 1.0
+        np.testing.assert_allclose(u, cirq.unitary(val))
