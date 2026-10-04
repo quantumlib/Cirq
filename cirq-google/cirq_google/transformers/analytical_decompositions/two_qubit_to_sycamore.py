@@ -445,7 +445,7 @@ def _swap_rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> Iterator[cirq.OP_TREE
         q1: Second qubit to operate on.
 
     Yields:
-        The `cirq.OP_TREE`` that implements ZZ followed by a swap.
+        The `cirq.OP_TREE` that implements ZZ followed by a swap.
     """
 
     # Set interaction part.
