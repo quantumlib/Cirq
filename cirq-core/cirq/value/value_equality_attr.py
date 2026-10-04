@@ -172,7 +172,7 @@ def value_equality(
     equality values (e.g. a Point2D and a Vector2D) don't compare as equal.
     Further note that this means that child types of the decorated type will be
     considered equal to each other, though this behavior can be changed via
-    the 'distinct_child_types` argument. The type logic is implemented behind
+    the `distinct_child_types` argument. The type logic is implemented behind
     the scenes by a `_value_equality_values_cls_` method added to the class.
 
     Args:
