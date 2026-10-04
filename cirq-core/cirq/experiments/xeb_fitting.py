@@ -377,7 +377,7 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
     def with_defaults_from_gate(
         self, gate: cirq.Gate, gate_to_angles_func=phased_fsim_angles_from_gate
     ) -> XEBPhasedFSimCharacterizationOptions:
-        """A new Options class with `{angle}_defaults` inferred from `gate`.
+        """A new Options class with `{angle}_default` inferred from `gate`.
 
         This keeps the same settings for the `characterize_{angle}` Booleans, but will disregard
         any current `{angle}_default` values.
