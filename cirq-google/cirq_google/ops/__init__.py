@@ -28,6 +28,8 @@ from cirq_google.ops.fsim_gate_family import FSimGateFamily as FSimGateFamily
 
 from cirq_google.ops.fsim_via_model_tag import FSimViaModelTag as FSimViaModelTag
 
+from cirq_google.ops.no_sync_tag import NoSyncTag as NoSyncTag
+
 from cirq_google.ops.physical_z_tag import PhysicalZTag as PhysicalZTag
 
 from cirq_google.ops.sycamore_gate import SycamoreGate as SycamoreGate, SYC as SYC
@@ -51,5 +53,7 @@ from cirq_google.ops.lzs_reset import LZSResetViaResonator as LZSResetViaResonat
 from cirq_google.ops.multi_level_reset import (
     MultilevelResetViaResonator as MultilevelResetViaResonator,
 )
+
+from cirq_google.ops.msmlr_reset import MultiStepMultiLevelReset as MultiStepMultiLevelReset
 
 from cirq_google.ops.leakage_iswap import LeakageISWAP as LeakageISWAP

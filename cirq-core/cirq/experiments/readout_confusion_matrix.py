@@ -34,10 +34,13 @@ if TYPE_CHECKING:
 class TensoredConfusionMatrices:
     """Store and use confusion matrices for readout error mitigation on sets of qubits.
 
-    The confusion matrix (CM) for one qubit is:
+    In Cirq's convention, a confusion matrix (CM) is structured such that rows index the prepared
+    (true) computational basis states, and columns index the observed (measured) outcomes. Each row
+    forms a normalized probability distribution summing to 1. The confusion matrix (CM) for one
+    qubit is:
 
-        [ Pr(0|0) Pr(0|1) ]
-        [ Pr(1|0) Pr(1|1) ]
+        ⎡ Pr(0|0) Pr(1|0) ⎤
+        ⎣ Pr(0|1) Pr(1|1) ⎦
 
     where Pr(i | j) = Probability of observing state "i" given state "j" was prepared.
 
@@ -259,7 +262,7 @@ class TensoredConfusionMatrices:
                                 c) sum((result - x @ confusion_matrix) ** 2) is minimized.
 
         Args:
-            result: `(2 ** len(qubits), )` shaped numpy array containing observed frequencies /
+            result: `(2 ** len(qubits), )` shaped NumPy array containing observed frequencies /
                     probabilities.
             qubits: Sequence of qubits used for sampling to get `result`. By default, uses all
                     qubits in sorted order, i.e. `self.qubits`. Note that ordering of qubits sets
@@ -268,7 +271,7 @@ class TensoredConfusionMatrices:
                     Equal to `least_squares` by default.
 
         Returns:
-              `(2 ** len(qubits), )` shaped numpy array corresponding to `result` with corrections.
+              `(2 ** len(qubits), )` shaped NumPy array corresponding to `result` with corrections.
 
         Raises:
             ValueError: If `result.shape` != `(2 ** len(qubits),)`.

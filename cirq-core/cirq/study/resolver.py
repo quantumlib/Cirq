@@ -49,7 +49,7 @@ _RECURSION_FLAG = object()
 
 
 def symbol(name: str) -> sympy.Symbol:
-    """Creates a sympy Symbol for use in sweeps.
+    """Creates a SymPy Symbol for use in sweeps.
 
     We export this from cirq to allow constructing basic parametrizable objects
     without additional imports beyond cirq itself.
@@ -120,7 +120,7 @@ class ParamResolver:
         A sympy.Basic is resolved using sympy substitution.
 
         Note that passing a formula to this resolver can be slow due to the
-        underlying sympy library.  For circuits relying on quick performance,
+        underlying SymPy library.  For circuits relying on quick performance,
         it is recommended that all formulas are flattened before-hand using
         cirq.flatten or other means so that formula resolution is avoided.
         If unable to resolve a sympy.Symbol, returns it unchanged.
@@ -170,8 +170,8 @@ class ParamResolver:
             # No known way to resolve this variable, return unchanged.
             return value
 
-        # The following resolves common sympy expressions
-        # If sympy did its job and wasn't slower than molasses,
+        # The following resolves common SymPy expressions
+        # If SymPy did its job and wasn't slower than molasses,
         # we wouldn't need the following block.
         if isinstance(value, sympy.Float):
             return float(value)
@@ -188,14 +188,14 @@ class ParamResolver:
         if isinstance(value, sympy.Pow) and len(value.args) == 2:
             base = self.value_of(value.args[0], recursive)
             exponent = self.value_of(value.args[1], recursive)
-            # Casts because numpy can handle expressions (by delegating to __pow__), but does
+            # Casts because NumPy can handle expressions (by delegating to __pow__), but does
             # not have signature that will support this.
             if isinstance(base, numbers.Number):
                 return np.float_power(cast(complex, base), cast(complex, exponent))
             return np.power(cast(complex, base), cast(complex, exponent))
 
-        # Input is either a sympy formula or the dictionary maps to a
-        # formula.  Use sympy to resolve the value.
+        # Input is either a SymPy formula or the dictionary maps to a
+        # formula.  Use SymPy to resolve the value.
         # Note that sympy.subs() is slow, so we want to avoid this and
         # only use it for cases that require complicated resolution.
         if not recursive:
@@ -203,7 +203,7 @@ class ParamResolver:
             # a.subs({a: b, b: c}) == b
             #
             # Note that a sympy.SympifyError here likely means
-            # that one of the expressions was not parsable by sympy
+            # that one of the expressions was not parsable by SymPy
             # (such as a function returning NotImplemented)
             v = value.subs(self._param_dict, simultaneous=True)
 

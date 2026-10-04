@@ -133,11 +133,11 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         For example, for qubits in the same ion trap, the decomposition of CCZ
         gate will be:
 
-        0: ──────────────@──────────────────@───@───p──────@───
-                         │                  │   │          │
-        1: ───@──────────┼───────@───p──────┼───X───p^-1───X───
-              │          │       │          │
-        2: ───X───p^-1───X───p───X───p^-1───X───p──────────────
+            0: ──────────────@──────────────────@───@───p──────@───
+                             │                  │   │          │
+            1: ───@──────────┼───────@───p──────┼───X───p^-1───X───
+                  │          │       │          │
+            2: ───X───p^-1───X───p───X───p^-1───X───p──────────────
 
         where p = T**ccz_gate._exponent
         """

@@ -1342,7 +1342,7 @@ def test_zpow_dim_4() -> None:
     z = cirq.ZPowGate(dimension=4)
     assert cirq.Z != z
     # fmt: off
-    expected = np.asarray([
+    expected: np.ndarray = np.asarray([
         [1, 0, 0, 0],
         [0, 1j, 0, 0],
         [0, 0, -1, 0],

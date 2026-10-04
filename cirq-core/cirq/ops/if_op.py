@@ -54,7 +54,7 @@ class If(raw_types.Operation):
         Args:
             condition: The condition(s) under which `sub_operation` should be
                 applied.  Can be a measurement key, string, condition object,
-                sympy expression, or a sequence of these conditions.
+                SymPy expression, or a sequence of these conditions.
             sub_operation: The operation (or tree of operations) to run when
                 `condition` is satisfied.
             *more_operations: Additional operations to run when `condition`

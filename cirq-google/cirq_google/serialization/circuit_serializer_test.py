@@ -62,7 +62,7 @@ Q1 = cirq.GridQubit(2, 5)
 
 X_PROTO = op_proto({'xpowgate': {'exponent': {'float_value': 1.0}}, 'qubit_constant_index': [0]})
 
-# TODO(#5758): Add support for numpy types to `TParamVal`.
+# TODO(#5758): Add support for NumPy types to `TParamVal`.
 OPERATIONS = [
     (cirq.X(Q0), X_PROTO),
     (
@@ -1078,6 +1078,8 @@ def test_circuit_with_analog_detune_coupler_only():
         cg.TwoPulseFSimTag(),
         cg.PhysicalZTag(),
         cg.InternalTag(name='abc', package='xyz'),
+        cg.NoSyncTag(),
+        cg.NoSyncTag(reverse=0, forward=1),
     ],
 )
 def test_circuit_with_tag(tag):

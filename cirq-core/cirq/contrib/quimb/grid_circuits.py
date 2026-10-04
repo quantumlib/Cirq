@@ -114,7 +114,7 @@ def simplify_expectation_value_circuit(circuit_sand: cirq.Circuit) -> None:
     circuits. It will merge single- and two-qubit gates from the "forwards"
     and "backwards" parts of the circuit outside of the operator's lightcone.
 
-    This might be too slow in practice and you can just use quimb to simplify
+    This might be too slow in practice and you can just use Quimb to simplify
     things for you.
     """
     n_op = sum(1 for _ in circuit_sand.all_operations())

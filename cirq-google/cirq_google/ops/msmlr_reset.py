@@ -1,0 +1,47 @@
+# Copyright 2026 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from collections.abc import Sequence
+from typing import Any
+
+import cirq
+
+
+@cirq.value_equality
+class MultiStepMultiLevelReset(cirq.Gate):
+    """Multi-step multi-level reset gate."""
+
+    def __init__(self, num_qubits: int = 1):
+        self._num_qubits = num_qubits
+
+    def _num_qubits_(self) -> int:
+        return self._num_qubits
+
+    def _value_equality_values_(self):
+        return (self._num_qubits,)
+
+    def is_reset_gate(self) -> bool:
+        return True
+
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> list[str]:
+        return ["[R (MSML)]"]
+
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> list[cirq.Operation]:
+        return list(cirq.reset_each(*qubits))
+
+    def _json_dict_(self) -> dict[str, Any]:
+        return {}
+
+    def __repr__(self) -> str:
+        return 'cirq_google.MultiStepMultiLevelReset()'

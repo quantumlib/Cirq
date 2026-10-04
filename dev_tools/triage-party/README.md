@@ -58,7 +58,7 @@ Kubernetes.
 Please refer to the official [Triage Party documentation] for details on the available configuration
 options.
 
-[Triage Party documentation]: https://github.com/google/triage-party/blob/main/docs/config.md
+[Triage Party documentation]: https://github.com/google/triage-party/blob/master/docs/config.md
 
 ### 2. Static Resources & Theming (CSS & Favicon)
 

@@ -590,7 +590,7 @@ def test_many_group_pauli_in_circuits_with_coefficient(use_sweep: bool) -> None:
 
 
 def test_coefficient_not_real_number() -> None:
-    """Test that the coefficient of input pauli string is not real.
+    """Test that the coefficient of input Pauli string is not real.
     Should return error in this case"""
     qubits_1 = cirq.LineQubit.range(3)
     random_pauli_string = _generate_random_pauli_string(qubits_1, True) * (3 + 4j)
@@ -673,7 +673,7 @@ def test_circuit_parameters_validation_errors() -> None:
 
 
 def test_all_pauli_strings_are_pauli_i() -> None:
-    """Test that all input pauli are pauli I"""
+    """Test that all input Pauli are Pauli I"""
     qubits_1 = cirq.LineQubit.range(5)
     qubits_2 = [
         cirq.GridQubit(0, 1),
@@ -705,7 +705,7 @@ def test_all_pauli_strings_are_pauli_i() -> None:
 
 
 def test_zero_pauli_repetitions() -> None:
-    """Test that the pauli repetitions are zero."""
+    """Test that the Pauli repetitions are zero."""
     qubits = cirq.LineQubit.range(5)
 
     circuit = cirq.FrozenCircuit(_create_ghz(5, qubits))
@@ -749,7 +749,7 @@ def test_zero_readout_repetitions() -> None:
 
 
 def test_rng_type_mismatch() -> None:
-    """Test that the rng is not a numpy random generator or a seed."""
+    """Test that the RNG is not a NumPy random generator or a seed."""
     qubits = cirq.LineQubit.range(5)
 
     circuit = cirq.FrozenCircuit(_create_ghz(5, qubits))
@@ -763,7 +763,7 @@ def test_rng_type_mismatch() -> None:
 
 
 def test_group_paulis_are_not_qwc() -> None:
-    """Test that the group paulis are not qwc."""
+    """Test that the group Paulis are not qwc."""
     qubits = cirq.LineQubit.range(5)
 
     circuit = cirq.FrozenCircuit(_create_ghz(5, qubits))
@@ -780,7 +780,7 @@ def test_group_paulis_are_not_qwc() -> None:
 
 
 def test_empty_group_paulis_not_allowed() -> None:
-    """Test that the group paulis are empty"""
+    """Test that the group Paulis are empty"""
     qubits = cirq.LineQubit.range(5)
 
     circuit = cirq.FrozenCircuit(_create_ghz(5, qubits))

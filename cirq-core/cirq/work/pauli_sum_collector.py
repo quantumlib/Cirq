@@ -41,7 +41,7 @@ class PauliSumCollector(collector.Collector):
 
         Args:
             circuit: Produces the state to be tested.
-            observable: The pauli product observables to measure. Their sampled
+            observable: The Pauli product observables to measure. Their sampled
                 expectations will be scaled by their coefficients and their
                 dictionary weights, and then added up to produce the final
                 result.

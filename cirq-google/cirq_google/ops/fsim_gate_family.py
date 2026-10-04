@@ -46,7 +46,7 @@ T = TypeVar(
 
 
 def _exp(theta: complex | sympy.Basic):
-    """Utility method to return exp(theta) using numpy or sympy, depending on the type of theta."""
+    """Utility method to return exp(theta) using NumPy or SymPy, depending on the type of theta."""
     return sympy.exp(theta) if cirq.is_parameterized(theta) else np.exp(cast(complex, theta))
 
 
@@ -307,8 +307,8 @@ class FSimGateFamily(cirq.GateFamily):
         """Converts, if possible, the given `gate` to an equivalent instance of `target_gate_type`.
 
         This method can be used for converting instances of `POSSIBLE_FSIM_GATES` to other
-        equivalent types from the same group. For example, you can convert a sqrt iswap gate
-        to an equivalent fsim gate by calling:
+        equivalent types from the same group. For example, you can convert a sqrt iSWAP gate
+        to an equivalent FSim gate by calling:
 
         >>> gf = cirq_google.FSimGateFamily()
         >>> assert gf.convert(cirq.SQRT_ISWAP, cirq.FSimGate) == cirq.FSimGate(-np.pi/4, 0)
