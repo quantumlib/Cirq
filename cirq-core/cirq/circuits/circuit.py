@@ -382,7 +382,7 @@ class AbstractCircuit(abc.ABC):
             The index of the next moment that touches each qubit. If there
             is no such moment, the next moment is specified as the number of
             moments in the circuit. Equivalently, can be characterized as one
-            plus the index of the last moment after start_moment_index
+            plus the index of the last moment after `start_moment_index`
             (inclusive) that does *not* act on a given qubit.
         """
         next_moments = {}
@@ -690,7 +690,7 @@ class AbstractCircuit(abc.ABC):
         - Operations that act on qubits not in `start_frontier` are not
             automatically blocking.
 
-        For every (moment_index, operation) returned:
+        For every (`moment_index`, `operation`) returned:
 
         - moment_index >= min((start_frontier[q] for q in operation.qubits
             if q in start_frontier), default=0)
