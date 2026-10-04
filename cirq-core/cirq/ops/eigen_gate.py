@@ -64,7 +64,7 @@ class EigenGate(raw_types.Gate):
     The eigenvalue of each eigenspace of a gate is computed by:
 
     1. Starting with an angle in half turns as returned by the gate's
-        ``_eigen_components`` method:
+        `_eigen_components` method:
 
                 θ
 
