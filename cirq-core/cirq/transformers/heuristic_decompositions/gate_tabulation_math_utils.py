@@ -259,9 +259,10 @@ def kak_vector_to_unitary(vector: np.ndarray) -> np.ndarray:
         vector: A KAK vector shape (..., 3). (Input may be vectorized).
 
     Returns:
-        unitary: Corresponding 2-qubit unitary, of the form
-           $exp( i k_x \sigma_x \sigma_x + i k_y \sigma_y \sigma_y
-                + i k_z \sigma_z \sigma_z)$.
+        unitary: Corresponding 2-qubit unitary, of the form:
+           $$
+           exp( i k_x \sigma_x \sigma_x + i k_y \sigma_y \sigma_y + i k_z \sigma_z \sigma_z)
+           $$
            matrix or tensor of matrices of shape (..., 4,4).
     """
     vector = np.asarray(vector)
