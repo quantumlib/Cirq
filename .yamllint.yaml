@@ -15,8 +15,7 @@
 # See https://yamllint.readthedocs.io/ for info about configuration options.
 # IMPORTANT: if you change values here, update .editorconfig to match.
 
-# Relaxed rules mean certain things like line lengths are warnings, not errors.
-extends: relaxed
+extends: default
 
 rules:
   line-length:
@@ -27,11 +26,21 @@ rules:
     allow-non-breakable-words: true
     allow-non-breakable-inline-mappings: true
 
+  # Without this, yamllint complains about the "on:" definition of GitHub
+  # Actions workflow files.
+  truthy:
+    check-keys: false
+
   # Require 2-space indentation.
   indentation:
     indent-sequences: true
     level: error
     spaces: 2
 
-  # Require comment indentation to match code indentation.
   comments-indentation: enable
+  comments:
+    min-spaces-from-content: 1
+
+  # Don't require the `---` lines.
+  document-end: disable
+  document-start: disable
