@@ -496,9 +496,10 @@ def sub_state_vector(
     $|x\rangle$ is defined over the subset ``keep_indices`` of k qubits, then
     this method will factor $|\psi\rangle$ into $|x\rangle$ and $|y\rangle$ and
     return $|x\rangle$. Note that $|x\rangle$ is not unique, because scalar
-    multiplication may be absorbed by any factor of a tensor product,
-    $e^{i \theta} |y\rangle \otimes |x\rangle =
-    |y\rangle \otimes e^{i \theta} |x\rangle$
+    multiplication may be absorbed by any factor of a tensor product:
+    $$
+    e^{i \theta} |y\rangle \otimes |x\rangle = |y\rangle \otimes e^{i \theta} |x\rangle
+    $$
 
     This method randomizes the global phase of $|x\rangle$ in order to avoid
     accidental reliance on the global phase being some specific value.
