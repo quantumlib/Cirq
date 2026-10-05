@@ -159,7 +159,7 @@ _STATE_TO_PARAM_VAL: dict[_NamedOneQubitState, tuple[float, float]] = {
     value.KET_ZERO: (0, 0),
     value.KET_ONE: (1, 0),
 }
-"""Mapping from an initial _NamedOneQubitState to the X- and Y-rotation parameter values."""
+"""Mapping from an initial `_NamedOneQubitState` to the X- and Y-rotation parameter values."""
 
 
 def _get_params_for_setting(
@@ -299,7 +299,7 @@ def _check_meas_specs_still_todo(
 @dataclasses.dataclass(frozen=True)
 class _FlippyMeasSpec:
     """Internally, each MeasurementSpec class is split into two
-    _FlippyMeasSpecs to support readout symmetrization.
+    `_FlippyMeasSpecs` to support readout symmetrization.
 
     Bitstring results are combined, so this should be opaque to the user.
     """
@@ -328,8 +328,8 @@ def _subdivide_meas_specs(
 
     In readout symmetrization, we first run the "normal" circuit followed
     by running the circuit with flipped measurement.
-    One _MeasurementSpec is split into two _FlippyMeasSpecs. These are run
-    separately but accumulated according to their shared _MeasurementSpec.
+    One `_MeasurementSpec` is split into two `_FlippyMeasSpecs`. These are run
+    separately but accumulated according to their shared `_MeasurementSpec`.
     """
     n_qubits = len(qubits)
     flippy_mspecs = []

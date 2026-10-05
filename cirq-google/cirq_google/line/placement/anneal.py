@@ -100,7 +100,7 @@ class AnnealSequenceSearch:
         return -cost
 
     def _force_edges_active_move(self, state: _STATE) -> _STATE:
-        """Move function which repeats _force_edge_active_move a few times.
+        """Move function which repeats `_force_edge_active_move` a few times.
 
         Args:
           state: Search state, not mutated.

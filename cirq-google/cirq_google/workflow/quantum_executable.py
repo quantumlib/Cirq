@@ -164,7 +164,7 @@ class QuantumExecutable:
         """Initialize the quantum executable.
 
         The actual fields in this class are immutable, but we allow more liberal input types
-        which will be frozen in this __init__ method.
+        which will be frozen in this `__init__` method.
 
         Args:
             circuit: The circuit. This will be frozen before being set as an attribute.
