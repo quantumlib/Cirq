@@ -17,6 +17,11 @@
 
 extends: default
 
+yaml-files:
+  - '*.yaml'
+  - '*.yml'
+  - '*.cff'
+
 rules:
   line-length:
     # Match our code line length.
