@@ -5,8 +5,8 @@ landing_page:
   nav: left
   rows:
     - heading: Simulate a circuit
-      description: Compute the effects of a quantum circuit, by simulating a quantum computer with a classical
-        one.
+      description: Compute the effects of a quantum circuit, by simulating a quantum
+        computer with a classical one.
       options:
         - cards
       items:
@@ -14,18 +14,20 @@ landing_page:
           description: Simulate a perfectly noiseless quantum computer.
           path: /cirq/simulate/simulation
         - heading: Noisy Simulation
-          description: Simulate a more realistic quantum computer, subject to error and noise.
+          description: Simulate a more realistic quantum computer, subject to error and
+            noise.
           path: /cirq/simulate/noisy_simulation
         - heading: Parameter Sweeps
-          description: Efficiently evaluate many circuits which only differ in operation parameter values.
+          description: Efficiently evaluate many circuits which only differ in operation
+            parameter values.
           path: /cirq/simulate/params
         - heading: State Histograms
           description: Visualize the results of simulation as a histogram over basis states.
           path: /cirq/simulate/state_histograms
 
     - heading: Quantum Virtual Machine
-      description: Run circuits on a virtual version of quantum hardware, complete with an identical interface
-        and noisy simulation that mimics hardware devices.
+      description: Run circuits on a virtual version of quantum hardware, complete with
+        an identical interface and noisy simulation that mimics hardware devices.
       options:
         - cards
       items:
@@ -36,11 +38,13 @@ landing_page:
           description: Prepare and run a circuit on a QVM in detail.
           path: /cirq/simulate/qvm_basic_example
         - heading: QVM Stabilizer Example
-          description: Run a stabilizer circuit on QVMs representing different devices and different noise.
+          description: Run a stabilizer circuit on QVMs representing different devices
+            and different noise.
           path: /cirq/simulate/qvm_stabilizer_example
         - heading: QVM Creation Template
           description: Run a device-ready circuit on a QVM with default settings.
           path: /cirq/simulate/qvm_builder_code
         - heading: Virtual Engine Interface
-          description: Details on the virtual version of the hardware Engine API and how to use it.
+          description: Details on the virtual version of the hardware Engine API and how
+            to use it.
           path: /cirq/simulate/virtual_engine_interface

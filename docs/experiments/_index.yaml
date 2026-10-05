@@ -5,9 +5,10 @@ landing_page:
   nav: left
   rows:
     - heading: Experiments using quantum circuits
-      description: This is a collection of algorithms and experiments written in and using Cirq. A few
-        use only base Cirq; the rest use additional code stored in ReCirq, a GitHub repository for research
-        code that uses and builds upon Cirq.
+      description: This is a collection of algorithms and experiments written in and
+        using Cirq. A few use only base Cirq; the rest use additional
+        code stored in ReCirq, a GitHub repository for research code that uses and builds
+        upon Cirq.
     - buttons:
         - label: Cirq GitHub
           path: https://github.com/quantumlib/Cirq
@@ -19,15 +20,16 @@ landing_page:
         - cards
       items:
         - heading: Textbook Algorithms Workshop
-          description: A workshop notebook with examples that covers algorithms commonly shown in quantum
-            textbooks.
+          description: A workshop notebook with examples that covers algorithms commonly
+            shown in quantum textbooks.
           path: /cirq/experiments/textbook_algorithms
         - heading: Shor's Algorithm
-          description: An implementation of the famous integer factorization algorithm by Peter Shor.
+          description: An implementation of the famous integer factorization algorithm by
+            Peter Shor.
           path: /cirq/experiments/shor
         - heading: Variational Quantum Eigensolver
-          description: An example of computing the ground state of a Hamiltonian using the variational
-            principle.
+          description: An example of computing the ground state of a Hamiltonian using the
+            variational principle.
           path: /cirq/experiments/variational_algorithm
         - heading: Quantum Walks
           description: An example of the quantum analog of a random walk algorithm.
@@ -40,6 +42,6 @@ landing_page:
           path: /cirq/experiments/hidden_linear_function
 
     - heading: ReCirq Experiments
-      description: Research experiments that use additional library code that resides in the external
-        ReCirq repository.
+      description: Research experiments that use additional library code that resides
+        in the external ReCirq repository.
     - include: /cirq/experiments/_index_included.yaml

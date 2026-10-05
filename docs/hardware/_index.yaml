@@ -5,25 +5,25 @@ landing_page:
   nav: left
   rows:
     - heading: Represent a quantum hardware device
-      description: Define the characteristics and constraints of quantum hardware devices, to support
-        running circuits on those devices.
+      description: Define the characteristics and constraints of quantum hardware devices,
+        to support running circuits on those devices.
       options:
         - cards
       items:
         - heading: Devices
-          description: Represent the constraints a device imposes on runnable circuits with the Device
-            class.
+          description: Represent the constraints a device imposes on runnable circuits
+            with the Device class.
           path: /cirq/hardware/devices
 
     - heading: Run a circuit on a hardware device
-      description: Cirq provides interfaces for running your circuits on quantum hardware provided by
-        many different services.
+      description: Cirq provides interfaces for running your circuits on quantum hardware
+        provided by many different services.
       options:
         - cards
       items:
         - heading: Qubit Picking
-          description: Information to help you pick good qubits for running your circuit on a hardware
-            or hardware-like device.
+          description: Information to help you pick good qubits for running your circuit
+            on a hardware or hardware-like device.
           path: /cirq/hardware/qubit_picking
 
     - heading: AQT hardware

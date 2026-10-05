@@ -5,9 +5,9 @@ landing_page:
   nav: left
   rows:
     - heading: Manage noise when running circuits
-      description: Running circuits on quantum hardware devices means dealing with the noise those devices
-        introduce to the computation. Cirq provides the following ways of managing that noise, to improve
-        the quality of the measured results.
+      description: Running circuits on quantum hardware devices means dealing with the
+        noise those devices introduce to the computation. Cirq provides the following
+        ways of managing that noise, to improve the quality of the measured results.
       options:
         - cards
       items:
@@ -15,8 +15,8 @@ landing_page:
           description: Noise models and channels and what types of error they replicate.
           path: /cirq/noise/representing_noise
     - heading: Characterization and compensation
-      description: Characterize the error a device is exhibiting, then compensate for that error by changing
-        the circuit or reinterpreting the results.
+      description: Characterize the error a device is exhibiting, then compensate for
+        that error by changing the circuit or reinterpreting the results.
       options:
         - cards
       items:
