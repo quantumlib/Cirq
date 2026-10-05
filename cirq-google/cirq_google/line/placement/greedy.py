@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 class GreedySequenceSearch:
     """Base class for greedy search heuristics.
 
-    Specialized greedy heuristics should implement abstract _sequence_search
+    Specialized greedy heuristics should implement abstract `_sequence_search`
     method.
     """
 

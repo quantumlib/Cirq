@@ -123,7 +123,7 @@ class _PauliAndZPow:
         return f"─{self.pauli}──{self.zpow}─"
 
     def to_single_qubit_gate(self) -> ops.PhasedXZGate | ops.ZPowGate | ops.IdentityGate:
-        """Converts the _PauliAndZPow to a single-qubit gate."""
+        """Converts the `_PauliAndZPow` to a single-qubit gate."""
         exp = self.zpow.exponent
         match self.pauli:
             case ops.I:

@@ -206,7 +206,7 @@ def _build_from_slices(
             out,
         )
 
-    When multiple slices are included in the _BuildFromSlicesArgs, this means to take the
+    When multiple slices are included in the `_BuildFromSlicesArgs`, this means to take the
     intersection of the source space and move it to the intersection of the target space. For
     example, the following takes the bottom-left edge and moves it to the top-right, leaving all
     other cells zero. Assume the lateral axis is 2 and right-most index thereof is 2:
@@ -496,9 +496,10 @@ def sub_state_vector(
     $|x\rangle$ is defined over the subset ``keep_indices`` of k qubits, then
     this method will factor $|\psi\rangle$ into $|x\rangle$ and $|y\rangle$ and
     return $|x\rangle$. Note that $|x\rangle$ is not unique, because scalar
-    multiplication may be absorbed by any factor of a tensor product,
-    $e^{i \theta} |y\rangle \otimes |x\rangle =
-    |y\rangle \otimes e^{i \theta} |x\rangle$
+    multiplication may be absorbed by any factor of a tensor product:
+    $$
+    e^{i \theta} |y\rangle \otimes |x\rangle = |y\rangle \otimes e^{i \theta} |x\rangle
+    $$
 
     This method randomizes the global phase of $|x\rangle$ in order to avoid
     accidental reliance on the global phase being some specific value.

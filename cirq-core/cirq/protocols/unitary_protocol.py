@@ -146,7 +146,7 @@ def unitary(
 
 
 def _strat_unitary_from_unitary(val: Any) -> np.ndarray | None:
-    """Attempts to compute a value's unitary via its _unitary_ method."""
+    """Attempts to compute a value's unitary via its `_unitary_` method."""
     getter = getattr(val, '_unitary_', None)
     if getter is None:
         return NotImplemented
@@ -154,7 +154,7 @@ def _strat_unitary_from_unitary(val: Any) -> np.ndarray | None:
 
 
 def _strat_unitary_from_apply_unitary(val: Any) -> np.ndarray | None:
-    """Attempts to compute a value's unitary via its _apply_unitary_ method."""
+    """Attempts to compute a value's unitary via its `_apply_unitary_` method."""
     # Check for the magic method.
     method = getattr(val, '_apply_unitary_', None)
     if method is None:
@@ -175,7 +175,7 @@ def _strat_unitary_from_apply_unitary(val: Any) -> np.ndarray | None:
 
 
 def _strat_unitary_from_decompose(val: Any) -> np.ndarray | None:
-    """Attempts to compute a value's unitary via its _decompose_ method."""
+    """Attempts to compute a value's unitary via its `_decompose_` method."""
     # Check if there's a decomposition.
     operations, qubits, val_qid_shape = _try_decompose_into_operations_and_qubits(val)
     if operations is None:

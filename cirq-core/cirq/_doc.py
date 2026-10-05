@@ -34,7 +34,7 @@ def document(value: T, doc_string: str = '') -> T:
     Args:
         value: The value to associate with documentation information.
         doc_string: The doc string to associate with the value. Defaults to the
-            value's __doc__ attribute.
+            value's `__doc__` attribute.
 
     Returns:
         The given value.

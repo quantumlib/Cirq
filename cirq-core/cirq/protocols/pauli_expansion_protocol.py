@@ -59,7 +59,7 @@ def pauli_expansion(
         atol: Ignore coefficients whose absolute value is smaller than this.
 
     Returns:
-        If `val` has a _pauli_expansion_ method, then its result is returned.
+        If `val` has a `_pauli_expansion_` method, then its result is returned.
         Otherwise, if `val` has a small unitary then that unitary is expanded
         in the Pauli basis and coefficients are returned. Otherwise, if default
         is set to None or other value then default is returned. Otherwise,

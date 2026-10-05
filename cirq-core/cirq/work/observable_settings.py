@@ -75,7 +75,7 @@ def _max_weight_observable(observables: Iterable[ops.PauliString]) -> ops.PauliS
     This function will return `None` if the input observables do not share a
     tensor product basis.
 
-    For example, the _max_weight_observable of ["XI", "IZ"] is "XZ". Asking for
+    For example, the `_max_weight_observable` of ["XI", "IZ"] is "XZ". Asking for
     the max weight observable of something like ["XI", "ZI"] will return None.
 
     The returned value need not actually be present in the input observables.
