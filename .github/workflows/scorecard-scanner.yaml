@@ -23,7 +23,7 @@ run-name: Run Scorecard scanner for security best practices
 on:
   schedule:
     # Run weekly on Saturdays.
-    - cron:  '30 9 * * 6'
+    - cron: '30 9 * * 6'
 
   pull_request:
     types: [opened, synchronize]
