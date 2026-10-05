@@ -153,7 +153,7 @@ def value_equality(
     manual_cls: bool = False,
     approximate: bool = False,
 ) -> Callable[[type], type] | type:
-    """Implements `__eq__`/`__ne__`/`__hash__` via a `_value_equality_values_` method.
+    """Implements `__eq__`, `__ne__`, `__hash__` via a `_value_equality_values_` method.
 
     `_value_equality_values_` is a method that the decorated class must implement.
 
