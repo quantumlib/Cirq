@@ -102,7 +102,7 @@ one-qubit gate on each qubit followed by the two qubit entangling gate. The
 resulting distribution is analyzed and compared to the expected distribution
 using cross entropy.  See
 [the explanation of XEB](https://quantumai.google/cirq/noise/qcvv/xeb_theory) for more
-details. The decay constant as the legnth of the sequence is increased gives
+details. The decay constant as the length of the sequence is increased gives
 the cycle error rate, which includes contributions from both single- and
 two-qubit gates. The contribution from single-qubit gates (characterized using
 randomized benchmarking) is subtracted off to give the inferred two-qubit error
