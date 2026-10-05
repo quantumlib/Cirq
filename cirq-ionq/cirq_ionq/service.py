@@ -214,7 +214,7 @@ class Service:
             extra_query_params: Specify any parameters to include in the request.
 
         Returns:
-            A a list of `cirq.Result` for running the circuit.
+            A list of `cirq.Result` for running the circuit.
         """
         resolved_circuits = []
         for circuit in circuits:
@@ -437,7 +437,7 @@ class Service:
         return tuple(job.Job(client=self._client, job_dict=job_dict) for job_dict in job_dicts)
 
     def get_current_calibration(self) -> calibration.Calibration:
-        """Gets the most recent calbration via the API.
+        """Gets the most recent calibration via the API.
 
         Note that currently there is only one target, so this returns the calibration of that
         target.

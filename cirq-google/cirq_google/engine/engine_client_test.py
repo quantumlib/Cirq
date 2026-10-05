@@ -974,7 +974,7 @@ def test_run_job_over_stream_with_snapshot_id_returns_correct_future(
 
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 @mock.patch.object(engine_stream_manager, 'StreamManager', autospec=True)
-def test_run_job_over_stream_with_snapshot_id_propogates_snapshot_id(
+def test_run_job_over_stream_with_snapshot_id_propagates_snapshot_id(
     manager_constructor, client_constructor, default_engine_client, default_run_context
 ):
     _setup_client_mock(client_constructor)

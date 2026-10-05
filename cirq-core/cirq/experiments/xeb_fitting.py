@@ -323,7 +323,7 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
         is a one-hot encoded vector for each parameter for which the `parameterize_xxx`
         attribute is True.
 
-        We also return a list of parameter names so the Cirq `param_resovler`
+        We also return a list of parameter names so the Cirq `param_resolver`
         can be accurately constructed during optimization.
         """
         x0_list = []

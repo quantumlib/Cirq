@@ -120,7 +120,7 @@ def _transfer_to_standard_form(
     """Puts the stabilizer matrix in its standardized form, as in section 4.1 of the thesis.
 
     Args:
-        M: The stabilizier matrix, to be standardized.
+        M: The stabilizer matrix, to be standardized.
         n: Dimension of the code words.
         k: Dimension of the message words.
 

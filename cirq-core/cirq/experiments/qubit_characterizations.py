@@ -296,7 +296,7 @@ class RBParameters:
         use_xy_basis: Determines if the Clifford gates are built with x and y
             rotations (True) or x and z rotations (False).
         strict_basis: whether to use only Cliffords that can be represented by at
-            most 2 gates of the choses basis. For example,
+            most 2 gates of the chosen basis. For example,
             if True and use_xy_basis is True, this excludes $I, Z, \sqrt(Z), \-sqrt(Z)^\dagger$.
             if True and use_xy_basis is False, this excludes $I, Y, \sqrt(Y), -\sqrt(Y)^\dagger$.
     """

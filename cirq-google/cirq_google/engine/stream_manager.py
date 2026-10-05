@@ -278,7 +278,7 @@ class StreamManager:
             # Either when this request is canceled or the _manage_stream() loop is canceled.
             except asyncio.CancelledError:
                 # TODO(#5996) Consider moving the request future cancellation logic into a future
-                # done callback, so that the the cancellation caller can wait for it to complete.
+                # done callback, so that the cancellation caller can wait for it to complete.
                 # TODO(#5996) Check the condition that response_future is not done before
                 # cancelling, once request cancellation is moved to a callback.
                 if response_future is not None:

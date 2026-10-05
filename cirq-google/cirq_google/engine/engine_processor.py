@@ -466,13 +466,13 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
            List of ProcessorConfigs for this processor.
         """
         default_device_key = self._inner_processor().default_device_config_key
-        device_revsion = (
+        device_revision = (
             device_config_revision
             if device_config_revision
             else processor_config.Run(default_device_key.run)
         )
         return self.engine().list_processor_configs(
-            processor_id=self.processor_id, device_config_revision=device_revsion
+            processor_id=self.processor_id, device_config_revision=device_revision
         )
 
     def __str__(self):

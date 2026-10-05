@@ -207,7 +207,7 @@ class CPhaseGaugeTransformerMM(MultiMomentGaugeTransformer):
         # the gauge to the left of the current `moment`, and the loop computes
         # the transformed `moment` and the new `pulled` gauge to its right.
         for moment in moments_to_gauge:
-            # Calculate --prev--moment-- ==> --updated_momment--pulled--
+            # Calculate --prev--moment-- ==> --updated_moment--pulled--
             prev = pulled
             pulled = {}
             ops_at_updated_moment: list[ops.Operation] = []

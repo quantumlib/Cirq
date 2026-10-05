@@ -70,7 +70,7 @@ def construct_valid_circuit():
 
 def test_valid_circuit() -> None:
     # Any circuit with a (full connectivity) graph of disjoint lines should be directly
-    # executable after mapping a a supporting device topology without the need for inserting
+    # executable after mapping to a supporting device topology without the need for inserting
     # any swaps.
     circuit = construct_valid_circuit()
     device = cirq.testing.construct_grid_device(7, 7)

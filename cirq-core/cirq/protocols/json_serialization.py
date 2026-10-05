@@ -86,7 +86,7 @@ def _register_resolver(dict_factory: Callable[[], dict[str, ObjectFactory]]) -> 
 
     As Cirq modules are imported by `cirq/__init__.py`, they are different from
     3rd party packages, and as such SHOULD NEVER rely on storing a
-    separate resolver based on DEAFULT_RESOLVERS because that will cause a
+    separate resolver based on DEFAULT_RESOLVERS because that will cause a
     partial DEFAULT_RESOLVER to be used by that module. What it contains will
     depend on where in `cirq/__init__.py` the module is imported first, as some
     modules might not had the chance to register themselves yet.

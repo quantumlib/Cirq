@@ -168,20 +168,20 @@ class Job:
         """Returns a dictionary of measurement keys to target qubit index."""
         measurement_dict: dict[str, Sequence[int]] = {}
         if 'metadata' in self._job:
-            measurement_matadata = None
+            measurement_metadata = None
             if 'measurements' in self._job['metadata'].keys():
                 measurements = json.loads(self._job['metadata']['measurements'])
                 for index, measurement in enumerate(measurements):
                     if index == circuit_index:
-                        measurement_matadata = measurement
+                        measurement_metadata = measurement
                         break
             else:
-                measurement_matadata = self._job['metadata']
+                measurement_metadata = self._job['metadata']
 
-            if measurement_matadata is not None:
+            if measurement_metadata is not None:
                 full_str = ''.join(
                     value
-                    for key, value in measurement_matadata.items()
+                    for key, value in measurement_metadata.items()
                     if key.startswith('measurement')
                 )
                 if full_str == '':

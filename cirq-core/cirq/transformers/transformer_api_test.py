@@ -87,14 +87,14 @@ def make_transformer_func(add_deep_support: bool = False) -> cirq.TRANSFORMER:
     my_mock = mock.Mock()
 
     @cirq.transformer(add_deep_support=add_deep_support)
-    def mock_tranformer_func(
+    def mock_transformer_func(
         circuit: cirq.AbstractCircuit, *, context: cirq.TransformerContext | None = None
     ) -> cirq.Circuit:
         my_mock(circuit, context)
         return circuit.unfreeze()
 
-    mock_tranformer_func.mock = my_mock  # type: ignore[attr-defined]
-    return mock_tranformer_func
+    mock_transformer_func.mock = my_mock  # type: ignore[attr-defined]
+    return mock_transformer_func
 
 
 @pytest.mark.parametrize(
