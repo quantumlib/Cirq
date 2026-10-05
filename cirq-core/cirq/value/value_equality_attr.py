@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Defines `@cirq.value_equality`, for easy `__eq__`/`__hash__` methods."""
+"""Defines `@cirq.value_equality`, for easy `__eq__` and `__hash__` methods."""
 
 from __future__ import annotations
 
