@@ -206,7 +206,7 @@ def _build_from_slices(
             out,
         )
 
-    When multiple slices are included in the _BuildFromSlicesArgs, this means to take the
+    When multiple slices are included in the `_BuildFromSlicesArgs`, this means to take the
     intersection of the source space and move it to the intersection of the target space. For
     example, the following takes the bottom-left edge and moves it to the top-right, leaving all
     other cells zero. Assume the lateral axis is 2 and right-most index thereof is 2:
@@ -324,6 +324,7 @@ def apply_matrix_to_slices(
         & X**t & \\
         & & 1 \\
     \end{bmatrix}
+    $$
 
     Where X is the 2x2 Pauli X gate and t is the power of the swap with t=1
     being a full swap. X**t is a power of the Pauli X gate's matrix.

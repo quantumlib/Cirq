@@ -49,20 +49,20 @@ class SupportsKraus(Protocol):
         r"""A list of Kraus matrices describing the quantum channel.
 
         These matrices are the terms in the operator sum representation of a
-        quantum channel. If the returned matrices are ${A_0,A_1,..., A_{r-1}}$,
+        quantum channel. If the returned matrices are $\{A_0, A_1, \ldots, A_{r-1}\}$,
         then this describes the channel:
-            $$
-            \rho \rightarrow \sum_{k=0}^{r-1} A_k \rho A_k^\dagger
-            $$
+        $$
+        \rho \rightarrow \sum_{k=0}^{r-1} A_k \rho A_k^\dagger
+        $$
         These matrices are required to satisfy the trace preserving condition
-            $$
-            \sum_{k=0}^{r-1} A_k^\dagger A_k = I
-            $$
+        $$
+        \sum_{k=0}^{r-1} A_k^\dagger A_k = I
+        $$
         where $I$ is the identity matrix. The matrices $A_k$ are sometimes
         called Kraus or noise operators.
 
         This method is used by the global `cirq.channel` method. If this method
-        or the _unitary_ method is not present, or returns NotImplement,
+        or the `_unitary_` method is not present, or returns NotImplement,
         it is assumed that the receiving object doesn't have a channel
         (resulting in a TypeError or default result when calling `cirq.channel`
         on it). (The ability to return NotImplemented is useful when a class
@@ -97,7 +97,7 @@ class SupportsKraus(Protocol):
 
 
 def _strat_kraus_from_apply_channel(val: Any, atol: float) -> tuple[np.ndarray, ...] | None:
-    """Attempts to compute a value's Kraus operators via its _apply_channel_ method.
+    """Attempts to compute a value's Kraus operators via its `_apply_channel_` method.
     This is very expensive (O(16^N)), so only do this as a last resort.
 
     Args:
@@ -141,15 +141,15 @@ def kraus(
     r"""Returns a list of matrices describing the channel for the given value.
 
     These matrices are the terms in the operator sum representation of
-    a quantum channel. If the returned matrices are ${A_0,A_1,..., A_{r-1}}$,
+    a quantum channel. If the returned matrices are $\{A_0, A_1, \ldots, A_{r-1}\}$,
     then this describes the channel:
-        $$
-        \rho \rightarrow \sum_{k=0}^{r-1} A_k \rho A_k^\dagger
-        $$
+    $$
+    \rho \rightarrow \sum_{k=0}^{r-1} A_k \rho A_k^\dagger
+    $$
     These matrices are required to satisfy the trace preserving condition
-        $$
-        \sum_{k=0}^{r-1} A_k^\dagger A_k = I
-        $$
+    $$
+    \sum_{k=0}^{r-1} A_k^\dagger A_k = I
+    $$
     where $I$ is the identity matrix. The matrices $A_k$ are sometimes called
     Kraus or noise operators.
 
@@ -172,7 +172,7 @@ def kraus(
         value is returned.
 
     Raises:
-        TypeError: `val` doesn't have a _kraus_ or _unitary_ method (or that
+        TypeError: `val` doesn't have a `_kraus_` or `_unitary_` method (or that
             method returned NotImplemented) and also no default value was
             specified.
     """
@@ -246,7 +246,7 @@ def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
         `_has_mixture_` method and its result is not NotImplemented, that
         result is returned. Otherwise if `val` has a `_has_unitary_` method
         and its results is not NotImplemented, that result is returned.
-        Otherwise, if the value has a _kraus_ method return if that
+        Otherwise, if the value has a `_kraus_` method return if that
         has a non-default value. Returns False if none of these functions
         exists.
     """
