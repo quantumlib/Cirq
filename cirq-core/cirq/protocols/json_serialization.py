@@ -79,16 +79,16 @@ prepended to this list:
 def _register_resolver(dict_factory: Callable[[], dict[str, ObjectFactory]]) -> None:
     """Register a resolver based on a dict factory for lazy initialization.
 
-    Cirq modules are the ones referred in cirq/__init__.py. If a Cirq module
+    Cirq modules are the ones referred in `cirq/__init__.py`. If a Cirq module
     wants to expose JSON serializable objects, it should register itself using
     this method to be supported by the protocol. See for example
-    cirq/__init__.py or cirq/google/__init__.py.
+    `cirq/__init__.py` or `cirq/google/__init__.py`.
 
-    As Cirq modules are imported by cirq/__init__.py, they are different from
+    As Cirq modules are imported by `cirq/__init__.py`, they are different from
     3rd party packages, and as such SHOULD NEVER rely on storing a
     separate resolver based on DEAFULT_RESOLVERS because that will cause a
     partial DEFAULT_RESOLVER to be used by that module. What it contains will
-    depend on where in cirq/__init__.py the module is imported first, as some
+    depend on where in `cirq/__init__.py` the module is imported first, as some
     modules might not had the chance to register themselves yet.
 
     Args:
@@ -388,7 +388,7 @@ def json_namespace(type_obj: type) -> str:
 
     Raises:
         ValueError: if `type_obj` is not a Cirq type and does not explicitly
-            define its namespace with _json_namespace_.
+            define its namespace with `_json_namespace_`.
     """
     if hasattr(type_obj, '_json_namespace_'):
         return type_obj._json_namespace_()
@@ -589,7 +589,7 @@ def to_json_gzip(
         cls: Passed to json.dump; the default value of CirqEncoder
             enables the serialization of Cirq objects which implement
             the SupportsJSON protocol. To support serialization of 3rd
-            party classes, prefer adding the _json_dict_ magic method
+            party classes, prefer adding the `_json_dict_` magic method
             to your classes rather than overriding this default.
     """
     json_str = to_json(obj, indent=indent, cls=cls)

@@ -206,7 +206,7 @@ def _build_from_slices(
             out,
         )
 
-    When multiple slices are included in the _BuildFromSlicesArgs, this means to take the
+    When multiple slices are included in the `_BuildFromSlicesArgs`, this means to take the
     intersection of the source space and move it to the intersection of the target space. For
     example, the following takes the bottom-left edge and moves it to the top-right, leaving all
     other cells zero. Assume the lateral axis is 2 and right-most index thereof is 2:

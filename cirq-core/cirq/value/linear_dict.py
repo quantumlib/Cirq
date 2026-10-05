@@ -103,7 +103,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
     addition and scalar multiplication for linear combinations of abstract
     vectors. Keys represent the vectors, values represent their coefficients.
     The only requirement on the keys is that they be hashable (i.e. are
-    immutable and implement __hash__ and __eq__ with equal objects hashing
+    immutable and implement `__hash__` and `__eq__` with equal objects hashing
     to equal values).
 
     A consequence of treating keys as opaque is that all relationships between
@@ -290,7 +290,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
     def __ne__(self, other: Any) -> bool:
         """Checks whether two linear combinations are not exactly equal.
 
-        See __eq__().
+        See `__eq__()`.
         """
         if not isinstance(other, LinearDict):
             return NotImplemented
