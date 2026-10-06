@@ -45,3 +45,6 @@ f14948c48b66ab15e5b0d50cd2eb71bf6513ce4b
 
 # Fix inconsistent word capitalization (no code changes) (#8365)
 2d15b76c2a9ab1f0e49a3f2348c7cfd159c1a469
+
+# Fix typos (#8408)
+c211d962c5a9b5a1fc76b586310fb34b3a61b2d6
