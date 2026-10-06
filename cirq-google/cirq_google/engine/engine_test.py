@@ -1079,9 +1079,9 @@ def test_get_processor_config_from_snapshot(get_quantum_config_async):
         f'configSnapshots/{snapshot.id}/'
         f'configs/{config_name}'
     )
-    quantum_confg = quantum.QuantumProcessorConfig(name=resource_name)
+    quantum_config = quantum.QuantumProcessorConfig(name=resource_name)
 
-    get_quantum_config_async.return_value = quantum_confg
+    get_quantum_config_async.return_value = quantum_config
 
     result = cg.Engine(project_id=project_id).get_processor_config(
         processor_id=processor_id, device_config_revision=snapshot, config_name=config_name
@@ -1112,9 +1112,9 @@ def test_get_processor_config_from_run(get_quantum_config_async):
         f'configSnapshots/{snapshot_id}/'
         f'configs/{config_name}'
     )
-    quantum_confg = quantum.QuantumProcessorConfig(name=resource_name)
+    quantum_config = quantum.QuantumProcessorConfig(name=resource_name)
 
-    get_quantum_config_async.return_value = quantum_confg
+    get_quantum_config_async.return_value = quantum_config
 
     result = cg.Engine(project_id=project_id).get_processor_config(
         processor_id=processor_id, device_config_revision=run, config_name=config_name
