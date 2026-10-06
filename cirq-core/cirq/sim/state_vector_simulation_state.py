@@ -322,7 +322,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         self,
         *,
         available_buffer: np.ndarray | None = None,
-        prng: np.random.RandomState | None = None,
+        prng: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         qubits: Sequence[cirq.Qid] | None = None,
         initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
         dtype: type[np.complexfloating] | np.dtype[np.complexfloating] = np.complex64,
@@ -340,8 +340,9 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            prng: The pseudo random number generator to use for probabilistic
-                effects.
+            prng: The pseudo random number generator (or seed) to use for
+                probabilistic effects. Anything accepted by
+                `cirq.value.parse_random_generator`.
             initial_state: The initial state for the simulation in the
                 computational basis.
             dtype: The `numpy.dtype` of the inferred state vector. One of

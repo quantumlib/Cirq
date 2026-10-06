@@ -19,9 +19,7 @@ from __future__ import annotations
 import abc
 import copy
 from collections.abc import Iterator, Sequence
-from typing import Any, cast, Generic, Self, TYPE_CHECKING, TypeVar
-
-import numpy as np
+from typing import Any, Generic, Self, TYPE_CHECKING, TypeVar
 
 from cirq import ops, protocols, value
 from cirq.sim.simulation_state_base import SimulationStateBase
@@ -29,6 +27,8 @@ from cirq.sim.simulation_state_base import SimulationStateBase
 TState = TypeVar('TState', bound='cirq.QuantumStateRepresentation')
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 
@@ -39,7 +39,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         self,
         *,
         state: TState,
-        prng: np.random.RandomState | None = None,
+        prng: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         qubits: Sequence[cirq.Qid] | None = None,
         classical_data: cirq.ClassicalDataStore | None = None,
         param_resolver: cirq.ParamResolver | None = None,
@@ -47,8 +47,9 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         """Inits SimulationState.
 
         Args:
-            prng: The pseudo random number generator to use for probabilistic
-                effects.
+            prng: The pseudo random number generator (or seed) to use for
+                probabilistic effects. Anything accepted by
+                `cirq.value.parse_random_generator`.
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
@@ -63,13 +64,11 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         super().__init__(
             qubits=qubits, classical_data=classical_data, param_resolver=param_resolver
         )
-        if prng is None:
-            prng = cast(np.random.RandomState, np.random)
-        self._prng = prng
+        self._prng = value.parse_random_generator(prng)
         self._state = state
 
     @property
-    def prng(self) -> np.random.RandomState:
+    def prng(self) -> np.random.Generator:
         return self._prng
 
     def measure(

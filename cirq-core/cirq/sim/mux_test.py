@@ -51,21 +51,21 @@ def test_sample() -> None:
 def test_sample_seed_unitary() -> None:
     q = cirq.NamedQubit('q')
     circuit = cirq.Circuit(cirq.X(q) ** 0.2, cirq.measure(q))
-    result = cirq.sample(circuit, repetitions=10, seed=1234)
+    result = cirq.sample(circuit, repetitions=10, seed=1236)
     measurements = result.measurements['q']
     assert np.all(
         measurements
-        == [[False], [False], [False], [False], [False], [False], [False], [False], [True], [False]]
+        == [[False], [True], [False], [False], [False], [False], [False], [False], [False], [False]]
     )
 
 
 def test_sample_seed_non_unitary() -> None:
     q = cirq.NamedQubit('q')
     circuit = cirq.Circuit(cirq.depolarize(0.5).on(q), cirq.measure(q))
-    result = cirq.sample(circuit, repetitions=10, seed=1234)
+    result = cirq.sample(circuit, repetitions=10, seed=1236)
     assert np.all(
         result.measurements['q']
-        == [[False], [False], [False], [True], [True], [False], [False], [True], [True], [True]]
+        == [[False], [True], [False], [False], [False], [False], [False], [True], [True], [False]]
     )
 
 
@@ -108,19 +108,19 @@ def test_sample_sweep_seed() -> None:
     results = cirq.sample_sweep(
         circuit, [cirq.ParamResolver({'t': 0.5})] * 3, repetitions=2, seed=1234
     )
-    assert np.all(results[0].measurements['q'] == [[False], [True]])
-    assert np.all(results[1].measurements['q'] == [[False], [True]])
-    assert np.all(results[2].measurements['q'] == [[True], [False]])
+    assert np.all(results[0].measurements['q'] == [[True], [False]])
+    assert np.all(results[1].measurements['q'] == [[True], [False]])
+    assert np.all(results[2].measurements['q'] == [[False], [False]])
 
     results = cirq.sample_sweep(
         circuit,
         [cirq.ParamResolver({'t': 0.5})] * 3,
         repetitions=2,
-        seed=np.random.RandomState(1234),
+        seed=np.random.default_rng(1234),
     )
-    assert np.all(results[0].measurements['q'] == [[False], [True]])
-    assert np.all(results[1].measurements['q'] == [[False], [True]])
-    assert np.all(results[2].measurements['q'] == [[True], [False]])
+    assert np.all(results[0].measurements['q'] == [[True], [False]])
+    assert np.all(results[1].measurements['q'] == [[True], [False]])
+    assert np.all(results[2].measurements['q'] == [[False], [False]])
 
 
 def test_final_state_vector_different_program_types() -> None:
@@ -355,7 +355,7 @@ def test_final_density_matrix_seed_with_collapsing() -> None:
     )
     np.testing.assert_allclose(
         cirq.final_density_matrix(
-            [cirq.X(a) ** 0.5, cirq.measure(a)], seed=124, ignore_measurement_results=False
+            [cirq.X(a) ** 0.5, cirq.measure(a)], seed=126, ignore_measurement_results=False
         ),
         [[1, 0], [0, 0]],
         atol=1e-4,

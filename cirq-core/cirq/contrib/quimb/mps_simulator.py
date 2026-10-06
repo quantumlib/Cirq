@@ -382,7 +382,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         """An alias for the state vector."""
         return self.state_vector()
 
-    def apply_op(self, op: Any, axes: Sequence[int], prng: np.random.RandomState):
+    def apply_op(self, op: Any, axes: Sequence[int], prng: np.random.Generator):
         """Applies a unitary operation, mutating the object to represent the new state.
 
         op:
@@ -484,7 +484,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         }
 
     def _measure(
-        self, axes: Sequence[int], prng: np.random.RandomState, collapse_state_vector=True
+        self, axes: Sequence[int], prng: np.random.Generator, collapse_state_vector=True
     ) -> list[int]:
         results: list[int] = []
 
@@ -533,7 +533,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         Returns:
             The measurements in axis order.
         """
-        return self._measure(axes, value.parse_random_state(seed))
+        return self._measure(axes, value.parse_random_generator(seed))
 
     def sample(
         self, axes: Sequence[int], repetitions: int = 1, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
@@ -549,7 +549,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         """
 
         measurements: list[list[int]] = []
-        prng = value.parse_random_state(seed)
+        prng = value.parse_random_generator(seed)
 
         for _ in range(repetitions):
             measurements.append(self._measure(axes, prng, collapse_state_vector=False))
@@ -565,7 +565,7 @@ class MPSState(SimulationState[_MPSHandler]):
         self,
         *,
         qubits: Sequence[cirq.Qid],
-        prng: np.random.RandomState,
+        prng: cirq.RANDOM_STATE_OR_SEED_LIKE,
         simulation_options: MPSOptions = MPSOptions(),
         grouping: dict[cirq.Qid, int] | None = None,
         initial_state: int = 0,
@@ -577,7 +577,8 @@ class MPSState(SimulationState[_MPSHandler]):
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            prng: A random number generator, used to simulate measurements.
+            prng: A random number generator (or seed), used to simulate measurements.
+                Anything accepted by `cirq.value.parse_random_generator`.
             simulation_options: Numerical options for the simulation.
             grouping: How to group qubits together, if None all are individual.
             initial_state: An integer representing the initial state.

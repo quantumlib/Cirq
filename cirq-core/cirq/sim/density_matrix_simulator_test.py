@@ -1194,14 +1194,14 @@ def test_random_seed() -> None:
     result = sim.run(circuit, repetitions=10)
     assert np.all(
         result.measurements['a']
-        == [[False], [True], [False], [True], [True], [False], [False], [True], [True], [True]]
+        == [[True], [False], [True], [False], [False], [False], [False], [False], [True], [False]]
     )
 
-    sim = cirq.DensityMatrixSimulator(seed=np.random.RandomState(1234))
+    sim = cirq.DensityMatrixSimulator(seed=np.random.default_rng(1234))
     result = sim.run(circuit, repetitions=10)
     assert np.all(
         result.measurements['a']
-        == [[False], [True], [False], [True], [True], [False], [False], [True], [True], [True]]
+        == [[True], [False], [True], [False], [False], [False], [False], [False], [True], [False]]
     )
 
 
@@ -1246,36 +1246,36 @@ def test_random_seed_terminal_measurements_deterministic() -> None:
     assert np.all(
         result1.measurements['a']
         == [
-            [0],
             [1],
             [0],
             [1],
-            [1],
             [0],
             [0],
-            [1],
-            [1],
-            [1],
             [0],
-            [1],
-            [1],
-            [1],
             [0],
-            [1],
-            [1],
-            [0],
-            [1],
-            [1],
             [0],
             [1],
             [0],
             [0],
             [1],
             [1],
+            [1],
+            [1],
+            [1],
+            [1],
+            [0],
             [0],
             [1],
             [0],
             [1],
+            [1],
+            [1],
+            [0],
+            [1],
+            [0],
+            [1],
+            [0],
+            [0],
         ]
     )
     assert np.all(
@@ -1284,8 +1284,6 @@ def test_random_seed_terminal_measurements_deterministic() -> None:
             [1],
             [0],
             [1],
-            [0],
-            [1],
             [1],
             [0],
             [1],
@@ -1293,22 +1291,24 @@ def test_random_seed_terminal_measurements_deterministic() -> None:
             [1],
             [0],
             [0],
-            [0],
-            [1],
-            [1],
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
             [1],
             [0],
             [1],
             [1],
             [1],
+            [0],
+            [0],
+            [0],
+            [0],
+            [0],
             [1],
+            [1],
+            [0],
+            [0],
+            [1],
+            [1],
+            [0],
+            [0],
             [1],
             [1],
         ]
@@ -1325,26 +1325,15 @@ def test_random_seed_non_terminal_measurements_deterministic() -> None:
     assert np.all(
         result.measurements['a']
         == [
-            [0],
-            [0],
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
-            [0],
             [1],
             [1],
             [0],
             [0],
             [1],
             [0],
-            [0],
             [1],
             [1],
             [1],
-            [0],
-            [0],
             [0],
             [0],
             [1],
@@ -1353,28 +1342,27 @@ def test_random_seed_non_terminal_measurements_deterministic() -> None:
             [0],
             [1],
             [1],
+            [0],
+            [0],
+            [0],
             [1],
+            [1],
+            [1],
+            [0],
+            [0],
+            [1],
+            [0],
+            [1],
+            [0],
             [1],
         ]
     )
     assert np.all(
         result.measurements['b']
         == [
-            [1],
-            [1],
             [0],
-            [1],
-            [1],
-            [1],
-            [1],
-            [1],
             [0],
-            [1],
-            [1],
             [0],
-            [1],
-            [1],
-            [1],
             [0],
             [0],
             [1],
@@ -1387,8 +1375,20 @@ def test_random_seed_non_terminal_measurements_deterministic() -> None:
             [1],
             [1],
             [0],
+            [0],
             [1],
             [1],
+            [1],
+            [0],
+            [0],
+            [1],
+            [0],
+            [0],
+            [0],
+            [1],
+            [0],
+            [1],
+            [0],
             [1],
         ]
     )

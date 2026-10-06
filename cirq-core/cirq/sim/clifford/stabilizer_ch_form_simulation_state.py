@@ -22,8 +22,6 @@ from cirq.sim.clifford import stabilizer_state_ch_form
 from cirq.sim.clifford.stabilizer_simulation_state import StabilizerSimulationState
 
 if TYPE_CHECKING:
-    import numpy as np
-
     import cirq
 
 
@@ -35,7 +33,7 @@ class StabilizerChFormSimulationState(
     def __init__(
         self,
         *,
-        prng: np.random.RandomState | None = None,
+        prng: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         qubits: Sequence[cirq.Qid] | None = None,
         initial_state: int | cirq.StabilizerStateChForm = 0,
         classical_data: cirq.ClassicalDataStore | None = None,
@@ -46,8 +44,9 @@ class StabilizerChFormSimulationState(
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            prng: The pseudo random number generator to use for probabilistic
-                effects.
+            prng: The pseudo random number generator (or seed) to use for
+                probabilistic effects. Anything accepted by
+                `cirq.value.parse_random_generator`.
             initial_state: The initial state for the simulation. This can be a
                 full CH form passed by reference which will be modified inplace,
                 or a big-endian int in the computational basis. If the state is
