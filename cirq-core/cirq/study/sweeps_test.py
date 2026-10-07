@@ -191,6 +191,22 @@ def test_zip_addition() -> None:
     assert _values(zip_sweep2, 'b') == [3, 4]
     assert _values(zip_sweep2, 'c') == [5, 6]
 
+    a = cirq.Points('a', [1, 2, 3, 4, 5])
+    b = cirq.Points('b', [1, 2, 3])
+    c = cirq.Points('c', [1, 2, 3, 4, 5])
+    ab = cirq.ZipLongest(a, b)
+    zip_sweep3 = ab + c
+    assert len(zip_sweep3) == 5
+    assert _values(zip_sweep3, 'a') == [1, 2, 3, 4, 5]
+    assert _values(zip_sweep3, 'b') == [1, 2, 3, 3, 3]
+    assert _values(zip_sweep3, 'c') == [1, 2, 3, 4, 5]
+
+    zip_sweep4 = c + ab
+    assert len(zip_sweep4) == 5
+    assert _values(zip_sweep4, 'a') == [1, 2, 3, 4, 5]
+    assert _values(zip_sweep4, 'b') == [1, 2, 3, 3, 3]
+    assert _values(zip_sweep4, 'c') == [1, 2, 3, 4, 5]
+
 
 def test_empty_product() -> None:
     sweep = cirq.Product()
