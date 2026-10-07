@@ -107,11 +107,11 @@ THREE_SQRT_ISWAP_UNITARIES = [
     *perturbations_weyl(np.pi * 3 / 32, np.pi * 3 / 32, np.pi / 32),
     *perturbations_weyl(np.pi * 3 / 32, np.pi * 3 / 32, -np.pi / 32),
     # Some random points
-    random_unitary(97154),
-    random_unitary(45375),
+    random_unitary(97155),
+    random_unitary(45378),
     random_unitary(78061),
-    random_unitary(61474),
-    random_unitary(22897),
+    random_unitary(61481),
+    random_unitary(22902),
 ]
 TWO_SQRT_ISWAP_UNITARIES = [
     # Typical gates and nearby Weyl coordinates to simulate numerical noise
@@ -178,25 +178,26 @@ ZERO_UNITARIES = [
 ]
 
 # Lists of seeds for cirq.testing.random_unitary(4, random_state=seed)
-# corresponding to different regions in the Weyl chamber and possible
-# eigenvalue crossings in the 3-SQRT_ISWAP decomposition
+# (drawn from np.random.default_rng(seed)) corresponding to different regions
+# in the Weyl chamber and possible eigenvalue crossings in the 3-SQRT_ISWAP
+# decomposition
 # Key: 1 (fig. 4):  x < y + abs(z)
 #      2 (fig. 7a): x > pi/8
 #      4 (fig. 7b): z < 0
 #      8 (fig. 7c): y+abs(z) < pi/8 if x <= pi/8 else y+abs(z) < pi/4
 WEYL_REGION_UNITARIES = {
-    1: list(map(random_unitary, [49903, 84819, 84769])),
-    3: list(map(random_unitary, [89483, 79607, 96012])),
-    5: list(map(random_unitary, [31979, 78758, 47661])),
-    7: list(map(random_unitary, [46429, 80635, 49695])),
-    8: list(map(random_unitary, [86872, 91499, 47843])),
-    9: list(map(random_unitary, [48333, 48333, 95468])),
-    10: list(map(random_unitary, [97633, 99062, 44397])),
-    11: list(map(random_unitary, [42319, 41651, 11322])),
-    12: list(map(random_unitary, [48530, 64117, 31880])),
-    13: list(map(random_unitary, [95140, 13781, 60879])),
-    14: list(map(random_unitary, [85837, 14090, 73607])),
-    15: list(map(random_unitary, [67955, 86488, 24698])),
+    1: list(map(random_unitary, [51251, 85790, 86119])),
+    3: list(map(random_unitary, [89582, 79609, 96090])),
+    5: list(map(random_unitary, [33251, 79294, 48593])),
+    7: list(map(random_unitary, [46446, 80654, 49700])),
+    8: list(map(random_unitary, [87153, 91539, 47853])),
+    9: list(map(random_unitary, [48423, 49015, 95694])),
+    10: list(map(random_unitary, [97636, 99070, 44398])),
+    11: list(map(random_unitary, [42322, 41666, 11332])),
+    12: list(map(random_unitary, [48608, 64314, 31932])),
+    13: list(map(random_unitary, [95999, 14642, 62233])),
+    14: list(map(random_unitary, [85838, 14090, 73608])),
+    15: list(map(random_unitary, [67968, 86492, 24707])),
 }
 ALL_REGION_UNITARIES = list(itertools.chain(*WEYL_REGION_UNITARIES.values()))
 

@@ -56,15 +56,15 @@ def test_random_rotation_between_two_qubit_circuit() -> None:
         """\
 0             1
 │             │
-Y^0.5         X^0.5
-│             │
-@─────────────@
-│             │
 PhX(0.25)^0.5 Y^0.5
 │             │
 @─────────────@
 │             │
-Y^0.5         X^0.5
+X^0.5         PhX(0.25)^0.5
+│             │
+@─────────────@
+│             │
+Y^0.5         Y^0.5
 │             │
 @─────────────@
 │             │
@@ -370,7 +370,7 @@ def test_random_rotations_between_grid_interaction_layers(
     qubits: Iterable[cirq.GridQubit],
     depth: int,
     two_qubit_op_factory: Callable[
-        [cirq.GridQubit, cirq.GridQubit, np.random.RandomState], cirq.OP_TREE
+        [cirq.GridQubit, cirq.GridQubit, np.random.Generator], cirq.OP_TREE
     ],
     pattern: Sequence[GridInteractionLayer],
     single_qubit_gates: Sequence[cirq.Gate],

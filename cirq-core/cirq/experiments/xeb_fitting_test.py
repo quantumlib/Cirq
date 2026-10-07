@@ -189,15 +189,15 @@ def test_parameterize_phased_fsim_circuit(gate) -> None:
         """\
 0                                    1
 │                                    │
-Y^0.5                                X^0.5
-│                                    │
-PhFSim(theta, zeta, chi, gamma, phi)─PhFSim(theta, zeta, chi, gamma, phi)
-│                                    │
 PhX(0.25)^0.5                        Y^0.5
 │                                    │
 PhFSim(theta, zeta, chi, gamma, phi)─PhFSim(theta, zeta, chi, gamma, phi)
 │                                    │
-Y^0.5                                X^0.5
+X^0.5                                PhX(0.25)^0.5
+│                                    │
+PhFSim(theta, zeta, chi, gamma, phi)─PhFSim(theta, zeta, chi, gamma, phi)
+│                                    │
+Y^0.5                                Y^0.5
 │                                    │
 PhFSim(theta, zeta, chi, gamma, phi)─PhFSim(theta, zeta, chi, gamma, phi)
 │                                    │
@@ -218,7 +218,7 @@ def test_get_initial_simplex() -> None:
 
 def test_characterize_phased_fsim_parameters_with_xeb(pool) -> None:
     q0, q1 = cirq.LineQubit.range(2)
-    rs = np.random.RandomState(52)
+    rs = np.random.default_rng(52)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
             q0, q1, depth=20, two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b), seed=rs
@@ -270,7 +270,7 @@ def test_parallel_full_workflow(request, use_pool) -> None:
     cycle_depths = [2, 3, 4]
     graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(2, 2))
     combs = rqcg.get_random_combinations_for_device(
-        n_library_circuits=len(circuits), n_combinations=2, device_graph=graph, random_state=10
+        n_library_circuits=len(circuits), n_combinations=2, device_graph=graph, random_state=20
     )
 
     sampled_df = sample_2q_xeb_circuits(

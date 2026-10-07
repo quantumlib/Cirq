@@ -447,7 +447,7 @@ def parallel_xeb_workflow(
     Raises:
         ValueError: If qubits are not specified and the sampler has no device.
     """
-    rs = value.parse_random_state(random_state)
+    rs = value.parse_random_generator(random_state)
 
     qubits, pairs = qubits_and_pairs(sampler, qubits, pairs)
     graph = nx.Graph(pairs)

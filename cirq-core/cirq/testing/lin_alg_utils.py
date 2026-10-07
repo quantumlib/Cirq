@@ -33,15 +33,15 @@ def random_superposition(
 
     Args:
         dim: The dimension of the vector.
-        random_state: A seed (int) or `np.random.RandomState` class to use when
-            generating random values. If not set, defaults to using the module
-            methods in `np.random`.
+        random_state: A seed (int) or `np.random.Generator` to use when
+            generating random values. If not set, a new unseeded generator is
+            used.
 
     Returns:
         The sampled unit-length vector.
     """
-    random_state = value.parse_random_state(random_state)
-    state_vector = random_state.randn(2 * dim).view(np.complex128)
+    random_state = value.parse_random_generator(random_state)
+    state_vector = random_state.standard_normal(2 * dim).view(np.complex128)
     state_vector /= np.linalg.norm(state_vector)
     return state_vector
 
@@ -62,9 +62,9 @@ def random_density_matrix(
         'Random Bures mixed states and the distribution of their purity'
         https://arxiv.org/abs/0909.5094
     """
-    random_state = value.parse_random_state(random_state)
+    random_state = value.parse_random_generator(random_state)
 
-    mat = random_state.randn(dim, dim) + 1j * random_state.randn(dim, dim)
+    mat = random_state.standard_normal((dim, dim)) + 1j * random_state.standard_normal((dim, dim))
     mat = mat @ mat.T.conj()
     return mat / np.trace(mat)
 
@@ -83,9 +83,9 @@ def random_unitary(dim: int, *, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = N
         'How to generate random matrices from the classical compact groups'
         http://arxiv.org/abs/math-ph/0609050
     """
-    random_state = value.parse_random_state(random_state)
+    random_state = value.parse_random_generator(random_state)
 
-    z = random_state.randn(dim, dim) + 1j * random_state.randn(dim, dim)
+    z = random_state.standard_normal((dim, dim)) + 1j * random_state.standard_normal((dim, dim))
     q, r = np.linalg.qr(z)
     d = np.diag(r)
     return q * (d / abs(d))
@@ -98,9 +98,9 @@ def random_orthogonal(
 
     Args:
         dim: The width and height of the matrix.
-        random_state: A seed (int) or `np.random.RandomState` class to use when
-            generating random values. If not set, defaults to using the module
-            methods in `np.random`.
+        random_state: A seed (int) or `np.random.Generator` to use when
+            generating random values. If not set, a new unseeded generator is
+            used.
 
     Returns:
         The sampled orthogonal matrix.
@@ -109,24 +109,24 @@ def random_orthogonal(
         'How to generate random matrices from the classical compact groups'
         http://arxiv.org/abs/math-ph/0609050
     """
-    random_state = value.parse_random_state(random_state)
+    random_state = value.parse_random_generator(random_state)
 
-    m = random_state.randn(dim, dim)
+    m = random_state.standard_normal((dim, dim))
     q, r = np.linalg.qr(m)
     d = np.diag(r)
     return q * (d / abs(d))
 
 
 def random_special_unitary(
-    dim: int, *, random_state: np.random.RandomState | None = None
+    dim: int, *, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None
 ) -> np.ndarray:
     """Returns a random special unitary distributed with Haar measure.
 
     Args:
         dim: The width and height of the matrix.
-        random_state: A seed (int) or `np.random.RandomState` class to use when
-            generating random values. If not set, defaults to using the module
-            methods in `np.random`.
+        random_state: A seed (int) or `np.random.Generator` to use when
+            generating random values. If not set, a new unseeded generator is
+            used.
 
     Returns:
         The sampled special unitary.
@@ -144,9 +144,9 @@ def random_special_orthogonal(
 
     Args:
         dim: The width and height of the matrix.
-        random_state: A seed (int) or `np.random.RandomState` class to use when
-            generating random values. If not set, defaults to using the module
-            methods in `np.random`.
+        random_state: A seed (int) or `np.random.Generator` to use when
+            generating random values. If not set, a new unseeded generator is
+            used.
 
     Returns:
         The sampled special orthogonal matrix.
