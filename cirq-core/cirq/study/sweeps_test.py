@@ -200,6 +200,7 @@ def test_zip_addition() -> None:
     assert _values(zip_sweep3, 'a') == [1, 2, 3, 4, 5]
     assert _values(zip_sweep3, 'b') == [1, 2, 3, 3, 3]
     assert _values(zip_sweep3, 'c') == [1, 2, 3, 4, 5]
+    assert zip_sweep3 == cirq.Zip(ab, c)
 
     zip_sweep4 = c + ab
     assert len(zip_sweep4) == 5
