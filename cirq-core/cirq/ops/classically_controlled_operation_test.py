@@ -169,6 +169,22 @@ def test_diagram_subcircuit() -> None:
 """,
         use_unicode_characters=True,
     )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+      ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+      ╎0: ───M───────╎
+      ╎      ║       ╎
+0: ───╎1: ───────X───╎───
+      ╎      ║   ║   ╎
+      ╎a: ═══●═══△═══╎
+      └╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘
+      │
+1: ───#2─────────────────
+""",
+        use_unicode_characters=True,
+        style='boxy',
+    )
 
 
 def test_diagram_subcircuit_layered() -> None:
@@ -195,6 +211,24 @@ def test_diagram_subcircuit_layered() -> None:
 a: ═══@═══╩════════════════════^═══
 """,
         use_unicode_characters=True,
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+          ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+          ╎0: ───M───────╎
+          ╎      ║       ╎
+0: ───M───╎1: ───────X───╎───────
+      ║   ╎      ║   ║   ╎
+      ║   ╎a: ═══●═══△═══╎
+      ║   └╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘
+      ║   ║
+1: ───────#2─────────────────X───
+      ║   ║                  ║
+a: ═══●═══◬══════════════════△═══
+""",
+        use_unicode_characters=True,
+        style='boxy',
     )
 
 
@@ -620,6 +654,14 @@ def test_str() -> None:
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_classical_controls('a')
     assert str(op) == 'X(q(0)).with_classical_controls(a)'
+    assert op._diagram_str(style='boxy') == 'X(q(0)).with_classical_controls(a)'
+
+    cop = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q0))).with_classical_controls('a')
+    assert str(cop) == '[ 0: ───X─── ].with_classical_controls(a)'
+    assert cop._diagram_str(style='simple') == '[ 0: ───X─── ].with_classical_controls(a)'
+    assert cop._diagram_str(style='boxy') == (
+        '┌╌╌╌╌╌╌╌╌╌╌┐\n╎0: ───X───╎\n└╌╌╌╌╌╌╌╌╌╌┘.with_classical_controls(a)'
+    )
 
 
 def test_scope_local() -> None:
@@ -646,6 +688,20 @@ def test_scope_local() -> None:
       [       [ a: ═══@═══^═══ ](loops=2, use_repetition_ids=True)    ](loops=2, use_repetition_ids=True)
 """,  # noqa: E501
         use_unicode_characters=True,
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(outer_subcircuit),
+        """
+      ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+      ╎      ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐                                     ╎
+      ╎      ╎0: ───M───X───╎                                     ╎
+0: ───╎0: ───╎      ║   ║   ╎─────────────────────────────────────╎─────────────────────────────────────
+      ╎      ╎a: ═══●═══△═══╎                                     ╎
+      ╎      └╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘(loops=2, use_repetition_ids=True)   ╎
+      └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘(loops=2, use_repetition_ids=True)
+""",  # noqa: E501
+        use_unicode_characters=True,
+        style='boxy',
     )
     cirq.testing.assert_has_diagram(
         circuit,
@@ -691,6 +747,20 @@ def test_scope_flatten_both() -> None:
         use_unicode_characters=True,
     )
     cirq.testing.assert_has_diagram(
+        cirq.Circuit(outer_subcircuit),
+        """
+      ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+      ╎      ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐            ╎
+      ╎      ╎0: ───M───X───╎            ╎
+0: ───╎0: ───╎      ║   ║   ╎────────────╎────────────
+      ╎      ╎a: ═══●═══△═══╎            ╎
+      ╎      └╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘(loops=2)   ╎
+      └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘(loops=2)
+""",
+        use_unicode_characters=True,
+        style='boxy',
+    )
+    cirq.testing.assert_has_diagram(
         circuit,
         """
 0: ───M───X───M───X───M───X───M───X───
@@ -723,6 +793,20 @@ def test_scope_flatten_inner() -> None:
       [       [ a: ═══@═══^═══ ](loops=2)    ](loops=2, use_repetition_ids=True)
 """,
         use_unicode_characters=True,
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(outer_subcircuit),
+        """
+      ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+      ╎      ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐            ╎
+      ╎      ╎0: ───M───X───╎            ╎
+0: ───╎0: ───╎      ║   ║   ╎────────────╎─────────────────────────────────────
+      ╎      ╎a: ═══●═══△═══╎            ╎
+      ╎      └╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘(loops=2)   ╎
+      └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘(loops=2, use_repetition_ids=True)
+""",
+        use_unicode_characters=True,
+        style='boxy',
     )
     cirq.testing.assert_has_diagram(
         circuit,
@@ -759,6 +843,20 @@ def test_scope_flatten_outer() -> None:
       [       [ a: ═══@═══^═══ ](loops=2, use_repetition_ids=True)    ](loops=2)
 """,
         use_unicode_characters=True,
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(outer_subcircuit),
+        """
+      ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+      ╎      ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐                                     ╎
+      ╎      ╎0: ───M───X───╎                                     ╎
+0: ───╎0: ───╎      ║   ║   ╎─────────────────────────────────────╎────────────
+      ╎      ╎a: ═══●═══△═══╎                                     ╎
+      ╎      └╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘(loops=2, use_repetition_ids=True)   ╎
+      └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘(loops=2)
+""",
+        use_unicode_characters=True,
+        style='boxy',
     )
     cirq.testing.assert_has_diagram(
         circuit,
@@ -800,6 +898,22 @@ def test_scope_extern() -> None:
       [ b: ═══@═══╩═══════════════════════════════════════════════════════════ ](loops=2, use_repetition_ids=True)
 """,  # noqa: E501
         use_unicode_characters=True,
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(outer_subcircuit),
+        """
+      ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+      ╎          ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐                                     ╎
+      ╎          ╎0: ───M('a')───X───╎                                     ╎
+      ╎0: ───M───╎               ║   ╎─────────────────────────────────────╎
+0: ───╎      ║   ╎b: ════════════△═══╎                                     ╎─────────────────────────────────────
+      ╎      ║   └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘(loops=2, use_repetition_ids=True)   ╎
+      ╎      ║   ║                                                         ╎
+      ╎b: ═══●═══△═════════════════════════════════════════════════════════╎
+      └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘(loops=2, use_repetition_ids=True)
+""",  # noqa: E501
+        use_unicode_characters=True,
+        style='boxy',
     )
     cirq.testing.assert_has_diagram(
         circuit,
@@ -881,6 +995,24 @@ b: ═══╩═════════════════════�
         use_unicode_characters=True,
     )
     cirq.testing.assert_has_diagram(
+        cirq.Circuit(outer_subcircuit),
+        """
+      ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+      ╎               ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐            ╎
+      ╎               ╎0: ───M('a')───X───╎            ╎
+      ╎0: ───M('c')───╎               ║   ╎────────────╎
+0: ───╎               ╎b: ════════════△═══╎            ╎────────────
+      ╎               └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘(loops=2)   ╎
+      ╎               ║                                ╎
+      ╎b: ════════════△════════════════════════════════╎
+      └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘(loops=2)
+      ║
+b: ═══△═════════════════════════════════════════════════════════════
+""",
+        use_unicode_characters=True,
+        style='boxy',
+    )
+    cirq.testing.assert_has_diagram(
         circuit,
         """
 0: ───M('c')───M('a')───X───M('a')───X───M('c')───M('a')───X───M('a')───X───
@@ -921,6 +1053,24 @@ def test_scope_extern_mismatch() -> None:
 b: ═══╩═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 """,  # noqa: E501
         use_unicode_characters=True,
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(outer_subcircuit),
+        """
+      ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+      ╎                 ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐                                     ╎
+      ╎                 ╎0: ───M('a')───X───╎                                     ╎
+      ╎0: ───M('0:b')───╎               ║   ╎─────────────────────────────────────╎
+0: ───╎                 ╎b: ════════════△═══╎                                     ╎─────────────────────────────────────
+      ╎                 └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘(loops=2, use_repetition_ids=True)   ╎
+      ╎                 ║                                                         ╎
+      ╎b: ══════════════△═════════════════════════════════════════════════════════╎
+      └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘(loops=2, use_repetition_ids=True)
+      ║
+b: ═══△═════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+""",  # noqa: E501
+        use_unicode_characters=True,
+        style='boxy',
     )
     cirq.testing.assert_has_diagram(
         circuit,
@@ -981,6 +1131,22 @@ m: ═══╩═════════════════════�
         use_unicode_characters=True,
     )
     cirq.testing.assert_has_diagram(
+        cirq.Circuit(outer_subcircuit),
+        """
+      ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+      ╎      ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐                              ╎
+      ╎0: ───╎0: ───X───Y───╎──────────────────────────────╎
+0: ───╎      └╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘.with_classical_controls(m)   ╎───
+      ╎      ║                                             ╎
+      ╎m: ═══△═════════════════════════════════════════════╎
+      └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘
+      ║
+m: ═══△════════════════════════════════════════════════════════
+""",
+        use_unicode_characters=True,
+        style='boxy',
+    )
+    cirq.testing.assert_has_diagram(
         circuit,
         """
 0: ───[ 0: ───X───Y─── ].with_classical_controls(m)───
@@ -988,6 +1154,18 @@ m: ═══╩═════════════════════�
 m: ═══╩═══════════════════════════════════════════════
 """,
         use_unicode_characters=True,
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+      ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+0: ───╎0: ───X───Y───╎──────────────────────────────
+      └╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘.with_classical_controls(m)
+      ║
+m: ═══△═════════════════════════════════════════════
+""",
+        use_unicode_characters=True,
+        style='boxy',
     )
     cirq.testing.assert_has_diagram(
         cirq.Circuit(cirq.decompose(outer_subcircuit)),
@@ -1109,6 +1287,36 @@ c: ═══╬═════════════════════�
 d: ═══╩═════════════════════════════════════════════════════════════════════════════════════════════
 """,
         use_unicode_characters=True,
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(outer_subcircuit),
+        """
+      ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+      ╎                     ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐            ╎
+      ╎                     ╎0: ───M───X(conditions=[c | d, a & b])───╎            ╎
+      ╎                     ╎      ║   ║                              ╎            ╎
+      ╎                     ╎a: ═══●═══△══════════════════════════════╎            ╎
+      ╎                     ╎          ║                              ╎            ╎
+      ╎0: ───M───M('0:c')───╎b: ═══════△══════════════════════════════╎────────────╎
+      ╎      ║              ╎          ║                              ╎            ╎
+      ╎      ║              ╎c: ═══════△══════════════════════════════╎            ╎
+0: ───╎      ║              ╎          ║                              ╎            ╎────────────
+      ╎      ║              ╎d: ═══════△══════════════════════════════╎            ╎
+      ╎      ║              └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘(loops=2)   ╎
+      ╎      ║              ║                                                      ╎
+      ╎b: ═══●══════════════△══════════════════════════════════════════════════════╎
+      ╎                     ║                                                      ╎
+      ╎c: ══════════════════△══════════════════════════════════════════════════════╎
+      ╎                     ║                                                      ╎
+      ╎d: ══════════════════△══════════════════════════════════════════════════════╎
+      └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘(loops=2)
+      ║
+c: ═══△═════════════════════════════════════════════════════════════════════════════════════════
+      ║
+d: ═══△═════════════════════════════════════════════════════════════════════════════════════════
+""",
+        use_unicode_characters=True,
+        style='boxy',
     )
 
     cirq.testing.assert_has_diagram(
@@ -1313,3 +1521,113 @@ a: ═══@═══^═══════════════════
     result = sim.sample(circuit)
     assert result['a'][0] == 0b111
     assert result['b'][0] == 0
+
+
+def test_diagram_boxy_classical_wire_symbols() -> None:
+    q = cirq.LineQubit(0)
+    sub = cirq.FrozenCircuit(
+        cirq.measure(q, key='w'),
+        cirq.X(q).with_classical_controls('r'),
+        cirq.measure(q, key='rw'),
+        cirq.Z(q).with_classical_controls('rw'),
+    )
+    circuit = cirq.Circuit(
+        cirq.measure(q, key='r'),
+        cirq.CircuitOperation(sub),
+        cirq.Y(q).with_classical_controls('rw', 'w'),
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+           ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+           ╎0: ────M('w')───X───M───Z───╎
+           ╎                ║   ║   ║   ╎
+0: ────M───╎r: ═════════════△═══════════╎───Y───
+       ║   ╎                    ║   ║   ╎   ║
+       ║   ╎rw: ════════════════●═══△═══╎   ║
+       ║   └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘   ║
+       ║   ║                                ║
+r: ════●═══△════════════════════════════════════
+           ║                                ║
+rw: ═══════◬════════════════════════════════△═══
+           ║                                ║
+w: ════════●════════════════════════════════△═══
+""",
+        style='boxy',
+    )
+
+    repeat_circuit = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.measure(q, key='c')),
+            repeat_until=cirq.KeyCondition(cirq.MeasurementKey('c')),
+            use_repetition_ids=False,
+        ),
+        cirq.X(q).with_classical_controls('c'),
+    )
+    cirq.testing.assert_has_diagram(
+        repeat_circuit,
+        """
+      ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+0: ───╎0: ───M('c')───╎────────────X───
+      └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘(until=c)   ║
+      ║                            ║
+c: ═══◬════════════════════════════△═══
+""",
+        style='boxy',
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0                              r rw w
+│                              ║ ║  ║
+M══════════════════════════════● ║  ║
+│                              ║ ║  ║
+┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐ ║ ║  ║
+╎0: ────M('w')───X───M───Z───╎ ║ ║  ║
+╎                ║   ║   ║   ╎ ║ ║  ║
+╎r: ═════════════△═══════════╎═△═◬══●
+╎                    ║   ║   ╎ ║ ║  ║
+╎rw: ════════════════●═══△═══╎ ║ ║  ║
+└╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘ ║ ║  ║
+│                              ║ ║  ║
+Y══════════════════════════════║═△══△
+│                              ║ ║  ║
+""",
+        style='boxy',
+        transpose=True,
+    )
+
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    crossing_circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+        cirq.CNOT(q0, q2).with_classical_controls('a'),
+        cirq.X(q2).controlled_by(q0, q1, control_values=cirq.SumOfProducts([[0, 1], [1, 0]])),
+    )
+    cirq.testing.assert_has_diagram(
+        crossing_circuit,
+        """
+0: ───M───●───●(01)───
+      ║   ║   │
+1: ───────────●(10)───
+      ║   ║   │
+2: ───────X───X───────
+      ║   ║
+a: ═══●═══△═══════════
+""",
+        style='boxy',
+    )
+    cirq.testing.assert_has_diagram(
+        crossing_circuit,
+        """
+0     1     2 a
+│     │     │ ║
+M═════│═════│═●
+│     │     │ ║
+●═════│═════X═△
+│     │     │ ║
+●(01)─●(10)─X ║
+│     │     │ ║
+""",
+        style='boxy',
+        transpose=True,
+    )
