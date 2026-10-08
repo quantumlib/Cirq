@@ -44,6 +44,7 @@ required_shell_scripts=(
     check/all
     check/doctest
     check/format-incremental
+    check/mypy
     check/nbformat
     check/pylint
     check/pytest
