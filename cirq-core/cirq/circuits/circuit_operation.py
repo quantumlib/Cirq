@@ -894,6 +894,4 @@ class CircuitOperation(ops.Operation):
         # TODO: Implement transpilation for additional controls.
         if self.repetitions != 1 or self.repeat_until is not None:
             return None
-        return ''.join(
-            protocols.qasm(op, args=args, qubits=qubits) for op in self._decompose_()
-        )
+        return ''.join(protocols.qasm(op, args=args, qubits=qubits) for op in self._decompose_())
