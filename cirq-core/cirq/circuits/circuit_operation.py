@@ -887,3 +887,13 @@ class CircuitOperation(ops.Operation):
                     f'\nMap after changes: {resolved.qubit_map}'
                 )
         return resolved
+
+    def _qasm_(
+        self, *, args: cirq.QasmArgs | None = None, qubits: Sequence[cirq.Qid] | None = None
+    ) -> str | None:
+        # TODO: Implement transpilation for additional controls.
+        if self.repetitions != 1 or self.repeat_until is not None:
+            return None
+        return ''.join(
+            protocols.qasm(op, args=args, qubits=qubits) for op in self._decompose_()
+        )
