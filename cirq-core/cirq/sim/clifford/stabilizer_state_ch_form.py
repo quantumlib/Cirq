@@ -30,7 +30,7 @@ from cirq.value import big_endian_int_to_digits, random_state
 _NUMBA_CH_FORM_MIN_QUBITS = 8
 
 
-def _ch_to_state_vector_kernel(
+def _ch_to_state_vector_kernel(  # pragma: no cover
     n: int,
     F: np.ndarray,
     M: np.ndarray,

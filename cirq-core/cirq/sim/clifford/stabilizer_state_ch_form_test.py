@@ -121,7 +121,7 @@ def test_to_state_vector_opt_out_env_var(monkeypatch: pytest.MonkeyPatch) -> Non
     called = False
     original_getter = ch_form_module._get_ch_to_state_vector_numba
 
-    def spy_getter():
+    def spy_getter():  # pragma: no cover
         nonlocal called
         called = True
         return original_getter()
