@@ -114,6 +114,9 @@ def test_tagged_circuits() -> None:
     assert tagged_circuit.with_tags("c") == cirq.FrozenCircuit(ops, tags=[*tags, "c"])
     assert tagged_circuit.untagged == frozen_circuit
     assert frozen_circuit.untagged is frozen_circuit
+    assert frozen_circuit.with_tags(*tags).untagged is frozen_circuit
+    assert frozen_circuit.with_tags("a").untagged is frozen_circuit.with_tags("b").untagged
+    assert frozen_circuit.with_tags("a").with_tags("b").untagged is frozen_circuit
     assert tagged_circuit.unfreeze(copy=True).tags == tags
     assert tagged_circuit.unfreeze(copy=False).tags == tags
     # Test parameterized protocols
