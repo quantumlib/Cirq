@@ -239,7 +239,7 @@ class GridQid(_BaseGridQid):
         return inst
 
     def __getnewargs_ex__(self):
-        """Returns a tuple of (args, kwargs) to pass to __new__ when unpickling."""
+        """Returns a tuple of (args, kwargs) to pass to `__new__` when unpickling."""
         return (self._row, self._col), {"dimension": self._dimension}
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs_ex__
@@ -397,7 +397,7 @@ class GridQubit(_BaseGridQid):
         return inst
 
     def __getnewargs__(self):
-        """Returns a tuple of args to pass to __new__ when unpickling."""
+        """Returns a tuple of args to pass to `__new__` when unpickling."""
         return (self._row, self._col)
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs__

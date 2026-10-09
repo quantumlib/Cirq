@@ -500,10 +500,10 @@ class RouteCQC:
         """Optionally returns the swap with minimum cost from a list of n-tuple candidate swaps.
 
         Computes a cost (as defined by the overridable function `_cost`) for each candidate swap
-        in the current timestep. If there does not exist a unique list of swaps with minial cost,
+        in the current timestep. If there does not exist a unique list of swaps with minimal cost,
         proceeds to the rank the subset of minimal swaps from the current timestep in the next
-        timestep. Iterate this this looking ahead process up to the next `lookahead_radius`
-        timesteps. If there still doesn't exist a unique swap with minial cost then returns None.
+        timestep. Iterate this looking ahead process up to the next `lookahead_radius`
+        timesteps. If there still doesn't exist a unique swap with minimal cost then returns None.
         """
         for s in range(timestep, min(lookahead_radius + timestep, len(two_qubit_ops_ints))):
             if len(sigma) <= 1:

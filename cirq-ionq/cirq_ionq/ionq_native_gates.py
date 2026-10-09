@@ -285,10 +285,10 @@ class ZZGate(cirq.Gate):
 
     $$
     \begin{bmatrix}
-        e{-i\pi\theta} & 0 & 0 & 0 \\
-        0 & e{i\pi\theta} & 0 & 0 \\
-        0 & 0 & e{i\pi\theta} & 0 \\
-        0 & 0 & 0 & e{-i\pi\theta}
+        e^{-i\pi\theta} & 0 & 0 & 0 \\
+        0 & e^{i\pi\theta} & 0 & 0 \\
+        0 & 0 & e^{i\pi\theta} & 0 \\
+        0 & 0 & 0 & e^{-i\pi\theta}
     \end{bmatrix}
     $$
 

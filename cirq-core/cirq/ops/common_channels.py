@@ -489,8 +489,8 @@ def generalized_amplitude_damp(p: float, gamma: float) -> GeneralizedAmplitudeDa
     This channel evolves a density matrix via:
 
     $$
-    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-          + M_2 \rho M_2^\dagger + M_3 \rho M_3^\dagger
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger +
+          M_2 \rho M_2^\dagger + M_3 \rho M_3^\dagger
     $$
 
     With:
