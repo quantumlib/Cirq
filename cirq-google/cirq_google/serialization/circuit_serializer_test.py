@@ -632,7 +632,7 @@ def test_serialize_deserialize_circuit_with_constants_table():
     assert serializer.deserialize(proto) == circuit
 
 
-def test_deserialize_circuit_with_mixed_moments_and_indicies_not_allowed():
+def test_deserialize_circuit_with_mixed_moments_and_indices_not_allowed():
     serializer = cg.CircuitSerializer()
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
@@ -1077,6 +1077,8 @@ def test_circuit_with_analog_detune_coupler_only():
         cg.TwoPulseFSimTag(),
         cg.PhysicalZTag(),
         cg.InternalTag(name='abc', package='xyz'),
+        cg.NoSyncTag(),
+        cg.NoSyncTag(reverse=0, forward=1),
     ],
 )
 def test_circuit_with_tag(tag):

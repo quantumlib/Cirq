@@ -66,7 +66,7 @@ class Simulator(
     state vector of the simulation at the end of the simulation of the circuit.
     These methods take in two parameters that the run methods do not: a
     qubit order and an initial state. The qubit order is necessary because an
-    ordering must be chosen for the kronecker product (see
+    ordering must be chosen for the Kronecker product (see
     `DensityMatrixTrialResult` for details of this ordering). The initial
     state can be either the full state vector, or an integer which represents
     the initial state of being in a computational basis state for the binary

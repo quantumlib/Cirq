@@ -239,7 +239,7 @@ def decompose_multi_controlled_rotation(
             https://arxiv.org/pdf/quant-ph/9503016.pdf
 
     Args:
-        matrix - 2x2 numpy unitary matrix (of real or complex dtype).
+        matrix - 2x2 NumPy unitary matrix (of real or complex dtype).
         controls - control qubits.
         targets - target qubits.
 

@@ -39,7 +39,7 @@ def test_qubit_to_proto_id():
     assert v2.qubit_to_proto_id(named_coupler) == 'c_named1_named2'
 
 
-def test_to_proto_id_unsupport_qid():
+def test_to_proto_id_unsupported_qid():
     class ValidQubit(cirq.Qid):
         def __init__(self, name):
             self._name = name

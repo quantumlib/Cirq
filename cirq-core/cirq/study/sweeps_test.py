@@ -191,6 +191,23 @@ def test_zip_addition() -> None:
     assert _values(zip_sweep2, 'b') == [3, 4]
     assert _values(zip_sweep2, 'c') == [5, 6]
 
+    a = cirq.Points('a', [1, 2, 3, 4, 5])
+    b = cirq.Points('b', [1, 2, 3])
+    c = cirq.Points('c', [1, 2, 3, 4, 5])
+    ab = cirq.ZipLongest(a, b)
+    zip_sweep3 = ab + c
+    assert len(zip_sweep3) == 5
+    assert _values(zip_sweep3, 'a') == [1, 2, 3, 4, 5]
+    assert _values(zip_sweep3, 'b') == [1, 2, 3, 3, 3]
+    assert _values(zip_sweep3, 'c') == [1, 2, 3, 4, 5]
+    assert zip_sweep3 == cirq.Zip(ab, c)
+
+    zip_sweep4 = c + ab
+    assert len(zip_sweep4) == 5
+    assert _values(zip_sweep4, 'a') == [1, 2, 3, 4, 5]
+    assert _values(zip_sweep4, 'b') == [1, 2, 3, 3, 3]
+    assert _values(zip_sweep4, 'c') == [1, 2, 3, 4, 5]
+
 
 def test_empty_product() -> None:
     sweep = cirq.Product()
@@ -324,17 +341,10 @@ def test_equality() -> None:
 
 
 def test_repr() -> None:
+    cirq.testing.assert_equivalent_repr(cirq.study.sweeps.Product(cirq.UnitSweep))
+    cirq.testing.assert_equivalent_repr(cirq.study.sweeps.Zip(cirq.UnitSweep))
     cirq.testing.assert_equivalent_repr(
-        cirq.study.sweeps.Product(cirq.UnitSweep),
-        setup_code='import cirq\nfrom collections import OrderedDict',
-    )
-    cirq.testing.assert_equivalent_repr(
-        cirq.study.sweeps.Zip(cirq.UnitSweep),
-        setup_code='import cirq\nfrom collections import OrderedDict',
-    )
-    cirq.testing.assert_equivalent_repr(
-        cirq.ListSweep(cirq.Linspace('a', start=0, stop=3, length=4)),
-        setup_code='import cirq\nfrom collections import OrderedDict',
+        cirq.ListSweep(cirq.Linspace('a', start=0, stop=3, length=4))
     )
     cirq.testing.assert_equivalent_repr(cirq.Points('zero&pi', [0, 3.14159]))
     cirq.testing.assert_equivalent_repr(cirq.Linspace('I/10', 0, 1, 10))

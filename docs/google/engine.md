@@ -21,7 +21,7 @@ gcloud client:
 
 `gcloud auth application-default login`
 
-From a colab, you can execute:
+From a Colab, you can execute:
 
 <!---test_substitution
 from google\.colab import auth

@@ -161,7 +161,7 @@ def test_curve_fit_plot_works() -> None:
 
 
 @pytest.mark.parametrize('t1', [200.0, 500.0, 700.0])
-def test_noise_model_continous(t1) -> None:
+def test_noise_model_continuous(t1) -> None:
     class GradualDecay(cirq.NoiseModel):
         def __init__(self, t1: float):
             self.t1 = t1

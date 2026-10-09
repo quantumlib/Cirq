@@ -79,7 +79,7 @@ branch will always use the next unreleased minor version number with the suffix
 of `.dev0`. When a release is performed, the `.dev0` will be removed and tagged
 in a release branch with a version tag (vX.X.X). Then, `main` will be updated
 to the next minor version. The version number of `main` can always be found in
-the [version file](./cirq-core/cirq/_version.py).
+the [version file](../../cirq-core/cirq/_version.py).
 
 ### Release Schedule
 
@@ -289,8 +289,8 @@ Be sure to include the `.whl` file as an attachment.
 
 If there are unreleased notebooks that are under testing (meaning that
 `NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES` is not empty in the file
-[`dev_tools/notebooks/isolated_notebook_test.py`](dev_tools/notebooks/isolated_notebook_test.py)),
-then follow the steps in our [notebooks guide](docs/dev/notebooks.md).
+[`dev_tools/notebooks/isolated_notebook_test.py`](../../dev_tools/notebooks/isolated_notebook_test.py)),
+then follow the steps in our [notebooks guide](notebooks.md).
 
 ### Verify the Zenodo archive
 

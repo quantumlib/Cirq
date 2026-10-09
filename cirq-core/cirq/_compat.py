@@ -44,7 +44,7 @@ __cirq_debug__ = contextvars.ContextVar('__cirq_debug__', default=__debug__)
 document(
     __cirq_debug__,
     "A cirq specific flag which can be used to conditionally turn off all validations across Cirq "
-    "to boost performance in production mode. Defaults to python's built-in constant __debug__. "
+    "to boost performance in production mode. Defaults to python's built-in constant `__debug__`. "
     "The flag is implemented as a `ContextVar` and is thread safe.",
 )
 
@@ -132,7 +132,7 @@ def _method_cache_name(func: Callable) -> str:
 
 
 def proper_repr(value: Any) -> str:
-    """Overrides sympy and numpy returning repr strings that don't parse."""
+    """Overrides SymPy and NumPy returning repr strings that don't parse."""
 
     if isinstance(value, sympy.Basic):
         # HACK: work around https://github.com/sympy/sympy/issues/16074
@@ -212,10 +212,10 @@ def dataclass_repr(value: Any, namespace: str = 'cirq') -> str:
         value: The dataclass. We respect the `repr` attribute of dataclass fields if you deign
             to omit a field from the repr.
         namespace: The Python namespace or module name to prepend with a "." to the class name.
-            This is the key difference between the default dataclass-generated __repr__.
+            This is the key difference between the default dataclass-generated `__repr__`.
 
     Returns:
-        A representation suitable for the __repr__ method of a dataclass.
+        A representation suitable for the `__repr__` method of a dataclass.
     """
     field_strs = []
     field: dataclasses.Field
@@ -231,11 +231,11 @@ def dataclass_repr(value: Any, namespace: str = 'cirq') -> str:
 
 
 def proper_eq(a: Any, b: Any) -> bool:
-    """Compares objects for equality, working around __eq__ not always working.
+    """Compares objects for equality, working around `__eq__` not always working.
 
-    For example, in numpy a == b broadcasts and returns an array instead of
+    For example, in NumPy a == b broadcasts and returns an array instead of
     doing what np.array_equal(a, b) does. This method uses np.array_equal(a, b)
-    when dealing with numpy arrays.
+    when dealing with NumPy arrays.
     """
     if type(a) == type(b):
         if isinstance(a, np.ndarray):
@@ -633,7 +633,7 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
         deadline: str,
         broken_module_exception: BaseException | None,
     ):
-        """An aliasing module finder that uses existing module finders to find a python
+        """An aliasing module finder that uses existing module finders to find a Python
         module spec and intercept the execution of matching modules.
         """
         self.new_module_name = new_module_name

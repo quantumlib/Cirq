@@ -26,7 +26,7 @@ TExternalQubit = TypeVar('TExternalQubit')
 
 
 class QubitOrder:
-    """Defines the kronecker product order of qubits."""
+    """Defines the Kronecker product order of qubits."""
 
     def __init__(self, explicit_func: Callable[[Iterable[cirq.Qid]], tuple[cirq.Qid, ...]]) -> None:
         self._explicit_func = explicit_func

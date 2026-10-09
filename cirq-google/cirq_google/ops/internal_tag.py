@@ -34,7 +34,7 @@ class InternalTag:
 
         Arguments:
             name: Tag class name.
-            package: The python module of the tag.
+            package: The Python module of the tag.
             **kwargs: Arbitrary keyword parameters that should be passed to the tag.
         """
         self.name = name

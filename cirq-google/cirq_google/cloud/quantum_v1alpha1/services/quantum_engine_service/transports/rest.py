@@ -1953,7 +1953,7 @@ class QuantumEngineServiceRestTransport(_BaseQuantumEngineServiceRestTransport):
             timeout: Optional[float] = None,
             metadata: Sequence[Tuple[str, Union[str, bytes]]] = (),
         ) -> engine.CompileQecProgramResponse:
-            r"""Call the compile qec program method over HTTP.
+            r"""Call the compile QEC program method over HTTP.
 
             Args:
                 request (~.engine.CompileQecProgramRequest):

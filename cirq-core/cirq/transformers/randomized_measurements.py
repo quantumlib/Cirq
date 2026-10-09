@@ -26,8 +26,8 @@ from cirq.transformers import transformer_api
 
 @transformer_api.transformer
 class RandomizedMeasurements:
-    """A transformer that appends a moment of random rotations from a given unitary ensemble (pauli,
-    clifford, cue)"""
+    """A transformer that appends a moment of random rotations from a given unitary ensemble (Pauli,
+    Clifford, cue)"""
 
     def __init__(self, subsystem: Sequence[int] | None = None):
         """Class structure for performing and analyzing a general randomized measurement protocol.
@@ -86,7 +86,7 @@ class RandomizedMeasurements:
         """Outputs the cirq moment associated with the pre-measurement rotations.
 
         Args:
-            unitary_ensemble: clifford, pauli, cue
+            unitary_ensemble: Clifford, Pauli, cue
             qubits: List of qubits
             rng: Random number generator to be used in sampling.
 
@@ -148,7 +148,7 @@ def _single_qubit_clifford(rng: np.random.Generator) -> cirq.Gate:
     """
 
     # there are 24 distinct single-qubit Clifford gates
-    clifford_idx = rng.choice(np.arange(24))
+    clifford_idx = rng.choice(24)
 
     return SingleQubitCliffordGate.to_phased_xz_gate(
         SingleQubitCliffordGate.all_single_qubit_cliffords[clifford_idx]

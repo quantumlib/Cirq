@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import abc
 import collections
+import functools
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from typing import Any, cast, Generic, TYPE_CHECKING, TypeVar
 
@@ -51,7 +52,7 @@ TSimulatorState = TypeVar('TSimulatorState', bound=Any)
 class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
     """Simulator that mimics running on quantum hardware.
 
-    Implementers of this interface should implement the _run method.
+    Implementers of this interface should implement the `_run` method.
     """
 
     def run_sweep(
@@ -82,11 +83,19 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         if not program.has_measurements():
             raise ValueError("Circuit has no measurements to sample.")
 
+        @functools.cache
+        def _zero_repetition_records() -> dict[str, np.ndarray]:
+            """Returns records dictionary for a zero-repetition simulation."""
+            shapes = self._get_measurement_shapes(program)
+            return {
+                k: np.empty((0, num_instances, len(qid_shape)), dtype=np.uint8)
+                for k, (num_instances, qid_shape) in shapes.items()
+            }
+
         for param_resolver in study.to_resolvers(params):
             records = {}
             if repetitions == 0:
-                for _, op, _ in program.findall_operations_with_gate_type(ops.MeasurementGate):
-                    records[protocols.measurement_key_name(op)] = np.empty([0, 1, 1])
+                records = _zero_repetition_records()
             else:
                 records = self._run(
                     circuit=program, param_resolver=param_resolver, repetitions=repetitions
@@ -108,9 +117,9 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         Returns:
             A dictionary from measurement gate key to measurement
             results. Measurement results are stored in a 3-dimensional
-            numpy array, the first dimension corresponding to the repetition.
+            NumPy array, the first dimension corresponding to the repetition.
             the second to the instance of that key in the circuit, and the
-            third to the actual boolean measurement results (ordered by the
+            third to the actual Boolean measurement results (ordered by the
             qubits being measured.)
         """
         raise NotImplementedError()
@@ -548,7 +557,7 @@ class SimulatesIntermediateState(
     state at the end of a circuit, a SimulatesIntermediateState can
     simulate stepping through the moments of a circuit.
 
-    Implementers of this interface should implement the _core_iterator
+    Implementers of this interface should implement the `_core_iterator`
     method.
 
     Note that state here refers to simulator state, which is not necessarily
@@ -633,7 +642,9 @@ class SimulatesIntermediateState(
         """
         param_resolver = study.ParamResolver(param_resolver)
         actual_initial_state = 0 if initial_state is None else initial_state
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            q for q in circuit.all_qubits() if not isinstance(q, ops.VariableQid)
+        )
         return self._base_iterator(
             circuit, qubits, actual_initial_state, param_resolver=param_resolver
         )
@@ -730,7 +741,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
             Measurement results with True corresponding to the ``|1⟩`` state.
             The outer list is for repetitions, and the inner corresponds to
             measurements ordered by the supplied qubits. These lists
-            are wrapped as a numpy ndarray.
+            are wrapped as a NumPy ndarray.
         """
         raise NotImplementedError()
 
@@ -762,8 +773,8 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
 
         Returns: A dictionary from measurement gate key to measurement
             results. Measurement results are stored in a 2-dimensional
-            numpy array, the first dimension corresponding to the repetition
-            and the second to the actual boolean measurement results (ordered
+            NumPy array, the first dimension corresponding to the repetition
+            and the second to the actual Boolean measurement results (ordered
             by the qubits being measured.)
 
         Raises:
@@ -832,7 +843,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
     ) -> None:
         """Mutates `bits` using the confusion_map.
 
-        Compare with _confuse_result in cirq-core/cirq/sim/simulation_state.py.
+        Compare with `_confuse_result` in cirq-core/cirq/sim/simulation_state.py.
         """
         prng = value.parse_random_state(seed)
         for rep in bits:
@@ -858,7 +869,7 @@ class SimulationTrialResult(Generic[TSimulatorState]):
     Attributes:
         params: A ParamResolver of settings used for this result.
         measurements: A dictionary from measurement gate key to measurement
-            results. Measurement results are a numpy ndarray of actual boolean
+            results. Measurement results are a NumPy ndarray of actual Boolean
             measurement results (ordered by the qubits acted on by the
             measurement gate.)
     """
@@ -874,8 +885,8 @@ class SimulationTrialResult(Generic[TSimulatorState]):
         Args:
             params: A ParamResolver of settings used for this result.
             measurements: A mapping from measurement gate key to measurement
-                results. Measurement results are a numpy ndarray of actual
-                boolean measurement results (ordered by the qubits acted on by
+                results. Measurement results are a NumPy ndarray of actual
+                Boolean measurement results (ordered by the qubits acted on by
                 the measurement gate.)
             final_simulator_state: The final simulator state.
         """

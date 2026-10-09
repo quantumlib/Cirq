@@ -141,7 +141,7 @@ def test_via_unitary() -> None:
     op3 = OpWithUnitary(np.array([[1, 0], [0, np.sqrt(1j)]]))
     assert not cirq.has_stabilizer_effect(op3)
 
-    # 2+ qubit cliffords
+    # 2+ qubit Cliffords
     assert cirq.has_stabilizer_effect(cirq.CNOT)
     assert cirq.has_stabilizer_effect(cirq.XX)
     assert cirq.has_stabilizer_effect(cirq.ZZ)

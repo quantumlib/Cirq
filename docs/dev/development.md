@@ -28,7 +28,7 @@ Note that if you are using PyCharm, you might have to use the command Restart & 
 1. Fork the Cirq repo (Fork button in upper right corner of
 [repo page](https://github.com/quantumlib/Cirq)).
 Forking creates a new GitHub repo at the location
-https://github.com/USERNAME/cirq where `USERNAME` is
+`https://github.com/USERNAME/cirq` where `USERNAME` is
 your GitHub id.
 1. Clone the fork you created to your local machine at the directory
 where you would like to store your local copy of the code, and `cd` into the newly created directory.
@@ -153,7 +153,7 @@ get picked up!
 ## Protocol buffers
 
 [Protocol buffers](https://developers.google.com/protocol-buffers) ("protobufs") are used in Cirq for converting circuits, gates, and other objects into a standard form that can be written and read by other programs.
-Cirq's protobufs live at [cirq-google/api/v2](https://github.com/quantumlib/Cirq/tree/main/cirq-google/cirq_google/api/v2) and may need to be changed or extended from time to time.
+Cirq's Protobufs live at [cirq-google/api/v2](https://github.com/quantumlib/Cirq/tree/main/cirq-google/cirq_google/api/v2) and may need to be changed or extended from time to time.
 
 If any protos are updated, their dependents can be rebuilt by calling the script
 [dev_tools/build-protos.sh](https://github.com/quantumlib/Cirq/blob/main/dev_tools/build-protos.sh).

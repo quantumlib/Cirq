@@ -62,7 +62,7 @@ def phase_by(val, phase_turns, qubit_index, default=RaiseTypeErrorIfNotProvided)
     """Returns a phased version of the effect.
 
     For example, an X gate phased by 90 degrees would be a Y gate.
-    This works by calling `val`'s _phase_by_ method and returning
+    This works by calling `val`'s `_phase_by_` method and returning
     the result.
 
     Args:
@@ -77,13 +77,13 @@ def phase_by(val, phase_turns, qubit_index, default=RaiseTypeErrorIfNotProvided)
             specified, an error is raised when `val` can't be phased.
 
     Returns:
-        If `val` has a _phase_by_ method and its result is not NotImplemented,
+        If `val` has a `_phase_by_` method and its result is not NotImplemented,
         that result is returned. Otherwise, the function will return the
         default value provided or raise a TypeError if none was provided.
 
     Raises:
         TypeError:
-            `val` doesn't have a _phase_by_ method (or that method returned
+            `val` doesn't have a `_phase_by_` method (or that method returned
             NotImplemented) and no `default` was specified.
     """
     getter = getattr(val, '_phase_by_', None)

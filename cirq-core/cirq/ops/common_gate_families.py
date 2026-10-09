@@ -138,7 +138,7 @@ class ParallelGateFamily(gateset.GateFamily):
         """Inits ParallelGateFamily
 
         Args:
-            gate: The gate which can act in parallel. It can be a python `type` inheriting from
+            gate: The gate which can act in parallel. It can be a Python `type` inheriting from
                 `cirq.Gate` or a non-parameterized instance of a `cirq.Gate`. If an instance of
                 `cirq.ParallelGate` is passed, then the corresponding `gate.sub_gate` is used.
             name: The name of the gate family.

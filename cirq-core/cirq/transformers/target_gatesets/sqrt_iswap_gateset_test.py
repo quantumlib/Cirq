@@ -124,7 +124,7 @@ def test_two_qubit_gates_with_symbols(gate: cirq.Gate, use_sqrt_iswap_inv: bool)
         ignore_failures=False,
     )
 
-    # Check that `c_new` only contains sqrt iswap as the 2q entangling gate.
+    # Check that `c_new` only contains sqrt iSWAP as the 2q entangling gate.
     sqrt_iswap_gate = cirq.SQRT_ISWAP_INV if use_sqrt_iswap_inv else cirq.SQRT_ISWAP
     for op in c_new.all_operations():
         if cirq.num_qubits(op) == 2:

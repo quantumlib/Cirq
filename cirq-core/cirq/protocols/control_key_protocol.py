@@ -79,6 +79,6 @@ def measurement_keys_touched(val: Any) -> frozenset[cirq.MeasurementKey]:
         val: The object that may interact with measurements.
 
     Returns:
-        The measurement keys used by the value..
+        The measurement keys used by the value.
     """
     return measurement_key_protocol.measurement_key_objs(val) | control_keys(val)
