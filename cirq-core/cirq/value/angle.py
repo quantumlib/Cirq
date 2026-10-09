@@ -14,13 +14,16 @@
 
 from __future__ import annotations
 
-from typing import overload, TYPE_CHECKING
+from typing import overload, TYPE_CHECKING, TypeVar
 
 import numpy as np
 import sympy
 
 if TYPE_CHECKING:
     from cirq.value import type_alias
+
+# Match TParamVal: real NumPy scalars only. `np.number` also includes complex.
+TNumpyReal = TypeVar('TNumpyReal', bound=np.integer | np.floating)
 
 
 def chosen_angle_to_half_turns(
@@ -85,6 +88,11 @@ def chosen_angle_to_canonical_half_turns(
     return canonicalize_half_turns(
         chosen_angle_to_half_turns(half_turns=half_turns, rads=rads, degs=degs, default=default)
     )
+
+
+@overload
+def canonicalize_half_turns(half_turns: TNumpyReal) -> TNumpyReal:
+    pass
 
 
 @overload

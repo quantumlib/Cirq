@@ -137,6 +137,83 @@ def test_asymmetric_depolarizing_channel_text_diagram() -> None:
     )
 
 
+@pytest.mark.parametrize('dtype', [np.float16, np.float32, np.float64])
+@pytest.mark.parametrize('factory', [cirq.depolarize, cirq.bit_flip, cirq.phase_flip])
+def test_probability_channels_accept_numpy_scalars(dtype, factory) -> None:
+    value = 0.75 if factory is cirq.depolarize else 0.25
+    probability = dtype(value)
+    channel = factory(probability)
+
+    assert not cirq.is_parameterized(channel)
+    assert cirq.has_mixture(channel)
+    assert sum(p for p, _ in cirq.mixture(channel)) == pytest.approx(1.0)
+
+    with pytest.raises(ValueError):
+        _ = factory(dtype(-0.1))
+    with pytest.raises(ValueError):
+        _ = factory(dtype(1.1))
+
+
+@pytest.mark.parametrize('dtype', [np.float16, np.float32, np.float64])
+@pytest.mark.parametrize(
+    'cls',
+    [
+        cirq.DepolarizingChannel,
+        cirq.BitFlipChannel,
+        cirq.PhaseFlipChannel,
+        cirq.AmplitudeDampingChannel,
+        cirq.PhaseDampingChannel,
+    ],
+)
+def test_channel_classes_accept_numpy_scalars(dtype, cls) -> None:
+    probability = dtype(0.75) if cls is cirq.DepolarizingChannel else dtype(0.25)
+    channel = cls(probability)
+    assert not cirq.is_parameterized(channel)
+
+    restored = cirq.read_json(json_text=cirq.to_json(channel))
+    assert restored == channel
+    param = restored.p if hasattr(restored, 'p') else restored.gamma
+    assert type(param) in (float, int)
+    assert not isinstance(param, np.number)
+
+    with pytest.raises(ValueError):
+        _ = cls(dtype(-0.1))
+    with pytest.raises(ValueError):
+        _ = cls(dtype(1.1))
+
+
+@pytest.mark.parametrize('dtype', [np.float16, np.float32, np.float64])
+def test_asymmetric_depolarizing_channel_accepts_numpy_scalars(dtype) -> None:
+    channel = cirq.AsymmetricDepolarizingChannel(dtype(0.25), dtype(0.25), dtype(0.25))
+    assert not cirq.is_parameterized(channel)
+    restored = cirq.read_json(json_text=cirq.to_json(channel))
+    assert restored == channel
+    for value in restored.error_probabilities.values():
+        assert type(value) in (float, int)
+        assert not isinstance(value, np.number)
+
+    with pytest.raises(ValueError):
+        _ = cirq.AsymmetricDepolarizingChannel(dtype(-0.1), dtype(0.0), dtype(0.0))
+    with pytest.raises(ValueError):
+        _ = cirq.AsymmetricDepolarizingChannel(dtype(0.5), dtype(0.5), dtype(0.5))
+
+
+@pytest.mark.parametrize('dtype', [np.int8, np.int32, np.int64, np.uint8, np.uint64])
+@pytest.mark.parametrize(
+    'cls',
+    [
+        cirq.DepolarizingChannel,
+        cirq.BitFlipChannel,
+        cirq.PhaseFlipChannel,
+        cirq.AmplitudeDampingChannel,
+        cirq.PhaseDampingChannel,
+    ],
+)
+def test_channel_classes_accept_numpy_integer_probabilities(dtype, cls) -> None:
+    assert not cirq.is_parameterized(cls(dtype(0)))
+    assert not cirq.is_parameterized(cls(dtype(1)))
+
+
 def test_depolarizing_channel() -> None:
     d = cirq.depolarize(0.3)
     np.testing.assert_almost_equal(
