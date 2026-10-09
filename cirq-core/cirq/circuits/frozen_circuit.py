@@ -99,6 +99,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
             return self
         new_circuit = FrozenCircuit(tags=self.tags + new_tags)
         new_circuit._moments = self._moments
+        new_circuit.untagged = self.untagged
         return new_circuit
 
     @_compat.cached_method
