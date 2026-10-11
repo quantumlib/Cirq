@@ -238,6 +238,11 @@ from cirq.ops.swap_gates import (
     SwapPowGate as SwapPowGate,
 )
 
+from cirq.ops.switch_op import (
+    Case,
+    Switch,
+)
+
 from cirq.ops.tags import RoutingSwapTag as RoutingSwapTag, VirtualTag as VirtualTag
 
 from cirq.ops.three_qubit_gates import (
