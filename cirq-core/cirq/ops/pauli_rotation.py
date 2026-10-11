@@ -83,7 +83,7 @@ class PauliRotation(raw_types.Operation):
         elif isinstance(pauli_string, dense_pauli_string.BaseDensePauliString):
             if qubits is None:
                 raise ValueError(
-                    f'Expected qubits when receiving pauli strings of type{type(pauli_string)}'
+                    f'Expected qubits when receiving pauli strings of type {type(pauli_string)}'
                 )
             if len(qubits) != len(pauli_string):
                 raise ValueError(
