@@ -54,10 +54,13 @@ def test_pauli_string_type_is_preserved() -> None:
     dense = cirq.DensePauliString('XIZ')
     assert isinstance(cirq.PauliRotation(sparse).pauli_string, cirq.PauliString)
     assert cirq.PauliRotation(sparse).pauli_string == sparse
-    assert isinstance(cirq.PauliRotation(dense, qubits=[q0, q1, q2]).pauli_string, cirq.DensePauliString)
+    assert isinstance(
+        cirq.PauliRotation(dense, qubits=[q0, q1, q2]).pauli_string, cirq.DensePauliString
+    )
     assert cirq.PauliRotation(dense, qubits=[q0, q1, q2]).pauli_string == dense
     assert isinstance(
-        cirq.PauliRotation(dense, 0.5, [q0, q1, q2]).with_qubits(q1, q2, q3).pauli_string, cirq.DensePauliString
+        cirq.PauliRotation(dense, 0.5, [q0, q1, q2]).with_qubits(q1, q2, q3).pauli_string,
+        cirq.DensePauliString,
     )
     assert isinstance(
         cirq.resolve_parameters(
@@ -65,7 +68,9 @@ def test_pauli_string_type_is_preserved() -> None:
         ).pauli_string,
         cirq.DensePauliString,
     )
-    assert isinstance((cirq.PauliRotation(dense, 0.5, [q0, q1, q2]) ** 2).pauli_string, cirq.DensePauliString)
+    assert isinstance(
+        (cirq.PauliRotation(dense, 0.5, [q0, q1, q2]) ** 2).pauli_string, cirq.DensePauliString
+    )
 
 
 def test_qubits() -> None:
