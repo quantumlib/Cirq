@@ -230,31 +230,19 @@ t: ═══^═══════════════
     )
 
 
-def test_diagram_empty_op_tree() -> None:
-    op_empty_list = cirq.While('a', [])
-    op_empty_circuit = cirq.While('a', cirq.Circuit())
+@pytest.mark.parametrize('sub_operation', [[], cirq.Circuit()])
+def test_diagram_empty_op_tree(sub_operation: cirq.OP_TREE) -> None:
+    op = cirq.While('a', sub_operation)
 
-    assert isinstance(op_empty_list.sub_operation, cirq.CircuitOperation)
-    assert op_empty_list.sub_operation.circuit == cirq.FrozenCircuit()
-    assert isinstance(op_empty_circuit.sub_operation, cirq.CircuitOperation)
-    assert op_empty_circuit.sub_operation.circuit == cirq.FrozenCircuit()
+    assert isinstance(op.sub_operation, cirq.CircuitOperation)
+    assert op.sub_operation.circuit == cirq.FrozenCircuit()
 
     args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT
-    assert op_empty_list._circuit_diagram_info_(args) is NotImplemented
-    assert op_empty_circuit._circuit_diagram_info_(args) is NotImplemented
-    assert cirq.circuit_diagram_info(op_empty_list, default=None) is None
-    assert cirq.circuit_diagram_info(op_empty_circuit, default=None) is None
+    assert op._circuit_diagram_info_(args) is NotImplemented
+    assert cirq.circuit_diagram_info(op, default=None) is None
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(op_empty_list),
-        """
-a: ════════════════════
-      While(a, [  ])
-""",
-        use_unicode_characters=True,
-    )
-    cirq.testing.assert_has_diagram(
-        cirq.Circuit(op_empty_circuit),
+        cirq.Circuit(op),
         """
 a: ════════════════════
       While(a, [  ])

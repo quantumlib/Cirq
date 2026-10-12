@@ -31,7 +31,8 @@ if TYPE_CHECKING:
 class While(raw_types.Operation):
     """An operation that repeatedly executes a sub-operation while a classical condition is True.
 
-    In contrast to If, this operation does NOT decompose to a `cirq.ClassicallyControlledOperation`.
+    In contrast to If (which decomposes into a cirq.ClassicallyControlledOperation), this operation
+    cannot be statically decomposed.
 
     Note: This is an experimental class designed as part of a prototype
     for Cirq 2.0.  The interface for this class is subject to change between versions.
