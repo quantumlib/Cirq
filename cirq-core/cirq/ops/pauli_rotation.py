@@ -1,6 +1,6 @@
 # Copyright 2026 The Cirq Developers
 #
-# Licensed under the Apache License, Version 2.0 (the 'License');
+# Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
@@ -22,6 +22,7 @@ from cirq.ops import dense_pauli_string as dps, gate_operation, pauli_rotation_g
 
 if TYPE_CHECKING:
     import numpy as np
+
     import cirq
 
 
