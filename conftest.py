@@ -13,6 +13,11 @@
 # limitations under the License.
 
 import pytest
+import pytest_randomly
+
+from cirq.value.random_state import _reseed_default_rng
+
+pytest_randomly.entrypoint_reseeds = [_reseed_default_rng]
 
 
 def pytest_addoption(parser):

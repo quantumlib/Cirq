@@ -25,7 +25,7 @@ document(
     RANDOM_STATE_OR_SEED_LIKE,
     """A pseudorandom number generator or object that can be converted to one.
 
-    If None, turns into a new, unseeded `np.random.Generator`.
+    If None, turns into a new `np.random.Generator` spawned from Cirq's default generator.
     If an integer or NumPy integer, turns into a `np.random.Generator` seeded
     with that value.
     If an instance of `np.random.Generator`, it is used unmodified.
@@ -34,6 +34,20 @@ document(
     """,
 )
 
+_DEFAULT_RNG: np.random.Generator = np.random.default_rng()
+
+
+def _reseed_default_rng(seed: int) -> None:
+    """Reseeds Cirq's default generator.
+
+    This does not update the default generators already created.
+
+    Args:
+        seed: The seed for the new default generator.
+    """
+    global _DEFAULT_RNG
+    _DEFAULT_RNG = np.random.default_rng(seed)
+
 
 def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.RandomState:
     """Interpret an object as a pseudorandom number generator.
@@ -41,6 +55,8 @@ def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.Ran
     If `random_state` is None, returns the module `np.random`.
     If `random_state` is an integer, returns
     `np.random.RandomState(random_state)`.
+    If `random_state` is an `np.random.Generator`, returns a `np.random.RandomState`
+    that shares its underlying bit generator.
     Otherwise, returns `random_state` unmodified.
 
     Args:
@@ -52,17 +68,22 @@ def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.Ran
     """
     if random_state is None:
         return cast(np.random.RandomState, np.random)
-    elif isinstance(random_state, int):
+    elif isinstance(random_state, (int, np.integer)):
         return np.random.RandomState(random_state)
+    elif isinstance(random_state, np.random.Generator):
+        return np.random.RandomState(random_state.bit_generator)
     else:
-        return cast(np.random.RandomState, random_state)
+        return random_state
 
 
 def parse_random_generator(prng_or_seed: RANDOM_STATE_OR_SEED_LIKE) -> np.random.Generator:
     """Interpret an object as a pseudorandom number generator.
 
     If `prng_or_seed` is an `np.random.Generator`, return it unmodified.
-    If `prng_or_seed` is None or an integer or NumPy integer, returns a new `np.random.Generator`.
+    If `prng_or_seed` is None, returns a new `np.random.Generator` spawned from Cirq's default
+    generator.
+    If `prng_or_seed` is an integer or NumPy integer, returns a new `np.random.Generator` seeded
+    with that value.
     If `prng_or_seed` is an instance of `np.random.RandomState`,
     returns `np.random.default_rng(prng_or_seed)`.
 
@@ -77,7 +98,7 @@ def parse_random_generator(prng_or_seed: RANDOM_STATE_OR_SEED_LIKE) -> np.random
         TypeError: If `prng_or_seed` can't be converted to an `np.random.Generator`.
     """
     if prng_or_seed is None:
-        return np.random.default_rng()
+        return _DEFAULT_RNG.spawn(1)[0]
     if isinstance(prng_or_seed, (int, np.integer)):
         return np.random.default_rng(prng_or_seed)
     if isinstance(prng_or_seed, np.random.Generator):
