@@ -1141,12 +1141,19 @@ def _operations_commutes_impl(
     # behave like the suboperations, so if the suboperations commute then these commute. Or
     # one of them is cold in which case it behaves like the identity, which always commutes.
     shared_qubits = ops1_qubits.intersection(ops2_qubits)
-    ops1_raw = [
-        op.without_classical_controls() for op in ops1 if not shared_qubits.isdisjoint(op.qubits)
-    ]
-    ops2_raw = [
-        op.without_classical_controls() for op in ops2 if not shared_qubits.isdisjoint(op.qubits)
-    ]
+    try:
+        ops1_raw = [
+            op.without_classical_controls()
+            for op in ops1
+            if not shared_qubits.isdisjoint(op.qubits)
+        ]
+        ops2_raw = [
+            op.without_classical_controls()
+            for op in ops2
+            if not shared_qubits.isdisjoint(op.qubits)
+        ]
+    except ValueError:
+        return NotImplemented
     moment1 = circuits.Moment(ops1_raw)
     moment2 = circuits.Moment(ops2_raw)
 

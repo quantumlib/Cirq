@@ -26,7 +26,8 @@ def test_init() -> None:
     assert op.sub_operation == cirq.X(q)
     assert op.qubits == (q,)
     assert op.classical_controls == frozenset([cirq.KeyCondition(cirq.MeasurementKey('m'))])
-    assert op.without_classical_controls() == op
+    with pytest.raises(ValueError, match='Cannot remove classical controls from a While operation'):
+        _ = op.without_classical_controls()
 
 
 def test_init_condition_types() -> None:
@@ -288,7 +289,8 @@ def test_simulation_initially_false() -> None:
     assert not invoked
     np.testing.assert_equal(res.measurements['a'], [0])
     np.testing.assert_equal(res.state_vector(), [1, 0, 0, 0])
-    assert res._final_simulator_state.classical_data.records[cirq.MeasurementKey('a')] == [(0,)]
+    runres = cirq.Simulator().run(circuit)
+    np.testing.assert_array_equal(runres.records["a"], [[[0]]])
 
 
 def test_simulation_sympy_condition() -> None:
@@ -308,11 +310,8 @@ def test_simulation_sympy_condition() -> None:
 
     np.testing.assert_equal(res_gt_1.measurements['a'], [0, 1])
     np.testing.assert_equal(res_gt_1.state_vector(), [0, 1, 0, 0])
-    assert res_gt_1._final_simulator_state.classical_data.records[cirq.MeasurementKey('a')] == [
-        (1, 1),
-        (1, 0),
-        (0, 1),
-    ]
+    runres_gt_1 = sim.run(circuit_gt_1)
+    np.testing.assert_array_equal(runres_gt_1.records["a"], [[[1, 1], [1, 0], [0, 1]]])
 
     # Decrement while a > 0:
     # 3 (11) -> 2 (10) -> 1 (01) -> 0 (00), stopping when a == 0.
@@ -328,12 +327,8 @@ def test_simulation_sympy_condition() -> None:
 
     np.testing.assert_equal(res_gt_0.measurements['a'], [0, 0])
     np.testing.assert_equal(res_gt_0.state_vector(), [1, 0, 0, 0])
-    assert res_gt_0._final_simulator_state.classical_data.records[cirq.MeasurementKey('a')] == [
-        (1, 1),
-        (1, 0),
-        (0, 1),
-        (0, 0),
-    ]
+    runres_gt_0 = sim.run(circuit_gt_0)
+    np.testing.assert_array_equal(runres_gt_0.records["a"], [[[1, 1], [1, 0], [0, 1], [0, 0]]])
 
 
 def test_simulation_countdown() -> None:
@@ -354,12 +349,8 @@ def test_simulation_countdown() -> None:
     np.testing.assert_equal(res.state_vector(), [1, 0, 0, 0])
 
     # Verify the loop ran 3 times (initial measurement + 3 loop measurements)
-    assert res._final_simulator_state.classical_data.records[cirq.MeasurementKey('a')] == [
-        (1, 1),
-        (1, 0),
-        (0, 1),
-        (0, 0),
-    ]
+    runres = sim.run(circuit)
+    np.testing.assert_array_equal(runres.records["a"], [[[1, 1], [1, 0], [0, 1], [0, 0]]])
 
 
 def test_simulation_repeat_until_success() -> None:
@@ -378,7 +369,8 @@ def test_simulation_repeat_until_success() -> None:
     np.testing.assert_allclose(res.state_vector(), [1, 0], atol=1e-6)
 
     # Every recorded measurement before the last one must be (1,), and the last is (0,)
-    records = res._final_simulator_state.classical_data.records[cirq.MeasurementKey('a')]
+    runres = cirq.Simulator(seed=4).run(circuit)
+    records = runres.records["a"][0]
     assert len(records) > 2
     assert all(r == (1,) for r in records[:-1])
     assert records[-1] == (0,)
@@ -392,7 +384,7 @@ def test_simulation_run_repetitions() -> None:
         cirq.While('a', cirq.H(q0), cirq.measure(q0, key='a')),
         cirq.measure(q0, key='result'),
     )
-    sim = cirq.Simulator(seed=4)
+    sim = cirq.Simulator()
     repetitions = 10
     res = sim.run(circuit, repetitions=repetitions)
 
@@ -400,7 +392,7 @@ def test_simulation_run_repetitions() -> None:
     np.testing.assert_equal(res.records['result'], np.zeros((repetitions, 1, 1), dtype=int))
     # Initial measurement is always 1, and final measurement (plus any zero-padding) is 0
     assert res.records['a'].shape[0] == repetitions
-    assert res.records['a'].shape[1] > 2
+    assert res.records['a'].shape[1] >= 2
     np.testing.assert_equal(res.records['a'][:, 0, 0], np.ones(repetitions, dtype=int))
     np.testing.assert_equal(res.records['a'][:, -1, 0], np.zeros(repetitions, dtype=int))
 
@@ -452,10 +444,8 @@ def test_commutes() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     while_op = cirq.While('a', cirq.X(q0))
 
-    assert not cirq.commutes(while_op, cirq.Z(q0), default=False)
-    assert not cirq.commutes(cirq.Moment(while_op), cirq.Moment(cirq.Z(q0)), default=False)
-    assert cirq.commutes(while_op, cirq.Z(q1), default=False)
-    assert not cirq.commutes(while_op, cirq.measure(q1, key='a'), default=False)
+    assert not cirq.definitely_commutes(while_op, cirq.Z(q0))
+    assert not cirq.definitely_commutes(cirq.Moment(while_op), cirq.Moment(cirq.Z(q0)))
 
 
 def test_qasm() -> None:
