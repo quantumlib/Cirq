@@ -430,7 +430,9 @@ def test_parameterizable(resolve_fn) -> None:
 
     cchan = cirq.ControlledOperation(
         [qubits[0]],
-        cirq.RandomGateChannel(sub_gate=cirq.AmplitudeDampingChannel(0.1), probability=a)(qubits[1]),
+        cirq.RandomGateChannel(sub_gate=cirq.AmplitudeDampingChannel(0.1), probability=a)(
+            qubits[1]
+        ),
     )
     with pytest.raises(ValueError, match='Cannot control channel'):
         resolve_fn(cchan, cirq.ParamResolver({'a': 0.1}))

@@ -553,7 +553,7 @@ def test_phase_damping_channel() -> None:
     )
     cirq.testing.assert_consistent_channel(d)
     cirq.testing.assert_consistent_mixture(d)
-    
+
 
 def test_phase_damping_mixture() -> None:
     d = cirq.phase_damp(0.3)
