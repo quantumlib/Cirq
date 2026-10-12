@@ -105,10 +105,7 @@ def test_gate_parameterized_decompose() -> None:
 
 @pytest.mark.parametrize(
     'pauli, k',
-    (
-        (cirq.DensePauliString('X', coefficient=1j), 0.5),
-        (cirq.DensePauliString('X'), 0.5j),
-    ),
+    ((cirq.DensePauliString('X', coefficient=1j), 0.5), (cirq.DensePauliString('X'), 0.5j)),
 )
 def test_gate_no_unitary_for_non_real_angle(pauli, k) -> None:
     gate = cirq.PauliRotationGate(pauli, k)

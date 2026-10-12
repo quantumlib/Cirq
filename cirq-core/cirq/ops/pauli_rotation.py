@@ -17,12 +17,11 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any, cast, TYPE_CHECKING
 
-import numpy as np
-
 from cirq import _compat, value
 from cirq.ops import dense_pauli_string as dps, gate_operation, pauli_rotation_gate
 
 if TYPE_CHECKING:
+    import numpy as np
     import cirq
 
 
