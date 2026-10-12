@@ -89,6 +89,9 @@ def test_construct_from_repeated_measurements() -> None:
     )
     with pytest.raises(ValueError, match="Cannot extract 2D measurements"):
         _ = r.measurements
+    # Check that a second access raises ValueError again.
+    with pytest.raises(ValueError, match="Cannot extract 2D measurements"):
+        _ = r.measurements
     # ensure r.measurements remains unresolved after ValueError
     assert r._measurements is None
     assert np.all(r.records['a'] == np.array([[[0, 0], [0, 1]], [[1, 0], [1, 1]]]))
