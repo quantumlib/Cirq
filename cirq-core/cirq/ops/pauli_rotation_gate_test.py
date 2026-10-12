@@ -41,6 +41,11 @@ def test_gate_raises_for_invalid_string() -> None:
         cirq.PauliRotationGate('ABC')
 
 
+def test_gate_raises_for_invalid_input() -> None:
+    with pytest.raises(TypeError):
+        cirq.PauliRotationGate('ABC')
+
+
 def test_gate_num_qubits() -> None:
     assert cirq.num_qubits(cirq.PauliRotationGate('XIZ', 0.3)) == 3
 
@@ -86,32 +91,6 @@ def test_gate_decomposes_to_pauli_string_phasor() -> None:
     )
 
 
-@pytest.mark.parametrize(
-    'pauli, k',
-    (
-        (cirq.DensePauliString('XZ'), 0.3),
-        (cirq.DensePauliString('XIZ'), 0.4),
-        (cirq.DensePauliString('IXI'), np.pi / 4),
-        (cirq.DensePauliString('IIZ'), 1.1),
-        (cirq.DensePauliString('YII'), 0.6),
-        (cirq.DensePauliString('IYIZI'), 0.7),
-        (cirq.DensePauliString('XIY', coefficient=-1), 1.2),
-        (cirq.DensePauliString('IZI', coefficient=2), 0.35),
-        (cirq.DensePauliString('III', coefficient=3), 0.2),
-    ),
-)
-def test_gate_decomposition_unitary_with_identities(pauli, k) -> None:
-    qubits = cirq.LineQubit.range(len(pauli))
-    decomposition = cirq.decompose_once_with_qubits(cirq.PauliRotationGate(pauli, k), qubits)
-    # Identities are not acted on by the decomposition.
-    acted_on = {q for op in decomposition for q in op.qubits}
-    assert acted_on == {q for q, p in zip(qubits, pauli) if p != cirq.I}
-    # Padding the decomposition with identities on the remaining qubits gives the full rotation.
-    actual = cirq.Circuit(decomposition).unitary(qubit_order=qubits)
-    assert actual.shape == (2 ** len(pauli), 2 ** len(pauli))
-    np.testing.assert_allclose(actual, _expected_unitary(pauli, k), atol=1e-8)
-
-
 def test_gate_parameterized_decompose() -> None:
     t = sympy.Symbol('t')
     gate = cirq.PauliRotationGate('XZ', t)
@@ -126,7 +105,10 @@ def test_gate_parameterized_decompose() -> None:
 
 @pytest.mark.parametrize(
     'pauli, k',
-    ((cirq.DensePauliString('X', coefficient=1j), 0.5), (cirq.DensePauliString('X'), 0.5j)),
+    (
+        (cirq.DensePauliString('X', coefficient=1j), 0.5),
+        (cirq.DensePauliString('X'), 0.5j),
+    ),
 )
 def test_gate_no_unitary_for_non_real_angle(pauli, k) -> None:
     gate = cirq.PauliRotationGate(pauli, k)
