@@ -801,10 +801,10 @@ class PhaseDampingChannel(raw_types.Gate):
           \end{bmatrix}
     \end{aligned}
     $$
-    
-    This channel is equvalent to a phase flip channel with probability
-    $p = (1 - \sqrt{1 - \gamma}) / 2$, so it also has a mixture 
-    representation: apply the identity with probability $1 - p$ and 
+
+    This channel is equivalent to a phase flip channel with probability
+    $p = (1 - \sqrt{1 - \gamma}) / 2$, so it also has a mixture
+    representation: apply the identity with probability $1 - p$ and
     $Z$ with probability $p$.
     """
 
