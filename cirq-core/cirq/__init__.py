@@ -274,6 +274,7 @@ from cirq.ops import (
     PauliInteractionGate as PauliInteractionGate,
     PauliMeasurementGate as PauliMeasurementGate,
     PauliRotation as PauliRotation,
+    PauliRotationGate as PauliRotationGate,
     PauliString as PauliString,
     PauliStringGateOperation as PauliStringGateOperation,
     PauliStringPhasor as PauliStringPhasor,
