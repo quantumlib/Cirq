@@ -154,11 +154,9 @@ class PauliRotationGate(raw_types.Gate):
                 # A non-real angle is not a rotation.
                 return None
             angle = complex(angle).real
-        # Identities are dropped, as PauliStringPhasor gives the wrong unitary when its qubits
-        # are a strict superset of its Pauli string's qubits.
         pauli_string = self._unit_pauli_string().on(*qubits)
         if not len(pauli_string):
-            # Only identities, so the rotation is a global phase, which PauliStringPhasor drops.
+            # Captures cases where pauli_string is just identities.
             if isinstance(angle, sympy.Basic):
                 return [global_phase_op.global_phase_operation(sympy.exp(sympy.I * angle))]
             return [global_phase_op.global_phase_operation(np.exp(1j * angle))]

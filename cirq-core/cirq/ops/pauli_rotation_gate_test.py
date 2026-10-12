@@ -43,7 +43,7 @@ def test_gate_raises_for_invalid_string() -> None:
 
 def test_gate_raises_for_invalid_input() -> None:
     with pytest.raises(TypeError):
-        cirq.PauliRotationGate('ABC')
+        cirq.PauliRotationGate(cirq.X(q0))
 
 
 def test_gate_num_qubits() -> None:
@@ -99,6 +99,23 @@ def test_gate_parameterized_decompose() -> None:
     np.testing.assert_allclose(
         cirq.unitary(cirq.resolve_parameters(op, {'t': 0.5})),
         cirq.unitary(cirq.PauliRotationGate('XZ', 0.5)),
+        atol=1e-8,
+    )
+
+
+def test_gate_parameterized_decompose_identities() -> None:
+    gate = cirq.PauliRotationGate(cirq.DensePauliString('III'), sympy.Symbol('t'))
+    qubits = cirq.LineQubit.range(len(cirq.DensePauliString('III')))
+    decomposition = cirq.decompose_once_with_qubits(gate, qubits)
+    (op,) = decomposition
+    assert isinstance(op.gate, cirq.GlobalPhaseGate)
+    assert cirq.is_parameterized(op)
+    resolver = {'t': 0.3}
+    resolved_decomposition = cirq.resolve_parameters(cirq.Circuit(decomposition), resolver)
+    assert not cirq.is_parameterized(resolved_decomposition)
+    np.testing.assert_allclose(
+        resolved_decomposition.unitary(qubit_order=qubits),
+        cirq.unitary(cirq.resolve_parameters(gate, resolver)),
         atol=1e-8,
     )
 
