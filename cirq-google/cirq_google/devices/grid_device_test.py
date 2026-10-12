@@ -17,6 +17,7 @@ from __future__ import annotations
 import unittest.mock as mock
 from dataclasses import dataclass
 
+import numpy as np
 import pytest
 
 import cirq
@@ -516,43 +517,96 @@ def test_grid_device_validate_operations_negative():
             cirq.testing.DoesNotSupportSerializationGate()(device_info.grid_qubits[0])
         )
 
-    class CustomNonGateOp(cirq.Operation):
-        def __init__(self, qubits):
-            self._qubits = tuple(qubits)
 
-        @property
-        def qubits(self):
-            return self._qubits
+class _CustomNonGateOperation(cirq.Operation):
+    def __init__(self, qubits):
+        self._qubits = tuple(qubits)
 
-        def with_qubits(self, *new_qubits):
-            raise NotImplementedError
+    @property
+    def qubits(self):
+        return self._qubits
 
-    # Non-gate operation on valid qubits passes validation without gateset check
-    device.validate_operation(CustomNonGateOp([device_info.grid_qubits[0]]))
+    def with_qubits(self, *new_qubits):
+        return _CustomNonGateOperation(new_qubits)
+
+    def _unitary_(self):
+        return np.eye(2 ** len(self._qubits))
+
+
+def test_grid_device_validate_operations_non_gate_operation_negative():
+    device_info, spec = _create_device_spec_with_horizontal_couplings()
+    device = cirq_google.GridDevice.from_proto(spec)
+    q0, q1 = device_info.grid_qubits[0], device_info.grid_qubits[1]
+
+    # Operations without a gate are not in the device gateset and must be rejected.
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(_CustomNonGateOperation([q0]))
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(_CustomNonGateOperation([q0, q1]))
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(_CustomNonGateOperation([]))
+
+
+def test_grid_device_validate_operations_circuit_operation():
+    device_info, spec = _create_device_spec_with_horizontal_couplings()
+    device = cirq_google.GridDevice.from_proto(spec)
+    q0, q1 = device_info.grid_qubits[0], device_info.grid_qubits[1]
+
+    # CircuitOperations containing only supported operations are valid.
     device.validate_operation(
-        CustomNonGateOp([device_info.grid_qubits[0], device_info.grid_qubits[1]])
+        cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q0), cirq.CZ(q0, q1), cirq.measure(q0)))
     )
 
-    # Non-gate operation on invalid qubits or invalid pair still fails
-    with pytest.raises(ValueError, match='Qubit not on device'):
-        device.validate_operation(CustomNonGateOp([bad_qubit]))
-    with pytest.raises(ValueError, match='Qubit pair is not valid'):
-        device.validate_operation(CustomNonGateOp([q00, q10]))
-
-    class CustomGateOp(cirq.Operation, cirq.Gate):  # type: ignore[misc]
-        def __init__(self, qubits):
-            self._qubits = tuple(qubits)
-
-        @property
-        def qubits(self):
-            return self._qubits
-
-        def with_qubits(self, *new_qubits):
-            raise NotImplementedError
-
-    # Operation subclassing Gate is checked against gateset and fails if not in gateset
+    # CircuitOperations containing unsupported gates must be rejected.
     with pytest.raises(ValueError, match='gate which is not supported'):
-        device.validate_operation(CustomGateOp([device_info.grid_qubits[0]]))
+        device.validate_operation(
+            cirq.CircuitOperation(
+                cirq.FrozenCircuit(cirq.X(q0), cirq.testing.DoesNotSupportSerializationGate()(q0))
+            )
+        )
+
+    # CircuitOperations containing non-gate operations must be rejected.
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(
+            cirq.CircuitOperation(cirq.FrozenCircuit(_CustomNonGateOperation([q0])))
+        )
+
+    # Nested CircuitOperations containing unsupported gates must be rejected.
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(
+            cirq.CircuitOperation(
+                cirq.FrozenCircuit(
+                    cirq.CircuitOperation(
+                        cirq.FrozenCircuit(cirq.testing.DoesNotSupportSerializationGate()(q0))
+                    )
+                )
+            )
+        )
+
+
+def test_grid_device_validate_operations_controlled_gates_negative():
+    device_info, spec = _create_device_spec_with_horizontal_couplings()
+    device = cirq_google.GridDevice.from_proto(spec)
+    q0, q1 = device_info.grid_qubits[0], device_info.grid_qubits[1]
+
+    # A unitary gate which is not in the device gateset.
+    unsupported_gate = cirq.MatrixGate(cirq.unitary(cirq.H))
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(unsupported_gate(q1))
+
+    # Controlled versions of unsupported gates must be rejected.
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(unsupported_gate.controlled(1).on(q0, q1))
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(unsupported_gate.on(q1).controlled_by(q0))
+
+    # Controlled non-gate operations must be rejected.
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(_CustomNonGateOperation([q1]).controlled_by(q0))
+
+    # Controlled versions of supported gates are not themselves supported by the device.
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(cirq.ControlledGate(cirq.X).on(q0, q1))
 
 
 def test_grid_device_validate_operation_coupler_for_horizontal_couplings():
