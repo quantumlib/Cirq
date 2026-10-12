@@ -21,6 +21,7 @@ from numbers import Real
 from typing import TYPE_CHECKING
 
 from cirq.ops import CZ, CZPowGate, Gate, Gateset, S, X
+from cirq.protocols import equal_up_to_global_phase
 from cirq.transformers.gauge_compiling.gauge_compiling import (
     ConstantGauge,
     Gauge,
@@ -39,6 +40,16 @@ _SQRT_CZ = CZ**0.5
 _ADJ_S = S**-1
 
 
+def _is_sqrt_cz(gate: cirq.Gate) -> bool:
+    """Whether `gate` is CZ**0.5 up to global phase, as opposed to CZ**-0.5.
+
+    The transformer's target gateset accepts gates that equal CZ**0.5 or CZ**-0.5 only up to
+    global phase (e.g. `cirq.ControlledGate(cirq.S)`, a `CZPowGate` with a global shift, or a
+    `MatrixGate`), so the correction must be chosen with the same notion of equality.
+    """
+    return gate == _SQRT_CZ or equal_up_to_global_phase(gate, _SQRT_CZ)
+
+
 class SqrtCZGauge(Gauge):
 
     def weight(self) -> float:
@@ -47,22 +58,14 @@ class SqrtCZGauge(Gauge):
     def sample(self, gate: cirq.Gate, prng: np.random.Generator) -> ConstantGauge:
         if prng.choice([True, False]):
             return ConstantGauge(two_qubit_gate=gate)
+        correction = S if _is_sqrt_cz(gate) else _ADJ_S
         swap_qubits = prng.choice([True, False])
         if swap_qubits:
             return ConstantGauge(
-                pre_q1=X,
-                post_q1=X,
-                post_q0=S if gate == _SQRT_CZ else _ADJ_S,
-                two_qubit_gate=gate**-1,
-                swap_qubits=True,
+                pre_q1=X, post_q1=X, post_q0=correction, two_qubit_gate=gate**-1, swap_qubits=True
             )
         else:
-            return ConstantGauge(
-                pre_q0=X,
-                post_q0=X,
-                post_q1=S if gate == _SQRT_CZ else _ADJ_S,
-                two_qubit_gate=gate**-1,
-            )
+            return ConstantGauge(pre_q0=X, post_q0=X, post_q1=correction, two_qubit_gate=gate**-1)
 
 
 def _symbolize_as_cz_pow(
