@@ -49,6 +49,10 @@ def test_gate_compilation_matches_expected_max_infidelity(tabulation, target) ->
     assert result.success
     max_error = tabulation.max_expected_infidelity
     assert 1 - unitary_entanglement_fidelity(target, result.actual_gate) < max_error
+    expected_actual_gate = np.kron(*result.local_unitaries[0])
+    for u0u1 in result.local_unitaries[1:]:
+        expected_actual_gate = np.kron(*u0u1) @ result.base_gate_unitary @ expected_actual_gate
+    np.testing.assert_allclose(result.actual_gate, expected_actual_gate)
 
 
 @pytest.mark.parametrize('tabulation', [sycamore_tabulation, sqrt_iswap_tabulation])
