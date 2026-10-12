@@ -54,7 +54,7 @@ Here is a summary of the examples found in this directory:
 *   [`stabilizer_code.ipynb`](stabilizer_code.ipynb): example of quantum
     error correction using a stabilizer code.
 *   [`superdense_coding.py`](superdense_coding.py): example of superdense coding.
-*   [`swap_networks.py`](swap_networks.py): demontration of swap networks.
+*   [`swap_networks.py`](swap_networks.py): demonstration of swap networks.
 *   [`two_qubit_gate_compilation.py`](two_qubit_gate_compilation.py):
     example application of the two-qubit gate compilation algorithm.
 

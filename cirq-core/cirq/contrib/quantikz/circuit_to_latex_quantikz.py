@@ -633,9 +633,9 @@ class CircuitToQuantikz:
 
             if len(lines) > 1:
                 for k_idx in range(len(lines) - 1, 0, -1):
-                    stipped_line = lines[k_idx].strip()
-                    if stipped_line:
-                        if stipped_line != "\\\\":
+                    stripped_line = lines[k_idx].strip()
+                    if stripped_line:
+                        if stripped_line != "\\\\":
                             if lines[k_idx].endswith(" \\\\"):
                                 lines[k_idx] = lines[k_idx].rstrip()[:-3].rstrip()
                             break

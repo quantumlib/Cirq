@@ -67,7 +67,7 @@ class SymbolResolver(metaclass=abc.ABCMeta):
 @deprecated_cirq_web_class
 class DefaultResolver(SymbolResolver):
     """Default symbol resolver implementation. Takes information
-    from circuit_diagram_info, if unavailable, returns information representing
+    from `_circuit_diagram_info_`; if unavailable, returns information representing
     an unknown symbol.
     """
 
@@ -83,7 +83,7 @@ class DefaultResolver(SymbolResolver):
     }
 
     def resolve(self, operation: cirq.Operation) -> SymbolInfo | None:
-        """Checks for the _circuit_diagram_info attribute of the operation,
+        """Checks for the `_circuit_diagram_info_` attribute of the operation,
         and if it exists, build the symbol information from it. Otherwise,
         builds symbol info for an unknown operation.
 

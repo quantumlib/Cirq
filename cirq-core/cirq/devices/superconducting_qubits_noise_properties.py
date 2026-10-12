@@ -35,7 +35,7 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
 
     Args:
         gate_times_ns: dict[type, float] of gate types to their duration on
-            quantum hardware. Used with t(1|phi)_ns to specify thermal noise.
+            quantum hardware. Used with `t(1|phi)_ns` to specify thermal noise.
         t1_ns: dict[cirq.Qid, float] of qubits to their T_1 time, in ns.
         tphi_ns: dict[cirq.Qid, float] of qubits to their T_phi time, in ns.
         readout_errors: dict[cirq.Qid, list[float]] of qubits to their readout

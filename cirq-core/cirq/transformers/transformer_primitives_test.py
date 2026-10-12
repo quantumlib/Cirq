@@ -476,7 +476,7 @@ def test_map_operations_preserve_moments_duplicate_measurement_key(transform_cho
         c_mapped, cirq.Circuit(cirq.Moment(cirq.M(q0, key='m')), cirq.Moment(cirq.M(q1, key='m')))
     )
 
-    # With the flag - moments with shared measurment keys are preserved.
+    # With the flag - moments with shared measurement keys are preserved.
     c_mapped = transform(c, lambda op, _: op, preserve_moments=True)
     cirq.testing.assert_same_circuits(c_mapped, c)
 
