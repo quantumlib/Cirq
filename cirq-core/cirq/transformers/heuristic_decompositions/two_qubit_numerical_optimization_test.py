@@ -203,6 +203,26 @@ def test_noise_adaptive_compilation_per_qubit_error_rates() -> None:
     assert result.hardware_fidelity == pytest.approx(expected_fh)
 
 
+def test_noise_adaptive_compilation_triggered_by_single_qubit_error_rates() -> None:
+    """Single-qubit error rates alone switch on noise-adaptive compilation.
+
+    Same target as the paper's Fig. 5 scenario above: exactly decomposable
+    with 3 CZ, while the best 2-CZ approximation has Fd < 1. With a 1%
+    single-qubit error rate, Fu(2 CZ) = Fd * 0.99^6 beats Fu(3 CZ) = 0.99^8,
+    so the shorter decomposition wins even without base gate error rates.
+    """
+    target = random_special_unitary(4, random_state=value.parse_random_state(122))
+    result = two_qubit_gate_numerical_compilation(
+        target, _CZ, single_qubit_error_rates=0.01, target_fidelity=0.9, random_state=22
+    )
+    assert result.num_base_gates == 2
+    assert result.decomposition_fidelity < 1 - 1e-8  # Approximate.
+    assert result.hardware_fidelity is not None
+    n = result.num_base_gates
+    assert result.hardware_fidelity == pytest.approx(0.99 ** (2 * (n + 1)))
+    assert result.success  # Fu > 0.9.
+
+
 def test_local_unitaries_reconstruct_actual_gate() -> None:
     target = random_special_unitary(4, random_state=value.parse_random_state(77))
     result = two_qubit_gate_numerical_compilation(target, _CZ, num_restarts=1, random_state=16)

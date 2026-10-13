@@ -234,7 +234,7 @@ def two_qubit_gate_numerical_compilation(
     target_fidelity: float | None = None,
     max_layers: int = 3,
     base_gate_error_rates: Sequence[float] | None = None,
-    single_qubit_error_rates: float | tuple[float, float] = 0.0,
+    single_qubit_error_rates: float | tuple[float, float] | None = None,
     num_restarts: int = 5,
     maxiter: int = 1000,
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
@@ -260,7 +260,8 @@ def two_qubit_gate_numerical_compilation(
     meets `target_fidelity`, the highest-fidelity decomposition found is
     returned with `success` set to False.
 
-    If `base_gate_error_rates` is given, the compiler additionally accounts
+    If error rates are given (`base_gate_error_rates` and/or
+    `single_qubit_error_rates`), the compiler additionally accounts
     for hardware noise: instead of stopping at the first decomposition meeting
     `target_fidelity`, all (base gate, layer count) combinations up to
     `max_layers` are optimized, and the decomposition maximizing the overall
@@ -286,15 +287,15 @@ def two_qubit_gate_numerical_compilation(
             F_h$.
         max_layers: Maximum number of base gate applications allowed.
         base_gate_error_rates: Optional hardware error rate of each base gate,
-            one per entry of `base_gates`. When given, the compiler maximizes
-            the overall fidelity $F_u = F_d \cdot F_h$ over all (base gate,
-            layer count) combinations instead of stopping at the first
-            decomposition meeting `target_fidelity`.
+            one per entry of `base_gates`. When error rates are given, the
+            compiler maximizes the overall fidelity $F_u = F_d \cdot F_h$
+            over all (base gate, layer count) combinations instead of
+            stopping at the first decomposition meeting `target_fidelity`.
         single_qubit_error_rates: Optional hardware error rate of each
-            single-qubit gate, folded into the hardware fidelity $F_h$ when
-            `base_gate_error_rates` is given. Either a single rate applied to
-            both qubits, or a pair of rates (one per qubit the two-qubit gate
-            acts on), e.g. from per-qubit calibration data.
+            single-qubit gate, folded into the hardware fidelity $F_h$.
+            Either a single rate applied to both qubits, or a pair of rates
+            (one per qubit the two-qubit gate acts on), e.g. from per-qubit
+            calibration data.
         num_restarts: Number of random restarts of the BFGS optimizer per
             (base gate, layer count) pair. Higher values improve accuracy at
             the cost of runtime.
@@ -337,29 +338,32 @@ def two_qubit_gate_numerical_compilation(
         )
     if not all(np.isfinite(gate).all() and linalg.is_unitary(gate) for gate in gates):
         raise ValueError('base_gates must contain only finite unitaries')
-    if base_gate_error_rates is not None:
-        if len(base_gate_error_rates) != gates.shape[0]:
-            raise ValueError(
-                f'Expected one error rate per base gate ({gates.shape[0]}), '
-                f'got {len(base_gate_error_rates)}'
-            )
-        if any(not 0 <= p <= 1 for p in base_gate_error_rates):
-            raise ValueError(
-                f'base_gate_error_rates must be in [0, 1], got {base_gate_error_rates}'
-            )
-    sqe = np.atleast_1d(np.asarray(single_qubit_error_rates, dtype=float))
-    if not 1 <= sqe.size <= 2:
+    noise_adaptive = base_gate_error_rates is not None or single_qubit_error_rates is not None
+    if base_gate_error_rates is None:
+        base_gate_error_rates = [0.0] * gates.shape[0]
+    if len(base_gate_error_rates) != gates.shape[0]:
         raise ValueError(
-            'single_qubit_error_rates must be a single rate or a pair of rates '
-            f'(one per qubit), got {single_qubit_error_rates}'
+            f'Expected one error rate per base gate ({gates.shape[0]}), '
+            f'got {len(base_gate_error_rates)}'
         )
-    single_qubit_error_rate_pair = (sqe[0], sqe[-1])
-    if any(not 0 <= p <= 1 for p in single_qubit_error_rate_pair):
-        raise ValueError(
-            f'single_qubit_error_rates must be in [0, 1], got {single_qubit_error_rates}'
-        )
+    if any(not 0 <= p <= 1 for p in base_gate_error_rates):
+        raise ValueError(f'base_gate_error_rates must be in [0, 1], got {base_gate_error_rates}')
+    if single_qubit_error_rates is None:
+        single_qubit_error_rate_pair = (0.0, 0.0)
+    else:
+        sqe = np.atleast_1d(np.asarray(single_qubit_error_rates, dtype=float))
+        if not 1 <= sqe.size <= 2:
+            raise ValueError(
+                'single_qubit_error_rates must be a single rate or a pair of rates '
+                f'(one per qubit), got {single_qubit_error_rates}'
+            )
+        single_qubit_error_rate_pair = (sqe[0], sqe[-1])
+        if any(not 0 <= p <= 1 for p in single_qubit_error_rate_pair):
+            raise ValueError(
+                f'single_qubit_error_rates must be in [0, 1], got {single_qubit_error_rates}'
+            )
     if target_fidelity is None:
-        if base_gate_error_rates is not None or np.any(sqe != 0):
+        if noise_adaptive:
             raise ValueError(
                 'target_fidelity must be set explicitly when base_gate_error_rates or '
                 'single_qubit_error_rates is given'
@@ -372,7 +376,7 @@ def two_qubit_gate_numerical_compilation(
 
     best: TwoQubitNumericalCompilationResult | None = None
     best_overall = -np.inf
-    if base_gate_error_rates is None:
+    if not noise_adaptive:
         # Layer growth: iterate layer counts in increasing order and return the
         # first (base gate, layer count) meeting the target fidelity. Fall back
         # to the highest-fidelity decomposition if none meets the threshold.
@@ -447,7 +451,7 @@ class TwoQubitNumericalCompiler:
     base_gate_error_rates: tuple[float, ...] | None = None
     target_fidelity: float | None = None
     max_layers: int = 3
-    single_qubit_error_rates: float | tuple[float, float] = 0.0
+    single_qubit_error_rates: float | tuple[float, float] | None = None
     num_restarts: int = 5
     maxiter: int = 1000
     max_cache_size: int = 128
@@ -459,9 +463,8 @@ class TwoQubitNumericalCompiler:
     def __post_init__(self) -> None:
         if self.max_cache_size < 1:
             raise ValueError(f'max_cache_size must be at least 1, got {self.max_cache_size}')
-        sqe = np.atleast_1d(np.asarray(self.single_qubit_error_rates, dtype=float))
         if self.target_fidelity is None and (
-            self.base_gate_error_rates is not None or np.any(sqe != 0)
+            self.base_gate_error_rates is not None or self.single_qubit_error_rates is not None
         ):
             raise ValueError(
                 'target_fidelity must be set explicitly when base_gate_error_rates or '
