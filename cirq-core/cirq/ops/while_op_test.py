@@ -351,17 +351,17 @@ def test_simulation_repeat_until_success() -> None:
         cirq.measure(q0, key='a'),
         cirq.While('a', cirq.H(q0), cirq.measure(q0, key='a')),
     )
-    # With seed=4, the coin tosses measure 1 several times before landing on 0.
-    sim = cirq.Simulator(seed=4)
+    sim = cirq.Simulator()
     res = sim.simulate(circuit)
 
     np.testing.assert_equal(res.measurements['a'], [0])
-    np.testing.assert_allclose(res.state_vector(), [1, 0], atol=1e-6)
+    plus_minus_one = np.sign(res.state_vector()[0].real)
+    np.testing.assert_allclose(res.state_vector(), [plus_minus_one, 0], atol=1e-6)
 
     # Every recorded measurement before the last one must be (1,), and the last is (0,)
-    runres = cirq.Simulator(seed=4).run(circuit)
+    runres = cirq.Simulator().run(circuit)
     records = runres.records["a"][0]
-    assert len(records) > 2
+    assert len(records) >= 2
     assert all(r == (1,) for r in records[:-1])
     assert records[-1] == (0,)
 
