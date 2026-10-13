@@ -49,7 +49,7 @@ class TwoQubitGateTabulationResult(NamedTuple):
     where U_target, U_base are 2-local and k_j are 1-local.
 
     Attributes:
-        base_gate: 4x4 unitary denoting U_base above.
+        base_gate_unitary: 4x4 unitary denoting U_base above.
         target_gate: 4x4 unitary denoting U_target above.
         local_unitaries: Sequence of 2-tuples
             $(k_{00}, k_{01}), (k_{10}, k_{11}) \ldots$ where
@@ -229,18 +229,20 @@ def _outer_locals_for_unitary(
     # kLt = kL kLb --> kL = kLt kLb^\dagger
     # kRt = kRb kR --> kR = kRb\dagger kRt
 
+    # distribute the overall global phase to the four 1-local unitaries
+    gpk = (target_decomp.global_phase * base_decomp.global_phase.conjugate()) ** 0.25
+
     # 0 and 1 are qubit indices.
     kLt0, kLt1 = target_decomp.single_qubit_operations_after
     kLb0, kLb1 = base_decomp.single_qubit_operations_after
-    kL = kLt0 @ kLb0.conj().T, kLt1 @ kLb1.conj().T
+    kL = gpk * kLt0 @ kLb0.conj().T, gpk * kLt1 @ kLb1.conj().T
 
     kRt0, kRt1 = target_decomp.single_qubit_operations_before
     kRb0, kRb1 = base_decomp.single_qubit_operations_before
-    kR = kRb0.conj().T @ kRt0, kRb1.conj().T @ kRt1
+    kR = gpk * kRb0.conj().T @ kRt0, gpk * kRb1.conj().T @ kRt1
 
     actual = np.kron(*kL) @ base
     actual = actual @ np.kron(*kR)
-    actual *= np.conj(target_decomp.global_phase)
 
     return kR, kL, actual
 
