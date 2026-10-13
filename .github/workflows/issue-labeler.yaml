@@ -38,7 +38,7 @@ permissions: {}
 
 jobs:
   label-triage-discuss:
-    name: Add 'triage/discuss' label
+    name: Add 'triage/discuss' label and lock issue
     runs-on: ubuntu-slim
     timeout-minutes: 5
     permissions:
@@ -52,3 +52,4 @@ jobs:
         run: |
           gh issue edit "${ISSUE_NUMBER}" --repo "${{github.repository}}" \
             --add-label "triage/discuss"
+          gh issue lock "${ISSUE_NUMBER}" --repo "${{github.repository}}"
