@@ -125,7 +125,7 @@ class While(raw_types.Operation):
         return frozenset(self._conditions)
 
     def without_classical_controls(self) -> cirq.Operation:
-        raise ValueError('Cannot remove classical controls from a While operation.')
+        raise NotImplementedError('Cannot remove classical controls from a While operation.')
 
     @property
     def qubits(self) -> tuple[cirq.Qid, ...]:

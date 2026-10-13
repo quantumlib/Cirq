@@ -26,7 +26,9 @@ def test_init() -> None:
     assert op.sub_operation == cirq.X(q)
     assert op.qubits == (q,)
     assert op.classical_controls == frozenset([cirq.KeyCondition(cirq.MeasurementKey('m'))])
-    with pytest.raises(ValueError, match='Cannot remove classical controls from a While operation'):
+    with pytest.raises(
+        NotImplementedError, match='Cannot remove classical controls from a While operation'
+    ):
         _ = op.without_classical_controls()
 
 
@@ -434,6 +436,8 @@ def test_commutes() -> None:
 
     assert not cirq.definitely_commutes(while_op, cirq.Z(q0))
     assert not cirq.definitely_commutes(cirq.Moment(while_op), cirq.Moment(cirq.Z(q0)))
+    assert cirq.commutes(while_op, cirq.Z(q1))
+    assert not cirq.commutes(while_op, cirq.measure(q1, key='a'))
 
 
 def test_qasm() -> None:

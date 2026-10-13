@@ -1152,7 +1152,7 @@ def _operations_commutes_impl(
             for op in ops2
             if not shared_qubits.isdisjoint(op.qubits)
         ]
-    except ValueError:
+    except NotImplementedError:
         return NotImplemented
     moment1 = circuits.Moment(ops1_raw)
     moment2 = circuits.Moment(ops2_raw)
