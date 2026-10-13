@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence, Set
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 from cirq import ops, protocols, study, value
 from cirq._compat import proper_repr
@@ -94,7 +94,7 @@ class CallFunctionOperation(ops.Operation):
         """Evaluates the CircuitFunction with function_params and resolves params."""
         circuit = self._circuit_function(*self._function_params)
         if self._param_resolver:
-            circuit = protocols.resolve_parameters(circuit, self._param_resolver)
+            circuit = protocols.resolve_parameters(circuit, self._param_resolver, recursive=False)
         return circuit
 
     def _value_equality_values_(
@@ -120,6 +120,23 @@ class CallFunctionOperation(ops.Operation):
         return CallFunctionOperation(
             self._circuit_function, self._function_params, param_resolver=combined_resolver_dict
         )
+
+    def _json_dict_(self) -> dict[str, Any]:
+        return {
+            'circuit_function': self._circuit_function,
+            'function_params': list(self._function_params),
+            'param_resolver': self._param_resolver,
+        }
+
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        circuit_function: cirq.CircuitFunction,
+        function_params: Sequence[cirq.TParamVal],
+        param_resolver: cirq.ParamResolver,
+        **kwargs: Any,
+    ) -> CallFunctionOperation:
+        return cls(circuit_function, function_params, param_resolver=param_resolver)
 
     def __repr__(self) -> str:
         return (

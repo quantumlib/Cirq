@@ -131,6 +131,16 @@ def test_repr() -> None:
     cirq.testing.assert_equivalent_repr(op)
 
 
+def test_json_serializes_shared_circuit_function_once() -> None:
+    x = sympy.Symbol('x')
+    c = cirq.Circuit(cirq.X(cirq.VariableLineQid(x)))
+    cf = cirq.CircuitFunction("test_function", c, function_params=[x])
+    circuit = cirq.Circuit(cirq.CallFunctionOperation(cf, [i]) for i in range(5))
+
+    json_text = cirq.to_json(circuit)
+    assert json_text.count('"cirq_type": "CircuitFunction"') == 1
+
+
 def test_str() -> None:
     x = sympy.Symbol('x')
     q = cirq.VariableLineQid(x)
