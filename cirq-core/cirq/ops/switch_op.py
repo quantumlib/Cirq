@@ -14,9 +14,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Sequence, Set
 from types import NotImplementedType
-from typing import Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING, cast
 
 from cirq import _compat, protocols, value
 from cirq.ops import raw_types
@@ -44,7 +44,7 @@ class Case:
     """
 
     values: tuple[value.TParamVal, ...]
-    then: raw_types.Operation | cirq.OP_TREE
+    then: raw_types.Operation
 
     def __init__(
         self, values: tuple[value.TParamVal, ...], then: raw_types.Operation | cirq.OP_TREE
@@ -82,10 +82,10 @@ class Case:
         return protocols.is_parameterized(self.then)
 
     @_compat.cached_method
-    def _parameter_names_(self) -> frozenset[str]:
+    def _parameter_names_(self) -> Set[str]:
         return protocols.parameter_names(self.values) | protocols.parameter_names(self.then)
 
-    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Switch:
+    def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Case:
         return Case(
             tuple(protocols.resolve_parameters(val, resolver, recursive) for val in self.values),
             protocols.resolve_parameters(self.then, resolver, recursive),
@@ -184,7 +184,7 @@ class Switch(raw_types.Operation):
         if not self._cases:
             raise ValueError('At least one case must be provided.')
 
-        qubits: set[cirq.Qid] = {q for c in self._cases for q in c.then.qubits}
+        qubits: Set[cirq.Qid] = {q for c in self._cases for q in c.then.qubits}
         if default is not None:
             qubits |= set(default.qubits)
         self._qubits = tuple(sorted(qubits))
@@ -289,11 +289,11 @@ class Switch(raw_types.Operation):
         return any(protocols.is_parameterized(c) for c in self._branches())
 
     @_compat.cached_method
-    def _parameter_names_(self) -> frozenset[str]:
+    def _parameter_names_(self) -> Set[str]:
         name_sets = [protocols.parameter_names(c) for c in self.cases]
         if self.default is not None:
             name_sets.append(protocols.parameter_names(self.default))
-        return set.union(*name_sets)
+        return set.union(*cast(list[set[str]], name_sets))  # make mypy happy
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Switch:
         new_cases = [protocols.resolve_parameters(c, resolver, recursive) for c in self.cases]
@@ -342,7 +342,9 @@ class Switch(raw_types.Operation):
         # Each branch may make use of a different amount of qubits, and may require special
         # formatting which may or may not interact well with each other. To simplify things,
         # just turn everything in circuits and display branches sequentially.
-        circuit_diagram_qubits = args.known_qubits if args is not None else self.qubits
+        circuit_diagram_qubits = self.qubits
+        if args is not None and args.known_qubits is not None:
+            circuit_diagram_qubits = args.known_qubits
         circuit_headers = []
         circuit_displays = []
         for c in self.cases:
@@ -399,7 +401,7 @@ class Switch(raw_types.Operation):
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> tuple[str, ...]:
         circuit_diagram_qubits = args.known_qubits
-        if len(circuit_diagram_qubits) == 0:
+        if circuit_diagram_qubits is None or len(circuit_diagram_qubits) == 0:
             return ()  # pragma: no cover
 
         circuit_diagram = self._draw_circuit_diagram(args)
@@ -425,7 +427,7 @@ class Switch(raw_types.Operation):
         `switch` is only part of OpenQASM 3.1 and later. This method allows emitting it for
         other versions as well.
         """
-        control_expr = args.meas_key_id_map[self.control]
+        control_expr = args.meas_key_id_map[self.control.name]
         cases_exprs = [c.qasm(args=args, qubits=qubits) for c in self.cases]
         default_expr = protocols.qasm(self.default, args=args, qubits=qubits, default=None)
         if any(case_expr is None for case_expr in cases_exprs):
@@ -435,7 +437,7 @@ class Switch(raw_types.Operation):
             padding = ' ' * spaces
             return ''.join(f'{padding}{line}\n' for line in text.split('\n'))
 
-        cases_expr = '\n'.join(cases_exprs)
+        cases_expr = '\n'.join(cast(list[str], cases_exprs))  # make mypy happy
         if self.default is not None:
             if default_expr is None:
                 return None

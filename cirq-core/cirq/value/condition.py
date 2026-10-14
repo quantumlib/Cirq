@@ -346,7 +346,7 @@ class OrCondition(Condition):
     def __repr__(self):
         return f'cirq.OrCondition({self.conditions!r}, invert={self.invert!r})'
 
-    def resolve(self, classical_data: cirq.ClassicalData) -> bool:
+    def resolve(self, classical_data: cirq.ClassicalDataStoreReader) -> bool:
         val = any(c.resolve(classical_data) for c in self.conditions)
         return val if not self.invert else not val
 
