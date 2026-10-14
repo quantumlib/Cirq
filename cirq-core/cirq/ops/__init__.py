@@ -239,8 +239,8 @@ from cirq.ops.swap_gates import (
 )
 
 from cirq.ops.switch_op import (
-    Case,
-    Switch,
+    Case as Case,
+    Switch as Switch,
 )
 
 from cirq.ops.tags import RoutingSwapTag as RoutingSwapTag, VirtualTag as VirtualTag

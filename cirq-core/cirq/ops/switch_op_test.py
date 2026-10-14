@@ -31,6 +31,8 @@ def test_init() -> None:
 def test_init_case_values() -> None:
     q = cirq.LineQubit(0)
     sym = sympy.Symbol('s')
+    with pytest.raises(ValueError, match='Case object needs at least one condition.'):
+        _ = cirq.Case([], cirq.X(q))
     case_sym = cirq.Case((sym,), cirq.X(q))
     op = cirq.Switch('m', [case_sym])
     assert op.cases[0].values == (sym,)
@@ -152,8 +154,21 @@ def test_simulation_run_default() -> None:
 
 
 def test_qasm() -> None:
-    q0, q1 = cirq.LineQubit.range(2)
+    q1 = cirq.LineQubit(1)
     op = cirq.Switch('a', [cirq.Case((0,), cirq.X(q1)), cirq.Case((1,), cirq.Y(q1))])
-    circuit = cirq.Circuit(cirq.measure(q0, key='a'), op)
-    qasm_str = cirq.qasm(circuit, args=cirq.QasmArgs(version='3.0'))
-    assert 'switch' in qasm_str
+    # Note that `switch` is only available after 3.1 but at the time of creating this test, no
+    # operation's _qasm_ function explicitly supports 3.1. To actually evaluate this test, we will
+    # just use 3.0 temporarily.
+    args = cirq.QasmArgs(version='3.0', qubit_id_map={q1: 'q[1]'}, meas_key_id_map={'a': 'm_a'})
+    with pytest.raises(ValueError, match='QASM version 3.0 output is not supported'):
+        _ = cirq.qasm(op, args=args)
+    assert op.qasm(args=args) == (
+        'switch (m_a) {\n'
+        '    case 0 {\n'
+        '        x q[1];\n'
+        '    }\n'
+        '    case 1 {\n'
+        '        y q[1];\n'
+        '    }\n'
+        '}'
+    )

@@ -16,8 +16,8 @@ from __future__ import annotations
 
 import abc
 import dataclasses
-from collections.abc import Mapping
-from typing import Any, TYPE_CHECKING
+from collections.abc import Mapping, Sequence
+from typing import Any, Tuple, TYPE_CHECKING
 
 import attrs
 import sympy
@@ -322,7 +322,8 @@ class SympyCondition(Condition):
 class OrCondition(Condition):
     """Implements logical OR for classical condition evaluation."""
 
-    conditions: Sequence[Condition]
+    # Tuple (or any hashable sequence) is required.
+    conditions: Tuple[Condition]
     invert: bool = False
 
     def __post_init__(self):
@@ -340,6 +341,9 @@ class OrCondition(Condition):
             tuple(c.replace_key(current, replacement) for c in self.conditions), invert=self.invert
         )
 
+    def __repr__(self):
+        return f'cirq.OrCondition({self.conditions!r}, invert={self.invert!r})'
+
     def resolve(self, classical_data: cirq.ClassicalData) -> bool:
         val = any(c.resolve(classical_data) for c in self.conditions)
         return val if not self.invert else not val
@@ -353,18 +357,16 @@ class OrCondition(Condition):
         return qasm if not self.invert else f'!{qasm}'
 
     def _qasm_(self, args: cirq.QasmArgs, **kwargs) -> str | None:
-        args.validate_version('2.0', '3.0')
-        if args.version == "2.0" and len(self._conditions) > 1:
+        args.validate_version('2.0', '3.0', '3.1')
+        if args.version == "2.0" and len(self.conditions) > 1:
             raise ValueError(
                 'QASM 2.0 does not support multiple conditions. Consider exporting with QASM 3.0.'
             )
         return self.qasm
 
-    # JSON Serialization
-
     def _json_dict_(self) -> dict[str, Any]:
         return json_serialization.dataclass_json_dict(self)
 
     @classmethod
-    def _from_json_dict_(cls, key, **kwargs):
-        return cls(key=key)
+    def _from_json_dict_(cls, conditions, invert=False, **kwargs):
+        return cls(conditions=conditions, invert=invert)

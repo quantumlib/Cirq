@@ -14,13 +14,10 @@
 
 from __future__ import annotations
 
-import dataclasses
-import numbers
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Sequence
 from types import NotImplementedType
-from typing import Any, List, TYPE_CHECKING, Tuple, Union
+from typing import Any, TYPE_CHECKING
 
-import sympy
 
 from cirq import _compat, protocols, value
 from cirq.ops import raw_types
@@ -47,12 +44,14 @@ class Case:
     `MeasurementKey` associated with `Switch`.
     """
 
-    values: Tuple[value.TParamVal, ...]
+    values: tuple[value.TParamVal, ...]
     then: raw_types.Operation | cirq.OP_TREE
 
     def __init__(
-        self, values: Tuple[value.TParamVal, ...], then: raw_types.Operation | cirq.OP_TREE
+        self, values: tuple[value.TParamVal, ...], then: raw_types.Operation | cirq.OP_TREE
     ):
+        if len(values) == 0:
+            raise ValueError('Case object needs at least one condition.')
         self.values = values
         self.then = _op_or_circuit_op(then)
 
@@ -103,11 +102,14 @@ class Case:
             from cirq.protocols.qasm import QasmArgs
 
             args = QasmArgs()
-        # args.validate_version('3.1')
-        print(args.meas_key_id_map)
-        int_const_list_expr = ', '.join(str(val) for val in self.values)
 
-        from cirq.circuits import CircuitOperation
+        args.validate_version('3.1')
+        return self.qasm(args=args, qubits=qubits)
+
+    def qasm(
+        self, *, args: cirq.QasmArgs | None = None, qubits: Sequence[cirq.Qid] | None = None
+    ) -> str | None:
+        int_const_list_expr = ', '.join(str(val) for val in self.values)
 
         ops_qasm = protocols.qasm(self.then, args=args, qubits=qubits)
         if ops_qasm is None:
@@ -117,6 +119,13 @@ class Case:
 
     def _value_equality_values_(self) -> Any:
         return self.values, self.then
+
+    def _json_dict_(self) -> dict[str, Any]:
+        return {'values': self.values, 'then': self.then}
+
+    @classmethod
+    def _from_json_dict_(cls, values, then, **kwargs) -> Case:
+        return cls(tuple(values), then)
 
 
 @value.value_equality
@@ -131,12 +140,12 @@ class Switch(raw_types.Operation):
         * It takes in a `control` MeasurementKey.
         * It sequentially iterates over all `Case` objects in insertion order, and checks whether
           its values matches the recorded value at `control`.
-            * If any of the values match `control`, the operation sequence associated with the `Case`
-              object is run.
+            * If any of the values match `control`, the operation sequence associated with the
+              `Case` object is run.
             * Multiple `Case` objects may contain similar values. Multiple `Case` objects may match
               `control`, at which point each of them will be run.
-        * If a `default` operation sequence is supplied, then it is run if none of the `Case` objects
-          match.
+        * If a `default` operation sequence is supplied, then it is run if none of the `Case`
+          objects match.
     """
 
     def __init__(
@@ -176,12 +185,10 @@ class Switch(raw_types.Operation):
         if not self._cases:
             raise ValueError('At least one case must be provided.')
 
-        qubits: List[cirq.Qid] = set(q for c in self._cases for q in c.then.qubits)
+        qubits: set[cirq.Qid] = {q for c in self._cases for q in c.then.qubits}
         if default is not None:
-            qubits |= set(q for q in default.qubits)
+            qubits |= set(default.qubits)
         self._qubits = tuple(sorted(qubits))
-
-    # --- Properties ----------------------------------------------------------------------
 
     @property
     def control(self) -> cirq.MeasurementKey:
@@ -201,8 +208,6 @@ class Switch(raw_types.Operation):
     def _branches(self) -> list[raw_types.Operation]:
         ops = [c.then for c in self._cases]
         return ops if self._default is None else [*ops, self._default]
-
-    # --- raw_types.Operation overrides ---------------------------------------------------
 
     @property
     def qubits(self) -> tuple[cirq.Qid, ...]:
@@ -240,8 +245,6 @@ class Switch(raw_types.Operation):
                 seq.append(branch_no_control)
         return CircuitOperation(FrozenCircuit(seq))
 
-    # --- Measurement key protocol --------------------------------------------------------
-
     def _control_key_objs(self) -> frozenset[cirq.MeasurementKey]:
         return frozenset(value.SympyCondition(self._control).keys)
 
@@ -253,13 +256,10 @@ class Switch(raw_types.Operation):
         return NotImplemented
 
     def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
-        control_keys = set([self.control])
+        control_keys = {self.control}
         for branch in self._branches():
-            for key in protocols.control_keys(branch):
-                control_keys.add(key)
+            control_keys.update(protocols.control_keys(branch))
         return frozenset(control_keys)
-
-    # --- Decomposition protocol ----------------------------------------------------------
 
     def _decompose_(self) -> cirq.OP_TREE | NotImplementedType:
         case_conditions = []
@@ -277,8 +277,6 @@ class Switch(raw_types.Operation):
             )
         return decomposed
 
-    # --- Operation protocol -------------------------------------------------------------
-
     def _act_on_(self, sim_state: cirq.SimulationStateBase) -> bool:
         acted = False
         for c in self.cases:
@@ -288,8 +286,6 @@ class Switch(raw_types.Operation):
         if not acted and self._default is not None:
             protocols.act_on(self._default, sim_state)
         return True
-
-    # --- Parameters: ---------------------------------------------------------------------
 
     @_compat.cached_method
     def _is_parameterized_(self) -> bool:
@@ -311,20 +307,23 @@ class Switch(raw_types.Operation):
         )
         return Switch(self.control, new_cases, new_default)
 
-    # --- Equality --------------------------------------------------------------------
-
     def _value_equality_values_(self) -> Any:
         return self._control, self._cases, self._default
 
-    # --- Representation --------------------------------------------------------------
+    def _json_dict_(self) -> dict[str, Any]:
+        return {'control': self._control, 'cases': self._cases, 'default': self._default}
+
+    @classmethod
+    def _from_json_dict_(cls, control, cases, default=None, **kwargs) -> Switch:
+        return cls(control, cases, default)
 
     def _draw_circuit_diagram(self, args: cirq.CircuitDiagramInfoArgs | None = None) -> str:
         from cirq.circuits import Circuit, CircuitOperation
 
         """Draws a circuit diagram.
 
-        The diagram is represented as a sequence of circuit diagrams representing the case and default
-        branches, for example:
+        The diagram is represented as a sequence of circuit diagrams representing the case and
+        default branches, for example:
 
         ```
         Switch(cond, | Case (2,):     | Case (0, 1):       | Default:   |
@@ -365,7 +364,7 @@ class Switch(raw_types.Operation):
             default_circuit_display = default_circuit.to_text_diagram(
                 qubit_order=circuit_diagram_qubits
             )
-            circuit_headers.append(f'Default:')
+            circuit_headers.append('Default:')
             circuit_displays.append(default_circuit_display.split('\n'))
         lines = [''] + [
             '...' for _ in range(max(len(circuit_display) for circuit_display in circuit_displays))
@@ -380,7 +379,7 @@ class Switch(raw_types.Operation):
         for circuit_idx, (circuit_header, circuit_display) in enumerate(
             zip(circuit_headers, circuit_displays)
         ):
-            circuit_lines = [circuit_header] + circuit_display
+            circuit_lines = [circuit_header, *circuit_display]
             max_len = max(len(line) for line in circuit_lines)
             circuit_lines = [line.ljust(max_len) for line in circuit_lines]
             for idx in range(len(lines)):
@@ -404,7 +403,7 @@ class Switch(raw_types.Operation):
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> tuple[str, ...]:
         circuit_diagram_qubits = args.known_qubits
         if len(circuit_diagram_qubits) == 0:
-            return tuple()
+            return ()
 
         circuit_diagram = self._draw_circuit_diagram(args)
         other_lines = tuple(f'#{idx + 1}' for idx in range(1, len(circuit_diagram_qubits)))
@@ -419,11 +418,24 @@ class Switch(raw_types.Operation):
             from cirq.protocols.qasm import QasmArgs
 
             args = QasmArgs()
-        # args.validate_version('3.1')
+
+        args.validate_version('3.1')
+        return self.qasm(args=args, qubits=qubits)
+
+    def qasm(
+        self, *, args: cirq.QasmArgs | None = None, qubits: Sequence[cirq.Qid] | None = None
+    ) -> str | None:
+        """Returns the QASM for this `Switch`, bypassing the QASM version check.
+
+        `switch` is only part of OpenQASM 3.1 and later. This method allows emitting it for
+        other versions as well.
+        """
+        if args is None:
+            from cirq.protocols.qasm import QasmArgs
+
+            args = QasmArgs()
         control_expr = args.meas_key_id_map[self.control]
-        cases_exprs = [
-            protocols.qasm(c, args=args, qubits=qubits, default=None) for c in self.cases
-        ]
+        cases_exprs = [c.qasm(args=args, qubits=qubits) for c in self.cases]
         default_expr = protocols.qasm(self.default, args=args, qubits=qubits, default=None)
         if any(case_expr is None for case_expr in cases_exprs):
             return None
