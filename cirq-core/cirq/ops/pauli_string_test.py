@@ -2156,6 +2156,25 @@ def test_try_interpret_as_pauli_string() -> None:
     x_squared = x_gate**2
     assert _try_interpret_as_pauli_string(x_squared) == cirq.PauliString({q: cirq.I})
 
+    # powered gates with global_shift
+    x_shifted = cirq.XPowGate(exponent=1, global_shift=1)(q)
+    assert _try_interpret_as_pauli_string(x_shifted) == -cirq.X(q)
+
+    x2_shifted = cirq.XPowGate(exponent=2, global_shift=0.5)(q)
+    assert _try_interpret_as_pauli_string(x2_shifted) == -cirq.PauliString()
+
+    y_shifted = cirq.YPowGate(exponent=1, global_shift=1)(q)
+    assert _try_interpret_as_pauli_string(y_shifted) == -cirq.Y(q)
+
+    z_shifted = cirq.ZPowGate(exponent=1, global_shift=1)(q)
+    assert _try_interpret_as_pauli_string(z_shifted) == -cirq.Z(q)
+
+    z2_shifted = cirq.ZPowGate(exponent=2, global_shift=1)(q)
+    assert _try_interpret_as_pauli_string(z2_shifted) == cirq.PauliString()
+
+    # arithmetic with PauliSum respects global_shift
+    assert cirq.Z(q) + x_shifted == cirq.Z(q) - cirq.X(q)
+
     # non-Pauli operation
     h_gate = cirq.H(q)
     assert _try_interpret_as_pauli_string(h_gate) is None
