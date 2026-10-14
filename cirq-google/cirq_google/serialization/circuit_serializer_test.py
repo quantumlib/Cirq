@@ -62,7 +62,7 @@ Q1 = cirq.GridQubit(2, 5)
 
 X_PROTO = op_proto({'xpowgate': {'exponent': {'float_value': 1.0}}, 'qubit_constant_index': [0]})
 
-# TODO(#5758): Add support for numpy types to `TParamVal`.
+# TODO(#5758): Add support for NumPy types to `TParamVal`.
 OPERATIONS = [
     (cirq.X(Q0), X_PROTO),
     (
@@ -633,7 +633,7 @@ def test_serialize_deserialize_circuit_with_constants_table():
     assert serializer.deserialize(proto) == circuit
 
 
-def test_deserialize_circuit_with_mixed_moments_and_indicies_not_allowed():
+def test_deserialize_circuit_with_mixed_moments_and_indices_not_allowed():
     serializer = cg.CircuitSerializer()
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),

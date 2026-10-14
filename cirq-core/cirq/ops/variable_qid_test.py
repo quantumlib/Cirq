@@ -286,8 +286,11 @@ def test_variable_grid_qid_repr_and_str():
     assert str(q) == "v(r, c) (d=2)"
 
 
-@pytest.mark.xfail(reason="VariableQid does not work with the simulator (yet).")
-def test_variable_grid_qid_simulation():
+@pytest.mark.parametrize(
+    'sim',
+    [cirq.Simulator(split_untangled_states=False), cirq.Simulator(), cirq.DensityMatrixSimulator()],
+)
+def test_variable_grid_qid_simulation(sim):
     """VariableQid does not work with simulator sweeps
 
     Since the addition of SetVariable, VariableQids can not be
@@ -297,6 +300,29 @@ def test_variable_grid_qid_simulation():
     r, c = sympy.symbols('r c')
     q = cirq.VariableGridQid(r, c)
     q00 = cirq.GridQubit(0, 0)
+
     circuit = cirq.Circuit(cirq.Moment(cirq.X(q00)), cirq.Moment(cirq.measure(q, key='m')))
-    sim = cirq.Simulator()
-    _ = sim.run_sweep(circuit, params=[{'r': 0, 'c': 0}, {'r': 1, 'c': 2}])
+    results = sim.run_sweep(circuit, params=[{'r': 0, 'c': 0}, {'r': 1, 'c': 2}])
+    assert results[0].measurements['m'] == 1
+    assert results[1].measurements['m'] == 0
+
+    circuit = cirq.Circuit(
+        cirq.Moment(cirq.X(q00)),
+        cirq.Moment(cirq.SetVariable(r, 0), cirq.SetVariable(c, 0)),
+        cirq.Moment(cirq.measure(q, key='m')),
+    )
+    results = sim.run(circuit)
+    assert results.measurements['m'] == 1
+
+    circuit = cirq.Circuit(
+        cirq.Moment(cirq.X(q00)),
+        cirq.Moment(cirq.SetVariable(r, 0), cirq.SetVariable(c, 1)),
+        cirq.Moment(cirq.measure(q, key='m')),
+    )
+    results = sim.run(circuit)
+    assert results.measurements['m'] == 0
+
+    # check that unresolved variableqids cause an error
+    circuit = cirq.Circuit(cirq.X(q), cirq.measure(q00, key='m'))
+    with pytest.raises(ValueError, match="Circuit contains ops whose symbols were not specified"):
+        sim.run(circuit)

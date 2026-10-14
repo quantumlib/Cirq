@@ -65,15 +65,15 @@ def quantum_shannon_decomposition(
 
     Args:
         qubits: List of qubits in order of significance
-        u: Numpy array for unitary matrix representing gate to be decomposed
+        u: NumPy array for unitary matrix representing gate to be decomposed
         atol: Absolute tolerance of floating point checks.
 
     Calls:
         (Base Case)
-        1. _single_qubit_decomposition
+        1. `_single_qubit_decomposition`
             OR
         (Recursive Case)
-        1. _recursive_decomposition
+        1. `_recursive_decomposition`
 
     Yields:
         A single 2-qubit or 1-qubit operations from OP TREE
@@ -158,12 +158,12 @@ def _recursive_decomposition(qubits: Sequence[cirq.Qid], u: np.ndarray) -> Itera
 
     Args:
         qubits: List of qubits in order of significance
-        u: Numpy array for unitary matrix representing gate to be decomposed
+        u: NumPy array for unitary matrix representing gate to be decomposed
 
     Calls:
-        1. _msb_demuxer
-        2. _multiplexed_cossin
-        3. _msb_demuxer
+        1. `_msb_demuxer`
+        2. `_multiplexed_cossin`
+        3. `_msb_demuxer`
 
     Yields:
         Generic 2-qubit gates or operations from {ry,rz,CNOT,CZ}.
@@ -231,7 +231,7 @@ def _single_qubit_decomposition(qubit: cirq.Qid, u: np.ndarray) -> Iterator[cirq
 
     Args:
         qubit: Qubit on which to apply operations
-        u: (2 x 2) Numpy array for unitary representing 1-qubit gate to be decomposed
+        u: (2 x 2) NumPy array for unitary representing 1-qubit gate to be decomposed
 
     Yields:
         A single operation from OP TREE of 3 operations (rz,ry,ZPowGate)
@@ -287,9 +287,9 @@ def _msb_demuxer(
         u2: Lower-right quadrant of total unitary to be decomposed (see diagram)
 
     Calls:
-        1. _recursive_decomposition
-        2. _multiplexed_cossin
-        3. _recursive_decomposition
+        1. `_recursive_decomposition`
+        2. `_multiplexed_cossin`
+        3. `_recursive_decomposition`
 
     Yields:
         Generic 2-qubit gates on the two least significant qubits,

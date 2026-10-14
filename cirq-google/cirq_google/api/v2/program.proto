@@ -382,7 +382,7 @@ message Operation {
   repeated int32 tag_indices = 23;
 
   // Classical conditions
-  // Note that this condition is not a sympy expression
+  // Note that this condition is not a SymPy expression
   // as it has a relation such as "==", "<" etc
   repeated Arg conditioned_on = 25;
 }
@@ -575,7 +575,7 @@ message RepeatedDouble {
 message RepeatedString {
   repeated string values = 1;
 }
-// A repeated boolean value.
+// A repeated Boolean value.
 message RepeatedBoolean {
   repeated bool values = 1;
 }
@@ -583,7 +583,7 @@ message RepeatedBoolean {
 // Representation of a mixed tuple of values
 message Tuple {
 
-  // Original (python) type of the data
+  // Original (Python) type of the data
   enum SequenceType {
     UNSPECIFIED = 0;
     LIST = 1;

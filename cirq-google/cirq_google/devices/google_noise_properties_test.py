@@ -41,7 +41,7 @@ DEFAULT_GATE_NS: dict[type, float] = {
     # cirq.WaitGate is a special case.
 }
 
-# Mock pauli error rates for 1- and 2-qubit gates.
+# Mock Pauli error rates for 1- and 2-qubit gates.
 SINGLE_QUBIT_ERROR = 0.001
 TWO_QUBIT_ERROR = 0.01
 

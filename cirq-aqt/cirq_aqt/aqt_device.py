@@ -191,7 +191,7 @@ class AQTSimulator:
         self.simulate_ideal = simulate_ideal
 
     def generate_circuit_from_list(self, json_string: str) -> None:
-        """Generates a list of cirq operations from a json string.
+        """Generates a list of cirq operations from a JSON string.
 
         The default behavior is to add a measurement to any qubit at the end
         of the circuit as there are no measurements defined in the AQT API.
@@ -216,7 +216,7 @@ class AQTSimulator:
                 qubits = [self.qubit_list[i] for i in circuit_list[2]]
                 self.circuit.append(gate.on(*qubits) ** angle)
         # TODO: Better solution for measurement at the end.
-        # Github issue: https://github.com/quantumlib/Cirq/issues/2199
+        # GitHub issue: https://github.com/quantumlib/Cirq/issues/2199
         self.circuit.append(cirq.measure(*self.qubit_list, key='m'))
 
     def simulate_samples(self, repetitions: int) -> cirq.Result:

@@ -22,9 +22,9 @@ message ParameterSweep {
   ProductSweep sweep = 2;
 }
 
-// A cartesian product of parameter sweeps.
+// A Cartesian product of parameter sweeps.
 message ProductSweep {
-  // A list of parameter sweeps to combine into a cartesian sweep.
+  // A list of parameter sweeps to combine into a Cartesian sweep.
   //
   // Example: if one of the factors assigns
   // "a": 0.0

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Converts cirq circuits into latex using qcircuit."""
+"""Converts cirq circuits into LaTeX using qcircuit."""
 
 from cirq.contrib.qcircuit.qcircuit_diagram import (
     circuit_to_latex_using_qcircuit as circuit_to_latex_using_qcircuit,

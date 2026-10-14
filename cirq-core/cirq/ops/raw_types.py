@@ -471,7 +471,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return protocols.commutes(self(*qs), other(*qs))
 
     def _mul_with_qubits(self, qubits: tuple[cirq.Qid, ...], other):
-        """cirq.GateOperation.__mul__ delegates to this method."""
+        """`cirq.GateOperation.__mul__` delegates to this method."""
         from cirq.ops.pauli_string import _try_interpret_as_pauli_string
 
         if (as_pauli_string := _try_interpret_as_pauli_string(self.on(*qubits))) is not None:
@@ -479,7 +479,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return NotImplemented
 
     def _rmul_with_qubits(self, qubits: tuple[cirq.Qid, ...], other):
-        """cirq.GateOperation.__rmul__ delegates to this method."""
+        """`cirq.GateOperation.__rmul__` delegates to this method."""
         from cirq.ops.pauli_string import _try_interpret_as_pauli_string
 
         if (as_pauli_string := _try_interpret_as_pauli_string(self.on(*qubits))) is not None:
@@ -708,7 +708,7 @@ class Operation(metaclass=abc.ABCMeta):
 
         Args:
             *conditions: A list of measurement keys, strings that can be parsed
-                into measurement keys, or sympy expressions where the free
+                into measurement keys, or SymPy expressions where the free
                 symbols are measurement key strings.
 
         Returns:
