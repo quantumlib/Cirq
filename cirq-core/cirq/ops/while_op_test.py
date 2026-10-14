@@ -253,6 +253,70 @@ a: ════════════════════
     )
 
 
+def test_diagram_circuit_operation_body() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    rus_circuit = cirq.Circuit(
+        cirq.X(q0),
+        cirq.measure(q0, key='a'),
+        cirq.While('a', cirq.H(q0), cirq.measure(q0, key='a')),
+    )
+    cirq.testing.assert_has_diagram(
+        rus_circuit,
+        """
+0: ───X───M───While(a, [ 0: ───H───M('a')─── ])───
+          ║   ║
+a: ═══════@═══╩═══════════════════════════════════
+""",
+        use_unicode_characters=True,
+    )
+
+    multi_qubit_circuit = cirq.Circuit(
+        cirq.X(q0),
+        cirq.X(q1),
+        cirq.measure(q0, q1, key='a'),
+        cirq.While('a', cirq.X(q1), cirq.CNOT(q1, q0), cirq.measure(q0, q1, key='a')),
+    )
+    cirq.testing.assert_has_diagram(
+        multi_qubit_circuit,
+        """
+              While(a, [ 0: ───────X───M('a')─── ]
+0: ───X───M───         [           │   │         ]────
+          ║            [ 1: ───X───@───M──────── ])
+          ║   ║
+1: ───X───M───#2──────────────────────────────────────
+          ║   ║
+a: ═══════@═══╩═══════════════════════════════════════
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_diagram_nested_while() -> None:
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+        cirq.measure(q1, key='b'),
+        cirq.While('a', cirq.While('b', cirq.X(q2))),
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+      ┌──┐
+0: ────M───────────────────────────
+       ║
+1: ────╫M──────────────────────────
+       ║║
+2: ────╫╫────X(While=b)(While=a)───
+       ║║    ║
+a: ════@╬════^═════════════════════
+        ║    ║
+b: ═════@════^═════════════════════
+      └──┘
+""",
+        use_unicode_characters=True,
+    )
+
+
 def test_simulation_initially_false() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     invoked = False
@@ -387,6 +451,61 @@ def test_simulation_run_repetitions() -> None:
     np.testing.assert_equal(res.records['a'][:, -1, 0], np.zeros(repetitions, dtype=int))
 
 
+def test_simulation_nested_while() -> None:
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    # Outer loop counts down 2-qubit integer 'a' on (q0, q1) from 2 (10) -> 1 (01) -> 0 (00).
+    # In each outer iteration, q2 is set to |1> ('b' = 1), and the inner While loop clears
+    # q2 back to |0> ('b' = 0).
+    circuit = cirq.Circuit(
+        cirq.X(q0),
+        cirq.measure(q0, q1, key='a'),
+        cirq.While(
+            'a',
+            cirq.X(q2),
+            cirq.measure(q2, key='b'),
+            cirq.While('b', cirq.X(q2), cirq.measure(q2, key='b')),
+            cirq.X(q1),
+            cirq.CNOT(q1, q0),
+            cirq.measure(q0, q1, key='a'),
+        ),
+    )
+    sim = cirq.Simulator()
+    res = sim.simulate(circuit)
+    np.testing.assert_equal(res.measurements['a'], [0, 0])
+    np.testing.assert_equal(res.measurements['b'], [0])
+    np.testing.assert_equal(res.state_vector(), [1, 0, 0, 0, 0, 0, 0, 0])
+
+    runres = sim.run(circuit)
+    np.testing.assert_array_equal(runres.records['a'], [[[1, 0], [0, 1], [0, 0]]])
+    np.testing.assert_array_equal(runres.records['b'], [[[1], [0], [1], [0]]])
+
+    # Directly nested While(a, While(b, ...)) where sub_operation is a While operation.
+    direct_nested_circuit = cirq.Circuit(
+        cirq.X(q0),
+        cirq.X(q1),
+        cirq.measure(q0, key='a'),
+        cirq.measure(q1, key='b'),
+        cirq.While(
+            'a',
+            cirq.While(
+                'b',
+                cirq.CNOT(q1, q0),
+                cirq.X(q1),
+                cirq.measure(q0, key='a'),
+                cirq.measure(q1, key='b'),
+            ),
+        ),
+    )
+    res_direct = sim.simulate(direct_nested_circuit)
+    np.testing.assert_equal(res_direct.measurements['a'], [0])
+    np.testing.assert_equal(res_direct.measurements['b'], [0])
+    np.testing.assert_equal(res_direct.state_vector(), [1, 0, 0, 0])
+
+    runres_direct = sim.run(direct_nested_circuit)
+    np.testing.assert_array_equal(runres_direct.records['a'], [[[1], [0]]])
+    np.testing.assert_array_equal(runres_direct.records['b'], [[[1], [0]]])
+
+
 def test_key_mappings_and_scoping() -> None:
     q = cirq.LineQubit(0)
     op = cirq.While('a', cirq.X(q))
@@ -461,6 +580,11 @@ def test_qasm() -> None:
     circuit_meas = cirq.Circuit(cirq.measure(q0, q1, key='a'), op_meas)
     qasm_meas = cirq.qasm(circuit_meas, args=cirq.QasmArgs(version='3.0'))
     assert 'while (m_a!=0) {\n  m_a[0] = measure q[0];\n  m_a[1] = measure q[1];\n}' in qasm_meas
+
+    op_nested = cirq.While('a', cirq.While('b', cirq.X(q1)))
+    circuit_nested = cirq.Circuit(cirq.measure(q0, key='a'), cirq.measure(q0, key='b'), op_nested)
+    qasm_nested = cirq.qasm(circuit_nested, args=cirq.QasmArgs(version='3.0'))
+    assert 'while (m_a!=0) {\n  while (m_b!=0) {\n    x q[1];\n  }\n}' in qasm_nested
 
 
 def test_qasm_sub_op_no_qasm() -> None:
