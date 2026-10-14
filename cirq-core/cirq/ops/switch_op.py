@@ -18,7 +18,6 @@ from collections.abc import Iterable, Sequence
 from types import NotImplementedType
 from typing import Any, TYPE_CHECKING
 
-
 from cirq import _compat, protocols, value
 from cirq.ops import raw_types
 
@@ -62,10 +61,10 @@ class Case:
             k: The key to match against.
         """
         return value.OrCondition(
-            [
+            tuple(
                 value.BitMaskKeyCondition(k, target_value=val, equal_target=True)
                 for val in self.values
-            ]
+            )
         )
 
     def check(self, k: cirq.MeasurementKey, classical_data: cirq.ClassicalDataStoreReader) -> bool:
@@ -266,13 +265,13 @@ class Switch(raw_types.Operation):
         decomposed = []
         for c in self.cases:
             case_condition = c.get_condition(self.control)
-            case_conditions.append(case_conditions)
+            case_conditions.append(case_condition)
             decomposed.append(c.then.with_classical_controls(case_condition))
         if self.default is not None:
             # Implement the "default" condition as "none of the case conditions".
             decomposed.append(
                 self.default.with_classical_controls(
-                    value.OrCondition(case_conditions, invert=True)
+                    value.OrCondition(tuple(case_conditions), invert=True)
                 )
             )
         return decomposed

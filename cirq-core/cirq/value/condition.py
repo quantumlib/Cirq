@@ -322,14 +322,15 @@ class SympyCondition(Condition):
 class OrCondition(Condition):
     """Implements logical OR for classical condition evaluation."""
 
-    conditions: tuple[Condition]
+    conditions: tuple[Condition, ...]
     invert: bool = False
 
     def __post_init__(self):
         if not self.conditions:
             raise ValueError('At least one condition must be provided.')
-        # Wrap conditions around a tuple if not already, to maintain hashability.
-        self.conditions = tuple(self.conditions)
+        # Wrap conditions around a tuple if not already, to maintain hashability. The dataclass is
+        # frozen, so the field must be set via `object.__setattr__`.
+        object.__setattr__(self, 'conditions', tuple(self.conditions))
 
     @property
     def keys(self) -> tuple[cirq.MeasurementKey, ...]:
