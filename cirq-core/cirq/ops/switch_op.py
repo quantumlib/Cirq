@@ -176,7 +176,7 @@ class Switch(raw_types.Operation):
         self._control: value.MeasurementKey = (
             control if isinstance(control, value.MeasurementKey) else value.MeasurementKey(control)
         )
-        self._cases: tuple[Case, ...] = cases
+        self._cases: tuple[Case, ...] = tuple(cases)
         if default is not None:
             default = _op_or_circuit_op(default)
         self._default: raw_types.Operation | None = default
@@ -395,7 +395,7 @@ class Switch(raw_types.Operation):
         return self._draw_circuit_diagram()
 
     def __repr__(self) -> str:
-        cases = ','.join([f'\n    {repr(c)}' for c in self.cases]).replace('\n', '\n    ')
+        cases = ''.join([f'\n    {repr(c)},' for c in self.cases]).replace('\n', '\n    ')
         default = '' if self._default is None else f'\n    default={self._default!r}'
         return f'cirq.Switch({self._control!r}, ({cases}\n    ),{default}\n)'
 
