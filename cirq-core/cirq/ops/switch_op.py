@@ -419,9 +419,7 @@ class Switch(raw_types.Operation):
         args.validate_version('3.1')
         return self.qasm(args=args, qubits=qubits)
 
-    def qasm(
-        self, *, args: cirq.QasmArgs, qubits: Sequence[cirq.Qid] | None = None
-    ) -> str | None:
+    def qasm(self, *, args: cirq.QasmArgs, qubits: Sequence[cirq.Qid] | None = None) -> str | None:
         """Returns the QASM for this `Switch`, bypassing the QASM version check.
 
         `switch` is only part of OpenQASM 3.1 and later. This method allows emitting it for
