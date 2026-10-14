@@ -112,7 +112,7 @@ def _clifford_ladder(qubits: Sequence[cirq.Qid], as_clifford_gates: bool) -> lis
 
 
 def _plus_state(qubits: Sequence[cirq.Qid]) -> np.ndarray:
-    """Returns the |+>^n state vector; any Pauli string containing Y or Z has expectation 0 on it."""
+    """Returns the |+>^n state vec,; any Pauli string containing Y or Z has expectation 0 on it."""
     return cirq.Circuit(cirq.H.on_each(*qubits)).final_state_vector(dtype=np.complex64)
 
 
