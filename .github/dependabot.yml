@@ -22,6 +22,8 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
     groups:
       # Ideally, we would group all monthly updates together into 1 group,
       # but Dependabot does not support that. The best we can do is 2 groups.
@@ -44,6 +46,8 @@ updates:
     directory: "/cirq-web/cirq_web/"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
     versioning-strategy: "widen"
     ignore:
       - dependency-name: "chai"
@@ -65,9 +69,17 @@ updates:
       - "kind/health"
 
   - package-ecosystem: "pip"
-    directory: "/dev_tools/requirements/deps"
+    directories:
+      - "/cirq-*"
+      - "/dev_tools/requirements/deps"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
+    exclude-paths:
+      # Dependabot cannot process specifications for editable packages.
+      # Their requirements are covered by the "/cirq-*" pattern above.
+      - "dev_tools/requirements/deps/cirq-all-no-contrib.txt"
     versioning-strategy: "increase-if-necessary"
     labels:
       - "area/dependencies"
