@@ -19,6 +19,8 @@ from __future__ import annotations
 from collections.abc import Sequence, Set
 from typing import Any, TYPE_CHECKING
 
+import sympy
+
 from cirq import ops, protocols, study, value
 from cirq._compat import proper_repr
 from cirq.circuits.circuit_function import CircuitFunction
@@ -67,7 +69,19 @@ class CallFunctionOperation(ops.Operation):
         self._circuit_function = circuit_function
         self._function_params = tuple(function_params)
         self._param_resolver = study.ParamResolver(param_resolver)
-        self._qubits = tuple(sorted(self._circuit_function.all_qubits()))
+
+        # resolve qubits if they are parameterized
+        function_param_mapping = dict(zip(self._circuit_function.function_params, self._function_params))
+        self._qubits = tuple(
+            sorted(
+                protocols.resolve_parameters(
+                    protocols.resolve_parameters(q, function_param_mapping, recursive=False),
+                    self._param_resolver,
+                    recursive=False,
+                )
+                for q in self._circuit_function.all_qubits()
+            )
+        )
 
     @property
     def circuit_function(self) -> cirq.CircuitFunction:
@@ -103,22 +117,37 @@ class CallFunctionOperation(ops.Operation):
         return (self._circuit_function, self._function_params, self._param_resolver)
 
     def _is_parameterized_(self) -> bool:
-        """Returns True if there are parameters that are not function parameters."""
+        """Returns True if the called circuit still contains unresolved parameters."""
         return bool(self._parameter_names_())
 
+    def _unresolved_parameter_names(self) -> set[str]:
+        """Returns the parameters of the decomposed circuit before `param_resolver` is applied."""
+        bound = {p.name for p in self._circuit_function.function_params}
+        names = set(protocols.parameter_names(self._circuit_function.circuit)) - bound
+        for arg in self._function_params:
+            names |= protocols.parameter_names(arg)
+        return names
+
     def _parameter_names_(self) -> Set[str]:
-        """Returns all parameters that are not function parameters."""
-        function_param_names = {p.name for p in self._circuit_function.function_params}
-        return protocols.parameter_names(self._circuit_function.circuit) - function_param_names
+        """Returns the parameters of the decomposed circuit."""
+        names: set[str] = set()
+        for name in self._unresolved_parameter_names():
+            names |= protocols.parameter_names(self._param_resolver.value_of(name, recursive=False))
+        return names
 
     def _resolve_parameters_(
-        self, resolver: cirq.ParamResolver, recursive: bool = False
+        self, resolver: cirq.ParamResolver, recursive: bool
     ) -> CallFunctionOperation:
-        """Stores parameter resolver to resolve mapped circuit in the future."""
-        combined_resolver_dict = dict(self._param_resolver.param_dict)
-        combined_resolver_dict.update(resolver.param_dict)
+        """Combines the new `resolver` with the stored resolver."""
+        new_params: dict[sympy.Symbol, cirq.TParamVal] = {}
+        for name in self._unresolved_parameter_names():
+            k = sympy.Symbol(name)
+            v = self._param_resolver.value_of(k, recursive=False)
+            v = protocols.resolve_parameters(v, resolver, recursive)
+            if v != k:
+                new_params[k] = v
         return CallFunctionOperation(
-            self._circuit_function, self._function_params, param_resolver=combined_resolver_dict
+            self._circuit_function, self._function_params, param_resolver=new_params
         )
 
     def _json_dict_(self) -> dict[str, Any]:
