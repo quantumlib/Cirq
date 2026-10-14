@@ -44,7 +44,7 @@ class SimulatesIntermediateStateVector(
 ):
     """A simulator that accesses its state vector as it does its simulation.
 
-    Implementers of this interface should implement the _core_iterator
+    Implementers of this interface should implement the `_core_iterator`
     method."""
 
     def __init__(

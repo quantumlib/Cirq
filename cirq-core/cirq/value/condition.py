@@ -123,6 +123,8 @@ class KeyCondition(Condition):
         raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
 
     def _qasm_(self, args: cirq.QasmArgs, **kwargs) -> str | None:
+        if self.index != -1:
+            raise ValueError('Only most recent measurement at key can be used for QASM.')
         args.validate_version('2.0', '3.0')
         key_str = str(self.key)
         if key_str not in args.meas_key_id_map:
