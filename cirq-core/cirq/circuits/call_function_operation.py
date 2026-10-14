@@ -71,7 +71,9 @@ class CallFunctionOperation(ops.Operation):
         self._param_resolver = study.ParamResolver(param_resolver)
 
         # resolve qubits if they are parameterized
-        function_param_mapping = dict(zip(self._circuit_function.function_params, self._function_params))
+        function_param_mapping = dict(
+            zip(self._circuit_function.function_params, self._function_params)
+        )
         self._qubits = tuple(
             sorted(
                 protocols.resolve_parameters(
