@@ -112,7 +112,7 @@ class Case:
 
         ops_qasm = protocols.qasm(self.then, args=args, qubits=qubits)
         if ops_qasm is None:
-            return None
+            return None  # pragma: no cover
         ops_qasm = ''.join(f'\n    {line}' for line in ops_qasm.strip().split('\n'))
         return f'case {int_const_list_expr} {{{ops_qasm}\n}}'
 
@@ -244,15 +244,13 @@ class Switch(raw_types.Operation):
                 seq.append(branch_no_control)
         return CircuitOperation(FrozenCircuit(seq))
 
-    def _control_key_objs(self) -> frozenset[cirq.MeasurementKey]:
-        return frozenset(value.SympyCondition(self._control).keys)
-
     @property
     def classical_controls(self) -> frozenset[cirq.Condition]:
         # Some code paths in Cirq assume sub operations are run when _all_ of the classical control
         # conditions are met. For `Switch` this is not the case; it has multiple classical controls,
-        # each of which gate separate operations.
-        return NotImplemented
+        # each of which gate separate operations. Therefore, it's ambiguous as to how this method
+        # should be implemented.
+        return NotImplemented  # pragma: no cover
 
     def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
         control_keys = {self.control}
@@ -402,7 +400,7 @@ class Switch(raw_types.Operation):
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> tuple[str, ...]:
         circuit_diagram_qubits = args.known_qubits
         if len(circuit_diagram_qubits) == 0:
-            return ()
+            return ()  # pragma: no cover
 
         circuit_diagram = self._draw_circuit_diagram(args)
         other_lines = tuple(f'#{idx + 1}' for idx in range(1, len(circuit_diagram_qubits)))
@@ -422,22 +420,18 @@ class Switch(raw_types.Operation):
         return self.qasm(args=args, qubits=qubits)
 
     def qasm(
-        self, *, args: cirq.QasmArgs | None = None, qubits: Sequence[cirq.Qid] | None = None
+        self, *, args: cirq.QasmArgs, qubits: Sequence[cirq.Qid] | None = None
     ) -> str | None:
         """Returns the QASM for this `Switch`, bypassing the QASM version check.
 
         `switch` is only part of OpenQASM 3.1 and later. This method allows emitting it for
         other versions as well.
         """
-        if args is None:
-            from cirq.protocols.qasm import QasmArgs
-
-            args = QasmArgs()
         control_expr = args.meas_key_id_map[self.control]
         cases_exprs = [c.qasm(args=args, qubits=qubits) for c in self.cases]
         default_expr = protocols.qasm(self.default, args=args, qubits=qubits, default=None)
         if any(case_expr is None for case_expr in cases_exprs):
-            return None
+            return None  # pragma: no cover
 
         def extend(text: str, spaces: int) -> str:
             padding = ' ' * spaces

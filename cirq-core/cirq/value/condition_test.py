@@ -486,3 +486,38 @@ def test_or_condition_replace_key():
 def test_or_condition_no_conditions_raises():
     with pytest.raises(ValueError, match='At least one condition must be provided'):
         _ = cirq.OrCondition([])
+
+
+@pytest.mark.parametrize(
+    'cond',
+    [
+        cirq.OrCondition((init_key_condition,)),
+        cirq.OrCondition((init_key_condition, cirq.KeyCondition(key_b)), invert=True),
+        cirq.OrCondition(
+            (
+                cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), 1)),
+                cirq.SympyCondition(sympy.Eq(sympy.Symbol('b'), 0)),
+            )
+        ),
+    ],
+)
+def test_or_condition_repr(cond):
+    cirq.testing.assert_equivalent_repr(cond)
+
+
+def test_or_condition_qasm_protocol_v2_single_condition():
+    cond = cirq.OrCondition((cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), 1)),))
+    args = cirq.QasmArgs(version='2.0')
+    assert cirq.qasm(cond, args=args) == 'm_a==1'
+
+
+def test_or_condition_qasm_protocol_v2_multiple_conditions_raises():
+    cond = cirq.OrCondition(
+        (
+            cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), 1)),
+            cirq.SympyCondition(sympy.Eq(sympy.Symbol('b'), 0)),
+        )
+    )
+    args = cirq.QasmArgs(version='2.0')
+    with pytest.raises(ValueError, match='QASM 2.0 does not support multiple conditions'):
+        _ = cirq.qasm(cond, args=args)

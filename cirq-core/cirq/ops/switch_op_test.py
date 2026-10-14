@@ -19,6 +19,21 @@ import sympy
 import cirq
 
 
+class _AnyVersionQasmGate(cirq.Gate):
+    """A single-qubit gate whose QASM output does not depend on the QASM version."""
+
+    def _num_qubits_(self) -> int:
+        return 1
+
+    def _qasm_(self, args: cirq.QasmArgs, qubits: tuple[cirq.Qid, ...]) -> str:
+        return args.format('g {0};\n', qubits[0])
+
+
+class _NoQasmGate(cirq.Gate):
+    def _num_qubits_(self) -> int:
+        return 1
+
+
 def test_init() -> None:
     q = cirq.LineQubit(0)
     op = cirq.Switch('m', [cirq.Case((0,), cirq.X(q)), cirq.Case((1,), cirq.Y(q))])
@@ -62,6 +77,33 @@ def test_with_qubits() -> None:
     assert new_op == expected_op
 
 
+def test_with_qubits_wrong_count_raises() -> None:
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    op = cirq.Switch('m', [cirq.Case((0,), cirq.X(q0))], default=cirq.Y(q1))
+    with pytest.raises(ValueError, match='Expected 2 qubits, got 1.'):
+        _ = op.with_qubits(q2)
+    with pytest.raises(ValueError, match='Expected 2 qubits, got 3.'):
+        _ = op.with_qubits(q0, q1, q2)
+
+
+def test_without_classical_controls_single_branch() -> None:
+    q = cirq.LineQubit(0)
+    op = cirq.Switch('m', [cirq.Case((0,), cirq.X(q))])
+    assert op.without_classical_controls() == cirq.X(q)
+
+
+def test_without_classical_controls_multiple_branches() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    op = cirq.Switch(
+        'm',
+        [cirq.Case((0,), cirq.X(q0)), cirq.Case((1,), (cirq.Y(q0), cirq.Z(q1)))],
+        default=cirq.H(q1),
+    )
+    assert op.without_classical_controls() == cirq.CircuitOperation(
+        cirq.FrozenCircuit(cirq.X(q0), cirq.Y(q0), cirq.Z(q1), cirq.H(q1))
+    )
+
+
 def test_value_equality() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     eq = cirq.testing.EqualsTester()
@@ -96,6 +138,16 @@ def test_parameterized_and_resolve() -> None:
     resolved = cirq.resolve_parameters(op, cirq.ParamResolver({'theta': np.pi, 'val': 0}))
     assert not cirq.is_parameterized(resolved)
     assert resolved == cirq.Switch('m', [cirq.Case((0,), cirq.Rx(rads=np.pi).on(q))])
+
+
+def test_parameter_names_with_default() -> None:
+    q = cirq.LineQubit(0)
+    op = cirq.Switch(
+        'm',
+        [cirq.Case((0,), cirq.Rx(rads=sympy.Symbol('a')).on(q))],
+        default=cirq.Ry(rads=sympy.Symbol('b')).on(q),
+    )
+    assert cirq.parameter_names(op) == {'a', 'b'}
 
 
 def test_diagram() -> None:
@@ -172,3 +224,64 @@ def test_qasm() -> None:
         '    }\n'
         '}'
     )
+
+
+def test_qasm_with_default() -> None:
+    q1 = cirq.LineQubit(1)
+    op = cirq.Switch('a', [cirq.Case((0, 2), cirq.X(q1))], default=cirq.Y(q1))
+    args = cirq.QasmArgs(version='3.0', qubit_id_map={q1: 'q[1]'}, meas_key_id_map={'a': 'm_a'})
+    assert op.qasm(args=args) == (
+        'switch (m_a) {\n'
+        '    case 0, 2 {\n'
+        '        x q[1];\n'
+        '    }\n'
+        '    default {\n'
+        '        y q[1];\n'
+        '    }\n'
+        '}'
+    )
+
+
+def test_qasm_default_without_qasm() -> None:
+    q1 = cirq.LineQubit(1)
+    op = cirq.Switch('a', [cirq.Case((0,), cirq.X(q1))], default=_NoQasmGate().on(q1))
+    args = cirq.QasmArgs(version='3.0', qubit_id_map={q1: 'q[1]'}, meas_key_id_map={'a': 'm_a'})
+    assert op.qasm(args=args) is None
+
+
+def test_qasm_protocol_v3_1() -> None:
+    q1 = cirq.LineQubit(1)
+    gate = _AnyVersionQasmGate()
+    op = cirq.Switch('a', [cirq.Case((0,), gate(q1))], default=gate(q1))
+    args = cirq.QasmArgs(version='3.1', qubit_id_map={q1: 'q[1]'}, meas_key_id_map={'a': 'm_a'})
+    assert cirq.qasm(op, args=args) == (
+        'switch (m_a) {\n'
+        '    case 0 {\n'
+        '        g q[1];\n'
+        '    }\n'
+        '    default {\n'
+        '        g q[1];\n'
+        '    }\n'
+        '}'
+    )
+
+
+def test_qasm_protocol_default_args_rejects_version() -> None:
+    q = cirq.LineQubit(0)
+    op = cirq.Switch('a', [cirq.Case((0,), cirq.X(q))])
+    # The default `cirq.QasmArgs` uses QASM 2.0, which does not support `switch`.
+    with pytest.raises(ValueError, match='QASM version 2.0 output is not supported'):
+        _ = op._qasm_()
+
+
+def test_case_qasm_protocol_v3_1() -> None:
+    q1 = cirq.LineQubit(1)
+    case = cirq.Case((0, 1), _AnyVersionQasmGate().on(q1))
+    args = cirq.QasmArgs(version='3.1', qubit_id_map={q1: 'q[1]'})
+    assert cirq.qasm(case, args=args) == 'case 0, 1 {\n    g q[1];\n}'
+
+
+def test_case_qasm_protocol_default_args_rejects_version() -> None:
+    case = cirq.Case((0,), cirq.X(cirq.LineQubit(0)))
+    with pytest.raises(ValueError, match='QASM version 2.0 output is not supported'):
+        _ = case._qasm_()
