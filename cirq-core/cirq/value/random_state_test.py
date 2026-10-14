@@ -18,7 +18,6 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.value import random_state
 
 
 def test_parse_random_state() -> None:
@@ -81,9 +80,9 @@ def test_parse_random_generator_default_rng() -> None:
     prng0 = cirq.value.parse_random_generator(None)
     eq.add_equality_group(prng0.random())
 
-    random_state._reseed_default_rng(1234)
+    cirq.value.reseed_default_prng(1234)
     val0 = cirq.value.parse_random_generator(None).random()
-    random_state._reseed_default_rng(1234)
+    cirq.value.reseed_default_prng(1234)
     val1 = cirq.value.parse_random_generator(None).random()
     eq.add_equality_group(val0, val1)
 

@@ -37,10 +37,11 @@ document(
 _DEFAULT_RNG: np.random.Generator = np.random.default_rng()
 
 
-def _reseed_default_rng(seed: int) -> None:
-    """Reseeds Cirq's default generator.
+def reseed_default_prng(seed: int) -> None:
+    """Reseeds Cirq's default pseudorandom number generator.
 
-    This does not update the default generators already created.
+    `cirq.value.parse_random_generator(None)` returns a new `np.random.Generator` spawned from
+    Cirq's default generator.
 
     Args:
         seed: The seed for the new default generator.

@@ -15,9 +15,16 @@
 import pytest
 import pytest_randomly
 
-from cirq.value.random_state import _reseed_default_rng
 
-pytest_randomly.entrypoint_reseeds = [_reseed_default_rng]
+def _reseed_cirq_default_rng(seed: int) -> None:
+    try:
+        from cirq.value import reseed_default_prng
+    except ModuleNotFoundError:
+        return
+    reseed_default_prng(seed)
+
+
+pytest_randomly.entrypoint_reseeds = [_reseed_cirq_default_rng]
 
 
 def pytest_addoption(parser):
