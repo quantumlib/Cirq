@@ -65,9 +65,15 @@ updates:
       - "kind/health"
 
   - package-ecosystem: "pip"
-    directory: "/dev_tools/requirements/deps"
+    directories:
+      - "/cirq-*"
+      - "/dev_tools/requirements/deps"
     schedule:
       interval: "monthly"
+    exclude-paths:
+      # Dependabot cannot process specifications for editable packages.
+      # Their requirements are covered by the "/cirq-*" pattern above.
+      - "dev_tools/requirements/deps/cirq-all-no-contrib.txt"
     versioning-strategy: "increase-if-necessary"
     labels:
       - "area/dependencies"
