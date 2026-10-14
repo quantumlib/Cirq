@@ -146,14 +146,15 @@ def test_missing_mixture() -> None:
         cirq.validate_mixture(NoMethod)  # type: ignore[arg-type]
 
 
-q0, q1 = cirq.LineQubit.range(2)
-
-
 @pytest.mark.parametrize(
     'val',
     [
-        cirq.Moment(cirq.H(q0), cirq.X(q1)),
-        cirq.CircuitOperation(cirq.FrozenCircuit(cirq.H(q0), cirq.CNOT(q0, q1))),
+        cirq.Moment(cirq.H(cirq.LineQubit(0)), cirq.X(cirq.LineQubit(1))),
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(
+                cirq.H(cirq.LineQubit(0)), cirq.CNOT(cirq.LineQubit(0), cirq.LineQubit(1))
+            )
+        ),
     ],
 )
 def test_mixture_decomposable_unitary(val) -> None:
@@ -164,6 +165,7 @@ def test_mixture_decomposable_unitary(val) -> None:
 
 
 def test_has_mixture_allow_decompose_false() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
     mom = cirq.Moment(cirq.H(q0), cirq.X(q1))
     assert cirq.has_mixture(mom, allow_decompose=True)
     assert not cirq.has_mixture(mom, allow_decompose=False)
