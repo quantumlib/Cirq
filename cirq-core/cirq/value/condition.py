@@ -16,8 +16,8 @@ from __future__ import annotations
 
 import abc
 import dataclasses
-from collections.abc import Mapping, Sequence
-from typing import Any, Tuple, TYPE_CHECKING
+from collections.abc import Mapping
+from typing import Any, TYPE_CHECKING
 
 import attrs
 import sympy
@@ -322,13 +322,14 @@ class SympyCondition(Condition):
 class OrCondition(Condition):
     """Implements logical OR for classical condition evaluation."""
 
-    # Tuple (or any hashable sequence) is required.
-    conditions: Tuple[Condition]
+    conditions: tuple[Condition]
     invert: bool = False
 
     def __post_init__(self):
         if not self.conditions:
             raise ValueError('At least one condition must be provided.')
+        # Wrap conditions around a tuple if not already, to maintain hashability.
+        self.conditions = tuple(self.conditions)
 
     @property
     def keys(self) -> tuple[cirq.MeasurementKey, ...]:
