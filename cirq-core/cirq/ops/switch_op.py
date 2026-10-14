@@ -14,9 +14,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence, Set
+from collections.abc import Sequence, Set
 from types import NotImplementedType
-from typing import Any, TYPE_CHECKING, cast
+from typing import Any, cast, TYPE_CHECKING
 
 from cirq import _compat, protocols, value
 from cirq.ops import raw_types
@@ -150,7 +150,7 @@ class Switch(raw_types.Operation):
     def __init__(
         self,
         control: str | cirq.MeasurementKey,
-        cases: Iterable[Case],
+        cases: tuple[Case, ...],
         default: raw_types.Operation | cirq.OP_TREE | None = None,
     ):
         """Initializes the `Switch` operation.
@@ -176,7 +176,7 @@ class Switch(raw_types.Operation):
         self._control: value.MeasurementKey = (
             control if isinstance(control, value.MeasurementKey) else value.MeasurementKey(control)
         )
-        self._cases: tuple[Case, ...] = tuple(cases)
+        self._cases: tuple[Case, ...] = cases
         if default is not None:
             default = _op_or_circuit_op(default)
         self._default: raw_types.Operation | None = default
@@ -226,7 +226,7 @@ class Switch(raw_types.Operation):
         if self.default is not None:
             qubit_mapping = [qmap[q] for q in self.default.qubits]
             new_default = self.default.with_qubits(*qubit_mapping)
-        return Switch(self.control, new_cases, new_default)
+        return Switch(self.control, tuple(new_cases), new_default)
 
     def without_classical_controls(self) -> raw_types.Operation:
         from cirq.circuits import CircuitOperation, FrozenCircuit
@@ -296,7 +296,7 @@ class Switch(raw_types.Operation):
         return set.union(*cast(list[set[str]], name_sets))  # make mypy happy
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> Switch:
-        new_cases = [protocols.resolve_parameters(c, resolver, recursive) for c in self.cases]
+        new_cases = tuple(protocols.resolve_parameters(c, resolver, recursive) for c in self.cases)
         new_default = (
             protocols.resolve_parameters(self.default, resolver, recursive)
             if self.default is not None
