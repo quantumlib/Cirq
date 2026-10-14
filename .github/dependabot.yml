@@ -80,6 +80,7 @@ updates:
       # Dependabot cannot process specifications for editable packages.
       # Their requirements are covered by the "/cirq-*" pattern above.
       - "dev_tools/requirements/deps/cirq-all-no-contrib.txt"
+      - "dev_tools/requirements/deps/cirq-all.txt"
     versioning-strategy: "increase-if-necessary"
     labels:
       - "area/dependencies"
