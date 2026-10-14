@@ -188,7 +188,7 @@ class While(raw_types.Operation):
             label_map=args.label_map,
         )
         sub_info = protocols.circuit_diagram_info(self._sub_operation, sub_args, None)
-        if sub_info is None:
+        if sub_info is None or not sub_info.wire_symbols:
             return NotImplemented
         control_label_count = 0
         if args.label_map is not None:
@@ -275,4 +275,5 @@ class While(raw_types.Operation):
         if subop_qasm is None:
             return None
         condition_qasm = " && ".join(protocols.qasm(c, args=args) for c in self._conditions)
-        return f'while ({condition_qasm}) {subop_qasm}'
+        body = ''.join(f'  {line}\n' for line in subop_qasm.splitlines())
+        return f'while ({condition_qasm}) {{\n{body}}}\n'

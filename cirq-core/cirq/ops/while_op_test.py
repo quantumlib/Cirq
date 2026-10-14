@@ -450,12 +450,17 @@ def test_qasm() -> None:
         _ = cirq.qasm(circuit)
 
     qasm_str = cirq.qasm(circuit, args=cirq.QasmArgs(version='3.0'))
-    assert 'while (m_a!=0) x q[1];' in qasm_str
+    assert 'while (m_a!=0) {\n  x q[1];\n}' in qasm_str
 
     op_multi = cirq.While(['a', 'b'], cirq.X(q1))
     circuit_multi = cirq.Circuit(cirq.measure(q0, key='a'), cirq.measure(q0, key='b'), op_multi)
     qasm_str_3 = cirq.qasm(circuit_multi, args=cirq.QasmArgs(version='3.0'))
-    assert 'while (m_a!=0 && m_b!=0) x q[1];' in qasm_str_3
+    assert 'while (m_a!=0 && m_b!=0) {\n  x q[1];\n}' in qasm_str_3
+
+    op_meas = cirq.While('a', cirq.measure(q0, q1, key='a'))
+    circuit_meas = cirq.Circuit(cirq.measure(q0, q1, key='a'), op_meas)
+    qasm_meas = cirq.qasm(circuit_meas, args=cirq.QasmArgs(version='3.0'))
+    assert 'while (m_a!=0) {\n  m_a[0] = measure q[0];\n  m_a[1] = measure q[1];\n}' in qasm_meas
 
 
 def test_qasm_sub_op_no_qasm() -> None:
@@ -467,10 +472,10 @@ def test_qasm_sub_op_no_qasm() -> None:
     class NoQasmOp(cirq.Operation):
         @property
         def qubits(self) -> tuple[cirq.Qid, ...]:
-            return (cirq.LineQubit(0),)  # pragma: nocover
+            return (cirq.LineQubit(0),)  # pragma: no cover
 
         def with_qubits(self, *new_qubits: cirq.Qid) -> cirq.Operation:
-            return self  # pragma: nocover
+            return self  # pragma: no cover
 
     op = cirq.While('a', NoQasmOp())
     assert cirq.qasm(op, args=cirq.QasmArgs(version='3.0'), default=None) is None
