@@ -26,7 +26,7 @@ def test_construction_basic() -> None:
 
     op = cirq.CallFunctionOperation(cf, [0.5])
     assert op.circuit_function == cf
-    assert op.function_params == (0.5,)
+    assert op.function_args == (0.5,)
     assert cirq.parameter_names(op) == set()
     assert op.param_resolver == cirq.ParamResolver()
     assert op.qubits == (q,)
@@ -47,7 +47,7 @@ def test_construction_parameterized() -> None:
 
     op = cirq.CallFunctionOperation(cf, [0.5], param_resolver={x: 1})
     assert op.circuit_function == cf
-    assert op.function_params == (0.5,)
+    assert op.function_args == (0.5,)
     assert cirq.parameter_names(op) == set()
     assert op.param_resolver == cirq.ParamResolver({x: 1})
     assert not cirq.is_parameterized(op)
@@ -79,7 +79,7 @@ def test_parameter_resolution() -> None:
     op = cirq.CallFunctionOperation(cf, [0.5])
     op_resolved = cirq.resolve_parameters(op, {x: 1})
     assert op_resolved.circuit_function == cf
-    assert op_resolved.function_params == (0.5,)
+    assert op_resolved.function_args == (0.5,)
     assert cirq.parameter_names(op) == {'x'}
     assert cirq.parameter_names(op_resolved) == set()
     assert op_resolved.param_resolver == cirq.ParamResolver({x: 1})

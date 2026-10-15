@@ -9,7 +9,7 @@
             ]),
             function_params=[sympy.Symbol('qx')],
         ),
-        function_params=(1,),
+        function_args=(1,),
         param_resolver={sympy.Symbol('theta'): 0.5},
     ),
     cirq.CallFunctionOperation(
@@ -22,7 +22,7 @@
             ]),
             function_params=[sympy.Symbol('qx')],
         ),
-        function_params=(2,),
+        function_args=(2,),
         param_resolver={},
     ),
 ]

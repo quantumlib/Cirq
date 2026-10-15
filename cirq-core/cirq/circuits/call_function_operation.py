@@ -41,38 +41,38 @@ class CallFunctionOperation(ops.Operation):
     def __init__(
         self,
         circuit_function: cirq.CircuitFunction,
-        function_params: Sequence[cirq.TParamVal] = (),
+        function_args: Sequence[cirq.TParamVal] = (),
         param_resolver: study.ParamResolverOrSimilarType | None = None,
     ) -> None:
         """Initializes a CallFunctionOperation.
 
         Args:
             circuit_function: The CircuitFunction to call.
-            function_params: Positional argument values to pass to the CircuitFunction.
+            function_args: Positional argument values to pass to the CircuitFunction.
             param_resolver: Optional resolver for free parameters in the CircuitFunction.
 
         Raises:
             TypeError: If `circuit_function` is not a `CircuitFunction`.
-            ValueError: If the number of `function_params` does not match the number of
+            ValueError: If the number of `function_args` does not match the number of
                 `function_params` in `circuit_function`.
         """
         if not isinstance(circuit_function, CircuitFunction):
             raise TypeError(
                 f"Expected circuit_function of type CircuitFunction, got: {type(circuit_function)}."
             )
-        if len(function_params) != len(circuit_function.function_params):
+        if len(function_args) != len(circuit_function.function_params):
             raise ValueError(
                 f"Expected {len(circuit_function.function_params)} parameters "
-                f"for {circuit_function.name}, but got {len(function_params)}."
+                f"for {circuit_function.name}, but got {len(function_args)}."
             )
 
         self._circuit_function = circuit_function
-        self._function_params = tuple(function_params)
+        self._function_args = tuple(function_args)
         self._param_resolver = study.ParamResolver(param_resolver)
 
         # resolve qubits if they are parameterized
         function_param_mapping = dict(
-            zip(self._circuit_function.function_params, self._function_params)
+            zip(self._circuit_function.function_params, self._function_args)
         )
         self._qubits = tuple(
             sorted(
@@ -90,8 +90,8 @@ class CallFunctionOperation(ops.Operation):
         return self._circuit_function
 
     @property
-    def function_params(self) -> tuple[cirq.TParamVal, ...]:
-        return self._function_params
+    def function_args(self) -> tuple[cirq.TParamVal, ...]:
+        return self._function_args
 
     @property
     def param_resolver(self) -> cirq.ParamResolver:
@@ -107,8 +107,8 @@ class CallFunctionOperation(ops.Operation):
         raise ValueError("CallFunctionOperation does not support `with_qubits`.")
 
     def _decompose_(self) -> cirq.OP_TREE:
-        """Evaluates the CircuitFunction with function_params and resolves params."""
-        circuit = self._circuit_function(*self._function_params)
+        """Evaluates the CircuitFunction with function_args and resolves params."""
+        circuit = self._circuit_function(*self._function_args)
         if self._param_resolver:
             circuit = protocols.resolve_parameters(circuit, self._param_resolver, recursive=False)
         return circuit
@@ -134,7 +134,7 @@ class CallFunctionOperation(ops.Operation):
     def _value_equality_values_(
         self,
     ) -> tuple[cirq.CircuitFunction, tuple[cirq.TParamVal, ...], cirq.ParamResolver]:
-        return (self._circuit_function, self._function_params, self._param_resolver)
+        return (self._circuit_function, self._function_args, self._param_resolver)
 
     def _is_parameterized_(self) -> bool:
         """Returns True if the called circuit still contains unresolved parameters."""
@@ -144,7 +144,7 @@ class CallFunctionOperation(ops.Operation):
         """Returns the parameters of the decomposed circuit before `param_resolver` is applied."""
         bound = {p.name for p in self._circuit_function.function_params}
         names = set(protocols.parameter_names(self._circuit_function.circuit)) - bound
-        for arg in self._function_params:
+        for arg in self._function_args:
             names |= protocols.parameter_names(arg)
         return names
 
@@ -167,13 +167,13 @@ class CallFunctionOperation(ops.Operation):
             if v != k:
                 new_params[k] = v
         return CallFunctionOperation(
-            self._circuit_function, self._function_params, param_resolver=new_params
+            self._circuit_function, self._function_args, param_resolver=new_params
         )
 
     def _json_dict_(self) -> dict[str, Any]:
         return {
             'circuit_function': self._circuit_function,
-            'function_params': list(self._function_params),
+            'function_args': list(self._function_args),
             'param_resolver': self._param_resolver,
         }
 
@@ -181,23 +181,23 @@ class CallFunctionOperation(ops.Operation):
     def _from_json_dict_(
         cls,
         circuit_function: cirq.CircuitFunction,
-        function_params: Sequence[cirq.TParamVal],
+        function_args: Sequence[cirq.TParamVal],
         param_resolver: cirq.ParamResolver,
         **kwargs: Any,
     ) -> CallFunctionOperation:
-        return cls(circuit_function, function_params, param_resolver=param_resolver)
+        return cls(circuit_function, function_args, param_resolver=param_resolver)
 
     def __repr__(self) -> str:
-        args = ", ".join(proper_repr(a) for a in self._function_params)
+        args = ", ".join(proper_repr(a) for a in self._function_args)
         return (
             f"cirq.CallFunctionOperation("
             f"circuit_function={proper_repr(self._circuit_function)}, "
-            f"function_params=[{args}], "
+            f"function_args=[{args}], "
             f"param_resolver={proper_repr(self._param_resolver.param_dict)})"
         )
 
     def __str__(self) -> str:
-        args = ", ".join(str(p) for p in self._function_params)
+        args = ", ".join(str(p) for p in self._function_args)
         base = f"{self._circuit_function.name}({args})"
         if not self._param_resolver:
             return base
@@ -208,7 +208,7 @@ class CallFunctionOperation(ops.Operation):
         return f"{base} [{resolver_items}]"
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        formatted_args = ", ".join(str(p) for p in self._function_params)
+        formatted_args = ", ".join(str(p) for p in self._function_args)
         label = f"{self._circuit_function.name}({formatted_args})"
         if not self.qubits:
             return protocols.CircuitDiagramInfo(wire_symbols=())
