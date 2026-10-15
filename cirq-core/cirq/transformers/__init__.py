@@ -44,6 +44,9 @@ from cirq.transformers.analytical_decompositions import (
 from cirq.transformers.heuristic_decompositions import (
     TwoQubitGateTabulation as TwoQubitGateTabulation,
     TwoQubitGateTabulationResult as TwoQubitGateTabulationResult,
+    TwoQubitNumericalCompilationResult as TwoQubitNumericalCompilationResult,
+    TwoQubitNumericalCompiler as TwoQubitNumericalCompiler,
+    two_qubit_gate_numerical_compilation as two_qubit_gate_numerical_compilation,
     two_qubit_gate_product_tabulation as two_qubit_gate_product_tabulation,
 )
 
