@@ -48,7 +48,6 @@ extend_skip_glob = ["*_pb2.py"]
 
 [tool.mypy]
 exclude = [
-    '.venv/',
     '/setup\.py',
     'cirq-google/cirq_google/cloud/',
 ]
