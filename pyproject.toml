@@ -113,7 +113,6 @@ module = [
     "pylatex.*",
     "pylint.*",
     "pytest.*",
-    "pytest_randomly.*",
     "qiskit.*",
     "quimb.*",
     "ruamel.*",

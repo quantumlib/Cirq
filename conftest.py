@@ -13,18 +13,6 @@
 # limitations under the License.
 
 import pytest
-import pytest_randomly
-
-
-def _reseed_cirq_default_rng(seed: int) -> None:
-    try:
-        from cirq.value import reseed_default_prng
-    except ModuleNotFoundError:
-        return
-    reseed_default_prng(seed)
-
-
-pytest_randomly.entrypoint_reseeds = [_reseed_cirq_default_rng]
 
 
 def pytest_addoption(parser):
