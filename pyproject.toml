@@ -151,7 +151,6 @@ asyncio_default_fixture_loop_scope = "function"
 [tool.pylint.main]
 fail-on = ["I"]
 ignore-long-lines = "^(.*#\\w*pylint: disable.*|\\s*(# )?[<\\[\\(]?https?://\\S+[>\\]\\)]?)$"
-ignore = ["venv"]
 ignore-paths=[
     ".venv/",
     "cirq-[^/]*/build/",
