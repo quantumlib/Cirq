@@ -283,7 +283,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                     p_new, d_phase = _PAULI_PRODUCT_MAP[p0, p1]
                     new_map[q] = p_new
                     phase_log_i += d_phase
-            coef = self._coefficient * other._coefficient * _PHASE_POWERS[phase_log_i & 3]
+            coef = _apply_phase(self._coefficient * other._coefficient, phase_log_i)
             return PauliString(qubit_pauli_map=new_map, coefficient=coef)
         if isinstance(other, numbers.Number):
             return PauliString(
@@ -1464,23 +1464,20 @@ class MutablePauliString(Generic[TKey]):
                 phase_log_i += self._imul_atom_helper(
                     cast(TKey, qubit), PAULI_GATE_LIKE_TO_INDEX_MAP[pauli], sign
                 )
-            if phase_log_i & 3 or not isinstance(self.coefficient, complex):
-                self.coefficient *= _PHASE_POWERS[phase_log_i & 3]
+            self.coefficient = _apply_phase(self.coefficient, phase_log_i)
         elif isinstance(other, MutablePauliString):
             if other.coefficient != 1 or not isinstance(other.coefficient, complex):
                 self.coefficient *= other.coefficient
             phase_log_i = 0
             for qubit, pauli_int in other.pauli_int_dict.items():
                 phase_log_i += self._imul_atom_helper(cast(TKey, qubit), pauli_int, sign)
-            if phase_log_i & 3 or not isinstance(self.coefficient, complex):
-                self.coefficient *= _PHASE_POWERS[phase_log_i & 3]
+            self.coefficient = _apply_phase(self.coefficient, phase_log_i)
         elif isinstance(other, Mapping):
             phase_log_i = 0
             for qubit, pauli_gate_like in other.items():
                 pauli_int = _pauli_like_to_pauli_int(qubit, pauli_gate_like)
                 phase_log_i += self._imul_atom_helper(cast(TKey, qubit), pauli_int, sign)
-            if phase_log_i & 3 or not isinstance(self.coefficient, complex):
-                self.coefficient *= _PHASE_POWERS[phase_log_i & 3]
+            self.coefficient = _apply_phase(self.coefficient, phase_log_i)
         elif isinstance(other, numbers.Complex):
             self.coefficient *= other
         elif isinstance(other, raw_types.Operation) and isinstance(
@@ -1669,6 +1666,23 @@ _PAULI_PRODUCT_MAP: dict[tuple[cirq.Pauli, cirq.Pauli], tuple[cirq.Pauli, int]] 
 PAULI_GATE_LIKE_TO_GATE_MAP: dict[cirq.PAULI_GATE_LIKE, cirq.Pauli | cirq.IdentityGate] = {
     k: _INT_TO_PAULI_OR_IDENTITY[v] for k, v in PAULI_GATE_LIKE_TO_INDEX_MAP.items()
 }
+
+
+def _apply_phase(coef: cirq.TParamValComplex, phase_log_i: int) -> cirq.TParamValComplex:
+    """Multiplies `coef` by `1j ** (phase_log_i & 3)` without `-0.0` artifacts."""
+    k = phase_log_i & 3
+    if not isinstance(coef, complex):
+        return coef * _PHASE_POWERS[k]
+    if k == 0:
+        return coef
+    re, im = coef.real, coef.imag
+    if k == 1:
+        re, im = -im, re
+    elif k == 2:
+        re, im = -re, -im
+    else:
+        re, im = im, -re
+    return complex(re or 0.0, im or 0.0)
 
 
 def _pauli_like_to_pauli_int(key: Any, pauli_gate_like: PAULI_GATE_LIKE):
