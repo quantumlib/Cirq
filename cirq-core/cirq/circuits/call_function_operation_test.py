@@ -54,6 +54,21 @@ def test_construction_parameterized() -> None:
     assert op.qubits == (cirq.q(1),)
 
 
+def test_parameterized() -> None:
+    x = sympy.Symbol('x')
+    q = cirq.VariableLineQid(x)
+    theta = sympy.Symbol('theta')
+    c = cirq.Circuit(cirq.X(q) ** theta)
+
+    cf = cirq.CircuitFunction("test_function", c, function_params=[theta, x])
+    op = cirq.CallFunctionOperation(cf, [0.5, 1])
+    assert not cirq.is_parameterized(op)
+
+    cf = cirq.CircuitFunction("test_function", c, function_params=[theta])
+    op = cirq.CallFunctionOperation(cf, [0.5])
+    assert cirq.is_parameterized(op)
+
+
 def test_parameter_resolution() -> None:
     x = sympy.Symbol('x')
     q = cirq.VariableLineQid(x)
