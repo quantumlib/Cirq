@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from multiprocessing import Process
+import multiprocessing
 from typing import TYPE_CHECKING
 
 import pytest
@@ -60,7 +60,8 @@ def create_hanging_routing_instance(circuit, device_graph) -> None:
 def test_router_hanging() -> None:
     """Run a separate process and check if greedy router hits timeout (20s)."""
     circuit, device_graph = create_circuit_and_device()
-    process = Process(target=create_hanging_routing_instance, args=[circuit, device_graph])
+    ctx = multiprocessing.get_context('spawn')
+    process = ctx.Process(target=create_hanging_routing_instance, args=[circuit, device_graph])
     process.start()
     process.join(timeout=20)
     try:
