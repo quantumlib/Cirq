@@ -113,6 +113,18 @@ class CallFunctionOperation(ops.Operation):
             circuit = protocols.resolve_parameters(circuit, self._param_resolver, recursive=False)
         return circuit
 
+    def _is_measurement_(self) -> bool:
+        return protocols.is_measurement(self._circuit_function)
+
+    def _measurement_key_objs_(self) -> frozenset[cirq.MeasurementKey]:
+        return protocols.measurement_key_objs(self._circuit_function)
+
+    def _measurement_key_names_(self) -> frozenset[str]:
+        return protocols.measurement_key_names(self._circuit_function)
+
+    def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
+        return protocols.control_keys(self._circuit_function)
+
     def _value_equality_values_(
         self,
     ) -> tuple[cirq.CircuitFunction, tuple[cirq.TParamVal, ...], cirq.ParamResolver]:

@@ -177,3 +177,22 @@ def test_circuit_diagram() -> None:
     circuit = cirq.Circuit(op)
     diagram = circuit.to_text_diagram()
     assert diagram.strip() == "test_function"
+
+
+def test_measurement() -> None:
+    x = sympy.Symbol('x')
+    q = cirq.VariableLineQid(x)
+    theta = sympy.Symbol('theta')
+    c = cirq.Circuit(
+        cirq.X(q) ** theta,
+        cirq.measure(cirq.q(1), key='m0'),
+        cirq.measure(q, key='m1'),
+        cirq.Y(q).with_classical_controls('m2'),
+    )
+    cf = cirq.CircuitFunction("test_function", c, function_params=[theta])
+    op = cirq.CallFunctionOperation(cf, [0.5])
+
+    assert cirq.is_measurement(op)
+    assert cirq.measurement_key_objs(op) == {cirq.MeasurementKey('m0'), cirq.MeasurementKey('m1')}
+    assert cirq.measurement_key_names(op) == {'m0', 'm1'}
+    assert cirq.control_keys(op) == {'m2'}
