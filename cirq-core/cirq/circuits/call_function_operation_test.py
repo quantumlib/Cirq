@@ -100,6 +100,12 @@ def test_decompose() -> None:
     ref_circ = [cirq.X(cirq.q(5)) ** 2]
     assert test_circ == ref_circ
 
+    y = sympy.Symbol('y')
+    op = cirq.CallFunctionOperation(cf, [2, y])
+    test_circ = cirq.decompose(op)
+    ref_circ = [cirq.X(cirq.VariableLineQid(y)) ** 2]
+    assert test_circ == ref_circ
+
 
 def test_with_qubits() -> None:
     q = cirq.q(0)
@@ -143,16 +149,20 @@ def test_json_serializes_shared_circuit_function_once() -> None:
 
 
 def test_str() -> None:
-    x = sympy.Symbol('x')
-    q = cirq.VariableLineQid(x)
+    x, y = sympy.symbols('x y')
+    qx = cirq.VariableLineQid(x)
+    qy = cirq.VariableLineQid(y)
     theta = sympy.Symbol('theta')
-    c = cirq.Circuit(cirq.X(q) ** theta)
+    c = cirq.Circuit(cirq.X(qx) ** theta, cirq.X(qy))
     cf = cirq.CircuitFunction("test_function", c, function_params=[theta])
     op = cirq.CallFunctionOperation(cf, [0.5])
     assert str(op) == "test_function(0.5)"
 
     op = cirq.CallFunctionOperation(cf, [0.5], param_resolver={'x': 2})
     assert str(op) == "test_function(0.5) [x=2]"
+
+    op = cirq.CallFunctionOperation(cf, [0.5], param_resolver={'x': 2, y: 3})
+    assert str(op) == "test_function(0.5) [x=2, y=3]"
 
     cf = cirq.CircuitFunction("test_function", c, function_params=[theta, x])
     op = cirq.CallFunctionOperation(cf, [0.5, 3])
@@ -179,6 +189,26 @@ def test_circuit_diagram() -> None:
     assert diagram.strip() == "test_function"
 
 
+def test_unitary() -> None:
+    x = sympy.Symbol('x')
+    q = cirq.VariableLineQid(x)
+    theta = sympy.Symbol('theta')
+    c = cirq.Circuit(cirq.X(q) ** theta)
+
+    cf = cirq.CircuitFunction("test_function", c, function_params=[theta])
+    op = cirq.CallFunctionOperation(cf, [0.5])
+    assert not cirq.has_unitary(op)
+
+    cf = cirq.CircuitFunction("test_function", c, function_params=[theta, x])
+    op = cirq.CallFunctionOperation(cf, [0.5, 1])
+    assert cirq.has_unitary(op)
+
+    c = cirq.Circuit(cirq.measure(cirq.q(0), key='m0'))
+    cf = cirq.CircuitFunction("test_function", c)
+    op = cirq.CallFunctionOperation(cf, [])
+    assert not cirq.has_unitary(op)
+
+
 def test_measurement() -> None:
     x = sympy.Symbol('x')
     q = cirq.VariableLineQid(x)
@@ -196,3 +226,22 @@ def test_measurement() -> None:
     assert cirq.measurement_key_objs(op) == {cirq.MeasurementKey('m0'), cirq.MeasurementKey('m1')}
     assert cirq.measurement_key_names(op) == {'m0', 'm1'}
     assert cirq.control_keys(op) == {'m2'}
+
+
+def test_protocols() -> None:
+    theta0, theta1, x = sympy.symbols('theta0 theta1 x')
+    c = cirq.Circuit(cirq.X(cirq.q(0)) ** theta0, cirq.Y(cirq.q(1)) ** theta1)
+    cf = cirq.CircuitFunction("test_function", c, function_params=[theta0])
+    op = cirq.CallFunctionOperation(cf, [0.5])
+    cirq.testing.assert_implements_consistent_protocols(op)
+
+    cf = cirq.CircuitFunction("test_function", c, function_params=[theta0, theta1])
+    op = cirq.CallFunctionOperation(cf, [0.5, 1])
+    cirq.testing.assert_implements_consistent_protocols(op)
+
+    op = cirq.CallFunctionOperation(cf, [0.5, x])
+    cirq.testing.assert_implements_consistent_protocols(op)
+
+    cf = cirq.CircuitFunction("test_function", c, function_params=[])
+    op = cirq.CallFunctionOperation(cf, [], param_resolver={theta0: 0.5, 'theta1': 1})
+    cirq.testing.assert_implements_consistent_protocols(op)

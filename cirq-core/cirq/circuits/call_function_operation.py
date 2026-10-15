@@ -113,6 +113,12 @@ class CallFunctionOperation(ops.Operation):
             circuit = protocols.resolve_parameters(circuit, self._param_resolver, recursive=False)
         return circuit
 
+    def _has_unitary_(self) -> bool:
+        """Returns false if has parameters/measurement, else resorts to fallback strategies."""
+        if self._is_parameterized_() or self._is_measurement_():
+            return False
+        return NotImplemented
+
     def _is_measurement_(self) -> bool:
         return protocols.is_measurement(self._circuit_function)
 
@@ -182,10 +188,11 @@ class CallFunctionOperation(ops.Operation):
         return cls(circuit_function, function_params, param_resolver=param_resolver)
 
     def __repr__(self) -> str:
+        args = ", ".join(proper_repr(a) for a in self._function_params)
         return (
             f"cirq.CallFunctionOperation("
             f"circuit_function={proper_repr(self._circuit_function)}, "
-            f"function_params={proper_repr(self.function_params)}, "
+            f"function_params=[{args}], "
             f"param_resolver={proper_repr(self._param_resolver.param_dict)})"
         )
 
@@ -195,7 +202,8 @@ class CallFunctionOperation(ops.Operation):
         if not self._param_resolver:
             return base
         resolver_items = ", ".join(
-            f"{k}={v}" for k, v in sorted(self._param_resolver.param_dict.items())
+            f"{k}={self._param_resolver[k]}"
+            for k in sorted(self._param_resolver.param_dict.keys(), key=lambda ki: str(ki))
         )
         return f"{base} [{resolver_items}]"
 
