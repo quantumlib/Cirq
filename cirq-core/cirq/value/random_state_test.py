@@ -27,11 +27,7 @@ def test_parse_random_state() -> None:
         np.random.set_state(global_state)
         return prng.rand()
 
-    prngs = [
-        np.random,
-        cirq.value.parse_random_state(np.random),
-        cirq.value.parse_random_state(None),
-    ]
+    prngs = [np.random, cirq.value.parse_random_state(None)]
     vals = [rand(prng) for prng in prngs]
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(*vals)
@@ -45,6 +41,16 @@ def test_parse_random_state() -> None:
     vals = [prng.rand() for prng in prngs1]
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(*vals)
+
+
+def test_parse_random_state_generator() -> None:
+    generator = np.random.default_rng(42)
+    prng = cirq.value.parse_random_state(generator)
+    assert isinstance(prng, np.random.RandomState)
+    # The RandomState shares the generator's bit generator, so draws interleave on one stream.
+    expected = np.random.default_rng(42)
+    assert prng.random_sample() == expected.random()
+    assert generator.random() == expected.random()
 
 
 def test_parse_random_generator() -> None:
@@ -66,6 +72,21 @@ def test_parse_random_generator() -> None:
 
     generator = np.random.default_rng(42)
     assert cirq.value.parse_random_generator(generator) is generator
+
+
+def test_parse_random_generator_default_rng() -> None:
+    eq = cirq.testing.EqualsTester()
+
+    prng0 = cirq.value.parse_random_generator(None)
+    eq.add_equality_group(prng0.random())
+
+    cirq.value.reseed_default_prng(1234)
+    val0 = cirq.value.parse_random_generator(None).random()
+    cirq.value.reseed_default_prng(1234)
+    val1 = cirq.value.parse_random_generator(None).random()
+    eq.add_equality_group(val0, val1)
+
+    eq.add_equality_group(cirq.value.parse_random_generator(None).random())
 
 
 def test_parse_random_generator_invalid() -> None:
