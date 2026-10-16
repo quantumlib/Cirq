@@ -129,6 +129,10 @@ from cirq.ops.linear_combinations import (
 
 from cirq.ops.mixed_unitary_channel import MixedUnitaryChannel as MixedUnitaryChannel
 
+from cirq.ops.pauli_rotation import PauliRotation as PauliRotation
+
+from cirq.ops.pauli_rotation_gate import PauliRotationGate as PauliRotationGate
+
 from cirq.ops.pauli_sum_exponential import PauliSumExponential as PauliSumExponential
 
 from cirq.ops.pauli_measurement_gate import PauliMeasurementGate as PauliMeasurementGate
