@@ -189,11 +189,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             coefficient if isinstance(coefficient, sympy.Expr) else complex(coefficient)
         )
         if contents:
-            m = (
-                self.mutable_copy()
-                if self._qubit_pauli_map
-                else MutablePauliString(coefficient=self._coefficient)
-            )
+            m = self.mutable_copy()
             if m._imul_helper(contents, -1) is NotImplemented:
                 raise TypeError(f"{contents!r} is not cirq.PAULI_STRING_LIKE.")
             pauli_map: dict[TKey, Any] = m.pauli_int_dict
@@ -285,7 +281,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                     p_new, d_phase = _PAULI_PRODUCT_MAP[p0, p1]
                     new_map[q] = p_new
                     phase_log_i += d_phase
-            coef = _apply_phase(self._coefficient * other._coefficient, phase_log_i)
+            coef = self._coefficient * other._coefficient * _PHASE_POWERS[phase_log_i & 3] + 0j
             return PauliString(qubit_pauli_map=new_map, coefficient=coef)
         if isinstance(other, numbers.Number):
             return PauliString(
@@ -418,9 +414,11 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         """Returns a new `cirq.MutablePauliString` with the same contents."""
         return MutablePauliString(
             coefficient=self.coefficient,
-            pauli_int_dict={
-                q: PAULI_GATE_LIKE_TO_INDEX_MAP[p] for q, p in self._qubit_pauli_map.items()
-            },
+            pauli_int_dict=(
+                {q: PAULI_GATE_LIKE_TO_INDEX_MAP[p] for q, p in self._qubit_pauli_map.items()}
+                if self._qubit_pauli_map
+                else None
+            ),
         )
 
     def __iter__(self) -> Iterator[TKey]:
@@ -997,7 +995,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
             = ---C---P---C^-1---------C-------
 
-            = --(C^-1 · P · C)--------C-------
+            = --(C^-1 Â· P Â· C)--------C-------
 
             = ---P.conjugated_by(C)---C-------
 
@@ -1080,11 +1078,11 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         The output and input Pauli strings are related by a circuit equivalence.
         In particular, this circuit:
 
-            ───ops───INPUT_PAULI_STRING───
+            â”€â”€â”€opsâ”€â”€â”€INPUT_PAULI_STRINGâ”€â”€â”€
 
         will be equivalent to this circuit:
 
-            ───OUTPUT_PAULI_STRING───ops───
+            â”€â”€â”€OUTPUT_PAULI_STRINGâ”€â”€â”€opsâ”€â”€â”€
 
         up to global phase (assuming `after_to_before` is not set).
 
@@ -1290,8 +1288,8 @@ class MutablePauliString(Generic[TKey]):
                 if not 1 <= v <= 3:
                     raise ValueError(f"Value {v} of pauli_int_dict must be between 1 and 3.")
         self.pauli_int_dict: dict[TKey, int] = {} if pauli_int_dict is None else pauli_int_dict
-        if contents:
-            self.inplace_left_multiply_by(contents)
+        if contents and self._imul_helper(contents, -1) is NotImplemented:
+            raise TypeError(f"{contents!r} is not cirq.PAULI_STRING_LIKE.")
 
     def _value_equality_values_(self):
         return self.frozen()._value_equality_values_()
@@ -1302,17 +1300,14 @@ class MutablePauliString(Generic[TKey]):
     def _imul_atom_helper(self, key: TKey, pauli_lhs: int, sign: int) -> int:
         if not pauli_lhs:
             return 0
-        pauli_old = self.pauli_int_dict.get(key, 0)
-        if not pauli_old:
+        if not (pauli_old := self.pauli_int_dict.get(key, 0)):
             self.pauli_int_dict[key] = pauli_lhs
             return 0
         if pauli_lhs == pauli_old:
             del self.pauli_int_dict[key]
             return 0
         self.pauli_int_dict[key] = pauli_lhs ^ pauli_old
-        if (pauli_old - pauli_lhs) % 3 == 1:
-            return sign
-        return -sign
+        return sign * _PAULI_MUL_PHASE[pauli_lhs][pauli_old]
 
     def keys(self) -> Set[TKey]:
         """Returns the sequence of qubits on which this Pauli string acts."""
@@ -1384,8 +1379,7 @@ class MutablePauliString(Generic[TKey]):
         return default if result is None else _INT_TO_PAULI[result - 1]
 
     def _inplace_conjugate_by(self, op: cirq.Operation) -> None:
-        gate = op.gate
-        if gate is None:
+        if (gate := op.gate) is None:
             raise ValueError(f'Cannot conjugate by {op!r}: it has no gate.')
         table = (
             _clifford_conjugation_table(gate)
@@ -1395,36 +1389,25 @@ class MutablePauliString(Generic[TKey]):
         qubits = op.qubits
         new_paulis: tuple[int, ...] | list[int] | None = None
         phase_log_i = 0
-        for k, q in enumerate(qubits):
-            pauli_int = self.pauli_int_dict.get(cast(TKey, q), 0)
-            if not pauli_int:
-                continue
-            row_phase, row = table[k][pauli_int - 1]
-            phase_log_i += row_phase
-            if new_paulis is None:
-                new_paulis = row
-            else:
-                if isinstance(new_paulis, tuple):
+        for row_table, q in zip(table, qubits):
+            if pauli_int := self.pauli_int_dict.get(cast(TKey, q), 0):
+                row_phase, row = row_table[pauli_int - 1]
+                phase_log_i += row_phase
+                if new_paulis is None:
+                    new_paulis = row
+                else:
                     new_paulis = list(new_paulis)
-                # Right-multiply `row` into `new_paulis` (matching `conjugated *= row`).
-                for i, row_pauli in enumerate(row):
-                    if not row_pauli:
-                        continue
-                    cur = new_paulis[i]
-                    if not cur:
-                        new_paulis[i] = row_pauli
-                    elif cur == row_pauli:
-                        new_paulis[i] = 0
-                    else:
-                        new_paulis[i] = cur ^ row_pauli
-                        phase_log_i += -1 if (cur - row_pauli) % 3 == 1 else 1
+                    for i, p in enumerate(row):
+                        c = new_paulis[i]
+                        new_paulis[i] = c ^ p
+                        phase_log_i += _PAULI_MUL_PHASE[c][p]
         if new_paulis is not None:
             for q, pauli_int in zip(qubits, new_paulis):
                 if pauli_int:
                     self.pauli_int_dict[cast(TKey, q)] = pauli_int
                 else:
                     self.pauli_int_dict.pop(cast(TKey, q), None)
-        self.coefficient = _apply_phase(self.coefficient, phase_log_i)
+            self.coefficient = self.coefficient * _PHASE_POWERS[phase_log_i & 3] + 0j
 
     def inplace_before(self, ops: cirq.OP_TREE) -> cirq.MutablePauliString:
         r"""Propagates the Pauli string from after to before a Clifford effect.
@@ -1479,28 +1462,23 @@ class MutablePauliString(Generic[TKey]):
         Returns:
             self on success, NotImplemented given an unknown type of value.
         """
-        if isinstance(other, PauliString):
-            if other._coefficient != 1 or not isinstance(other._coefficient, complex):
+        if isinstance(other, (Mapping, PauliString, MutablePauliString)):
+            phase_log_i = 0
+            if isinstance(other, PauliString):
                 self.coefficient *= other._coefficient
-            phase_log_i = 0
-            for qubit, pauli in other._qubit_pauli_map.items():
-                phase_log_i += self._imul_atom_helper(
-                    cast(TKey, qubit), PAULI_GATE_LIKE_TO_INDEX_MAP[pauli], sign
-                )
-            self.coefficient = _apply_phase(self.coefficient, phase_log_i)
-        elif isinstance(other, MutablePauliString):
-            if other.coefficient != 1 or not isinstance(other.coefficient, complex):
+                for qubit, pauli in other._qubit_pauli_map.items():
+                    phase_log_i += self._imul_atom_helper(
+                        cast(TKey, qubit), PAULI_GATE_LIKE_TO_INDEX_MAP[pauli], sign
+                    )
+            elif isinstance(other, MutablePauliString):
                 self.coefficient *= other.coefficient
-            phase_log_i = 0
-            for qubit, pauli_int in other.pauli_int_dict.items():
-                phase_log_i += self._imul_atom_helper(cast(TKey, qubit), pauli_int, sign)
-            self.coefficient = _apply_phase(self.coefficient, phase_log_i)
-        elif isinstance(other, Mapping):
-            phase_log_i = 0
-            for qubit, pauli_gate_like in other.items():
-                pauli_int = _pauli_like_to_pauli_int(qubit, pauli_gate_like)
-                phase_log_i += self._imul_atom_helper(cast(TKey, qubit), pauli_int, sign)
-            self.coefficient = _apply_phase(self.coefficient, phase_log_i)
+                for qubit, pauli_int in other.pauli_int_dict.items():
+                    phase_log_i += self._imul_atom_helper(cast(TKey, qubit), pauli_int, sign)
+            else:
+                for qubit, pauli_gate_like in other.items():
+                    pauli_int = _pauli_like_to_pauli_int(qubit, pauli_gate_like)
+                    phase_log_i += self._imul_atom_helper(cast(TKey, qubit), pauli_int, sign)
+            self.coefficient = self.coefficient * _PHASE_POWERS[phase_log_i & 3] + 0j
         elif isinstance(other, numbers.Complex):
             self.coefficient *= other
         elif isinstance(other, raw_types.Operation) and isinstance(
@@ -1676,6 +1654,13 @@ PAULI_GATE_LIKE_TO_INDEX_MAP: dict[cirq.PAULI_GATE_LIKE, int] = {
 _INT_TO_PAULI_OR_IDENTITY: list[cirq.Pauli | cirq.IdentityGate] = [_i, _x, _y, _z]
 _INT_TO_PAULI: list[cirq.Pauli] = [_x, _y, _z]
 _PHASE_POWERS: tuple[complex, ...] = (1 + 0j, 1j, -1 + 0j, -1j)
+# Phase exponent log_i of (pauli_lhs * pauli_rhs) for {0: I, 1: X, 2: Y, 3: Z}.
+_PAULI_MUL_PHASE: tuple[tuple[int, int, int, int], ...] = (
+    (0, 0, 0, 0),
+    (0, 0, 1, -1),
+    (0, -1, 0, 1),
+    (0, 1, -1, 0),
+)
 _PAULI_PRODUCT_MAP: dict[tuple[cirq.Pauli, cirq.Pauli], tuple[cirq.Pauli, int]] = {
     (_x, _y): (_z, 1),
     (_y, _z): (_x, 1),
@@ -1689,23 +1674,6 @@ _PAULI_PRODUCT_MAP: dict[tuple[cirq.Pauli, cirq.Pauli], tuple[cirq.Pauli, int]] 
 PAULI_GATE_LIKE_TO_GATE_MAP: dict[cirq.PAULI_GATE_LIKE, cirq.Pauli | cirq.IdentityGate] = {
     k: _INT_TO_PAULI_OR_IDENTITY[v] for k, v in PAULI_GATE_LIKE_TO_INDEX_MAP.items()
 }
-
-
-def _apply_phase(coef: cirq.TParamValComplex, phase_log_i: int) -> cirq.TParamValComplex:
-    """Multiplies `coef` by `1j ** (phase_log_i & 3)` without `-0.0` artifacts."""
-    k = phase_log_i & 3
-    if not isinstance(coef, complex):
-        return coef * _PHASE_POWERS[k]
-    if k == 0:
-        return coef
-    re, im = coef.real, coef.imag
-    if k == 1:
-        re, im = -im, re
-    elif k == 2:
-        re, im = -re, -im
-    else:
-        re, im = im, -re
-    return complex(re or 0.0, im or 0.0)
 
 
 def _pauli_like_to_pauli_int(key: Any, pauli_gate_like: PAULI_GATE_LIKE):
