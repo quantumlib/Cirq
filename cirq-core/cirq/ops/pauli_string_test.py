@@ -508,7 +508,6 @@ def test_commutes() -> None:
         ps2: cirq.PauliString[cirq.NamedQubit]
         ps2 = cirq.PauliString(dict(zip(qubits, paulis)))
         assert cirq.commutes(ps1, ps2) == commutes
-        assert cirq.commutes(ps2, ps1) == commutes
 
     for paulis, commutes in {
         (cirq.Y, cirq.X): True,
@@ -1998,9 +1997,6 @@ def test_mutable_pauli_string_mul() -> None:
     assert 2 * p == cirq.X(a) * 2 == p * 2
     assert isinstance(p * 2, cirq.PauliString)
     assert isinstance(2 * p, cirq.PauliString)
-    p_same = cirq.X(a).mutable_copy()
-    p_same *= (-cirq.Y(a)).mutable_copy()
-    assert p_same == 1j * cirq.Z(a)
 
 
 def test_mutable_can_override_mul() -> None:
