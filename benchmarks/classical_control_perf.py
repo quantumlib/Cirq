@@ -47,17 +47,20 @@ def _make_key_condition_circuit(
     after the first exercises all three classical key-conflict checks in
     `_PlacementCache` (`mkey_indices` and `ckey_indices` for measurement keys,
     and `mkey_indices` for control keys) without being masked by same-qubit
-    conflicts. When `alternate_qubits=False`, both `reuse_key=False` and
-    `reuse_key=True` produce identical 2-qubit circuit layouts on `q0` and `q2`.
+    conflicts. When `use_explicit_index=True` (requires `reuse_key=True`), each
+    round's control is an explicit `cirq.KeyCondition(mkey, index=i)` indexing
+    into the repeated measurement record for key `'a'`.
     """
+    if use_explicit_index and not reuse_key:
+        raise ValueError("use_explicit_index=True requires reuse_key=True.")
     q0, q1, q2 = cirq.LineQubit.range(3)
     mkey = cirq.MeasurementKey('a')
     ops: list[cirq.Operation] = []
     for i in range(num_rounds):
         q_meas = q0 if (not alternate_qubits or i % 2 == 0) else q1
-        key: str | cirq.MeasurementKey = mkey if reuse_key else f'a{i}'
-        control: str | cirq.MeasurementKey | cirq.Condition = (
-            cirq.KeyCondition(mkey, index=i) if (reuse_key and use_explicit_index) else key
+        key = mkey if reuse_key else cirq.MeasurementKey(f'a{i}')
+        control: cirq.MeasurementKey | cirq.Condition = (
+            cirq.KeyCondition(mkey, index=i) if use_explicit_index else key
         )
         ops.extend(
             (
@@ -79,7 +82,8 @@ def _make_bitmask_rounds_circuit(num_rounds: int) -> cirq.Circuit:
         cond = cirq.BitMaskKeyCondition.create_equal_mask(key, bitmask=0b11, index=i)
         ops.extend(
             (
-                cirq.H(q0 if i % 2 == 0 else q1),
+                cirq.H(q0),
+                cirq.H(q1),
                 cirq.measure(q0, q1, key=key),
                 cirq.X(q2).with_classical_controls(cond),
             )
@@ -144,8 +148,19 @@ def _append_controls_uncached(
     return circuit
 
 
+def _run_seeded_simulation(circuit: cirq.Circuit, repetitions: int) -> cirq.Result:
+    """Runs `circuit` on a freshly seeded simulator so every benchmark round does identical work."""
+    simulator = cirq.Simulator(seed=1234, split_untangled_states=False)
+    return simulator.run(circuit, repetitions=repetitions)
+
+
 def _unroll_repetition_ids(subcircuit: cirq.FrozenCircuit, num_repetitions: int) -> cirq.Circuit:
-    """Wraps a repeated subcircuit in a `CircuitOperation` and unrolls it."""
+    """Wraps a repeated subcircuit in a `CircuitOperation` and unrolls it.
+
+    `CircuitOperation` is instantiated inside the timed function because its
+    `_mapped_any_loop` helper is a `@cached_property`; constructing it outside
+    `benchmark(...)` would cache the key-mapping pass after the first warmup call.
+    """
     circuit_op = cirq.CircuitOperation(
         subcircuit, repetitions=num_repetitions, use_repetition_ids=True
     )
@@ -200,32 +215,28 @@ class TestSimulation:
     @pytest.mark.benchmark(group=group)
     def test_run_repeated_key_condition(self, benchmark, num_rounds: int) -> None:
         circuit = _make_key_condition_circuit(num_rounds, reuse_key=True, use_explicit_index=True)
-        simulator = cirq.Simulator(seed=1234, split_untangled_states=False)
-        result = benchmark(simulator.run, circuit, repetitions=self.repetitions)
+        result = benchmark(_run_seeded_simulation, circuit, self.repetitions)
         assert result.records['a'].shape == (self.repetitions, num_rounds, 1)
 
     @pytest.mark.parametrize("num_rounds", ROUNDS)
     @pytest.mark.benchmark(group=group)
     def test_run_bitmask_condition(self, benchmark, num_rounds: int) -> None:
         circuit = _make_bitmask_rounds_circuit(num_rounds)
-        simulator = cirq.Simulator(seed=1234, split_untangled_states=False)
-        result = benchmark(simulator.run, circuit, repetitions=self.repetitions)
+        result = benchmark(_run_seeded_simulation, circuit, self.repetitions)
         assert result.records['a'].shape == (self.repetitions, num_rounds, 2)
 
     @pytest.mark.parametrize("num_rounds", ROUNDS)
     @pytest.mark.benchmark(group=group)
     def test_run_sympy_condition(self, benchmark, num_rounds: int) -> None:
         circuit = _make_sympy_condition_circuit(num_rounds)
-        simulator = cirq.Simulator(seed=1234, split_untangled_states=False)
-        result = benchmark(simulator.run, circuit, repetitions=self.repetitions)
+        result = benchmark(_run_seeded_simulation, circuit, self.repetitions)
         assert result.measurements['target'].shape == (self.repetitions, 1)
 
     @pytest.mark.parametrize("num_rounds", ROUNDS)
     @pytest.mark.benchmark(group=group)
     def test_run_repeat_until(self, benchmark, num_rounds: int) -> None:
         circuit = _make_repeat_until_circuit(num_rounds)
-        simulator = cirq.Simulator(seed=1234, split_untangled_states=False)
-        result = benchmark(simulator.run, circuit, repetitions=self.repetitions)
+        result = benchmark(_run_seeded_simulation, circuit, self.repetitions)
         assert result.records['a'].shape[0] == self.repetitions
         assert result.records['a'].shape[1] >= num_rounds
 
