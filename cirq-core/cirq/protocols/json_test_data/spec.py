@@ -92,6 +92,7 @@ TestSpec = ModuleJsonTestSpec(
         # Routing utilities
         'HardCodedInitialMapper',
         'LineInitialMapper',
+        'GraphMonomorphismMapper',
         'MappingManager',
         'RouteCQC',
         # Qubit Managers,
