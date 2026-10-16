@@ -23,19 +23,16 @@ import pytest
 import cirq
 
 # Sizes for `cirq.PauliString` operations, which are linear in the number of qubits.
-SPARSE_SIZES = [20, 100, 500]
+SPARSE_SIZES = [20, 100, 1000]
 
 # `cirq.DensePauliString` operations are vectorized, so larger sizes are needed before the
 # per-qubit cost shows over the fixed numpy call overhead.
 DENSE_SIZES = [100, 1000, 10000]
 
 # Clifford conjugation costs hundreds of microseconds per operation.
-CLIFFORD_SIZES = [20, 100]
-NUM_TERMS = [20, 200, 500]
-MATRIX_SIZES = [10, 16]
-
-# Rounds for `benchmark.pedantic`, used where every round needs a fresh input object.
-PEDANTIC_ROUNDS = 100
+CLIFFORD_SIZES = [20, 100, 1000]
+NUM_TERMS = [20, 200, pytest.param(500, marks=pytest.mark.slow)]
+MATRIX_SIZES = [10, 16, pytest.param(20, marks=pytest.mark.slow)]
 
 PAULIS: tuple[cirq.Pauli, ...] = (cirq.X, cirq.Y, cirq.Z)
 
@@ -148,7 +145,7 @@ class TestPauliStringAlgebra:
         result = benchmark.pedantic(
             cirq.MutablePauliString.inplace_left_multiply_by,
             setup=lambda: ((_pauli_string(qubits).mutable_copy(), right), {}),
-            rounds=PEDANTIC_ROUNDS,
+            rounds=100,
         )
         assert len(result) == num_qubits
 
@@ -233,7 +230,7 @@ class TestPauliSumAlgebra:
         combined = benchmark(operator.add, left, right)
         assert len(combined) == num_terms + len(disjoint[num_terms // 2 :])
 
-    @pytest.mark.parametrize("num_terms", [10, 50])
+    @pytest.mark.parametrize("num_terms", NUM_TERMS)
     @pytest.mark.benchmark(group=group)
     def test_pauli_sum_multiplication(self, benchmark, num_terms: int) -> None:
         """Multiplying two sums on overlapping qubits; every pair of terms is multiplied."""
