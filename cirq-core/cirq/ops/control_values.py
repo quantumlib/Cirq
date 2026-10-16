@@ -143,8 +143,10 @@ class ProductOfSums(AbstractControlValues):
     """Represents control values as N OR (sum) clauses, each of which applies to one qubit."""
 
     def __init__(self, data: Sequence[int | Collection[int]]):
+        # Convert bools to 0/1 so they are not treated as boolean masks when used as indices later.
         self._qubit_sums: tuple[tuple[int, ...], ...] = tuple(
-            (cv,) if isinstance(cv, int) else tuple(sorted(set(cv))) for cv in data
+            (int(cv),) if isinstance(cv, int) else tuple(sorted({int(v) for v in cv}))
+            for cv in data
         )
 
     @cached_property
@@ -243,7 +245,9 @@ class SumOfProducts(AbstractControlValues):
     """
 
     def __init__(self, data: Collection[Sequence[int]], *, name: str | None = None):
-        self._conjunctions: tuple[tuple[int, ...], ...] = tuple(sorted({tuple(cv) for cv in data}))
+        self._conjunctions: tuple[tuple[int, ...], ...] = tuple(
+            sorted({tuple(int(v) for v in cv) for cv in data})
+        )
         self._name = name
         if not len(self._conjunctions):
             raise ValueError("SumOfProducts can't be empty.")

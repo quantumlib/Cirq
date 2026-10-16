@@ -346,3 +346,13 @@ def test_control_values_diagrams() -> None:
 2: ───@(10)───@(xor)───
         """,
     )
+
+
+def test_bool_control_values_are_stored_as_ints():
+    control_values = cirq.ProductOfSums([True, [False, True]])
+    assert tuple(control_values) == ((1,), (0, 1))
+    assert all(type(v) is int for values in control_values for v in values)
+
+    control_values = cirq.SumOfProducts([[True, False]])
+    assert tuple(control_values) == ((1, 0),)
+    assert all(type(v) is int for values in control_values for v in values)
