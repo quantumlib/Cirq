@@ -347,6 +347,46 @@ def test_simulation_initially_false() -> None:
     np.testing.assert_array_equal(runres.records["a"], [[[0]]])
 
 
+def test_simulation_infinite_loop_error() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    sim = cirq.Simulator()
+
+    # Sub-operation has no measurements and condition is True -> raises ValueError.
+    circuit_no_meas = cirq.Circuit(
+        cirq.X(q0), cirq.measure(q0, key='a'), cirq.While('a', cirq.X(q1))
+    )
+    with pytest.raises(
+        ValueError, match='Infinite loop: condition is not modified in sub_operation'
+    ):
+        sim.simulate(circuit_no_meas)
+
+    # Sub-operation measures a different key ('b') than the condition ('a') -> raises ValueError.
+    circuit_other_key = cirq.Circuit(
+        cirq.X(q0),
+        cirq.measure(q0, key='a'),
+        cirq.While('a', cirq.X(q1), cirq.measure(q1, key='b')),
+    )
+    with pytest.raises(
+        ValueError, match='Infinite loop: condition is not modified in sub_operation'
+    ):
+        sim.simulate(circuit_other_key)
+
+    # Constant True SymPy condition has no keys to modify -> raises ValueError.
+    circuit_const_true = cirq.Circuit(
+        cirq.While(sympy.S.true, cirq.X(q0), cirq.measure(q0, key='a'))
+    )
+    with pytest.raises(
+        ValueError, match='Infinite loop: condition is not modified in sub_operation'
+    ):
+        sim.simulate(circuit_const_true)
+
+    # If condition is initially False, no loop is entered even if 'a' is not modified in body.
+    circuit_false = cirq.Circuit(cirq.measure(q0, key='a'), cirq.While('a', cirq.X(q1)))
+    res = sim.simulate(circuit_false)
+    np.testing.assert_equal(res.measurements['a'], [0])
+    np.testing.assert_equal(res.state_vector(), [1, 0, 0, 0])
+
+
 def test_simulation_sympy_condition() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     # Start in |11> (value 3). Decrement while a > 1:

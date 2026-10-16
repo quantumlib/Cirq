@@ -220,8 +220,14 @@ class While(raw_types.Operation):
         return {'condition': list(self._conditions), 'sub_operation': self._sub_operation}
 
     def _act_on_(self, sim_state: cirq.SimulationStateBase) -> bool:
-        while all(c.resolve(sim_state.classical_data) for c in self._conditions):
-            protocols.act_on(self._sub_operation, sim_state)
+        if all(c.resolve(sim_state.classical_data) for c in self._conditions):
+            cond_keys = {k for c in self._conditions for k in c.keys}
+            if protocols.measurement_key_objs(self._sub_operation).isdisjoint(cond_keys):
+                raise ValueError('Infinite loop: condition is not modified in sub_operation.')
+            while True:
+                protocols.act_on(self._sub_operation, sim_state)
+                if not all(c.resolve(sim_state.classical_data) for c in self._conditions):
+                    break
         return True
 
     @_compat.cached_method
