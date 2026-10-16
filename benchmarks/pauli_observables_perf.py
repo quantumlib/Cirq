@@ -30,7 +30,7 @@ SPARSE_SIZES = [20, 100, 1000]
 DENSE_SIZES = [100, 1000, 10000]
 
 # Clifford conjugation costs hundreds of microseconds per operation.
-CLIFFORD_SIZES = [20, 100, 1000]
+CLIFFORD_SIZES = [20, 100, 500]
 
 # `PauliSum` addition is O(num_terms), whereas multiplication is O(num_terms^2).
 SUM_ADD_TERMS = [100, 1000, 5000]
