@@ -377,20 +377,54 @@ TDefault = TypeVar('TDefault')
 RaiseTypeErrorIfNotProvided = CircuitDiagramInfo(())
 
 
+def _all_control_keys(op: cirq.Operation) -> frozenset[cirq.MeasurementKey]:
+    keys = set(protocols.control_keys(op))
+    untagged: Any = op.untagged
+    if hasattr(untagged, '_mapped_single_loop'):
+        mapped_repeat_until = getattr(untagged, '_mapped_repeat_until', None)
+        if mapped_repeat_until is not None:
+            keys.update(mapped_repeat_until.keys)
+        loops = (
+            [untagged._mapped_single_loop(rep) for rep in untagged.repetition_ids]
+            if untagged.use_repetition_ids and untagged.repetition_ids is not None
+            else [untagged._mapped_single_loop()]
+        )
+        for loop in loops:
+            for sub_op in loop.all_operations():
+                keys.update(_all_control_keys(sub_op))
+    return frozenset(keys)
+
+
+_BOXY_SYMBOL_MAP = {'@': '●', '^': '△'}
+
+
 def _op_info_with_fallback(
-    op: cirq.Operation, args: cirq.CircuitDiagramInfoArgs
+    op: cirq.Operation, args: cirq.CircuitDiagramInfoArgs, *, style: str | None = None
 ) -> cirq.CircuitDiagramInfo:
     info = protocols.circuit_diagram_info(op, args, None)
-    rows: list[LabelEntity] = list(op.qubits)
+    cbit_rows: list[cirq.MeasurementKey] = []
     if args.label_map is not None:
-        rows += protocols.measurement_keys_touched(op) & args.label_map.keys()
+        touched_keys = protocols.measurement_keys_touched(op)
+        cbit_rows = [
+            k for k in args.label_map if isinstance(k, value.MeasurementKey) and k in touched_keys
+        ]
+    rows: list[LabelEntity] = [*op.qubits, *cbit_rows]
     if info is not None and info.wire_symbols:
         if max(1, len(rows)) != len(info.wire_symbols):
             raise ValueError(f'Wanted diagram info from {op!r} for {rows!r}) but got {info!r}')
+        if style == 'boxy':
+            new_symbols = tuple(
+                '●' + s[1:] if s.startswith('@(') else _BOXY_SYMBOL_MAP.get(s, s)
+                for s in info.wire_symbols
+            )
+            return info.with_wire_symbols(new_symbols)
         return info
 
-    # Use the untagged operation's __str__.
-    name = str(op.untagged)
+    # Use the untagged operation's _diagram_str or __str__.
+    untagged = op.untagged
+    name = (
+        untagged._diagram_str(style=style) if hasattr(untagged, '_diagram_str') else str(untagged)
+    )
 
     # Representation usually looks like 'gate(qubit1, qubit2, etc)'.
     # Try to cut off the qubit part, since that would be redundant.
@@ -403,6 +437,20 @@ def _op_info_with_fallback(
 
     # Include ordering in the qubit labels.
     symbols = (name, *(f'#{i + 1}' for i in range(1, len(op.qubits))))
+    if style == 'boxy' and cbit_rows:
+        written_keys = protocols.measurement_key_objs(op)
+        read_keys = _all_control_keys(op)
+        cbit_symbols = []
+        for k in cbit_rows:
+            is_write = k in written_keys
+            is_read = k in read_keys
+            if is_write and is_read:
+                cbit_symbols.append('◬')
+            elif is_write:
+                cbit_symbols.append('●')
+            else:
+                cbit_symbols.append('△')
+        symbols = (*symbols, *cbit_symbols)
 
     return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 

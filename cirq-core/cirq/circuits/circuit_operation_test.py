@@ -567,6 +567,12 @@ def test_string_format() -> None:
     fc0 = cirq.FrozenCircuit()
     op0 = cirq.CircuitOperation(fc0)
     assert str(op0) == "[  ]"
+    assert op0._diagram_str(style=None) == "[  ]"
+    assert op0._diagram_str(style='simple') == "[  ]"
+    assert op0._diagram_str(style='boxy') == """\
+┌┐
+╎╎
+└┘"""
 
     fc0_global_phase_inner = cirq.FrozenCircuit(
         cirq.global_phase_operation(1j), cirq.global_phase_operation(1j)
@@ -580,6 +586,13 @@ def test_string_format() -> None:
 [                       ]
 [                       ]
 [ global phase:   -0.5π ]"""
+    assert op0_global_phase_outer._diagram_str(style='simple') == str(op0_global_phase_outer)
+    assert op0_global_phase_outer._diagram_str(style='boxy') == """\
+┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+╎                     ╎
+╎                     ╎
+╎global phase:   -0.5π╎
+└╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘"""
 
     fc1 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, z), cirq.measure(x, y, z, key='m'))
     op1 = cirq.CircuitOperation(fc1)
@@ -589,6 +602,15 @@ def test_string_format() -> None:
 [ 1: ───H───@───M──────── ]
 [           │   │         ]
 [ 2: ───────X───M──────── ]"""
+    assert op1._diagram_str(style='simple') == str(op1)
+    assert op1._diagram_str(style='boxy') == """\
+┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+╎0: ───X───────M('m')───╎
+╎              │        ╎
+╎1: ───H───●───M────────╎
+╎          │   │        ╎
+╎2: ───────X───M────────╎
+└╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘"""
     assert repr(op1) == """\
 cirq.CircuitOperation(
     circuit=cirq.FrozenCircuit([
@@ -618,6 +640,14 @@ cirq.CircuitOperation(
 [           │    ]
 [ 1: ───H───@─── ](qubit_map={q(1): q(2)}, parent_path=('outer', 'inner'),\
  repetition_ids=['a', 'b', 'c'])"""
+    assert op2._diagram_str(style='simple') == str(op2)
+    assert op2._diagram_str(style='boxy') == """\
+┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+╎0: ───X───X───╎
+╎          │   ╎
+╎1: ───H───●───╎
+└╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘(qubit_map={q(1): q(2)}, parent_path=('outer', 'inner'),\
+ repetition_ids=['a', 'b', 'c'])"""
     assert repr(op2) == """\
 cirq.CircuitOperation(
     circuit=cirq.FrozenCircuit([
@@ -646,6 +676,12 @@ cirq.CircuitOperation(
     assert str(op3) == """\
 [ 0: ───X^b───M('m')─── ](qubit_map={q(0): q(1)}, \
 key_map={m: p}, params={b: 2})"""
+    assert op3._diagram_str(style='simple') == str(op3)
+    assert op3._diagram_str(style='boxy') == """\
+┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+╎0: ───X^b───M('m')───╎
+└╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘(qubit_map={q(0): q(1)}, \
+key_map={m: p}, params={b: 2})"""
     assert repr(op3) == f"""\
 cirq.CircuitOperation(
     circuit={indented_fc3_repr},
@@ -656,8 +692,46 @@ cirq.CircuitOperation(
 
     fc4 = cirq.FrozenCircuit(cirq.X(y))
     op4 = cirq.CircuitOperation(fc4)
+    assert str(op4) == "[ 1: ───X─── ]"
+    assert op4._diagram_str(style='simple') == str(op4)
+    assert op4._diagram_str(style='boxy') == """\
+┌╌╌╌╌╌╌╌╌╌╌┐
+╎1: ───X───╎
+└╌╌╌╌╌╌╌╌╌╌┘"""
     fc5 = cirq.FrozenCircuit(cirq.X(x), op4)
     op5 = cirq.CircuitOperation(fc5)
+    assert str(op5) == """\
+[ 0: ───X──────────────── ]
+[                         ]
+[ 1: ───[ 1: ───X─── ]─── ]"""
+    assert op5._diagram_str(style='simple') == str(op5)
+    assert op5._diagram_str(style='boxy') == """\
+┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+╎0: ───X──────────────╎
+╎                     ╎
+╎      ┌╌╌╌╌╌╌╌╌╌╌┐   ╎
+╎1: ───╎1: ───X───╎───╎
+╎      └╌╌╌╌╌╌╌╌╌╌┘   ╎
+└╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘"""
+    cirq.testing.assert_has_diagram(
+        fc5,
+        """
+0: ───X────────────────
+
+1: ───[ 1: ───X─── ]───
+""",
+    )
+    cirq.testing.assert_has_diagram(
+        fc5,
+        """
+0: ───X──────────────
+
+      ┌╌╌╌╌╌╌╌╌╌╌┐
+1: ───╎1: ───X───╎───
+      └╌╌╌╌╌╌╌╌╌╌┘
+""",
+        style='boxy',
+    )
     assert repr(op5) == """\
 cirq.CircuitOperation(
     circuit=cirq.FrozenCircuit([
@@ -1052,6 +1126,37 @@ def test_tag_propagation() -> None:
     op = circuit_op.with_tags(test_tag)
 
     assert test_tag in op.tags
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(op),
+        """
+      [ 0: ───X───@─── ]
+      [           │    ]
+0: ───[ 1: ───H───┼─── ]─────────────
+      [           │    ]
+      [ 2: ───H───@─── ][test_tag]
+      │
+1: ───#2─────────────────────────────
+      │
+2: ───#3─────────────────────────────
+""",
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(op),
+        """
+      ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+      ╎0: ───X───●───╎
+      ╎          │   ╎
+0: ───╎1: ───H───┼───╎─────────────
+      ╎          │   ╎
+      ╎2: ───H───●───╎
+      └╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘[test_tag]
+      │
+1: ───#2───────────────────────────
+      │
+2: ───#3───────────────────────────
+""",
+        style='boxy',
+    )
 
     # TODO: Tags must propagate during decomposition.
     sub_ops = cirq.decompose(op)
@@ -1195,6 +1300,24 @@ def test_repeat_until_diagram() -> None:
 0: ───[ 0: ───X^0.2───M('m')─── ](until=m)───
 """,
         use_unicode_characters=True,
+    )
+    cirq.testing.assert_has_diagram(
+        c,
+        """
+0: ───[ 0: ───X^0.2───M('m')─── ](until=m)───
+""",
+        use_unicode_characters=True,
+        style='simple',
+    )
+    cirq.testing.assert_has_diagram(
+        c,
+        """
+      ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+0: ───╎0: ───X^0.2───M('m')───╎────────────
+      └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘(until=m)
+""",
+        use_unicode_characters=True,
+        style='boxy',
     )
 
 
