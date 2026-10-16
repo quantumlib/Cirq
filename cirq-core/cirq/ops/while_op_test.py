@@ -1,0 +1,645 @@
+# Copyright 2026 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import numpy as np
+import pytest
+import sympy
+
+import cirq
+
+
+def test_init() -> None:
+    q = cirq.LineQubit(0)
+    op = cirq.While('m', cirq.X(q))
+    assert op.conditions == (cirq.KeyCondition(cirq.MeasurementKey('m')),)
+    assert op.sub_operation == cirq.X(q)
+    assert op.qubits == (q,)
+    assert op.classical_controls == frozenset([cirq.KeyCondition(cirq.MeasurementKey('m'))])
+    with pytest.raises(
+        NotImplementedError, match='Cannot remove classical controls from a While operation'
+    ):
+        _ = op.without_classical_controls()
+
+
+def test_init_condition_types() -> None:
+    q = cirq.LineQubit(0)
+    key = cirq.MeasurementKey('k')
+    cond = cirq.KeyCondition(key)
+    sym = sympy.Symbol('s')
+
+    assert cirq.While(key, cirq.X(q)).conditions == (cond,)
+    assert cirq.While(cond, cirq.X(q)).conditions == (cond,)
+    assert cirq.While(sym, cirq.X(q)).conditions == (cirq.SympyCondition(sym),)
+
+
+def test_init_multiple_conditions() -> None:
+    q = cirq.LineQubit(0)
+    op = cirq.While(['a', 'b'], cirq.X(q))
+    assert op.conditions == (
+        cirq.KeyCondition(cirq.MeasurementKey('a')),
+        cirq.KeyCondition(cirq.MeasurementKey('b')),
+    )
+
+
+def test_init_multiple_operations() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    op = cirq.While('m', cirq.X(q0), cirq.Y(q1))
+    assert isinstance(op.sub_operation, cirq.CircuitOperation)
+    assert op.sub_operation.circuit == cirq.Circuit(cirq.X(q0), cirq.Y(q1))
+    assert op.qubits == (q0, q1)
+
+    op_list = cirq.While('m', [cirq.X(q0), cirq.Y(q1)])
+    assert isinstance(op_list.sub_operation, cirq.CircuitOperation)
+    assert op_list.sub_operation.circuit == cirq.Circuit(cirq.X(q0), cirq.Y(q1))
+
+
+def test_nested_while_and_if_preserved() -> None:
+    q_b, q_a, target = cirq.LineQubit.range(3)
+
+    inner_while = cirq.While('a', cirq.X(target))
+    outer_while = cirq.While('b', inner_while)
+    assert outer_while.conditions == (cirq.KeyCondition(cirq.MeasurementKey('b')),)
+    assert outer_while.sub_operation == inner_while
+
+    inner_if = cirq.If('a', cirq.X(target))
+    outer_while = cirq.While('b', inner_if)
+    assert outer_while.conditions == (cirq.KeyCondition(cirq.MeasurementKey('b')),)
+    assert outer_while.sub_operation == inner_if
+    assert outer_while.classical_controls == frozenset(
+        [cirq.KeyCondition(cirq.MeasurementKey('b'))]
+    )
+
+    cco = cirq.ClassicallyControlledOperation(cirq.X(target), ['a'])
+    outer_cco = cirq.While('b', cco)
+    assert outer_cco.conditions == (cirq.KeyCondition(cirq.MeasurementKey('b')),)
+    assert outer_cco.sub_operation == cco
+
+
+def test_init_errors() -> None:
+    q = cirq.LineQubit(0)
+    with pytest.raises(TypeError, match='Unrecognized condition type'):
+        _ = cirq.While(123, cirq.X(q))
+
+    with pytest.raises(TypeError, match='Unrecognized condition type'):
+        _ = cirq.While(['a', 123], cirq.X(q))
+
+    with pytest.raises(ValueError, match='At least one condition must be provided'):
+        _ = cirq.While([], cirq.X(q))
+
+
+def test_with_qubits() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    op = cirq.While('m', cirq.X(q0))
+    new_op = op.with_qubits(q1)
+    assert new_op == cirq.While('m', cirq.X(q1))
+
+
+def test_value_equality() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(
+        cirq.While('a', cirq.X(q0)), cirq.While(cirq.MeasurementKey('a'), cirq.X(q0))
+    )
+    eq.add_equality_group(cirq.While('b', cirq.X(q0)))
+    eq.add_equality_group(cirq.While('a', cirq.X(q1)))
+    eq.add_equality_group(cirq.While(['a', 'b'], cirq.X(q0)))
+    eq.add_equality_group(
+        cirq.While('a', cirq.X(q0), cirq.Y(q1)),
+        cirq.While('a', [cirq.X(q0), cirq.Y(q1)]),
+        cirq.While('a', cirq.Circuit(cirq.X(q0), cirq.Y(q1))),
+        cirq.While('a', cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q0), cirq.Y(q1)))),
+    )
+    eq.add_equality_group(cirq.While('a', cirq.Y(q0), cirq.X(q1)))
+
+
+def test_str_and_repr() -> None:
+    q = cirq.LineQubit(0)
+    op1 = cirq.While('m', cirq.X(q))
+    assert str(op1) == 'While(m, X(q(0)))'
+    assert repr(op1) == (
+        "cirq.While(cirq.KeyCondition(cirq.MeasurementKey(name='m')), cirq.X(cirq.LineQubit(0)))"
+    )
+    assert eval(repr(op1)) == op1
+
+    op2 = cirq.While(['a', 'b'], cirq.X(q))
+    assert str(op2) == 'While([a, b], X(q(0)))'
+    assert repr(op2) == (
+        "cirq.While([cirq.KeyCondition(cirq.MeasurementKey(name='a')), "
+        "cirq.KeyCondition(cirq.MeasurementKey(name='b'))], cirq.X(cirq.LineQubit(0)))"
+    )
+    assert eval(repr(op2)) == op2
+
+    q0, q1 = cirq.LineQubit.range(2)
+    op_multiline = cirq.While(sympy.S.true, cirq.X(q0), cirq.X(q1))
+    assert str(op_multiline) == """\
+While(True, [ 0: ───X─── ]
+            [            ]
+            [ 1: ───X─── ])"""
+
+
+def test_parameterized_and_resolve() -> None:
+    q = cirq.LineQubit(0)
+    sym = sympy.Symbol('theta')
+    cond_sym = sympy.Symbol('cond')
+
+    op = cirq.While(cond_sym, cirq.Rx(rads=sym).on(q))
+    assert cirq.is_parameterized(op)
+    assert cirq.parameter_names(op) == {'theta'}
+
+    resolved = cirq.resolve_parameters(op, cirq.ParamResolver({'theta': np.pi, 'cond': 1}))
+    assert not cirq.is_parameterized(resolved)
+    assert resolved == cirq.While(cond_sym, cirq.Rx(rads=np.pi).on(q))
+
+
+def test_diagram() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.measure(q0, key='a'), cirq.While('a', cirq.X(q1)))
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ───M────────────────
+      ║
+1: ───╫───X(While=a)───
+      ║   ║
+a: ═══@═══^════════════
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_diagram_multiple_conditions() -> None:
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'), cirq.measure(q1, key='b'), cirq.While(['a', 'b'], cirq.X(q2))
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+      ┌──┐
+0: ────M─────────────────────
+       ║
+1: ────╫M────────────────────
+       ║║
+2: ────╫╫────X(While=a, b)───
+       ║║    ║
+a: ════@╬════^═══════════════
+        ║    ║
+b: ═════@════^═══════════════
+      └──┘
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_diagram_sympy_condition() -> None:
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.While(sympy.Symbol('s'), cirq.X(q)))
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ───X(While=s)───
+      ║
+s: ═══^════════════
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_diagram_multiple_sympy_conditions() -> None:
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.While([sympy.Symbol('s'), sympy.Symbol('t')], cirq.X(q)))
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ───X(While=s, t)───
+      ║
+s: ═══^═══════════════
+      ║
+t: ═══^═══════════════
+""",
+        use_unicode_characters=True,
+    )
+
+
+@pytest.mark.parametrize('sub_operation', [[], cirq.Circuit()])
+def test_diagram_empty_op_tree(sub_operation: cirq.OP_TREE) -> None:
+    op = cirq.While('a', sub_operation)
+
+    assert isinstance(op.sub_operation, cirq.CircuitOperation)
+    assert op.sub_operation.circuit == cirq.FrozenCircuit()
+
+    args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT
+    assert op._circuit_diagram_info_(args) is NotImplemented
+    assert cirq.circuit_diagram_info(op, default=None) is None
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(op),
+        """
+a: ════════════════════
+      While(a, [  ])
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_diagram_circuit_operation_body() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    rus_circuit = cirq.Circuit(
+        cirq.X(q0),
+        cirq.measure(q0, key='a'),
+        cirq.While('a', cirq.H(q0), cirq.measure(q0, key='a')),
+    )
+    cirq.testing.assert_has_diagram(
+        rus_circuit,
+        """
+0: ───X───M───While(a, [ 0: ───H───M('a')─── ])───
+          ║   ║
+a: ═══════@═══╩═══════════════════════════════════
+""",
+        use_unicode_characters=True,
+    )
+
+    multi_qubit_circuit = cirq.Circuit(
+        cirq.X(q0),
+        cirq.X(q1),
+        cirq.measure(q0, q1, key='a'),
+        cirq.While('a', cirq.X(q1), cirq.CNOT(q1, q0), cirq.measure(q0, q1, key='a')),
+    )
+    cirq.testing.assert_has_diagram(
+        multi_qubit_circuit,
+        """
+              While(a, [ 0: ───────X───M('a')─── ]
+0: ───X───M───         [           │   │         ]────
+          ║            [ 1: ───X───@───M──────── ])
+          ║   ║
+1: ───X───M───#2──────────────────────────────────────
+          ║   ║
+a: ═══════@═══╩═══════════════════════════════════════
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_diagram_nested_while() -> None:
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+        cirq.measure(q1, key='b'),
+        cirq.While('a', cirq.While('b', cirq.X(q2))),
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+      ┌──┐
+0: ────M───────────────────────────
+       ║
+1: ────╫M──────────────────────────
+       ║║
+2: ────╫╫────X(While=b)(While=a)───
+       ║║    ║
+a: ════@╬════^═════════════════════
+        ║    ║
+b: ═════@════^═════════════════════
+      └──┘
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_simulation_initially_false() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    invoked = False
+
+    class SpyOp(cirq.Operation):
+        @property
+        def qubits(self) -> tuple[cirq.Qid, ...]:
+            return (q1,)
+
+        def with_qubits(self, *new_qubits: cirq.Qid) -> cirq.Operation:
+            return self  # pragma: no cover
+
+        def _act_on_(self, sim_state: cirq.SimulationStateBase) -> bool:
+            nonlocal invoked
+            invoked = True  # pragma: no cover
+            return True  # pragma: no cover
+
+    # q0 starts in |0>, so measurement 'a' is 0 (initially false).
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'), cirq.While('a', SpyOp(), cirq.X(q1), cirq.measure(q0, key='a'))
+    )
+    res = cirq.Simulator().simulate(circuit)
+
+    assert not invoked
+    np.testing.assert_equal(res.measurements['a'], [0])
+    np.testing.assert_equal(res.state_vector(), [1, 0, 0, 0])
+    runres = cirq.Simulator().run(circuit)
+    np.testing.assert_array_equal(runres.records["a"], [[[0]]])
+
+
+def test_simulation_infinite_loop_error() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    sim = cirq.Simulator()
+
+    # Sub-operation has no measurements and condition is True -> raises ValueError.
+    circuit_no_meas = cirq.Circuit(
+        cirq.X(q0), cirq.measure(q0, key='a'), cirq.While('a', cirq.X(q1))
+    )
+    with pytest.raises(
+        ValueError, match='Infinite loop: condition is not modified in sub_operation'
+    ):
+        sim.simulate(circuit_no_meas)
+
+    # Sub-operation measures a different key ('b') than the condition ('a') -> raises ValueError.
+    circuit_other_key = cirq.Circuit(
+        cirq.X(q0),
+        cirq.measure(q0, key='a'),
+        cirq.While('a', cirq.X(q1), cirq.measure(q1, key='b')),
+    )
+    with pytest.raises(
+        ValueError, match='Infinite loop: condition is not modified in sub_operation'
+    ):
+        sim.simulate(circuit_other_key)
+
+    # Constant True SymPy condition has no keys to modify -> raises ValueError.
+    circuit_const_true = cirq.Circuit(
+        cirq.While(sympy.S.true, cirq.X(q0), cirq.measure(q0, key='a'))
+    )
+    with pytest.raises(
+        ValueError, match='Infinite loop: condition is not modified in sub_operation'
+    ):
+        sim.simulate(circuit_const_true)
+
+    # If condition is initially False, no loop is entered even if 'a' is not modified in body.
+    circuit_false = cirq.Circuit(cirq.measure(q0, key='a'), cirq.While('a', cirq.X(q1)))
+    res = sim.simulate(circuit_false)
+    np.testing.assert_equal(res.measurements['a'], [0])
+    np.testing.assert_equal(res.state_vector(), [1, 0, 0, 0])
+
+
+def test_simulation_sympy_condition() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    # Start in |11> (value 3). Decrement while a > 1:
+    # 3 (11) -> 2 (10) -> 1 (01), stopping when a == 1.
+    circuit_gt_1 = cirq.Circuit(
+        cirq.X(q0),
+        cirq.X(q1),
+        cirq.measure(q0, q1, key='a'),
+        cirq.While(
+            sympy.Symbol('a') > 1, cirq.X(q1), cirq.CNOT(q1, q0), cirq.measure(q0, q1, key='a')
+        ),
+    )
+    sim = cirq.Simulator()
+    res_gt_1 = sim.simulate(circuit_gt_1)
+
+    np.testing.assert_equal(res_gt_1.measurements['a'], [0, 1])
+    np.testing.assert_equal(res_gt_1.state_vector(), [0, 1, 0, 0])
+    runres_gt_1 = sim.run(circuit_gt_1)
+    np.testing.assert_array_equal(runres_gt_1.records["a"], [[[1, 1], [1, 0], [0, 1]]])
+
+    # Decrement while a > 0:
+    # 3 (11) -> 2 (10) -> 1 (01) -> 0 (00), stopping when a == 0.
+    circuit_gt_0 = cirq.Circuit(
+        cirq.X(q0),
+        cirq.X(q1),
+        cirq.measure(q0, q1, key='a'),
+        cirq.While(
+            sympy.Symbol('a') > 0, cirq.X(q1), cirq.CNOT(q1, q0), cirq.measure(q0, q1, key='a')
+        ),
+    )
+    res_gt_0 = sim.simulate(circuit_gt_0)
+
+    np.testing.assert_equal(res_gt_0.measurements['a'], [0, 0])
+    np.testing.assert_equal(res_gt_0.state_vector(), [1, 0, 0, 0])
+    runres_gt_0 = sim.run(circuit_gt_0)
+    np.testing.assert_array_equal(runres_gt_0.records["a"], [[[1, 1], [1, 0], [0, 1], [0, 0]]])
+
+
+def test_simulation_countdown() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    # Start in |11> (value 3). Each loop iteration decrements the 2-qubit integer by 1:
+    # 3 (11) -> 2 (10) -> 1 (01) -> 0 (00).
+    circuit = cirq.Circuit(
+        cirq.X(q0),
+        cirq.X(q1),
+        cirq.measure(q0, q1, key='a'),
+        cirq.While('a', cirq.X(q1), cirq.CNOT(q1, q0), cirq.measure(q0, q1, key='a')),
+    )
+    sim = cirq.Simulator()
+    res = sim.simulate(circuit)
+
+    # Final measurement is [0, 0] and state is |00>
+    np.testing.assert_equal(res.measurements['a'], [0, 0])
+    np.testing.assert_equal(res.state_vector(), [1, 0, 0, 0])
+
+    # Verify the loop ran 3 times (initial measurement + 3 loop measurements)
+    runres = sim.run(circuit)
+    np.testing.assert_array_equal(runres.records["a"], [[[1, 1], [1, 0], [0, 1], [0, 0]]])
+
+
+def test_simulation_repeat_until_success() -> None:
+    q0 = cirq.LineQubit(0)
+    # Repeat-until-success: apply H and measure until we observe |0>.
+    circuit = cirq.Circuit(
+        cirq.X(q0),
+        cirq.measure(q0, key='a'),
+        cirq.While('a', cirq.H(q0), cirq.measure(q0, key='a')),
+    )
+    sim = cirq.Simulator()
+    res = sim.simulate(circuit)
+
+    np.testing.assert_equal(res.measurements['a'], [0])
+    plus_minus_one = np.sign(res.state_vector()[0].real)
+    np.testing.assert_allclose(res.state_vector(), [plus_minus_one, 0], atol=1e-6)
+
+    # Every recorded measurement before the last one must be (1,), and the last is (0,)
+    runres = cirq.Simulator().run(circuit)
+    records = runres.records["a"][0]
+    assert len(records) >= 2
+    assert all(r == (1,) for r in records[:-1])
+    assert records[-1] == (0,)
+
+
+def test_simulation_run_repetitions() -> None:
+    q0 = cirq.LineQubit(0)
+    circuit = cirq.Circuit(
+        cirq.X(q0),
+        cirq.measure(q0, key='a'),
+        cirq.While('a', cirq.H(q0), cirq.measure(q0, key='a')),
+        cirq.measure(q0, key='result'),
+    )
+    sim = cirq.Simulator()
+    repetitions = 10
+    res = sim.run(circuit, repetitions=repetitions)
+
+    # Every repetition must terminate in |0>
+    np.testing.assert_equal(res.records['result'], np.zeros((repetitions, 1, 1), dtype=int))
+    # Initial measurement is always 1, and final measurement (plus any zero-padding) is 0
+    assert res.records['a'].shape[0] == repetitions
+    assert res.records['a'].shape[1] >= 2
+    np.testing.assert_equal(res.records['a'][:, 0, 0], np.ones(repetitions, dtype=int))
+    np.testing.assert_equal(res.records['a'][:, -1, 0], np.zeros(repetitions, dtype=int))
+
+
+def test_simulation_nested_while() -> None:
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    # Outer loop counts down 2-qubit integer 'a' on (q0, q1) from 2 (10) -> 1 (01) -> 0 (00).
+    # In each outer iteration, q2 is set to |1> ('b' = 1), and the inner While loop clears
+    # q2 back to |0> ('b' = 0).
+    circuit = cirq.Circuit(
+        cirq.X(q0),
+        cirq.measure(q0, q1, key='a'),
+        cirq.While(
+            'a',
+            cirq.X(q2),
+            cirq.measure(q2, key='b'),
+            cirq.While('b', cirq.X(q2), cirq.measure(q2, key='b')),
+            cirq.X(q1),
+            cirq.CNOT(q1, q0),
+            cirq.measure(q0, q1, key='a'),
+        ),
+    )
+    sim = cirq.Simulator()
+    res = sim.simulate(circuit)
+    np.testing.assert_equal(res.measurements['a'], [0, 0])
+    np.testing.assert_equal(res.measurements['b'], [0])
+    np.testing.assert_equal(res.state_vector(), [1, 0, 0, 0, 0, 0, 0, 0])
+
+    runres = sim.run(circuit)
+    np.testing.assert_array_equal(runres.records['a'], [[[1, 0], [0, 1], [0, 0]]])
+    np.testing.assert_array_equal(runres.records['b'], [[[1], [0], [1], [0]]])
+
+    # Directly nested While(a, While(b, ...)) where sub_operation is a While operation.
+    direct_nested_circuit = cirq.Circuit(
+        cirq.X(q0),
+        cirq.X(q1),
+        cirq.measure(q0, key='a'),
+        cirq.measure(q1, key='b'),
+        cirq.While(
+            'a',
+            cirq.While(
+                'b',
+                cirq.CNOT(q1, q0),
+                cirq.X(q1),
+                cirq.measure(q0, key='a'),
+                cirq.measure(q1, key='b'),
+            ),
+        ),
+    )
+    res_direct = sim.simulate(direct_nested_circuit)
+    np.testing.assert_equal(res_direct.measurements['a'], [0])
+    np.testing.assert_equal(res_direct.measurements['b'], [0])
+    np.testing.assert_equal(res_direct.state_vector(), [1, 0, 0, 0])
+
+    runres_direct = sim.run(direct_nested_circuit)
+    np.testing.assert_array_equal(runres_direct.records['a'], [[[1], [0]]])
+    np.testing.assert_array_equal(runres_direct.records['b'], [[[1], [0]]])
+
+
+def test_key_mappings_and_scoping() -> None:
+    q = cirq.LineQubit(0)
+    op = cirq.While('a', cirq.X(q))
+
+    mapped = cirq.with_measurement_key_mapping(op, {'a': 'b'})
+    assert mapped == cirq.While('b', cirq.X(q))
+
+    prefixed = cirq.with_key_path_prefix(op, ('path',))
+    assert prefixed == cirq.While('path:a', cirq.X(q))
+
+    rescoped = cirq.with_rescoped_keys(
+        op, ('scope',), frozenset([cirq.MeasurementKey.parse_serialized('scope:a')])
+    )
+    assert rescoped == cirq.While('scope:a', cirq.X(q))
+
+    assert cirq.control_keys(op) == frozenset([cirq.MeasurementKey('a')])
+    assert not cirq.is_measurement(op)
+    assert cirq.measurement_key_objs(op) == frozenset()
+    assert cirq.measurement_key_names(op) == frozenset()
+
+    op_meas = cirq.While('a', cirq.H(q), cirq.measure(q, key='b'))
+    assert cirq.is_measurement(op_meas)
+    assert cirq.measurement_key_objs(op_meas) == frozenset([cirq.MeasurementKey('b')])
+    assert cirq.measurement_key_names(op_meas) == frozenset(['b'])
+
+    circuit = cirq.Circuit(cirq.measure(q, key='a'), cirq.While('a', cirq.measure(q, key='a')))
+    assert circuit.all_measurement_key_names() == {'a'}
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ───M───M(While=a)───
+      ║   ║
+a: ═══@═══@════════════
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_has_unitary() -> None:
+    q = cirq.LineQubit(0)
+    assert not cirq.has_unitary(cirq.While('m', cirq.X(q)))
+
+
+def test_commutes() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    while_op = cirq.While('a', cirq.X(q0))
+
+    assert not cirq.definitely_commutes(while_op, cirq.Z(q0))
+    assert not cirq.definitely_commutes(cirq.Moment(while_op), cirq.Moment(cirq.Z(q0)))
+    assert cirq.commutes(while_op, cirq.Z(q1))
+    assert not cirq.commutes(while_op, cirq.measure(q1, key='a'))
+
+
+def test_qasm() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    op = cirq.While('a', cirq.X(q1))
+    circuit = cirq.Circuit(cirq.measure(q0, key='a'), op)
+    with pytest.raises(ValueError, match='QASM 2.0 does not support while loops'):
+        _ = cirq.qasm(op)
+    with pytest.raises(ValueError, match='QASM 2.0 does not support while loops'):
+        _ = cirq.qasm(circuit)
+
+    qasm_str = cirq.qasm(circuit, args=cirq.QasmArgs(version='3.0'))
+    assert 'while (m_a!=0) {\n  x q[1];\n}' in qasm_str
+
+    op_multi = cirq.While(['a', 'b'], cirq.X(q1))
+    circuit_multi = cirq.Circuit(cirq.measure(q0, key='a'), cirq.measure(q0, key='b'), op_multi)
+    qasm_str_3 = cirq.qasm(circuit_multi, args=cirq.QasmArgs(version='3.0'))
+    assert 'while (m_a!=0 && m_b!=0) {\n  x q[1];\n}' in qasm_str_3
+
+    op_meas = cirq.While('a', cirq.measure(q0, q1, key='a'))
+    circuit_meas = cirq.Circuit(cirq.measure(q0, q1, key='a'), op_meas)
+    qasm_meas = cirq.qasm(circuit_meas, args=cirq.QasmArgs(version='3.0'))
+    assert 'while (m_a!=0) {\n  m_a[0] = measure q[0];\n  m_a[1] = measure q[1];\n}' in qasm_meas
+
+    op_nested = cirq.While('a', cirq.While('b', cirq.X(q1)))
+    circuit_nested = cirq.Circuit(cirq.measure(q0, key='a'), cirq.measure(q0, key='b'), op_nested)
+    qasm_nested = cirq.qasm(circuit_nested, args=cirq.QasmArgs(version='3.0'))
+    assert 'while (m_a!=0) {\n  while (m_b!=0) {\n    x q[1];\n  }\n}' in qasm_nested
+
+
+def test_qasm_sub_op_no_qasm() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    op_circuit_op = cirq.While('a', cirq.X(q0), cirq.Y(q1))
+    assert isinstance(op_circuit_op.sub_operation, cirq.CircuitOperation)
+    assert cirq.qasm(op_circuit_op, args=cirq.QasmArgs(version='3.0'), default=None) is None
+
+    class NoQasmOp(cirq.Operation):
+        @property
+        def qubits(self) -> tuple[cirq.Qid, ...]:
+            return (cirq.LineQubit(0),)  # pragma: no cover
+
+        def with_qubits(self, *new_qubits: cirq.Qid) -> cirq.Operation:
+            return self  # pragma: no cover
+
+    op = cirq.While('a', NoQasmOp())
+    assert cirq.qasm(op, args=cirq.QasmArgs(version='3.0'), default=None) is None

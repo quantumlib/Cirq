@@ -336,6 +336,7 @@ from cirq.ops import (
     VirtualTag as VirtualTag,
     wait as wait,
     WaitGate as WaitGate,
+    While as While,
     X as X,
     XPowGate as XPowGate,
     XX as XX,
