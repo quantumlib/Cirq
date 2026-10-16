@@ -133,7 +133,7 @@ def test_init2() -> None:
     with pytest.raises(ValueError, match='Cannot control measurement'):
         cirq.ControlledGate(cirq.MeasurementGate(1))
     with pytest.raises(ValueError, match='Cannot control channel'):
-        cirq.ControlledGate(cirq.PhaseDampingChannel(1))
+        cirq.ControlledGate(cirq.AmplitudeDampingChannel(1))
 
     gate = cirq.ControlledGate(cirq.Z, 1)
     assert gate.sub_gate is cirq.Z
@@ -588,7 +588,7 @@ def test_parameterizable(resolve_fn) -> None:
     assert resolve_fn(cya, cirq.ParamResolver({'a': 1})) == cy
 
     cchan = cirq.ControlledGate(
-        cirq.RandomGateChannel(sub_gate=cirq.PhaseDampingChannel(0.1), probability=a)
+        cirq.RandomGateChannel(sub_gate=cirq.AmplitudeDampingChannel(0.1), probability=a)
     )
     with pytest.raises(ValueError, match='Cannot control channel'):
         resolve_fn(cchan, cirq.ParamResolver({'a': 0.1}))
