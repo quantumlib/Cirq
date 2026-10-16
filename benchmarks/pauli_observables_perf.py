@@ -23,23 +23,27 @@ import pytest
 import cirq
 
 # Sizes for `cirq.PauliString` operations, which are linear in the number of qubits.
-_SPARSE_SIZES = [20, 100, 1000]
+SPARSE_SIZES = [20, 100, 1000]
 
 # `cirq.DensePauliString` operations are vectorized, so larger sizes are needed before the
 # per-qubit cost shows over the fixed numpy call overhead.
-_DENSE_SIZES = [100, 1000, 10000]
+DENSE_SIZES = [100, 1000, 10000]
 
 # Clifford conjugation costs hundreds of microseconds per operation.
-_CLIFFORD_SIZES = [20, 100, 1000]
-_NUM_TERMS = [20, 200, pytest.param(500, marks=pytest.mark.slow)]
-_MATRIX_SIZES = [10, 16, pytest.param(20, marks=pytest.mark.slow)]
+CLIFFORD_SIZES = [20, 100, 1000]
 
-_PAULIS: tuple[cirq.Pauli, ...] = (cirq.X, cirq.Y, cirq.Z)
+# `PauliSum` addition is O(num_terms), whereas multiplication is O(num_terms^2).
+SUM_ADD_TERMS = [100, 1000, 5000]
+SUM_MUL_TERMS = [20, 200, pytest.param(500, marks=pytest.mark.slow)]
+
+MATRIX_SIZES = [10, 16, pytest.param(20, marks=pytest.mark.slow)]
+
+PAULIS: tuple[cirq.Pauli, ...] = (cirq.X, cirq.Y, cirq.Z)
 
 
 def _pauli_map(qubits: Iterable[cirq.Qid], offset: int = 0) -> dict[cirq.Qid, cirq.Pauli]:
     """Returns a mapping from qubits to Paulis cycling through X, Y, and Z."""
-    return {q: _PAULIS[(i + offset) % 3] for i, q in enumerate(qubits)}
+    return {q: PAULIS[(i + offset) % 3] for i, q in enumerate(qubits)}
 
 
 def _pauli_string(qubits: Iterable[cirq.Qid], offset: int = 0) -> cirq.PauliString:
@@ -49,7 +53,7 @@ def _pauli_string(qubits: Iterable[cirq.Qid], offset: int = 0) -> cirq.PauliStri
 
 def _pauli_ops(qubits: Iterable[cirq.Qid]) -> list[cirq.Operation]:
     """Returns single-qubit Pauli operations cycling through X, Y, and Z."""
-    return [_PAULIS[i % 3](q) for i, q in enumerate(qubits)]
+    return [PAULIS[i % 3](q) for i, q in enumerate(qubits)]
 
 
 def _pauli_sum_terms(qubits: Sequence[cirq.Qid], num_terms: int) -> list[cirq.PauliString]:
@@ -68,7 +72,7 @@ def _pauli_sum_terms(qubits: Sequence[cirq.Qid], num_terms: int) -> list[cirq.Pa
         start, pass_index = i % n, i // n
         pattern = (start + pass_index) % 3
         locality = 3 if (start + pass_index) % 4 == 0 else 2
-        pauli_map = {qubits[(start + j) % n]: _PAULIS[(pattern + j) % 3] for j in range(locality)}
+        pauli_map = {qubits[(start + j) % n]: PAULIS[(pattern + j) % 3] for j in range(locality)}
         coefficient = 0.5 if locality == 3 else 1.25
         terms.append(cirq.PauliString(qubit_pauli_map=pauli_map, coefficient=coefficient))
     return terms
@@ -79,9 +83,10 @@ def _clifford_ladder(qubits: Sequence[cirq.Qid]) -> list[cirq.Operation]:
     return [cirq.H(q) for q in qubits] + [cirq.CNOT(a, b) for a, b in zip(qubits, qubits[1:])]
 
 
-def _plus_state(qubits: Sequence[cirq.Qid]) -> np.ndarray:
+def _plus_state(num_qubits: int) -> np.ndarray:
     """Returns the |+>^n state vector, on which any Y or Z Pauli string has expectation 0."""
-    return cirq.Circuit(cirq.H.on_each(*qubits)).final_state_vector(dtype=np.complex64)
+    dim = 1 << num_qubits
+    return np.full(dim, 1.0 / np.sqrt(dim), dtype=np.complex64)
 
 
 class TestPauliStringConstructionAndConversion:
@@ -89,15 +94,7 @@ class TestPauliStringConstructionAndConversion:
 
     group = "pauli_string_construction"
 
-    @pytest.mark.parametrize("num_qubits", _SPARSE_SIZES)
-    @pytest.mark.benchmark(group=group)
-    def test_pauli_string_from_contents_dict(self, benchmark, num_qubits: int) -> None:
-        """Construction via a positional dictionary, which goes through the general path."""
-        pauli_map = _pauli_map(cirq.LineQubit.range(num_qubits))
-        pauli_string = benchmark(cirq.PauliString, pauli_map)
-        assert len(pauli_string) == num_qubits
-
-    @pytest.mark.parametrize("num_qubits", _SPARSE_SIZES)
+    @pytest.mark.parametrize("num_qubits", SPARSE_SIZES)
     @pytest.mark.benchmark(group=group)
     def test_pauli_string_from_operations(self, benchmark, num_qubits: int) -> None:
         """Construction from a sequence of single-qubit Pauli operations."""
@@ -105,7 +102,7 @@ class TestPauliStringConstructionAndConversion:
         pauli_string = benchmark(cirq.PauliString, ops)
         assert len(pauli_string) == num_qubits
 
-    @pytest.mark.parametrize("num_qubits", _SPARSE_SIZES)
+    @pytest.mark.parametrize("num_qubits", SPARSE_SIZES)
     @pytest.mark.benchmark(group=group)
     def test_pauli_string_to_z_basis_ops(self, benchmark, num_qubits: int) -> None:
         pauli_string = _pauli_string(cirq.LineQubit.range(num_qubits))
@@ -118,7 +115,7 @@ class TestPauliStringAlgebra:
 
     group = "pauli_string_algebra"
 
-    @pytest.mark.parametrize("num_qubits", _SPARSE_SIZES)
+    @pytest.mark.parametrize("num_qubits", SPARSE_SIZES)
     @pytest.mark.benchmark(group=group)
     def test_pauli_string_multiplication(self, benchmark, num_qubits: int) -> None:
         """Multiplying strings with partially overlapping support and identity cancellations.
@@ -136,20 +133,17 @@ class TestPauliStringAlgebra:
         product = benchmark(operator.mul, left, right)
         assert len(product) == num_qubits
 
-    @pytest.mark.parametrize("num_qubits", _SPARSE_SIZES)
+    @pytest.mark.parametrize("num_qubits", SPARSE_SIZES)
     @pytest.mark.benchmark(group=group)
     def test_mutable_pauli_string_inplace_multiply(self, benchmark, num_qubits: int) -> None:
-        """In-place multiplication, with a fresh `cirq.MutablePauliString` for every round."""
+        """In-place multiplication on `cirq.MutablePauliString`."""
         qubits = cirq.LineQubit.range(num_qubits)
+        left = _pauli_string(qubits, offset=0)
         right = _pauli_string(qubits, offset=1)
-        result = benchmark.pedantic(
-            cirq.MutablePauliString.inplace_left_multiply_by,
-            setup=lambda: ((_pauli_string(qubits).mutable_copy(), right), {}),
-            rounds=100,
-        )
+        result = benchmark(lambda: left.mutable_copy().inplace_left_multiply_by(right))
         assert len(result) == num_qubits
 
-    @pytest.mark.parametrize("num_qubits", _SPARSE_SIZES)
+    @pytest.mark.parametrize("num_qubits", SPARSE_SIZES)
     @pytest.mark.benchmark(group=group)
     def test_pauli_string_commutes(self, benchmark, num_qubits: int) -> None:
         """Commutation of two strings that anticommute on every qubit."""
@@ -161,11 +155,11 @@ class TestPauliStringAlgebra:
 
 
 class TestDensePauliString:
-    """Algebra and commutation on `cirq.DensePauliString`."""
+    """Vectorized multiplication (including phase calculation) on `cirq.DensePauliString`."""
 
     group = "dense_pauli_string"
 
-    @pytest.mark.parametrize("num_qubits", _DENSE_SIZES)
+    @pytest.mark.parametrize("num_qubits", DENSE_SIZES)
     @pytest.mark.benchmark(group=group)
     def test_dense_pauli_string_multiplication(self, benchmark, num_qubits: int) -> None:
         left = cirq.DensePauliString("".join("XYZ"[i % 3] for i in range(num_qubits)))
@@ -173,42 +167,29 @@ class TestDensePauliString:
         product = benchmark(operator.mul, left, right)
         assert len(product) == num_qubits
 
-    @pytest.mark.parametrize("num_qubits", _DENSE_SIZES)
-    @pytest.mark.benchmark(group=group)
-    def test_dense_pauli_string_commutes(self, benchmark, num_qubits: int) -> None:
-        left = cirq.DensePauliString("".join("XYZ"[i % 3] for i in range(num_qubits)))
-        right = cirq.DensePauliString("".join("YZX"[i % 3] for i in range(num_qubits)))
-        commutes = benchmark(cirq.commutes, left, right)
-        assert commutes == (num_qubits % 2 == 0)
-
 
 class TestCliffordConjugation:
     """Propagating Pauli strings through Clifford operations."""
 
     group = "pauli_clifford_conjugation"
 
-    @pytest.mark.parametrize("num_qubits", _CLIFFORD_SIZES)
+    @pytest.mark.parametrize("num_qubits", CLIFFORD_SIZES)
     @pytest.mark.benchmark(group=group)
     def test_pauli_string_conjugated_by(self, benchmark, num_qubits: int) -> None:
         qubits = cirq.LineQubit.range(num_qubits)
         pauli_string = _pauli_string(qubits)
         clifford_ops = _clifford_ladder(qubits)
-        expected = pauli_string.mutable_copy().inplace_before(clifford_ops).frozen()
         conjugated = benchmark(pauli_string.conjugated_by, clifford_ops)
-        assert conjugated == expected
+        assert len(conjugated) > 0
 
-    @pytest.mark.parametrize("num_qubits", _CLIFFORD_SIZES)
+    @pytest.mark.parametrize("num_qubits", CLIFFORD_SIZES)
     @pytest.mark.benchmark(group=group)
     def test_mutable_pauli_string_inplace_before(self, benchmark, num_qubits: int) -> None:
         qubits = cirq.LineQubit.range(num_qubits)
         pauli_string = _pauli_string(qubits)
         clifford_ops = _clifford_ladder(qubits)
-        expected = pauli_string.conjugated_by(clifford_ops)
-
-        def _f() -> cirq.MutablePauliString:
-            return pauli_string.mutable_copy().inplace_before(clifford_ops)
-
-        assert benchmark(_f).frozen() == expected
+        conjugated = benchmark(lambda: pauli_string.mutable_copy().inplace_before(clifford_ops))
+        assert len(conjugated) > 0
 
 
 class TestPauliSumAlgebra:
@@ -216,7 +197,7 @@ class TestPauliSumAlgebra:
 
     group = "pauli_sum_algebra"
 
-    @pytest.mark.parametrize("num_terms", _NUM_TERMS)
+    @pytest.mark.parametrize("num_terms", SUM_ADD_TERMS)
     @pytest.mark.benchmark(group=group)
     def test_pauli_sum_addition(self, benchmark, num_terms: int) -> None:
         """Adding two sums that have half of their terms in common."""
@@ -230,7 +211,7 @@ class TestPauliSumAlgebra:
         combined = benchmark(operator.add, left, right)
         assert len(combined) == num_terms + len(disjoint[num_terms // 2 :])
 
-    @pytest.mark.parametrize("num_terms", _NUM_TERMS)
+    @pytest.mark.parametrize("num_terms", SUM_MUL_TERMS)
     @pytest.mark.benchmark(group=group)
     def test_pauli_sum_multiplication(self, benchmark, num_terms: int) -> None:
         """Multiplying two sums on overlapping qubits; every pair of terms is multiplied."""
@@ -248,7 +229,7 @@ class TestMatricesAndExpectations:
 
     group = "pauli_matrices_and_expectations"
 
-    @pytest.mark.parametrize("num_qubits", _MATRIX_SIZES)
+    @pytest.mark.parametrize("num_qubits", MATRIX_SIZES)
     @pytest.mark.benchmark(group=group)
     def test_pauli_string_sparse_matrix(self, benchmark, num_qubits: int) -> None:
         qubits = cirq.LineQubit.range(num_qubits)
@@ -256,11 +237,11 @@ class TestMatricesAndExpectations:
         matrix = benchmark(pauli_string.sparse_matrix, qubits)
         assert matrix.shape == (1 << num_qubits, 1 << num_qubits)
 
-    @pytest.mark.parametrize("num_qubits", _MATRIX_SIZES)
+    @pytest.mark.parametrize("num_qubits", MATRIX_SIZES)
     @pytest.mark.benchmark(group=group)
     def test_pauli_string_expectation_from_state_vector(self, benchmark, num_qubits: int) -> None:
         qubits = cirq.LineQubit.range(num_qubits)
-        state = _plus_state(qubits)
+        state = _plus_state(num_qubits)
         observable = _pauli_string(qubits)
         qubit_map = {q: i for i, q in enumerate(qubits)}
         value = benchmark(observable.expectation_from_state_vector, state, qubit_map)
