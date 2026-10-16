@@ -90,3 +90,28 @@ jobs:
         run: |
           gh pr ready "${PULL_REQUEST_URL}" --undo
           gh pr edit "${PULL_REQUEST_URL}" --add-label status/on-hold
+
+  label-pr-area:
+    if: github.repository_owner == 'quantumlib'
+    name: Update PR area labels
+    runs-on: ubuntu-slim
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Check out labeler configuration
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{github.event.repository.default_branch}}
+          sparse-checkout: |
+            .github/labeler.yaml
+
+      - name: Label the PR with area labels
+        uses: actions/labeler@f27b608878404679385c85cfa523b85ccb86e213 # v6.1.0
+        with:
+          repo-token: ${{secrets.GITHUB_TOKEN}}
+          configuration-path: .github/labeler.yaml
+          sync-labels: false
+          dot: true
+          pr-number: ${{inputs.pr-number || github.event.pull_request.number}}
