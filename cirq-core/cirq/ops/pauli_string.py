@@ -1166,10 +1166,16 @@ def _try_interpret_as_pauli_string(op: Any) -> PauliString | None:
     }
     if (pauli := cached_gates.get(type(op.gate))) is not None:
         exponent = op.gate.exponent  # type: ignore[union-attr]
+        shift = getattr(op.gate, 'global_shift', 0.0)
+        coef = 1 if shift == 0 else 1j ** (2 * exponent * shift)
         if exponent % 2 == 0:
-            return PauliString()
+            return PauliString() if coef == 1 else PauliString(coefficient=coef)
         if exponent % 2 == 1:
-            return pauli.on(op.qubits[0])
+            return (
+                pauli.on(op.qubits[0])
+                if coef == 1
+                else PauliString({op.qubits[0]: pauli}, coefficient=coef)
+            )
         return None
 
     pauli_expansion_op = protocols.pauli_expansion(op, default=None)
