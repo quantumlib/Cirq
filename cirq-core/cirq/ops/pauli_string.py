@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import cmath
+import functools
 import math
 import numbers
 from collections.abc import (
@@ -55,6 +56,7 @@ if TYPE_CHECKING:
     import cirq
 
 # Lazy imports to break circular dependencies.
+line_qubit = LazyLoader("line_qubit", globals(), "cirq.devices.line_qubit")
 linear_combinations = LazyLoader("linear_combinations", globals(), "cirq.ops.linear_combinations")
 
 TDefault = TypeVar('TDefault')
@@ -1030,30 +1032,12 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
         Returns:
             The Pauli string conjugated by the given Clifford operation.
+
+        Raises:
+            ValueError: If any operation has no gate or does not have a
+                stabilizer effect.
         """
-
-        # Initialize the ps the same as self.
-        ps = PauliString(qubit_pauli_map=self._qubit_pauli_map, coefficient=self.coefficient)
-        all_ops = list(op_tree.flatten_to_ops(clifford))
-        all_qubits = set(self.qubits).union(q for op in all_ops for q in op.qubits)
-        # Iteratively calculate the conjugation in reverse order of ops.
-        for op in all_ops[::-1]:
-            # To calculate the conjugation of P (`ps`) with respect to C (`op`)
-            # Decompose P = Pc⊗R, where Pc acts on the same qubits as C, R acts on the remaining.
-            # Then the conjugation = (C^{-1}⊗I·Pc⊗R·C⊗I) = (C^{-1}·Pc·C)⊗R.
-
-            # Conjugation on the qubits of op
-            conjugated = _calc_conjugation(ps, op)
-            # The Pauli string on the remaining qubits
-            remain: PauliString = PauliString(
-                *(
-                    pauli(q)
-                    for q in all_qubits.difference(op.qubits)
-                    if (pauli := ps.get(q)) is not None
-                )
-            )
-            ps = remain * conjugated
-        return ps
+        return self.mutable_copy().inplace_before(clifford).frozen()
 
     def after(self, ops: cirq.OP_TREE) -> cirq.PauliString:
         r"""Determines the equivalent Pauli string after some operations.
@@ -1399,6 +1383,49 @@ class MutablePauliString(Generic[TKey]):
         result = self.pauli_int_dict.get(key, None)
         return default if result is None else _INT_TO_PAULI[result - 1]
 
+    def _inplace_conjugate_by(self, op: cirq.Operation) -> None:
+        gate = op.gate
+        if gate is None:
+            raise ValueError(f'Cannot conjugate by {op!r}: it has no gate.')
+        table = (
+            _clifford_conjugation_table(gate)
+            if type(gate).__hash__ is not None
+            else _build_clifford_conjugation_table(gate)
+        )
+        qubits = op.qubits
+        new_paulis: tuple[int, ...] | list[int] | None = None
+        phase_log_i = 0
+        for k, q in enumerate(qubits):
+            pauli_int = self.pauli_int_dict.get(cast(TKey, q), 0)
+            if not pauli_int:
+                continue
+            row_phase, row = table[k][pauli_int - 1]
+            phase_log_i += row_phase
+            if new_paulis is None:
+                new_paulis = row
+            else:
+                if isinstance(new_paulis, tuple):
+                    new_paulis = list(new_paulis)
+                # Right-multiply `row` into `new_paulis` (matching `conjugated *= row`).
+                for i, row_pauli in enumerate(row):
+                    if not row_pauli:
+                        continue
+                    cur = new_paulis[i]
+                    if not cur:
+                        new_paulis[i] = row_pauli
+                    elif cur == row_pauli:
+                        new_paulis[i] = 0
+                    else:
+                        new_paulis[i] = cur ^ row_pauli
+                        phase_log_i += -1 if (cur - row_pauli) % 3 == 1 else 1
+        if new_paulis is not None:
+            for q, pauli_int in zip(qubits, new_paulis):
+                if pauli_int:
+                    self.pauli_int_dict[cast(TKey, q)] = pauli_int
+                else:
+                    self.pauli_int_dict.pop(cast(TKey, q), None)
+        self.coefficient = _apply_phase(self.coefficient, phase_log_i)
+
     def inplace_before(self, ops: cirq.OP_TREE) -> cirq.MutablePauliString:
         r"""Propagates the Pauli string from after to before a Clifford effect.
 
@@ -1412,18 +1439,14 @@ class MutablePauliString(Generic[TKey]):
 
         Returns:
             The mutable Pauli string that was mutated.
+
+        Raises:
+            ValueError: If any operation has no gate or does not have a
+                stabilizer effect.
         """
-        # An inplace impl of PauliString.conjugated_by().
         flattened_ops = list(op_tree.flatten_to_ops(ops))
         for op in flattened_ops[::-1]:
-            conjugated = _calc_conjugation(self.frozen(), op)
-            self.coefficient = conjugated.coefficient
-            for q in op.qubits:
-                new_pauli_int = PAULI_GATE_LIKE_TO_INDEX_MAP[conjugated.get(q) or 0]
-                if new_pauli_int == 0:
-                    self.pauli_int_dict.pop(cast(TKey, q), None)
-                else:
-                    self.pauli_int_dict[cast(TKey, q)] = new_pauli_int
+            self._inplace_conjugate_by(op)
         return self
 
     def inplace_after(self, ops: cirq.OP_TREE) -> cirq.MutablePauliString:
@@ -1441,8 +1464,8 @@ class MutablePauliString(Generic[TKey]):
             The mutable Pauli string that was mutated.
 
         Raises:
-            NotImplementedError: If any ops decompose into an unsupported
-                Clifford gate.
+            ValueError: If any operation has no gate or does not have a
+                stabilizer effect.
         """
         return self.inplace_before(protocols.inverse(ops))
 
@@ -1697,50 +1720,48 @@ def _pauli_like_to_pauli_int(key: Any, pauli_gate_like: PAULI_GATE_LIKE):
     return pauli_int
 
 
-def _calc_conjugation(ps: cirq.PauliString, clifford_op: cirq.Operation) -> cirq.PauliString:
-    """Computes the conjugation of a Pauli string by a single Clifford operation.
+_ConjugationRow = tuple[int, tuple[int, ...]]
+_ConjugationTable = tuple[tuple[_ConjugationRow, _ConjugationRow, _ConjugationRow], ...]
 
-    It computes $C^-1 P C$ where P is the Pauli string `ps` and C is the `clifford_op`.
+
+def _build_clifford_conjugation_table(gate: cirq.Gate) -> _ConjugationTable:
+    r"""Builds the per-qubit Pauli conjugation table for a Clifford gate.
+
+    Computes $C^{-1} P C$ for each single-qubit Pauli $P \in \{X_k, Y_k, Z_k\}$
+    on each of the gate's qubits $k$. Because `CliffordGate.clifford_tableau`
+    represents $C P C^{-1}$, we invert the tableau first:
+    - $C^{-1} X_k C$ comes from `tableau.destabilizers()[k]`;
+    - $C^{-1} Z_k C$ comes from `tableau.stabilizers()[k]`;
+    - $C^{-1} Y_k C = i (C^{-1} X_k C) (C^{-1} Z_k C)$ since $Y = i X Z$.
+
+    The returned table is indexed by gate qubit position `k` (`op.qubits[k]`)
+    and Pauli index `pauli_int - 1` (`0: X, 1: Y, 2: Z`). Each row is an
+    immutable tuple `(phase_log_i, pauli_ints)`, where `phase_log_i` is in
+    $\{0, 2\}$ (encoding $+1 = i^0$ or $-1 = i^2$ in $\log_i$ units) and
+    `pauli_ints` has one entry per gate qubit in `{0: I, 1: X, 2: Y, 3: Z}`
+    (matching `DensePauliString.pauli_mask` and `_INT_TO_PAULI`).
+
+    `_clifford_conjugation_table` wraps this builder with thread-safe
+    `functools.lru_cache(maxsize=1024)` keyed by `gate` value equality (each
+    entry retains $O(n^2)$ ints for an $n$-qubit gate).
     """
-
-    # Initialize the conjugation of the Pauli string.
-    conjugated = dense_pauli_string.DensePauliString('I' * len(clifford_op.qubits)) * ps.coefficient
-
-    # Calculate the conjugation via CliffordGate's clifford_tableau.
-    # Note the clifford_tableau in CliffordGate represents C·P·C^-1 instead of C^-1·P·C.
-    # So we take the inverse of the tableau to match the definition of the conjugation here.
-    if isinstance(clifford_op.gate, clifford_gate.CliffordGate):
-        gate_in_clifford = clifford_op.gate
+    if isinstance(gate, clifford_gate.CliffordGate):
+        clifford = gate
     else:
-        # Convert the Clifford gate to CliffordGate type.
-        gate_in_clifford = clifford_gate.CliffordGate.from_op_list(
-            [clifford_op], clifford_op.qubits
+        qubits = line_qubit.LineQid.for_gate(gate)
+        clifford = clifford_gate.CliffordGate.from_op_list([gate.on(*qubits)], qubits)
+    tableau = clifford.clifford_tableau.inverse()
+
+    def _encode(row: cirq.DensePauliString) -> _ConjugationRow:
+        return (
+            _PHASE_POWERS.index(cast(complex, row.coefficient)),
+            tuple(int(v) for v in row.pauli_mask),
         )
-    tableau = gate_in_clifford.clifford_tableau.inverse()
 
-    # Calculate the conjugation by `clifford_op` via multiplying the conjugation of each Pauli:
-    #   C^{-1}·(P_1⊗...⊗P_n)·C
-    # = C^{-1}·(P_1⊗I) ...·(P_n⊗I)·C
-    # = (C^{-1}(P_1⊗I)C)·...·(C^{-1}(P_n⊗I)C)
-    # For the Pauli on the kth qubit P_k. The conjugation is calculated as following.
-    #   Pauli X_k's conjugation is from the destabilizer table;
-    #   Pauli Z_k's conjugation is from the stabilizer table;
-    #   Pauli Y_k's conjugation is calculated according to Y = iXZ. E.g., for the kth qubit,
-    #     C^{-1}·Y_k⊗I·C = C^{-1}·(iX_k⊗I·Z_k⊗I)·C = i (C^{-1}·X_k⊗I·C)·(C^{-1}·Z_k⊗I·C).
-    for qid, qubit in enumerate(clifford_op.qubits):
-        pauli = ps.get(qubit)
-        match pauli:
-            case None:
-                continue
-            case pauli_gates.X:
-                conjugated *= tableau.destabilizers()[qid]
-            case pauli_gates.Z:
-                conjugated *= tableau.stabilizers()[qid]
-            case pauli_gates.Y:
-                conjugated *= (
-                    1j
-                    * tableau.destabilizers()[qid]  # conj X first
-                    * tableau.stabilizers()[qid]  # then conj Z
-                )
+    return tuple(
+        (_encode(x_row), _encode(1j * x_row * z_row), _encode(z_row))
+        for x_row, z_row in zip(tableau.destabilizers(), tableau.stabilizers())
+    )
 
-    return conjugated.on(*clifford_op.qubits)
+
+_clifford_conjugation_table = functools.lru_cache(maxsize=1024)(_build_clifford_conjugation_table)
