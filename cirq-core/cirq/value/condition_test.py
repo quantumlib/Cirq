@@ -386,3 +386,138 @@ def test_bitmask_replace_key():
     cond = cirq.BitMaskKeyCondition('a')
     assert cond.replace_key('a', 'b') == cirq.BitMaskKeyCondition('b')
     assert cond.replace_key('c', 'd') is cond
+
+
+@pytest.mark.parametrize('a_value', [0, 0, 1, 1])
+@pytest.mark.parametrize('b_value', [0, 1, 0, 1])
+def test_or_condition_simulation(a_value, b_value):
+    cond = cirq.OrCondition(
+        (cirq.KeyCondition(cirq.MeasurementKey('a')), cirq.KeyCondition(cirq.MeasurementKey('b')))
+    )
+    qa, qb, target = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        cirq.X(qa) ** a_value,
+        cirq.X(qb) ** b_value,
+        cirq.measure(qa, key='a'),
+        cirq.measure(qb, key='b'),
+        cirq.X(target).with_classical_controls(cond),
+        cirq.measure(target, key='target'),
+    )
+    result = cirq.Simulator().run(circuit)
+    assert result.measurements['target'][0][0] == (a_value or b_value)
+
+
+def test_or_condition_inverted_simulation():
+    cond = cirq.OrCondition(
+        (cirq.KeyCondition(cirq.MeasurementKey('a')), cirq.KeyCondition(cirq.MeasurementKey('b'))),
+        invert=True,
+    )
+    qa, qb, target = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        cirq.X(qa),
+        cirq.measure(qa, key='a'),
+        cirq.measure(qb, key='b'),
+        cirq.X(target).with_classical_controls(cond),
+        cirq.measure(target, key='target'),
+    )
+    result = cirq.Simulator().run(circuit)
+    assert not result.measurements['target'][0][0]
+
+
+def test_or_condition_qasm():
+    cond = cirq.OrCondition(
+        (
+            cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), 1)),
+            cirq.SympyCondition(sympy.Eq(sympy.Symbol('b'), 0)),
+        )
+    )
+    assert cond.qasm == '(m_a==1 || m_b==0)'
+
+
+def test_or_condition_qasm_single_condition():
+    cond = cirq.OrCondition((cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), 1)),))
+    assert cond.qasm == 'm_a==1'
+
+
+def test_or_condition_circuit_qasm():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    cond_a = cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), 1))
+    cond_b = cirq.SympyCondition(sympy.Eq(sympy.Symbol('b'), 0))
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+        cirq.measure(q1, key='b'),
+        cirq.Y(q2).with_classical_controls(cirq.OrCondition((cond_a, cond_b), invert=True)),
+    )
+    qasm = cirq.qasm(circuit, args=cirq.QasmArgs(version='3.0'))
+    assert qasm == f"""// Generated from Cirq v{cirq.__version__}
+
+OPENQASM 3.0;
+include "stdgates.inc";
+
+
+// Qubits: [q(0), q(1), q(2)]
+qubit[3] q;
+bit[1] m_a;
+bit[1] m_b;
+
+
+m_a[0] = measure q[0];
+m_b[0] = measure q[1];
+if (!(m_a==1 || m_b==0)) y q[2];
+"""
+
+
+def test_or_condition_keys():
+    cond = cirq.OrCondition((init_key_condition, cirq.KeyCondition(key_b)))
+    assert cond.keys == (key_a, key_b)
+
+
+def test_or_condition_replace_key():
+    cond = cirq.OrCondition((init_key_condition, cirq.KeyCondition(key_b)))
+    assert cond.replace_key(key_a, key_c) == cirq.OrCondition(
+        (cirq.KeyCondition(key_c), cirq.KeyCondition(key_b))
+    )
+    assert cond.replace_key(key_b, key_c) == cirq.OrCondition(
+        (init_key_condition, cirq.KeyCondition(key_c))
+    )
+    assert cond.replace_key(key_c, key_a) == cond
+
+
+def test_or_condition_no_conditions_raises():
+    with pytest.raises(ValueError, match='At least one condition must be provided'):
+        _ = cirq.OrCondition([])
+
+
+@pytest.mark.parametrize(
+    'cond',
+    [
+        cirq.OrCondition((init_key_condition,)),
+        cirq.OrCondition((init_key_condition, cirq.KeyCondition(key_b)), invert=True),
+        cirq.OrCondition(
+            (
+                cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), 1)),
+                cirq.SympyCondition(sympy.Eq(sympy.Symbol('b'), 0)),
+            )
+        ),
+    ],
+)
+def test_or_condition_repr(cond):
+    cirq.testing.assert_equivalent_repr(cond)
+
+
+def test_or_condition_qasm_protocol_v2_single_condition():
+    cond = cirq.OrCondition((cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), 1)),))
+    args = cirq.QasmArgs(version='2.0')
+    assert cirq.qasm(cond, args=args) == 'm_a==1'
+
+
+def test_or_condition_qasm_protocol_v2_multiple_conditions_raises():
+    cond = cirq.OrCondition(
+        (
+            cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), 1)),
+            cirq.SympyCondition(sympy.Eq(sympy.Symbol('b'), 0)),
+        )
+    )
+    args = cirq.QasmArgs(version='2.0')
+    with pytest.raises(ValueError, match='QASM 2.0 does not support multiple conditions'):
+        _ = cirq.qasm(cond, args=args)
