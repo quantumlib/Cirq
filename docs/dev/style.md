@@ -55,7 +55,7 @@ for example work in `contrib`, one should use the highest level possible for tes
 ```python
 import cirq
 from cirq import contrib
-contrib.circuit_to_latex_using_qcircuit(cirq.Circuit())
+circuit_dag = contrib.circuitdag.CircuitDag()
 ```
 
 Of course, if this import style fundamentally cannot be used, do not let this

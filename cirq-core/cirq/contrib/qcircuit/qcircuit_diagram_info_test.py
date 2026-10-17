@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import cirq
 import cirq.contrib.qcircuit as ccq
+import cirq.testing as ct
 
 
 def test_get_qcircuit_diagram_info() -> None:
@@ -32,7 +33,8 @@ def test_get_qcircuit_diagram_info() -> None:
         precision=3,
         label_map=qubit_map,
     )
-    actual_info = ccq.get_qcircuit_diagram_info(op, args)
+    with ct.assert_deprecated(deadline='v1.8', count=1):
+        actual_info = ccq.get_qcircuit_diagram_info(op, args)
     name = r'{\text{SWAP}^{0.5}}'
     expected_info = cirq.CircuitDiagramInfo(
         (r'\multigate{1}' + name, r'\ghost' + name), exponent=1, connected=False
@@ -49,7 +51,8 @@ def test_get_qcircuit_diagram_info() -> None:
         precision=3,
         label_map=qubit_map,
     )
-    actual_info = ccq.get_qcircuit_diagram_info(op, args)
+    with ct.assert_deprecated(deadline='v1.8', count=1):
+        actual_info = ccq.get_qcircuit_diagram_info(op, args)
     expected_info = cirq.CircuitDiagramInfo(
         (r'\ghost{\text{SWAP}}', r'\multigate{1}{\text{SWAP}}'), connected=False
     )
@@ -63,9 +66,44 @@ def test_get_qcircuit_diagram_info() -> None:
         precision=3,
         label_map=qubit_map,
     )
-    actual_info = ccq.get_qcircuit_diagram_info(op, args)
+    with ct.assert_deprecated(deadline='v1.8', count=1):
+        actual_info = ccq.get_qcircuit_diagram_info(op, args)
     expected_info = cirq.CircuitDiagramInfo((r'\gate{\text{Swap}}',) * 2)
     assert actual_info == expected_info
 
-    actual_info = ccq.get_qcircuit_diagram_info(op, cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT)
+    with ct.assert_deprecated(deadline='v1.8', count=1):
+        actual_info = ccq.get_qcircuit_diagram_info(
+            op, cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT
+        )
     assert actual_info == expected_info
+
+
+def test_escape_text_for_latex_deprecated() -> None:
+    with ct.assert_deprecated(
+        'escape_text_for_latex was used but is deprecated',
+        'will be removed in cirq v1.8',
+        'Use the QuantikZ package or cirq.contrib.quantikz instead.',
+        deadline='v1.8',
+        count=1,
+    ):
+        assert ccq.escape_text_for_latex('x_1') == r'\text{x\_1}'
+
+
+def test_get_multigate_parameters_deprecated() -> None:
+    qubits = (cirq.LineQubit(0), cirq.LineQubit(1))
+    args = cirq.CircuitDiagramInfoArgs(
+        known_qubits=qubits,
+        known_qubit_count=2,
+        use_unicode_characters=True,
+        precision=3,
+        label_map={qubits[0]: 0, qubits[1]: 1},
+    )
+    with ct.assert_deprecated(
+        'get_multigate_parameters was used but is deprecated',
+        'will be removed in cirq v1.8',
+        'Use the QuantikZ package or cirq.contrib.quantikz instead.',
+        deadline='v1.8',
+        count=1,
+    ):
+        assert ccq.get_multigate_parameters(args) == (0, 2)
+

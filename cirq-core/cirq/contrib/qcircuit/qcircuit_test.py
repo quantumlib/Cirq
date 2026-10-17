@@ -29,7 +29,8 @@ def assert_has_qcircuit_diagram(actual: cirq.Circuit, desired: str, **kwargs) ->
         **kwargs: Keyword arguments to be passed to
             circuit_to_latex_using_qcircuit.
     """
-    actual_diagram = ccq.circuit_to_latex_using_qcircuit(actual, **kwargs).lstrip('\n').rstrip()
+    with ct.assert_deprecated(deadline='v1.8', count=1):
+        actual_diagram = ccq.circuit_to_latex_using_qcircuit(actual, **kwargs).lstrip('\n').rstrip()
     desired_diagram = desired.lstrip("\n").rstrip()
     assert actual_diagram == desired_diagram, (
         "Circuit's qcircuit diagram differs from the desired diagram.\n"
@@ -127,16 +128,20 @@ def test_other_diagram() -> None:
 def test_qcircuit_qubit_namer() -> None:
     from cirq.contrib.qcircuit import qcircuit_diagram
 
-    assert qcircuit_diagram.qcircuit_qubit_namer(cirq.NamedQubit('q')) == r'\lstick{\text{q}}&'
-    assert qcircuit_diagram.qcircuit_qubit_namer(cirq.NamedQubit('q_1')) == r'\lstick{\text{q\_1}}&'
-    assert (
-        qcircuit_diagram.qcircuit_qubit_namer(cirq.NamedQubit('q^1'))
-        == r'\lstick{\text{q\textasciicircum{}1}}&'
-    )
-    assert (
-        qcircuit_diagram.qcircuit_qubit_namer(cirq.NamedQubit('q_{1}'))
-        == r'\lstick{\text{q\_\{1\}}}&'
-    )
+    with ct.assert_deprecated(deadline='v1.8', count=1):
+        assert qcircuit_diagram.qcircuit_qubit_namer(cirq.NamedQubit('q')) == r'\lstick{\text{q}}&'
+    with ct.assert_deprecated(deadline='v1.8', count=1):
+        assert qcircuit_diagram.qcircuit_qubit_namer(cirq.NamedQubit('q_1')) == r'\lstick{\text{q\_1}}&'
+    with ct.assert_deprecated(deadline='v1.8', count=1):
+        assert (
+            qcircuit_diagram.qcircuit_qubit_namer(cirq.NamedQubit('q^1'))
+            == r'\lstick{\text{q\textasciicircum{}1}}&'
+        )
+    with ct.assert_deprecated(deadline='v1.8', count=1):
+        assert (
+            qcircuit_diagram.qcircuit_qubit_namer(cirq.NamedQubit('q_{1}'))
+            == r'\lstick{\text{q\_\{1\}}}&'
+        )
 
 
 def test_two_cx_diagram() -> None:
@@ -167,3 +172,15 @@ def test_sqrt_iswap_diagram() -> None:
  \\
 }""".strip()
     assert_has_qcircuit_diagram(circuit, expected_diagram)
+
+
+def test_deprecated() -> None:
+    with ct.assert_deprecated(
+        'circuit_to_latex_using_qcircuit was used but is deprecated',
+        'will be removed in cirq v1.8',
+        'Use the QuantikZ package or cirq.contrib.quantikz instead.',
+        deadline='v1.8',
+        count=1,
+    ):
+        _ = ccq.circuit_to_latex_using_qcircuit(cirq.Circuit())
+

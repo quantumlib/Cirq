@@ -16,16 +16,23 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from cirq import circuits, ops
+from cirq import _compat, circuits, ops
 from cirq.contrib.qcircuit.qcircuit_diagram_info import (
-    escape_text_for_latex,
-    get_qcircuit_diagram_info,
+    _escape_text_for_latex,
+    _get_qcircuit_diagram_info,
 )
 
 if TYPE_CHECKING:
     import cirq
 
 
+def _qcircuit_qubit_namer(qubit: cirq.Qid) -> str:
+    return r'\lstick{' + _escape_text_for_latex(str(qubit)) + '}&'
+
+
+@_compat.deprecated(
+    deadline='v1.8', fix='Use the QuantikZ package or cirq.contrib.quantikz instead.'
+)
 def qcircuit_qubit_namer(qubit: cirq.Qid) -> str:
     """Returns the LaTeX code for a QCircuit label of given qubit.
 
@@ -35,7 +42,7 @@ def qcircuit_qubit_namer(qubit: cirq.Qid) -> str:
     Returns:
         LaTeX code for the label.
     """
-    return r'\lstick{' + escape_text_for_latex(str(qubit)) + '}&'
+    return _qcircuit_qubit_namer(qubit)
 
 
 def _render(diagram: circuits.TextDiagramDrawer) -> str:
@@ -66,6 +73,9 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
     return output
 
 
+@_compat.deprecated(
+    deadline='v1.8', fix='Use the QuantikZ package or cirq.contrib.quantikz instead.'
+)
 def circuit_to_latex_using_qcircuit(
     circuit: cirq.Circuit, qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT
 ) -> str:
@@ -79,9 +89,9 @@ def circuit_to_latex_using_qcircuit(
         LaTeX code for the diagram.
     """
     diagram = circuit.to_text_diagram_drawer(
-        qubit_namer=qcircuit_qubit_namer,
+        qubit_namer=_qcircuit_qubit_namer,
         qubit_order=qubit_order,
-        get_circuit_diagram_info=get_qcircuit_diagram_info,
+        get_circuit_diagram_info=_get_qcircuit_diagram_info,
         draw_moment_groups=False,
     )
     return _render(diagram)
