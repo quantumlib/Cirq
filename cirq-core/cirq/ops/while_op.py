@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import functools
 from collections.abc import Mapping, Sequence
 from types import NotImplementedType
 from typing import Any, TYPE_CHECKING
@@ -220,14 +221,16 @@ class While(raw_types.Operation):
         return {'condition': list(self._conditions), 'sub_operation': self._sub_operation}
 
     def _act_on_(self, sim_state: cirq.SimulationStateBase) -> bool:
-        if all(c.resolve(sim_state.classical_data) for c in self._conditions):
-            cond_keys = {k for c in self._conditions for k in c.keys}
-            if protocols.measurement_key_objs(self._sub_operation).isdisjoint(cond_keys):
+        @functools.cache
+        def _is_infinite_loop() -> bool:
+            return protocols.measurement_key_objs(self).isdisjoint(
+                k for c in self._conditions for k in c.keys
+            )
+
+        while all(c.resolve(sim_state.classical_data) for c in self._conditions):
+            if _is_infinite_loop():
                 raise ValueError('Infinite loop: condition is not modified in sub_operation.')
-            while True:
-                protocols.act_on(self._sub_operation, sim_state)
-                if not all(c.resolve(sim_state.classical_data) for c in self._conditions):
-                    break
+            protocols.act_on(self._sub_operation, sim_state)
         return True
 
     @_compat.cached_method
