@@ -20,12 +20,16 @@ from typing import TYPE_CHECKING
 
 from pylatex import Document, NoEscape, Package
 
+from cirq import _compat
 from cirq.contrib.qcircuit.qcircuit_diagram import circuit_to_latex_using_qcircuit
 
 if TYPE_CHECKING:
     import cirq
 
 
+@_compat.deprecated(
+    deadline='v1.8', fix='Use the QuantikZ package or cirq.contrib.quantikz instead.'
+)
 def circuit_to_pdf_using_qcircuit_via_tex(
     circuit: cirq.Circuit,
     filepath: str,

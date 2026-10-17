@@ -22,7 +22,14 @@ import cirq.contrib.qcircuit.qcircuit_pdf as qcircuit_pdf
 
 def test_qcircuit_pdf(tmp_path: pathlib.Path) -> None:
     circuit = cirq.Circuit(cirq.X(cirq.q(0)), cirq.CZ(cirq.q(0), cirq.q(1)))
-    qcircuit_pdf.circuit_to_pdf_using_qcircuit_via_tex(circuit, f"{tmp_path}/test_file")
+    with cirq.testing.assert_deprecated(
+        'circuit_to_pdf_using_qcircuit_via_tex was used but is deprecated',
+        'will be removed in cirq v1.8',
+        'Use the QuantikZ package or cirq.contrib.quantikz instead.',
+        deadline='v1.8',
+        count=1,
+    ):
+        qcircuit_pdf.circuit_to_pdf_using_qcircuit_via_tex(circuit, f"{tmp_path}/test_file")
     assert (tmp_path / "test_file.pdf").is_file()
     assert not (tmp_path / "test_file.dvi").exists()
     assert not (tmp_path / "test_file.ps").exists()

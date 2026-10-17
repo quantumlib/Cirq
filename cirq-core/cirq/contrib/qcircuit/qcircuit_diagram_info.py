@@ -14,10 +14,10 @@
 
 from __future__ import annotations
 
-from cirq import ops, protocols
+from cirq import _compat, ops, protocols
 
 
-def escape_text_for_latex(text: str) -> str:
+def _escape_text_for_latex(text: str) -> str:
     escaped = (
         text.replace('\\', r'\textbackslash{}')
         .replace('{', r'\{')
@@ -33,7 +33,14 @@ def escape_text_for_latex(text: str) -> str:
     return r'\text{' + escaped + '}'
 
 
-def get_multigate_parameters(args: protocols.CircuitDiagramInfoArgs) -> tuple[int, int] | None:
+@_compat.deprecated(
+    deadline='v1.8', fix='Use the QuantikZ package or cirq.contrib.quantikz instead.'
+)
+def escape_text_for_latex(text: str) -> str:
+    return _escape_text_for_latex(text)
+
+
+def _get_multigate_parameters(args: protocols.CircuitDiagramInfoArgs) -> tuple[int, int] | None:
     if (args.label_map is None) or (args.known_qubits is None):
         return None
 
@@ -43,6 +50,13 @@ def get_multigate_parameters(args: protocols.CircuitDiagramInfoArgs) -> tuple[in
     if sorted(indices) != list(range(min_index, min_index + n_qubits)):
         return None
     return min_index, n_qubits
+
+
+@_compat.deprecated(
+    deadline='v1.8', fix='Use the QuantikZ package or cirq.contrib.quantikz instead.'
+)
+def get_multigate_parameters(args: protocols.CircuitDiagramInfoArgs) -> tuple[int, int] | None:
+    return _get_multigate_parameters(args)
 
 
 def hardcoded_qcircuit_diagram_info(op: ops.Operation) -> protocols.CircuitDiagramInfo | None:
@@ -67,7 +81,7 @@ def hardcoded_qcircuit_diagram_info(op: ops.Operation) -> protocols.CircuitDiagr
 def convert_text_diagram_info_to_qcircuit_diagram_info(
     info: protocols.CircuitDiagramInfo,
 ) -> protocols.CircuitDiagramInfo:
-    labels = [escape_text_for_latex(e) for e in info.wire_symbols]
+    labels = [_escape_text_for_latex(e) for e in info.wire_symbols]
     if info.exponent != 1:
         labels[0] += '^{' + str(info.exponent) + '}'
     symbols = tuple(r'\gate{' + l + '}' for l in labels)
@@ -82,14 +96,14 @@ def multigate_qcircuit_diagram_info(
     ):
         return None
 
-    multigate_parameters = get_multigate_parameters(args)
+    multigate_parameters = _get_multigate_parameters(args)
     if multigate_parameters is None:
         return None
 
     info = protocols.circuit_diagram_info(op, args, default=None)
 
     min_index, n_qubits = multigate_parameters
-    name = escape_text_for_latex(
+    name = _escape_text_for_latex(
         str(op.gate).rsplit('**', 1)[0] if isinstance(op, ops.GateOperation) else str(op)
     )
     if (info is not None) and (info.exponent != 1):
@@ -116,7 +130,7 @@ def fallback_qcircuit_diagram_info(
     return convert_text_diagram_info_to_qcircuit_diagram_info(info)
 
 
-def get_qcircuit_diagram_info(
+def _get_qcircuit_diagram_info(
     op: ops.Operation, args: protocols.CircuitDiagramInfoArgs
 ) -> protocols.CircuitDiagramInfo:
     info = hardcoded_qcircuit_diagram_info(op)
@@ -125,3 +139,12 @@ def get_qcircuit_diagram_info(
     if info is None:
         info = fallback_qcircuit_diagram_info(op, args)
     return info
+
+
+@_compat.deprecated(
+    deadline='v1.8', fix='Use the QuantikZ package or cirq.contrib.quantikz instead.'
+)
+def get_qcircuit_diagram_info(
+    op: ops.Operation, args: protocols.CircuitDiagramInfoArgs
+) -> protocols.CircuitDiagramInfo:
+    return _get_qcircuit_diagram_info(op, args)
