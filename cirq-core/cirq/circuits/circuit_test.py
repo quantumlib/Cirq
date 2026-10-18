@@ -2276,11 +2276,50 @@ def test_to_text_diagram_moment_range(circuit_cls):
     assert c.to_text_diagram() == c.to_text_diagram(moment_range=(0, len(c)))
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_to_text_diagram_qubit_subset_with_qubit_order(circuit_cls):
+    qa = cirq.NamedQubit('2')
+    qb = cirq.NamedQubit('3')
+    qc = cirq.NamedQubit('4')
+    c = circuit_cls(
+        [
+            cirq.Moment([cirq.X(qa), cirq.X(qb)]),
+            cirq.Moment([cirq.X(qb), cirq.X(qc)]),
+        ]
+    )
+    expected_reversed = """
+3: ───X───X───
+
+2: ───X───────
+"""
+
+    cirq.testing.assert_has_diagram(
+        c, expected_reversed, qubit_subset=[qa, qb], qubit_order=[qb, qa]
+    )
+
+    cirq.testing.assert_has_diagram(
+        c,
+        expected_reversed,
+        qubit_subset=[qa, qb],
+        qubit_order=cirq.QubitOrder.explicit([qb, qa]),
+    )
+
+    cirq.testing.assert_has_diagram(
+        c,
+        expected_reversed,
+        qubit_subset=[qa, qb],
+        qubit_order=cirq.QubitOrder.sorted_by(lambda q: -int(q.name)),
+    )
+    assert c.to_text_diagram(
+        qubit_subset=[qa, qb], qubit_order=[qb, qa]
+    ) == c.to_text_diagram(qubit_subset=[qb, qa], qubit_order=[qb, qa])
+
+
+    
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_to_text_diagram_qubit_subset(circuit_cls):
     qa = cirq.NamedQubit('2')
     qb = cirq.NamedQubit('3')
     qc = cirq.NamedQubit('4')
-
     c = circuit_cls(
         [
             cirq.Moment([cirq.X(qa), cirq.X(qb)]),
@@ -2297,11 +2336,54 @@ def test_to_text_diagram_qubit_subset(circuit_cls):
 3: ───X───
 """,
         qubit_subset=[qa, qb],
+        moment_range=(0, 1),
     )
+    cirq.testing.assert_has_diagram(
+        c,
+        """
+2: ───────
 
-    # test empty subset prints nothing, order of subset shouldn't matter, moment filtering should work with it as well, test different qubit order functions and/or lists, make sure qubit order list that has more qubits than subset fails, make sure qubit subset with qubits not in circuit also fails
+3: ───X───
 
-    assert c.to_text_diagram() == c.to_text_diagram(qubit_subset=[qa, qb, qc])
+4: ───X───
+""",
+        moment_range=(1, 2),
+    )
+    cirq.testing.assert_has_diagram(
+        c,
+        """
+2: ───────X───
+
+3: ───X───────
+""",
+        qubit_subset=[qa, qb],
+        moment_range=(1, 3),
+    )
+    c_empty = circuit_cls([])
+    cirq.testing.assert_has_diagram(c_empty, "")
+    assert c_empty.to_text_diagram() == c_empty.to_text_diagram(qubit_subset=[])
+    assert c.to_text_diagram(qubit_subset=[qb, qa]) == c.to_text_diagram(qubit_subset=[qa, qb])
+    c_empty = circuit_cls([], )
+    cirq.testing.assert_has_diagram(c_empty, """""")
+    assert c_empty.to_text_diagram() == c_empty.to_text_diagram(qubit_subset = [])
+    assert c.to_text_diagram(qubit_subset = [qb, qa]) == c.to_text_diagram(qubit_subset=[qa, qb])
+    
+    
+    
+
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_to_text_diagram_qubit_subset_errors(circuit_cls):
+    qa = cirq.NamedQubit('2')
+    qb = cirq.NamedQubit('3')
+    qc = cirq.NamedQubit('4')
+    q_missing = cirq.NamedQubit('1')
+    c = circuit_cls([cirq.Moment([cirq.X(qa), cirq.X(qb), cirq.X(qc)])])
+    with pytest.raises(ValueError):
+        c.to_text_diagram(qubit_subset=[qa, qb], qubit_order=[qa, qb, qc])
+    with pytest.raises(ValueError):
+        c.to_text_diagram(qubit_subset=[qa, q_missing])
+    with pytest.raises(ValueError):
+        c.to_text_diagram(qubit_subset=[q_missing])
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
