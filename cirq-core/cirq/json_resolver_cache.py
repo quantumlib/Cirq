@@ -210,6 +210,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
         'QubitPermutationGate': cirq.QubitPermutationGate,
         'RandomGateChannel': cirq.RandomGateChannel,
+        'Repeat': cirq.Repeat,
         'RepetitionsStoppingCriteria': cirq.work.RepetitionsStoppingCriteria,
         'ResetChannel': cirq.ResetChannel,
         'Result': cirq.ResultDict,  # Keep support for Cirq < 0.14.
