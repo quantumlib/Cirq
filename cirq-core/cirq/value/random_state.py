@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import threading
 from typing import cast
 
 import numpy as np
@@ -35,6 +36,7 @@ document(
 )
 
 _DEFAULT_RNG: np.random.Generator = np.random.default_rng()
+_DEFAULT_RNG_LOCK = threading.Lock()
 
 
 def reseed_default_prng(seed: int) -> None:
@@ -47,7 +49,8 @@ def reseed_default_prng(seed: int) -> None:
         seed: The seed for the new default generator.
     """
     global _DEFAULT_RNG
-    _DEFAULT_RNG = np.random.default_rng(seed)
+    with _DEFAULT_RNG_LOCK:
+        _DEFAULT_RNG = np.random.default_rng(seed)
 
 
 def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.RandomState:
@@ -99,7 +102,8 @@ def parse_random_generator(prng_or_seed: RANDOM_STATE_OR_SEED_LIKE) -> np.random
         TypeError: If `prng_or_seed` can't be converted to an `np.random.Generator`.
     """
     if prng_or_seed is None:
-        return _DEFAULT_RNG.spawn(1)[0]
+        with _DEFAULT_RNG_LOCK:
+            return _DEFAULT_RNG.spawn(1)[0]
     if isinstance(prng_or_seed, (int, np.integer)):
         return np.random.default_rng(prng_or_seed)
     if isinstance(prng_or_seed, np.random.Generator):
