@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-import multiprocessing
+import concurrent.futures
 from typing import TYPE_CHECKING
 
 import pytest
@@ -52,19 +52,15 @@ def create_circuit_and_device() -> tuple[cirq.Circuit, nx.Graph]:
 
 def create_hanging_routing_instance(circuit, device_graph) -> None:
     """Create a test problem instance."""
-    route_circuit_greedily(  # pragma: no cover
-        circuit, device_graph, max_search_radius=2, random_state=1
-    )
+    route_circuit_greedily(circuit, device_graph, max_search_radius=2, random_state=1)
 
 
 def test_router_hanging() -> None:
-    """Run a separate process and check if greedy router hits timeout (20s)."""
+    """Verify greedy router completes within timeout (20s)."""
     circuit, device_graph = create_circuit_and_device()
-    ctx = multiprocessing.get_context('spawn')
-    process = ctx.Process(target=create_hanging_routing_instance, args=[circuit, device_graph])
-    process.start()
-    process.join(timeout=20)
-    try:
-        assert not process.is_alive(), "Greedy router timeout"
-    finally:
-        process.terminate()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(create_hanging_routing_instance, circuit, device_graph)
+        try:
+            future.result(timeout=20)
+        except concurrent.futures.TimeoutError:  # pragma: no cover
+            pytest.fail("Greedy router timeout")
