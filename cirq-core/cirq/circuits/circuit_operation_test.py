@@ -242,6 +242,29 @@ def test_with_params() -> None:
     )
 
 
+def test_parameter_names_with_and_without_mapping() -> None:
+    a, b = cirq.LineQubit.range(2)
+    theta, phi = sympy.symbols('theta phi')
+    circuit = cirq.FrozenCircuit(cirq.Z(a) ** theta, cirq.X(b) ** phi, cirq.measure(a, key='m'))
+    op = cirq.CircuitOperation(circuit, repetitions=3)
+
+    assert cirq.parameter_names(op) == {'theta', 'phi'}
+    assert cirq.is_parameterized(op)
+    # Without any mapping the names come from the subcircuit, so the mapped copy is not built.
+    assert '_mapped_any_loop' not in op.__dict__
+
+    assert cirq.parameter_names(op.with_measurement_key_mapping({'m': 'n'})) == {'theta', 'phi'}
+    assert cirq.parameter_names(op.with_qubit_mapping({a: b, b: a})) == {'theta', 'phi'}
+    assert cirq.parameter_names(op.with_params({theta: sympy.Symbol('x')})) == {'x', 'phi'}
+    assert cirq.parameter_names(op.with_params({theta: 0.5})) == {'phi'}
+    resolved = op.with_params({theta: 0.5, phi: 0.25})
+    assert cirq.parameter_names(resolved) == set()
+    assert not cirq.is_parameterized(resolved)
+
+    unitary_op = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.Z(a) ** theta))
+    assert cirq.parameter_names(unitary_op**-1) == {'theta'}
+
+
 def test_recursive_params() -> None:
     q = cirq.LineQubit(0)
     a, a2, b, b2 = sympy.symbols('a a2 b b2')
