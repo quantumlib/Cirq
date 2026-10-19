@@ -64,4 +64,5 @@ def pytest_sessionstart(session) -> None:
     else:
         usable_cpu_count = os.cpu_count() or 1
     threads_per_worker = max(usable_cpu_count // worker_count, 1)
-    os.environ.update(dict.fromkeys(thread_env_vars, str(threads_per_worker)))
+    for var in thread_env_vars:
+        os.environ.setdefault(var, str(threads_per_worker))
