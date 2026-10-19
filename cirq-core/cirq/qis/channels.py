@@ -29,16 +29,16 @@ def kraus_to_choi(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
     Quantum channel E: L(H1) -> L(H2) may be described by a collection of operators A_i, called
     Kraus operators, such that
 
-        $$
-        E(\rho) = \sum_i A_i \rho A_i^\dagger.
-        $$
+    $$
+    E(\rho) = \sum_i A_i \rho A_i^\dagger.
+    $$
 
     Kraus representation is not unique. Alternatively, E may be specified by its Choi matrix J(E)
     defined as
 
-        $$
-        J(E) = (E \otimes I)(|\phi\rangle\langle\phi|)
-        $$
+    $$
+    J(E) = (E \otimes I)(|\phi\rangle\langle\phi|)
+    $$
 
     where $|\phi\rangle = \sum_i|i\rangle|i\rangle$ is the unnormalized maximally entangled state
     and I: L(H1) -> L(H1) is the identity map. Choi matrix is unique for a given channel.
@@ -65,16 +65,16 @@ def choi_to_kraus(choi: np.ndarray, atol: float = 1e-10) -> Sequence[np.ndarray]
     Quantum channel E: L(H1) -> L(H2) may be described by a collection of operators A_i, called
     Kraus operators, such that
 
-        $$
-        E(\rho) = \sum_i A_i \rho A_i^\dagger.
-        $$
+    $$
+    E(\rho) = \sum_i A_i \rho A_i^\dagger.
+    $$
 
     Kraus representation is not unique. Alternatively, E may be specified by its Choi matrix J(E)
     defined as
 
-        $$
-        J(E) = (E \otimes I)(|\phi\rangle\langle\phi|)
-        $$
+    $$
+    J(E) = (E \otimes I)(|\phi\rangle\langle\phi|)
+    $$
 
     where $|\phi\rangle = \sum_i|i\rangle|i\rangle$ is the unnormalized maximally entangled state
     and I: L(H1) -> L(H1) is the identity map. Choi matrix is unique for a given channel.
@@ -85,7 +85,7 @@ def choi_to_kraus(choi: np.ndarray, atol: float = 1e-10) -> Sequence[np.ndarray]
 
     Args:
         choi: Choi matrix of the channel.
-        atol: Tolerance used in checking if choi is positive and in deciding which Kraus
+        atol: Tolerance used in checking if Choi is positive and in deciding which Kraus
             operators to omit.
 
     Returns:
@@ -93,7 +93,7 @@ def choi_to_kraus(choi: np.ndarray, atol: float = 1e-10) -> Sequence[np.ndarray]
         Kraus operators with Frobenius norm smaller than atol are omitted.
 
     Raises:
-        ValueError: when choi is not a positive square matrix.
+        ValueError: when Choi is not a positive square matrix.
     """
     d = int(np.round(np.sqrt(choi.shape[0])))
     if choi.shape != (d * d, d * d):
@@ -117,16 +117,16 @@ def kraus_to_superoperator(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
     Quantum channel E: L(H1) -> L(H2) may be described by a collection of operators A_i, called
     Kraus operators, such that
 
-        $$
-        E(\rho) = \sum_i A_i \rho A_i^\dagger.
-        $$
+    $$
+    E(\rho) = \sum_i A_i \rho A_i^\dagger.
+    $$
 
     Kraus representation is not unique. Alternatively, E may be specified by its superoperator
     matrix K(E) defined so that
 
-        $$
-        K(E) vec(\rho) = vec(E(\rho))
-        $$
+    $$
+    K(E) vec(\rho) = vec(E(\rho))
+    $$
 
     where the vectorization map $vec$ rearranges d-by-d matrices into d**2-dimensional vectors.
     Superoperator matrix is unique for a given channel. It is also called the natural
@@ -154,16 +154,16 @@ def superoperator_to_kraus(superoperator: np.ndarray, atol: float = 1e-10) -> Se
     Quantum channel E: L(H1) -> L(H2) may be described by a collection of operators A_i, called
     Kraus operators, such that
 
-        $$
-        E(\rho) = \sum_i A_i \rho A_i^\dagger.
-        $$
+    $$
+    E(\rho) = \sum_i A_i \rho A_i^\dagger.
+    $$
 
     Kraus representation is not unique. Alternatively, E may be specified by its superoperator
     matrix K(E) defined so that
 
-        $$
-        K(E) vec(\rho) = vec(E(\rho))
-        $$
+    $$
+    K(E) vec(\rho) = vec(E(\rho))
+    $$
 
     where the vectorization map $vec$ rearranges d-by-d matrices into d**2-dimensional vectors.
     Superoperator matrix is unique for a given channel. It is also called the natural
@@ -192,17 +192,17 @@ def choi_to_superoperator(choi: np.ndarray) -> np.ndarray:
 
     Quantum channel E: L(H1) -> L(H2) may be specified by its Choi matrix J(E) defined as
 
-        $$
-        J(E) = (E \otimes I)(|\phi\rangle\langle\phi|)
-        $$
+    $$
+    J(E) = (E \otimes I)(|\phi\rangle\langle\phi|)
+    $$
 
     where $|\phi\rangle = \sum_i|i\rangle|i\rangle$ is the unnormalized maximally entangled state
     and I: L(H1) -> L(H1) is the identity map. Choi matrix is unique for a given channel.
     Alternatively, E may be specified by its superoperator matrix K(E) defined so that
 
-        $$
-        K(E) vec(\rho) = vec(E(\rho))
-        $$
+    $$
+    K(E) vec(\rho) = vec(E(\rho))
+    $$
 
     where the vectorization map $vec$ rearranges d-by-d matrices into d**2-dimensional vectors.
     Superoperator matrix is unique for a given channel. It is also called the natural
@@ -240,17 +240,17 @@ def superoperator_to_choi(superoperator: np.ndarray) -> np.ndarray:
 
     Quantum channel E: L(H1) -> L(H2) may be specified by its Choi matrix J(E) defined as
 
-        $$
-        J(E) = (E \otimes I)(|\phi\rangle\langle\phi|)
-        $$
+    $$
+    J(E) = (E \otimes I)(|\phi\rangle\langle\phi|)
+    $$
 
     where $|\phi\rangle = \sum_i|i\rangle|i\rangle$ is the unnormalized maximally entangled state
     and I: L(H1) -> L(H1) is the identity map. Choi matrix is unique for a given channel.
     Alternatively, E may be specified by its superoperator matrix K(E) defined so that
 
-        $$
-        K(E) vec(\rho) = vec(E(\rho))
-        $$
+    $$
+    K(E) vec(\rho) = vec(E(\rho))
+    $$
 
     where the vectorization map $vec$ rearranges d-by-d matrices into d**2-dimensional vectors.
     Superoperator matrix is unique for a given channel. It is also called the natural
@@ -290,9 +290,9 @@ def operation_to_choi(operation: protocols.SupportsKraus) -> np.ndarray:
     Choi matrix J(E) of a linear map E: L(H1) -> L(H2) which takes linear operators
     on Hilbert space H1 to linear operators on Hilbert space H2 is defined as
 
-        $$
-        J(E) = (E \otimes I)(|\phi\rangle\langle\phi|)
-        $$
+    $$
+    J(E) = (E \otimes I)(|\phi\rangle\langle\phi|)
+    $$
 
     where $|\phi\rangle = \sum_i|i\rangle|i\rangle$ is the unnormalized maximally
     entangled state and I: L(H1) -> L(H1) is the identity map. Note that J(E) is

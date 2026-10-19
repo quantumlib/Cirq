@@ -231,7 +231,7 @@ def _estimate_pauli_traces_general(
     """Estimates the Pauli traces in case the circuit is not Clifford.
 
     In this case we cannot use the speedup implemented in the function
-    _estimate_pauli_traces_clifford() above, and so do a slow, density matrix
+    `_estimate_pauli_traces_clifford()` above, and so do a slow, density matrix
     simulation.
 
     Args:
@@ -470,7 +470,7 @@ def parse_arguments(args):
     # TODO: Offer some guidance on how to set this flag. Maybe have an
     # option to do an exhaustive sample and do numerical studies to know which
     # choice is the best.
-    # Github issue: https://github.com/quantumlib/Cirq/issues/2802
+    # GitHub issue: https://github.com/quantumlib/Cirq/issues/2802
     parser.add_argument(
         '--n_measured_operators',
         default=10,

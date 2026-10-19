@@ -172,7 +172,7 @@ def is_cptp(*, kraus_ops: Sequence[np.ndarray], rtol: float = 1e-5, atol: float 
         atol: The absolute tolerance on equality.
     """
     sum_ndarray = cast(np.ndarray, sum(matrix.T.conj() @ matrix for matrix in kraus_ops))
-    # Explicitly pull out shapes and don't use tuple to avoid confusing numpy type overrides.
+    # Explicitly pull out shapes and don't use tuple to avoid confusing NumPy type overrides.
     return np.allclose(
         sum_ndarray, np.eye(sum_ndarray.shape[0], sum_ndarray.shape[1]), rtol=rtol, atol=atol
     )
@@ -214,8 +214,8 @@ def allclose_up_to_global_phase(
     """Determines if a ~= b * exp(i t) for some t.
 
     Args:
-        a: A numpy array.
-        b: Another numpy array.
+        a: A NumPy array.
+        b: Another NumPy array.
         rtol: Relative error tolerance.
         atol: Absolute error tolerance.
         equal_nan: Whether or not NaN entries should be considered equal to

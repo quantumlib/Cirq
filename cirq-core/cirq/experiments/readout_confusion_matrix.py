@@ -262,7 +262,7 @@ class TensoredConfusionMatrices:
                                 c) sum((result - x @ confusion_matrix) ** 2) is minimized.
 
         Args:
-            result: `(2 ** len(qubits), )` shaped numpy array containing observed frequencies /
+            result: `(2 ** len(qubits), )` shaped NumPy array containing observed frequencies /
                     probabilities.
             qubits: Sequence of qubits used for sampling to get `result`. By default, uses all
                     qubits in sorted order, i.e. `self.qubits`. Note that ordering of qubits sets
@@ -271,7 +271,7 @@ class TensoredConfusionMatrices:
                     Equal to `least_squares` by default.
 
         Returns:
-              `(2 ** len(qubits), )` shaped numpy array corresponding to `result` with corrections.
+              `(2 ** len(qubits), )` shaped NumPy array corresponding to `result` with corrections.
 
         Raises:
             ValueError: If `result.shape` != `(2 ** len(qubits),)`.

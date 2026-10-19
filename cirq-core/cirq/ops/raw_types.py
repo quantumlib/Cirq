@@ -471,7 +471,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return protocols.commutes(self(*qs), other(*qs))
 
     def _mul_with_qubits(self, qubits: tuple[cirq.Qid, ...], other):
-        """cirq.GateOperation.__mul__ delegates to this method."""
+        """`cirq.GateOperation.__mul__` delegates to this method."""
         from cirq.ops.pauli_string import _try_interpret_as_pauli_string
 
         if (as_pauli_string := _try_interpret_as_pauli_string(self.on(*qubits))) is not None:
@@ -479,7 +479,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return NotImplemented
 
     def _rmul_with_qubits(self, qubits: tuple[cirq.Qid, ...], other):
-        """cirq.GateOperation.__rmul__ delegates to this method."""
+        """`cirq.GateOperation.__rmul__` delegates to this method."""
         from cirq.ops.pauli_string import _try_interpret_as_pauli_string
 
         if (as_pauli_string := _try_interpret_as_pauli_string(self.on(*qubits))) is not None:
@@ -708,7 +708,7 @@ class Operation(metaclass=abc.ABCMeta):
 
         Args:
             *conditions: A list of measurement keys, strings that can be parsed
-                into measurement keys, or sympy expressions where the free
+                into measurement keys, or SymPy expressions where the free
                 symbols are measurement key strings.
 
         Returns:
@@ -1141,12 +1141,19 @@ def _operations_commutes_impl(
     # behave like the suboperations, so if the suboperations commute then these commute. Or
     # one of them is cold in which case it behaves like the identity, which always commutes.
     shared_qubits = ops1_qubits.intersection(ops2_qubits)
-    ops1_raw = [
-        op.without_classical_controls() for op in ops1 if not shared_qubits.isdisjoint(op.qubits)
-    ]
-    ops2_raw = [
-        op.without_classical_controls() for op in ops2 if not shared_qubits.isdisjoint(op.qubits)
-    ]
+    try:
+        ops1_raw = [
+            op.without_classical_controls()
+            for op in ops1
+            if not shared_qubits.isdisjoint(op.qubits)
+        ]
+        ops2_raw = [
+            op.without_classical_controls()
+            for op in ops2
+            if not shared_qubits.isdisjoint(op.qubits)
+        ]
+    except NotImplementedError:
+        return NotImplemented
     moment1 = circuits.Moment(ops1_raw)
     moment2 = circuits.Moment(ops2_raw)
 

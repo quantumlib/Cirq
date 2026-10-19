@@ -169,7 +169,7 @@ class ApplyUnitaryArgs:
 
         Returns:
             A view over the same target tensor and available workspace, but
-            with the numpy arrays transposed such that the axes field is
+            with the NumPy arrays transposed such that the axes field is
             guaranteed to equal `range(len(result.axes))`. This allows one to
             say e.g. `result.target_tensor[0, 1, 0, ...]` instead of
             `result.target_tensor[result.subspace_index(0b010)]`.
@@ -320,7 +320,7 @@ def apply_unitary(
             Continue to next strategy.
         Case b) Method returns `None`.
             Conclude `unitary_value` has no unitary effect.
-        Case c) Method returns a numpy array.
+        Case c) Method returns a NumPy array.
             Forward the successful result to the caller.
 
     B. Try to use `unitary_value._unitary_()`.
@@ -328,7 +328,7 @@ def apply_unitary(
             Continue to next strategy.
         Case b) Method returns `None`.
             Conclude `unitary_value` has no unitary effect.
-        Case c) Method returns a numpy array.
+        Case c) Method returns a NumPy array.
             Multiply the matrix onto the target tensor and return to the caller.
 
     C. Try to use `unitary_value._decompose_()` (if `allow_decompose`).
@@ -363,7 +363,7 @@ def apply_unitary(
 
         Otherwise the result is the `np.ndarray` instance storing the result.
         This may be `args.target_tensor`, `args.available_workspace`, or some
-        other numpy array. It is the caller's responsibility to correctly handle
+        other NumPy array. It is the caller's responsibility to correctly handle
         all three of these cases. In all cases `args.target_tensor` and
         `args.available_buffer` may have been mutated.
 

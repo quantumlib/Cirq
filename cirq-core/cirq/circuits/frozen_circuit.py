@@ -185,7 +185,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     def __radd__(self, other) -> cirq.FrozenCircuit:
         return (other + self.unfreeze()).freeze()
 
-    # Needed for numpy to handle multiplication by np.int64 correctly.
+    # Needed for NumPy to handle multiplication by np.int64 correctly.
     __array_priority__ = 10000
 
     # TODO: handle multiplication / powers differently?

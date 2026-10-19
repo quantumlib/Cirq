@@ -167,11 +167,12 @@ class DiagonalGate(raw_types.Gate):
         """Decompose the n-qubit diagonal gates into CNOT and Rz gates.
 
         A 3 qubits decomposition looks like
-        0: ───────────────────────────────────X───Rz(6)───X───Rz(7)───X───Rz(5)───X───Rz(4)───
-                                              │           │           │           │
-        1: ───────────X───Rz(3)───X───Rz(2)───@───────────┼───────────@───────────┼───────────
-                      │           │                       │                       │
-        2: ───Rz(1)───@───────────@───────────────────────@───────────────────────@───────────
+
+            0: ───────────────────────────────────X───Rz(6)───X───Rz(7)───X───Rz(5)───X───Rz(4)───
+                                                  │           │           │           │
+            1: ───────────X───Rz(3)───X───Rz(2)───@───────────┼───────────@───────────┼───────────
+                          │           │                       │                       │
+            2: ───Rz(1)───@───────────@───────────────────────@───────────────────────@───────────
 
         where the angles in Rz gates are corresponding to the fast-walsh-Hadamard transform
         of diagonal_angles in the Gray Code order.

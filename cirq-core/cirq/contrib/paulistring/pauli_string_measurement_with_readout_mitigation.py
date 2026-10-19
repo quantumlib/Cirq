@@ -122,10 +122,10 @@ class TRexMetadata:
 
     Attributes:
         pauli_str: The Pauli string that is being measured.
-        twirl_choices: A 2D boolean array of shape (num_twirls, num_qubits) indicating
+        twirl_choices: A 2D Boolean array of shape (num_twirls, num_qubits) indicating
             the random twirl choices. The column indices correspond to the target
             qubits in sorted order (i.e., `sorted(pauli_str.qubits)`).
-        readout_choices: A 2D boolean array of shape (num_readout_circuits, num_qubits)
+        readout_choices: A 2D Boolean array of shape (num_readout_circuits, num_qubits)
             indicating the random choices for generating readout calibration circuits.
             As with `twirl_choices`, the column indices correspond to the target qubits
             in sorted order.
@@ -326,7 +326,7 @@ def _validate_input(
 
     _validate_circuit_to_pauli_strings_parameters(normalized_circuits_to_pauli)
 
-    # Check rng is a numpy random generator
+    # Check RNG is a NumPy random generator
     if not isinstance(rng_or_seed, np.random.Generator) and not isinstance(rng_or_seed, int):
         raise ValueError("Must provide a numpy random generator or a seed")
 
@@ -429,15 +429,15 @@ def _get_trex_twirled_basis_gate(basis: ops.Pauli, flip: bool) -> cirq.Gate:
 def _generate_random_boolean_choices(
     num_choices: int, num_qubits: int, rng: np.random.Generator
 ) -> np.ndarray:
-    """Generates a 2D boolean array for random circuit choices.
+    """Generates a 2D Boolean array for random circuit choices.
 
     Args:
         num_choices: The number of circuits/rows to generate choices for.
         num_qubits: The number of qubits.
-        rng: A numpy random generator.
+        rng: A NumPy random generator.
 
     Returns:
-        A boolean array of shape (num_choices, num_qubits).
+        A Boolean array of shape (num_choices, num_qubits).
     """
     return rng.integers(0, 2, (num_choices, num_qubits), dtype=bool)  # pragma: no cover
 
@@ -453,7 +453,7 @@ def _build_trex_twirled_pauli_circuits(
     Args:
         base_circuit: The original circuit to be twirled.
         basis_ps: A PauliString representing the target measurement basis for each qubit.
-        twirl_choices: A 2D boolean array of shape (num_twirls, len(qubits)) indicating
+        twirl_choices: A 2D Boolean array of shape (num_twirls, len(qubits)) indicating
             whether to apply a 180-degree twirl to each qubit. The column indices
             correspond to the target qubits in sorted order (i.e., `sorted(basis_ps.qubits)`).
         insert_strategy: The strategy for inserting twirling gates and measurements into
@@ -983,7 +983,7 @@ def _measure_pauli_strings_with_confusion_matrices(
     """Measures expectation values of Pauli strings on given circuits with/without
     readout error mitigation based on confusion matrices.
 
-    For each circuit and its associated list of QWC pauli string group, it:
+    For each circuit and its associated list of QWC Pauli string group, it:
     1.  Constructs circuits to measure the Pauli string expectation value by
         adding basis change moments and measurement operations.
     2.  If `num_random_bitstrings` is greater than zero, performing readout
@@ -1030,7 +1030,7 @@ def _measure_pauli_strings_with_confusion_matrices(
     if not normalized_circuits_to_pauli:
         return []
 
-    # Extract unique qubit tuples from input pauli strings
+    # Extract unique qubit tuples from input Pauli strings
     if measure_on_full_support:
         full_support: set[ops.Qid] = set()
         for circuit_to_pauli in normalized_circuits_to_pauli:

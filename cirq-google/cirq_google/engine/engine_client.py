@@ -105,7 +105,7 @@ class EngineClient:
 
     @cached_property
     def grpc_client(self) -> quantum.QuantumEngineServiceAsyncClient:
-        """Creates an async grpc client for the Quantum Engine service."""
+        """Creates an async gRPC client for the Quantum Engine service."""
 
         async def make_client():
             # Suppress warnings about using Application Default Credentials.
@@ -1217,7 +1217,7 @@ class EngineClient:
         project_id: str,
         qec_circuit: cirq.Circuit,
         processor_id: str,
-        device_config_revision: DeviceConfigRevision = Run(id='current'),
+        device_config_revision: DeviceConfigRevision = Run(id='default'),
         config_name: str = 'default',
     ) -> quantum.QuantumJob:
         """Calibrates the given QEC circuit on Quantum Engine.

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""A protocol for implementing high performance clifford tableau evolutions
+"""A protocol for implementing high performance Clifford tableau evolutions
 for Clifford Simulator."""
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 
 
 class CliffordTableauSimulationState(StabilizerSimulationState[clifford_tableau.CliffordTableau]):
-    """State and context for an operation acting on a clifford tableau."""
+    """State and context for an operation acting on a Clifford tableau."""
 
     def __init__(
         self,

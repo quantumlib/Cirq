@@ -126,13 +126,13 @@ def _generate_parameterized_readout_calibration_circuit_with_sweep(
     Args:
         qubits: The list of qubits to include in the calibration circuit.
         num_random_bitstrings: The number of random bitstrings to generate for calibration.
-        rng: A numpy random number generator used to generate the random bitstrings.
+        rng: A NumPy random number generator used to generate the random bitstrings.
 
     Returns:
         A tuple containing:
             - The parameterized readout calibration circuit (cirq.Circuit).
             - A list of parameter sweeps (one for each random bitstring).
-            - The numpy array of generated random bitstrings.
+            - The NumPy array of generated random bitstrings.
     """
     random_bitstrings = rng.integers(0, 2, size=(num_random_bitstrings, len(qubits)))
 
@@ -226,7 +226,7 @@ def _analyze_readout_results(
     Args:
         readout_measurements: A list of dictionaries containing the measurement results
                               for each readout calibration circuit.
-        random_bitstrings: A numpy array of random bitstrings used for measuring readout.
+        random_bitstrings: A NumPy array of random bitstrings used for measuring readout.
         readout_repetitions: The number of repetitions for each readout bitstring.
         qubits: The list of qubits for which the readout error rates are to be calculated.
 

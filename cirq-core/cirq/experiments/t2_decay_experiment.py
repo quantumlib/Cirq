@@ -263,9 +263,9 @@ def _cpmg_circuit(qubit: cirq.Qid, delay_var: sympy.Symbol, max_pulses: int) -> 
 
 
 def _cpmg_sweep(num_pulses: list[int]):
-    """Returns a sweep for a circuit created by _cpmg_circuit.
+    """Returns a sweep for a circuit created by `_cpmg_circuit`.
 
-    The circuit in _cpmg_circuit parameterizes the pulses, so this function
+    The circuit in `_cpmg_circuit` parameterizes the pulses, so this function
     fills in the parameters for each pulse.  For instance, if we want 3 pulses,
     pulse_0, pulse_1, and pulse_2 should be 1 and the rest of the pulses should
     be 0.

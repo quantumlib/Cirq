@@ -29,7 +29,7 @@ def assert_equivalent_repr(
     """Checks that eval(repr(v)) == v.
 
     Args:
-        value: A value whose repr should be evaluatable python
+        value: A value whose repr should be evaluatable Python
             code that produces an equivalent value.
         setup_code: Code that must be executed before the repr can be evaluated.
             Ideally this should just be a series of 'import' lines.

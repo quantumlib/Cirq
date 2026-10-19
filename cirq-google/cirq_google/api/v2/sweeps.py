@@ -109,7 +109,7 @@ def sweep_to_proto(
     sweep_transformer: Callable[[sweeps.SingleSweep], sweeps.SingleSweep] = lambda x: x,
     use_float64: bool = False,
 ) -> run_context_pb2.Sweep:
-    """Converts a Sweep to v2 protobuf message.
+    """Converts a Sweep to v2 Protobuf message.
 
     Args:
         sweep: The sweep to convert.
@@ -120,7 +120,7 @@ def sweep_to_proto(
             float32 is used instead. Default: False.
 
     Returns:
-        Populated sweep protobuf message.
+        Populated sweep Protobuf message.
 
     Raises:
         ValueError: If the conversion cannot be completed successfully.
@@ -243,7 +243,7 @@ def sweep_from_proto(
     msg: run_context_pb2.Sweep,
     sweep_transformer: Callable[[sweeps.SingleSweep], sweeps.SingleSweep] = lambda x: x,
 ) -> cirq.Sweep:
-    """Creates a Sweep from a v2 protobuf message.
+    """Creates a Sweep from a v2 Protobuf message.
 
     Args:
         msg: Serialized sweep message.
@@ -424,7 +424,7 @@ def run_context_to_proto(
     compress_proto: bool = False,
     use_float64: bool = False,
 ) -> run_context_pb2.RunContext:
-    """Populates a RunContext protobuf message.
+    """Populates a RunContext Protobuf message.
 
     Args:
         sweepable: The sweepable to include in the run context.
@@ -438,7 +438,7 @@ def run_context_to_proto(
             float32 is used instead. Default: False.
 
     Returns:
-        Populated RunContext protobuf message.
+        Populated RunContext Protobuf message.
     """
     if out is None:
         out = run_context_pb2.RunContext()

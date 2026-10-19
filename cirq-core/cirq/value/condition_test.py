@@ -87,6 +87,18 @@ def test_key_condition_qasm_protocol_v3():
     assert qasm == 'm_a!=0'
 
 
+@pytest.mark.parametrize('version', ['2.0', '3.0'])
+def test_key_condition_qasm_protocol_rejects_non_default_index(version):
+    cond = cirq.KeyCondition(cirq.MeasurementKey('a'), index=0)
+    args = cirq.QasmArgs(
+        meas_key_id_map={'a': 'm_a'}, meas_key_bitcount={'m_a': 1}, version=version
+    )
+    with pytest.raises(
+        ValueError, match='Only most recent measurement at key can be used for QASM'
+    ):
+        _ = cirq.qasm(cond, args=args)
+
+
 def test_key_condition_qasm_protocol_invalid_args():
     cond = cirq.KeyCondition(cirq.MeasurementKey('a'))
     args = cirq.QasmArgs()

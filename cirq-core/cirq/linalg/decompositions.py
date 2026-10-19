@@ -24,7 +24,7 @@ from typing import Any, cast, TYPE_CHECKING, TypeVar
 import matplotlib.pyplot as plt
 import numpy as np
 
-# this is for older systems with matplotlib <3.2 otherwise 3d projections fail
+# this is for older systems with Matplotlib <3.2 otherwise 3d projections fail
 from mpl_toolkits import mplot3d
 
 from cirq import protocols, value
@@ -161,7 +161,7 @@ def kron_factor_4x4_to_2x2s(
 ) -> tuple[complex, np.ndarray, np.ndarray]:
     """Splits a 4x4 matrix U = kron(A, B) into A, B, and a global factor.
 
-    Requires the matrix to be the kronecker product of two 2x2 unitaries.
+    Requires the matrix to be the Kronecker product of two 2x2 unitaries.
     Requires the matrix to have a non-zero determinant.
 
     Args:
@@ -171,7 +171,7 @@ def kron_factor_4x4_to_2x2s(
 
     Returns:
         A scalar factor and a pair of 2x2 unit-determinant matrices. The
-        kronecker product of all three is equal to the given matrix.
+        Kronecker product of all three is equal to the given matrix.
 
     Raises:
         ValueError:
@@ -248,10 +248,12 @@ class AxisAngleDecomposition:
 
     The unitary $U$ is decomposed as follows:
 
-        $$U = g e^{-i \theta/2 (xX + yY + zZ)}$$
+    $$
+    U = g e^{-i \theta/2 (xX + yY + zZ)}
+    $$
 
-    where \theta is the rotation angle, (x, y, z) is a unit vector along the
-    rotation axis, and g is the global phase.
+    where $\theta$ is the rotation angle, $(x, y, z)$ is a unit vector along the
+    rotation axis; $X$, $Y$, and $Z$ are the Pauli matrices; and $g$ is the global phase.
     """
 
     def __init__(self, *, angle: float, axis: tuple[float, float, float], global_phase: complex):
@@ -541,7 +543,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
 
         The space is a prism with the identity at the origin, a crease along
         y=z=0 leading to the CZ/CNOT at x=1 and a vertical triangular face that
-        contains the iswap at x=y=1,z=0 and the swap at x=y=z=1:
+        contains the iSWAP at x=y=1,z=0 and the swap at x=y=z=1:
 
                                  (x=1,y=1,z=0)
                              swap___iswap___swap (x=1,y=1,z=+-1)
@@ -558,9 +560,9 @@ def scatter_plot_normalized_kak_interaction_coefficients(
             object with a 4x4 unitary matrix according to `cirq.unitary` (
             (e.g. `cirq.CZ` or a `cirq.KakDecomposition` or a `cirq.Circuit`
             over two qubits).
-        include_frame: Determines whether or not to draw the kak space
+        include_frame: Determines whether or not to draw the KAK space
             wireframe. Defaults to `True`.
-        ax: A matplotlib 3d axes object to plot into. If not specified, a new
+        ax: A Matplotlib 3d axes object to plot into. If not specified, a new
             figure is created, plotted, and shown.
 
         **kwargs: Arguments forwarded into the call to `scatter` that plots the
@@ -570,7 +572,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
             https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.scatter.html
 
     Returns:
-        The matplotlib 3d axes object that was plotted into.
+        The Matplotlib 3d axes object that was plotted into.
 
     Examples:
         >>> ax = None
@@ -867,7 +869,7 @@ def kak_vector(
                  \right) $$
 
     The vector entries are ordered such that
-        $$ 0 ≤ |k_z| ≤ k_y ≤ k_x ≤ π/4 $$
+    $$ 0 ≤ |k_z| ≤ k_y ≤ k_x ≤ π/4 $$
     if $k_x$ = π/4, $k_z \geq 0$.
 
     References:
@@ -886,7 +888,7 @@ def kak_vector(
     Args:
         unitary: A unitary matrix, or a multi-dimensional array of unitary
             matrices. Must have shape (..., 4, 4), where the last two axes are
-            for the unitary matrix and other axes are for broadcasting the kak
+            for the unitary matrix and other axes are for broadcasting the KAK
             vector computation.
         rtol: Per-matrix-entry relative tolerance on equality. Used in unitarity
             check of input.
@@ -899,7 +901,7 @@ def kak_vector(
     Returns:
         The KAK vector of the given unitary or unitaries. The output shape is
         the same as the input shape, except the two unitary matrix axes are
-        replaced by the kak vector axis (i.e. the output has shape
+        replaced by the KAK vector axis (i.e. the output has shape
         `unitary.shape[:-2] + (3,)`).
 
     Raises:

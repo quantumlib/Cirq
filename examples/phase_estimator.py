@@ -26,16 +26,16 @@ import cirq
 def run_estimate(unknown_gate, qnum, repetitions):
     """Construct the following phase estimator circuit and execute simulations.
 
-                                     ---------
-    ---H---------------------@------|         |---M--- [m4]:lowest bit
-                             |      |         |
-    ---H---------------@-----+------|         |---M--- [m3]
-                       |     |      | QFT_inv |
-    ---H---------@-----+-----+------|         |---M--- [m2]
-                 |     |     |      |         |
-    ---H---@-----+-----+-----+------|         |---M--- [m1]:highest bit
-           |     |     |     |       ---------
-    -------U-----U^2---U^4---U^8----------------------
+                                         ---------
+        ---H---------------------@------|         |---M--- [m4]:lowest bit
+                                 |      |         |
+        ---H---------------@-----+------|         |---M--- [m3]
+                           |     |      | QFT_inv |
+        ---H---------@-----+-----+------|         |---M--- [m2]
+                     |     |     |      |         |
+        ---H---@-----+-----+-----+------|         |---M--- [m1]:highest bit
+               |     |     |     |       ---------
+        -------U-----U^2---U^4---U^8----------------------
 
     The measurement results M=[m1, m2,...] are translated to the estimated
     phase with the following formula:
