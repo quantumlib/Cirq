@@ -743,13 +743,16 @@ class Operation(metaclass=abc.ABCMeta):
 
     @cached_method
     def _qubit_parameter_names(self) -> frozenset[str]:
+        # Only variable qubits can carry parameters, so skip the generic protocol dispatch on every
+        # qubit in the common case where there are none.
+        if not self._are_qubits_parameterized():
+            return frozenset()
         return frozenset(protocols.parameter_names(self.qubits))
 
     @cached_method
     def _are_qubits_parameterized(self) -> bool:
-        from cirq.ops.variable_qid import VariableQid
-
-        return any(isinstance(q, VariableQid) for q in self.qubits)
+        variable_qid_type = ops.VariableQid
+        return any(isinstance(q, variable_qid_type) for q in self.qubits)
 
     def _is_parameterized_(self) -> bool:
         """Returns true if the Operation is parameterized, false otherwise."""
