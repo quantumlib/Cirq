@@ -14,7 +14,6 @@
 
 from __future__ import annotations
 
-import functools
 from collections.abc import Mapping, Sequence
 from types import NotImplementedType
 from typing import Any, TYPE_CHECKING
@@ -220,15 +219,15 @@ class While(raw_types.Operation):
     def _json_dict_(self) -> dict[str, Any]:
         return {'condition': list(self._conditions), 'sub_operation': self._sub_operation}
 
-    def _act_on_(self, sim_state: cirq.SimulationStateBase) -> bool:
-        @functools.cache
-        def _is_infinite_loop() -> bool:
-            return protocols.measurement_key_objs(self).isdisjoint(
-                k for c in self._conditions for k in c.keys
-            )
+    @_compat.cached_method
+    def _is_infinite_loop(self) -> bool:
+        return protocols.measurement_key_objs(self).isdisjoint(
+            k for c in self._conditions for k in c.keys
+        )
 
+    def _act_on_(self, sim_state: cirq.SimulationStateBase) -> bool:
         while all(c.resolve(sim_state.classical_data) for c in self._conditions):
-            if _is_infinite_loop():
+            if self._is_infinite_loop():
                 raise ValueError('Infinite loop: condition is not modified in sub_operation.')
             protocols.act_on(self._sub_operation, sim_state)
         return True
