@@ -102,4 +102,7 @@ setup(
         "sdk",
         "simulation",
     ],
+    entry_points={
+        'pytest_randomly.random_seeder': ['cirq = cirq.value.random_state:reseed_default_prng']
+    },
 )
