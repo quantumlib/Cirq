@@ -527,7 +527,7 @@ class _CustomNonGateOperation(cirq.Operation):
         return self._qubits
 
     def with_qubits(self, *new_qubits):
-        return _CustomNonGateOperation(new_qubits)
+        return _CustomNonGateOperation(new_qubits)  # pragma: no cover
 
     def _unitary_(self):
         return np.eye(2 ** len(self._qubits))
