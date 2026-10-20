@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-import concurrent.futures
+import time
 from typing import TYPE_CHECKING
 
 import pytest
@@ -50,17 +50,10 @@ def create_circuit_and_device() -> tuple[cirq.Circuit, nx.Graph]:
     return circuit, device_graph
 
 
-def create_hanging_routing_instance(circuit, device_graph) -> None:
-    """Create a test problem instance."""
-    route_circuit_greedily(circuit, device_graph, max_search_radius=2, random_state=1)
-
-
 def test_router_hanging() -> None:
     """Verify greedy router completes within timeout (20s)."""
     circuit, device_graph = create_circuit_and_device()
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-        future = executor.submit(create_hanging_routing_instance, circuit, device_graph)
-        try:
-            future.result(timeout=20)
-        except concurrent.futures.TimeoutError:  # pragma: no cover
-            pytest.fail("Greedy router timeout")
+    tstart = time.time()
+    route_circuit_greedily(circuit, device_graph, max_search_radius=2, random_state=1)
+    duration = time.time() - tstart
+    assert duration < 20, "Greedy router timeout"
