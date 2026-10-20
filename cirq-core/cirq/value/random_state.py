@@ -38,16 +38,16 @@ _DEFAULT_RNG: np.random.Generator = np.random.default_rng()
 
 
 def reseed_default_prng(seed: int) -> None:
-    """Reseeds Cirq's default pseudorandom number generator in place.
+    """Reseeds Cirq's default pseudorandom number generator.
+
+    Existing references to the old default generator will be
+    unaffected.
 
     Args:
         seed: The seed for the new default generator.
     """
-    with _DEFAULT_RNG.bit_generator.lock:
-        # __setstate__ is used to set the _seed_seq as well
-        _DEFAULT_RNG.bit_generator.__setstate__(  # type: ignore[attr-defined]
-            np.random.default_rng(seed).bit_generator.__getstate__()
-        )
+    global _DEFAULT_RNG
+    _DEFAULT_RNG = np.random.default_rng(seed)
 
 
 def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.RandomState:

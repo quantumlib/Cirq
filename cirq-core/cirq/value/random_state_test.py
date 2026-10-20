@@ -82,14 +82,18 @@ def test_parse_random_generator_default_rng() -> None:
     eq.add_equality_group(cirq.value.parse_random_generator(None).random())
 
     cirq.value.reseed_default_prng(1234)
+    prng = cirq.value.parse_random_generator(None)
     val0 = prng.random()
     cirq.value.reseed_default_prng(1234)
+    prng = cirq.value.parse_random_generator(None)
     val1 = prng.random()
     eq.add_equality_group(val0, val1)
 
     cirq.value.reseed_default_prng(1234)
+    prng = cirq.value.parse_random_generator(None)
     val1_0 = prng.spawn(1)[0].random()
     cirq.value.reseed_default_prng(1234)
+    prng = cirq.value.parse_random_generator(None)
     val1_1 = prng.spawn(1)[0].random()
     eq.add_equality_group(val1_0, val1_1)
 
