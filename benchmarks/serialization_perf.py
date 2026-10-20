@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pathlib
 from collections.abc import Iterable
 
 import pytest
@@ -95,13 +94,12 @@ def test_json_gzip_serialization(
 )
 @pytest.mark.benchmark(group="serialization")
 def test_json_deserialization(
-    benchmark, tmp_path: pathlib.Path, num_qubits: int, num_moments: int, _expected_gzip_size: int
+    benchmark, num_qubits: int, num_moments: int, _expected_gzip_size: int
 ) -> None:
     """Benchmark cirq.read_json."""
     circuit = _make_circuit(num_qubits, num_moments)
-    json_file = tmp_path.joinpath(f"circuit{num_qubits}-{num_moments}.json")
-    cirq.to_json(circuit, json_file)
-    benchmark(cirq.read_json, json_file)
+    json_text = cirq.to_json(circuit)
+    benchmark(cirq.read_json, json_text=json_text)
 
 
 @pytest.mark.parametrize(
@@ -111,10 +109,9 @@ def test_json_deserialization(
 )
 @pytest.mark.benchmark(group="serialization")
 def test_json_gzip_deserialization(
-    benchmark, tmp_path: pathlib.Path, num_qubits: int, num_moments: int, _expected_gzip_size: int
+    benchmark, num_qubits: int, num_moments: int, _expected_gzip_size: int
 ) -> None:
     """Benchmark cirq.read_json_gzip."""
     circuit = _make_circuit(num_qubits, num_moments)
-    gzip_file = tmp_path.joinpath(f"circuit{num_qubits}-{num_moments}.json.gz")
-    cirq.to_json_gzip(circuit, gzip_file)
-    benchmark(cirq.read_json_gzip, gzip_file)
+    gzip_raw = cirq.to_json_gzip(circuit)
+    benchmark(cirq.read_json_gzip, gzip_raw=gzip_raw)
