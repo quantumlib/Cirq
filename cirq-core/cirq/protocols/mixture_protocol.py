@@ -82,13 +82,16 @@ def mixture(
         default: A default value if val does not support mixture.
 
     Returns:
-        An iterable of tuples of size 2. The first element of the tuple is a
-        probability (between 0 and 1) and the second is the object that occurs
-        with that probability in the mixture. The probabilities will sum to 1.0.
+        If `val` has a `_mixture_` method and its result is not NotImplemented,
+        that result is returned. Otherwise, if `val` has a unitary
+        representation, a single-element tuple `((1.0, cirq.unitary(val)),)` is
+        returned. Otherwise, if a default value was specified, the default
+        value is returned.
 
     Raises:
-        TypeError: If `val` has no `_mixture_` or `_unitary_` method, or if it
-            does and this method returned `NotImplemented`.
+        TypeError: If `val` has no `_mixture_` method and cannot be converted to
+            a unitary (or if these methods returned `NotImplemented`), and no
+            default value was specified.
     """
 
     mixture_getter = getattr(val, '_mixture_', None)
@@ -98,8 +101,11 @@ def mixture(
 
     unitary_getter = getattr(val, '_unitary_', None)
     result = NotImplemented if unitary_getter is None else unitary_getter()
-    if result is not NotImplemented:
+    if result is not NotImplemented and result is not None:
         return ((1.0, result),)
+
+    if has_unitary(val):
+        return ((1.0, unitary(val)),)
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default
@@ -146,7 +152,9 @@ def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
             return all(has_mixture(val) for val in operations)
 
     # No _has_mixture_ or _has_unitary_ function, use _mixture_ instead.
-    return mixture(val, None) is not None
+    getter = getattr(val, '_mixture_', None)
+    result = NotImplemented if getter is None else getter()
+    return result is not NotImplemented and result is not None
 
 
 def validate_mixture(supports_mixture: SupportsMixture) -> None:
