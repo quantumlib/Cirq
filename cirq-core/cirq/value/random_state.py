@@ -25,7 +25,7 @@ document(
     RANDOM_STATE_OR_SEED_LIKE,
     """A pseudorandom number generator or object that can be converted to one.
 
-    If None, turns into a new `np.random.Generator` spawned from Cirq's default generator.
+    If None, Cirq's default generator singleton is used.
     If an integer or NumPy integer, turns into a `np.random.Generator` seeded
     with that value.
     If an instance of `np.random.Generator`, it is used unmodified.
@@ -43,9 +43,11 @@ def reseed_default_prng(seed: int) -> None:
     Args:
         seed: The seed for the new default generator.
     """
-    global _DEFAULT_RNG
     with _DEFAULT_RNG.bit_generator.lock:
-        _DEFAULT_RNG.bit_generator.state = np.random.default_rng(seed).bit_generator.state
+        # __setstate__ is used to set the _seed_seq as well
+        _DEFAULT_RNG.bit_generator.__setstate__(  # type: ignore[attr-defined]
+            np.random.default_rng(seed).bit_generator.__getstate__()
+        )
 
 
 def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.RandomState:

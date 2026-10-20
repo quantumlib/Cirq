@@ -76,17 +76,24 @@ def test_parse_random_generator() -> None:
 
 def test_parse_random_generator_default_rng() -> None:
     eq = cirq.testing.EqualsTester()
+    prng = cirq.value.parse_random_generator(None)
 
-    prng0 = cirq.value.parse_random_generator(None)
-    eq.add_equality_group(prng0.random())
+    eq.add_equality_group(prng.random())
+    eq.add_equality_group(cirq.value.parse_random_generator(None).random())
 
     cirq.value.reseed_default_prng(1234)
-    val0 = cirq.value.parse_random_generator(None).random()
+    val0 = prng.random()
     cirq.value.reseed_default_prng(1234)
-    val1 = cirq.value.parse_random_generator(None).random()
+    val1 = prng.random()
     eq.add_equality_group(val0, val1)
 
-    eq.add_equality_group(cirq.value.parse_random_generator(None).random())
+    cirq.value.reseed_default_prng(1234)
+    val1_0 = prng.spawn(1)[0].random()
+    cirq.value.reseed_default_prng(1234)
+    val1_1 = prng.spawn(1)[0].random()
+    eq.add_equality_group(val1_0, val1_1)
+
+    assert prng is cirq.value.parse_random_generator(None)
 
 
 def test_parse_random_generator_invalid() -> None:
