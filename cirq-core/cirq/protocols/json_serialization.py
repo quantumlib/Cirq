@@ -31,6 +31,7 @@ import orjson
 import pandas as pd
 import sympy
 
+from cirq import _compat
 from cirq._doc import doc_private
 
 ObjectFactory = type | Callable[..., Any]
@@ -468,14 +469,19 @@ def cirq_type_from_json(type_str: str, resolvers: Sequence[JsonResolver] | None 
 
 @overload
 def to_json(
-    obj: Any, file_or_fn: IO | pathlib.Path | str, *, indent=2, separators=None, cls=CirqEncoder
+    obj: Any,
+    file_or_fn: IO | pathlib.Path | str,
+    *,
+    indent: int | None = 2,
+    separators=None,
+    cls=CirqEncoder,
 ) -> None:
     pass
 
 
 @overload
 def to_json(
-    obj: Any, file_or_fn: None = None, *, indent=2, separators=None, cls=CirqEncoder
+    obj: Any, file_or_fn: None = None, *, indent: int | None = 2, separators=None, cls=CirqEncoder
 ) -> str:
     pass
 
@@ -499,8 +505,10 @@ def to_json(
             an IO object (such as a file or buffer) to write to, or `None` to
             indicate that the method should return the JSON text as its result.
             Defaults to `None`.
-        indent: Pretty-print the resulting file with this indent level.
-            Passed to json.dump.
+        indent: Must be either `None` or `2`.  Output minimum-size compact JSON
+            when `None`.  When `2` produce a human-readable JSON with an indent
+            of 2 spaces.  Other indent values are deprecated and interpreted as
+            `2` when nonzero.
         separators: Passed to json.dump; key-value pairs delimiters defined as
             `(item_separator, key_separators)` tuple. Note that any non-standard
             operators (':', ',') will cause `read_json` to fail.
@@ -510,9 +518,16 @@ def to_json(
             party classes, prefer adding the `_json_dict_` magic method
             to your classes rather than overriding this default.
     """
-    option = (
-        orjson.OPT_PASSTHROUGH_DATACLASS | orjson.OPT_PASSTHROUGH_DATETIME | orjson.OPT_INDENT_2
-    )
+    option = orjson.OPT_PASSTHROUGH_DATACLASS | orjson.OPT_PASSTHROUGH_DATETIME
+    if indent is not None and indent != 2:
+        _compat._warn_or_error(
+            f"The indent parameter of to_json should be either None or 2.\n"
+            f"Received {indent!r} instead, using indent={2 if indent else None}.\n"
+            f"The unsupported indent value will raise error in cirq v1.9.\n"
+            f"Please use either `indent=None` or `indent=2`\n"
+        )
+    if indent:
+        option |= orjson.OPT_INDENT_2
     try:
         json_bytes = orjson.dumps(obj, default=cls().default, option=option)
     except orjson.JSONEncodeError as e:

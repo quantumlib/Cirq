@@ -597,6 +597,25 @@ def test_to_from_strings() -> None:
         cirq.read_json(io.StringIO(), json_text=x_json_text)
 
 
+def test_to_json_indent() -> None:
+    x_json_text_indent_2 = """{
+  "cirq_type": "_PauliX",
+  "exponent": 1.0,
+  "global_shift": 0.0
+}"""
+    x_json_text_indent_none = "".join(x_json_text_indent_2.split())
+    assert cirq.to_json(cirq.X, indent=2) == x_json_text_indent_2
+    assert cirq.to_json(cirq.X, indent=None) == x_json_text_indent_none
+    with cirq.testing.assert_deprecated(
+        "The indent parameter of to_json should be either None or 2", deadline="v1.9"
+    ):
+        assert cirq.to_json(cirq.X, indent=0) == x_json_text_indent_none
+    with cirq.testing.assert_deprecated(
+        "The indent parameter of to_json should be either None or 2", deadline="v1.9"
+    ):
+        assert cirq.to_json(cirq.X, indent=4) == x_json_text_indent_2
+
+
 def test_to_from_json_gzip() -> None:
     a, b = cirq.LineQubit.range(2)
     test_circuit = cirq.Circuit(cirq.H(a), cirq.CX(a, b))
