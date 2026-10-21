@@ -579,8 +579,9 @@ def test_to_from_bytes() -> None:
     buffer = io.BytesIO()
     cirq.to_json(cirq.X, buffer)
     assert buffer.getvalue() == x_json_bytes
-    # TODO - uncomment with read_json switch to orjson
-    # assert cirq.read_json(buffer) == cirq.X
+    buffer.seek(0)
+    assert cirq.read_json(buffer) == cirq.X
+    assert cirq.read_json(json_text=x_json_bytes) == cirq.X
 
 
 def test_to_from_strings() -> None:

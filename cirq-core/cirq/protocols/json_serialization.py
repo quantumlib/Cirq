@@ -535,7 +535,7 @@ def to_json(
 def read_json(
     file_or_fn: None | IO | pathlib.Path | str = None,
     *,
-    json_text: str | None = None,
+    json_text: str | bytes | None = None,
     resolvers: Sequence[JsonResolver] | None = None,
 ) -> Any:
     """Read a JSON file that optionally contains cirq objects.
@@ -569,13 +569,84 @@ def read_json(
     obj_hook = ObjectHook(resolvers)
 
     if json_text is not None:
-        return json.loads(json_text, object_hook=obj_hook)
+        raw = orjson.loads(json_text)
+    elif isinstance(file_or_fn, (str, pathlib.Path)):
+        file_path = pathlib.Path(file_or_fn)
+        raw = orjson.loads(file_path.read_bytes())
+    else:
+        io_like = cast(IO, file_or_fn)
+        raw = orjson.loads(io_like.read())
 
-    if isinstance(file_or_fn, (str, pathlib.Path)):
-        with open(file_or_fn, 'r') as file:
-            return json.load(file, object_hook=obj_hook)
+    obj = _deserialize_raw_json_1(raw, obj_hook)
+    # obj = _deserialize_raw_json_2(raw, obj_hook)
+    # obj = _deserialize_raw_json_3(raw, obj_hook)
+    return obj
 
-    return json.load(cast(IO, file_or_fn), object_hook=obj_hook)
+
+def _deserialize_raw_json_1(raw_obj: Any, obj_hook: ObjectHook) -> Any:  # pragma: no cover
+    tp = type(raw_obj)
+    if tp is list:
+        result = [_deserialize_raw_json_1(obj, obj_hook) for obj in raw_obj]
+    elif tp is dict:
+        d = {k: _deserialize_raw_json_1(v, obj_hook) for k, v in raw_obj.items()}
+        result = obj_hook(d)
+    else:
+        result = raw_obj
+    return result
+
+
+def _deserialize_raw_json_2(raw: Any, obj_hook: ObjectHook):  # pragma: no cover
+
+    def _rewrite_list(raw_list: list) -> list:
+        for i, obj in enumerate(raw_list):
+            tp = type(obj)
+            if tp is list:
+                _rewrite_list(obj)
+            elif tp is dict:
+                new = _rewrite_dict(obj)
+                if obj is not new:
+                    raw_list[i] = new
+        return raw_list
+
+    def _rewrite_dict(raw_dict: dict[str, Any]) -> Any:
+        needs_hook = False
+        for key, obj in raw_dict.items():
+            needs_hook = needs_hook or key == 'cirq_type'
+            tp = type(obj)
+            if tp is list:
+                _rewrite_list(obj)
+            elif tp is dict:
+                new = _rewrite_dict(obj)
+                if obj is not new:
+                    raw_dict[key] = new
+        return obj_hook(raw_dict) if needs_hook else raw_dict
+
+    if isinstance(raw, list):
+        result = _rewrite_list(raw)
+    elif isinstance(raw, dict):
+        result = _rewrite_dict(raw)
+    else:
+        result = raw
+    return result
+
+
+def _deserialize_raw_json_3(raw_obj: Any, obj_hook: ObjectHook) -> Any:  # pragma: no cover
+    raw_obj_type = type(raw_obj)
+    if raw_obj_type is not dict and raw_obj_type is not list:
+        return raw_obj
+
+    def _rewrite_container(owner, key, container, container_type: type[dict] | type[list]):
+        iter_key_value = container.items() if container_type is dict else enumerate(container)
+        for ckey, cvalue in iter_key_value:
+            cvalue_type = type(cvalue)
+            if cvalue_type is dict or cvalue_type is list:
+                _rewrite_container(container, ckey, cvalue, cvalue_type)
+        if container_type is dict and (obj := obj_hook(container)) is not container:
+            owner[key] = obj
+
+    owner = [raw_obj]
+    _rewrite_container(owner, 0, raw_obj, raw_obj_type)
+    return owner[0]
 
 
 def to_json_gzip(
