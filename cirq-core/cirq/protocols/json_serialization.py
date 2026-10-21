@@ -577,8 +577,8 @@ def read_json(
         io_like = cast(IO, file_or_fn)
         raw = orjson.loads(io_like.read())
 
-    obj = _deserialize_raw_json_1(raw, obj_hook)
-    # obj = _deserialize_raw_json_2(raw, obj_hook)
+    # obj = _deserialize_raw_json_1(raw, obj_hook)
+    obj = _deserialize_raw_json_2(raw, obj_hook)
     # obj = _deserialize_raw_json_3(raw, obj_hook)
     return obj
 
