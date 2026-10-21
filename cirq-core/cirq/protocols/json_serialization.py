@@ -549,7 +549,7 @@ def read_json(
             or both are specified.
     """
     if (file_or_fn is None) == (json_text is None):
-        raise ValueError('Must specify ONE of "file_or_fn" or "json".')
+        raise ValueError('Must specify ONE of "file_or_fn" or "json_text".')
 
     if resolvers is None:
         resolvers = DEFAULT_RESOLVERS
