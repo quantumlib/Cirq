@@ -486,12 +486,18 @@ def to_json(
     pass
 
 
+@_compat.deprecated_parameter(
+    deadline='v1.9',
+    fix='Do not use the `separators` argument, it is ignored.',
+    parameter_desc='separators',
+    match=lambda args, kwargs: 'separators' in kwargs,
+)
 def to_json(
     obj: Any,
     file_or_fn: None | IO | pathlib.Path | str = None,
     *,
     indent: int | None = 2,
-    separators: tuple[str, str] | None = None,
+    separators: Any = None,
     cls: type[json.JSONEncoder] = CirqEncoder,
 ) -> str | None:
     """Write a JSON file containing a representation of obj.

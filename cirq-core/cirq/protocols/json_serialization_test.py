@@ -616,6 +616,14 @@ def test_to_json_indent() -> None:
         assert cirq.to_json(cirq.X, indent=4) == x_json_text_indent_2
 
 
+def test_to_json_separators() -> None:
+    json_x = cirq.to_json(cirq.X)
+    with cirq.testing.assert_deprecated("Do not use the `separators` argument", deadline="v1.9"):
+        json_x_with_separators = cirq.to_json(cirq.X, separators=(",", ":"))
+    # separators have no effect
+    assert json_x_with_separators == json_x
+
+
 def test_to_from_json_gzip() -> None:
     a, b = cirq.LineQubit.range(2)
     test_circuit = cirq.Circuit(cirq.H(a), cirq.CX(a, b))
