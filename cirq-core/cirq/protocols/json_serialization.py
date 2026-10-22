@@ -606,12 +606,19 @@ def _deserialize_raw_json(raw_obj: Any, obj_hook: ObjectHook) -> Any:
     if raw_type is not dict and raw_type is not list:
         return raw_obj
 
+    @overload
     def _rewrite_container(
-        owner: dict | list,
-        owner_key: str | int,
-        container: dict | list,
-        container_type: type[dict] | type[list],
+        owner: dict, owner_key: str, container: dict | list, container_type: type[dict] | type[list]
     ) -> None:
+        pass
+
+    @overload
+    def _rewrite_container(
+        owner: list, owner_key: int, container: dict | list, container_type: type[dict] | type[list]
+    ) -> None:
+        pass
+
+    def _rewrite_container(owner, owner_key, container, container_type) -> None:
         """Replace objects depth-first if they can be converted by obj_hook.
 
         Args:
