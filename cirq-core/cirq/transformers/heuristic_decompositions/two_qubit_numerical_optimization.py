@@ -113,7 +113,7 @@ class TwoQubitNumericalCompilationResult(NamedTuple):
     success: bool
 
 
-def _u3_matrix(alpha: float, beta: float, lam: float) -> np.ndarray:
+def _u3_matrix(angles: np.ndarray) -> np.ndarray:
     r"""Single-qubit U3 gate used in the template.
 
         $$U3(\alpha, \beta, \lambda) = \begin{pmatrix}
@@ -122,14 +122,45 @@ def _u3_matrix(alpha: float, beta: float, lam: float) -> np.ndarray:
         \end{pmatrix}$$
 
     which parametrizes all of SU(2) up to a global phase.
+
+    Args:
+        angles: Array of shape (num_layers + 1, 2, 3) holding $(\alpha, \beta, \lambda)$
+            for each layer and qubit along the last axis.
+
+    Returns:
+        Array of shape (num_layers + 1, 2, 2, 2) with the corresponding U3 matrices.
     """
+    alpha, beta, lam = angles[:, :, 0], angles[:, :, 1], angles[:, :, 2]
     cos_a, sin_a = np.cos(alpha / 2), np.sin(alpha / 2)
-    return np.array(
-        [
-            [cos_a, -np.exp(1j * lam) * sin_a],
-            [np.exp(1j * beta) * sin_a, np.exp(1j * (beta + lam)) * cos_a],
-        ]
-    )
+    e_beta, e_lam = np.exp(1j * beta), np.exp(1j * lam)
+    u3 = np.empty((angles.shape[0], 2, 2, 2), dtype=complex)
+    u3[:, :, 0, 0] = cos_a
+    u3[:, :, 0, 1] = -e_lam * sin_a
+    u3[:, :, 1, 0] = e_beta * sin_a
+    u3[:, :, 1, 1] = e_beta * e_lam * cos_a
+    return u3
+
+
+def _u3_matrix_gradient(u3: np.ndarray, beta: np.ndarray) -> np.ndarray:
+    r"""Derivatives of the U3 gate with respect to each of its three angles.
+
+    Args:
+        u3: Array of shape (num_layers + 1, 2, 2, 2) of U3 matrices, as returned by
+            `_u3_matrix`.
+        beta: Array of shape (num_layers + 1, 2) with the angle $\beta$ used to
+            build each `u3`.
+
+    Returns:
+        Array of shape (num_layers + 1, 2, 3, 2, 2) with the derivatives with
+        respect to $\alpha$, $\beta$ and $\lambda$, in that order.
+    """
+    e_beta = np.exp(1j * beta)[:, :, np.newaxis]
+    du3 = np.zeros((u3.shape[0], 2, 3, 2, 2), dtype=complex)
+    du3[:, :, 0, 0, :] = -0.5 * u3[:, :, 1, :] / e_beta
+    du3[:, :, 0, 1, :] = 0.5 * u3[:, :, 0, :] * e_beta
+    du3[:, :, 1, 1, :] = 1j * u3[:, :, 1, :]
+    du3[:, :, 2, :, 1] = 1j * u3[:, :, :, 1]
+    return du3
 
 
 def _template_unitary(params: np.ndarray, base_gate: np.ndarray, num_layers: int) -> np.ndarray:
@@ -142,13 +173,81 @@ def _template_unitary(params: np.ndarray, base_gate: np.ndarray, num_layers: int
         num_layers: Number of base gate applications.
     """
     blocks = params.reshape(num_layers + 1, 2, 3)
+    u3s = _u3_matrix(blocks)
     ud = np.eye(4, dtype=complex)
     for block in range(num_layers + 1):
-        k = np.kron(_u3_matrix(*blocks[block, 0]), _u3_matrix(*blocks[block, 1]))
+        k = np.kron(u3s[block, 0], u3s[block, 1])
         ud = k @ ud
         if block < num_layers:
             ud = base_gate @ ud
     return ud
+
+
+def _template_infidelity_and_gradient(
+    params: np.ndarray, base_gate: np.ndarray, num_layers: int, target: np.ndarray
+) -> tuple[float, np.ndarray]:
+    r"""Computes the infidelity of the template and its gradient with respect to its angles.
+
+    The derivative of the infidelity with respect to a parameter $\alpha_{ib}$ comes only from
+    the u3 matrix that is built using angle $\alpha_{ib}$:
+
+    $$
+    \frac{d U_{d}}{d \alpha_i} = \ldots \frac{d k_i}{d \alpha_i} \cdot U_{base}
+        \cdot k_{i-1} \cdot \ldots\cdot k_1 \cdot U_{base} \cdot k_0
+    $$
+
+    where the derivative of k is given as:
+
+    $$
+    \frac{d k}{d \alpha_{i0}} = \frac{d U3(\alpha_{i0}, \beta_{i0}, \lambda_{i0})}{d \alpha_{i0}}
+        \otimes U3(\alpha_{i1}, \beta_{i1}, \lambda_{i1})
+    $$
+
+    Args:
+        params: Array of shape (num_layers + 1, 2, 3) with the U3 angles of
+            the single-qubit gate pairs $k_0, \ldots, k_i$.
+        base_gate: 4x4 unitary of the base two-qubit gate.
+        num_layers: Number of base gate applications.
+        target: 4x4 unitary that the template is being fit to.
+
+    Returns:
+        The infidelity (a scalar) and the gradient of the infidelity with respect
+        to each parameter (a numpy array).
+    """
+    blocks = params.reshape(num_layers + 1, 2, 3)
+    u3s = _u3_matrix(blocks)
+    du3s = _u3_matrix_gradient(u3s, blocks[:, :, 1])
+    ks = np.einsum('nij,nkl->nikjl', u3s[:, 0], u3s[:, 1]).reshape(num_layers + 1, 4, 4)
+
+    # precomputes all terms before and after a given layer
+    prefix = [np.eye(4, dtype=complex)]
+    for layer in range(num_layers):
+        prefix.append(base_gate @ ks[layer] @ prefix[layer])
+    postfix = [np.eye(4, dtype=complex)]
+    for layer in range(num_layers, 0, -1):
+        postfix.append(postfix[-1] @ ks[layer] @ base_gate)
+    postfix.reverse()
+
+    overlap = np.vdot(postfix[0] @ ks[0], target)
+    if overlap == 0:
+        return 1.0, np.zeros(params.shape)
+
+    # contract together everything except for the u3 derivative:
+    env = np.einsum('nba,bc,ndc->nad', np.conj(postfix), target, np.conj(prefix))
+    env = env.reshape(num_layers + 1, 2, 2, 2, 2)
+    envs = np.stack(
+        [
+            np.einsum('nijkl,njl->nik', env, u3s[:, 1].conj()),
+            np.einsum('nijkl,nik->njl', env, u3s[:, 0].conj()),
+        ],
+        axis=1,
+    )
+    # contract with the u3 derivative to get gradient
+    gradient_scale = -np.conj(overlap) / (4 * abs(overlap))
+    gradient = (gradient_scale * np.einsum('nqpij,nqij->nqp', du3s.conj(), envs)).real
+
+    infidelity = 1.0 - abs(overlap) / target.shape[0]
+    return infidelity, gradient.reshape(params.shape)
 
 
 def _decomposition_fidelity(actual: np.ndarray, target: np.ndarray) -> float:
@@ -174,9 +273,8 @@ def _optimize_template(
     """
     num_params = 6 * (num_layers + 1)
 
-    def objective(x: np.ndarray) -> float:
-        ud = _template_unitary(x, base_gate, num_layers)
-        return 1.0 - _decomposition_fidelity(ud, target)
+    def objf_and_gradient(x: np.ndarray) -> tuple[float, np.ndarray]:
+        return _template_infidelity_and_gradient(x, base_gate, num_layers, target)
 
     best_x: np.ndarray | None = None
     best_fidelity = -np.inf
@@ -184,8 +282,9 @@ def _optimize_template(
     for _ in range(num_restarts):
         x0 = rng.uniform(0.0, 2 * np.pi, size=num_params)
         res = scipy.optimize.minimize(
-            objective,
+            objf_and_gradient,
             x0,
+            jac=True,
             method='L-BFGS-B',
             bounds=bounds,
             options={'maxiter': maxiter, 'ftol': 1e-18, 'gtol': 1e-14},
@@ -211,9 +310,8 @@ def _result_from_angles(
 ) -> TwoQubitNumericalCompilationResult:
     actual = _template_unitary(params, base_gate, num_layers)
     blocks = params.reshape(num_layers + 1, 2, 3)
-    local_unitaries = tuple(
-        (_u3_matrix(*blocks[b, 0]), _u3_matrix(*blocks[b, 1])) for b in range(num_layers + 1)
-    )
+    u3s = _u3_matrix(blocks)
+    local_unitaries = tuple((u3s[b, 0], u3s[b, 1]) for b in range(num_layers + 1))
     return TwoQubitNumericalCompilationResult(
         base_gate_unitary=base_gate,
         base_gate_index=base_gate_index,

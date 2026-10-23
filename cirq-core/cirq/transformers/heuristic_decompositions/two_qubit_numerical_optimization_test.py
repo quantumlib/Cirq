@@ -23,6 +23,11 @@ import cirq
 from cirq import value
 from cirq.testing import random_special_unitary
 from cirq.transformers.heuristic_decompositions.two_qubit_numerical_optimization import (
+    _decomposition_fidelity,
+    _template_infidelity_and_gradient,
+    _template_unitary,
+    _u3_matrix,
+    _u3_matrix_gradient,
     two_qubit_gate_numerical_compilation,
     TwoQubitNumericalCompiler,
 )
@@ -34,9 +39,6 @@ _SYCAMORE = cirq.unitary(cirq.FSimGate(np.pi / 2, np.pi / 6))
 
 _BASE_GATES = {'CZ': _CZ, 'iSWAP': _ISWAP, 'Sycamore': _SYCAMORE}
 
-# All seeds below are fixed per test (rather than drawn from a shared RNG) so
-# that the tests stay deterministic under pytest-randomly shuffling.
-
 
 def _reconstruct_actual_gate(result) -> np.ndarray:
     """Rebuild actual_gate from local_unitaries and base_gate_unitary."""
@@ -46,6 +48,63 @@ def _reconstruct_actual_gate(result) -> np.ndarray:
         if i < result.num_base_gates:
             actual = result.base_gate_unitary @ actual
     return actual
+
+
+def _central_finite_differences(f, x: np.ndarray, h: float = 1e-6) -> np.ndarray:
+    """Central finite-difference derivatives of f with respect to each entry of x."""
+    derivatives = []
+    for i in range(x.size):
+        step = np.zeros_like(x)
+        step[i] = h
+        derivatives.append((f(x + step) - f(x - step)) / (2 * h))
+    return np.array(derivatives)
+
+
+def test_u3_matrix_gradient_matches_finite_differences() -> None:
+    prng = value.parse_random_generator(None)
+    angles = prng.uniform(0, 2 * np.pi, size=(4, 2, 3))
+    du3s = _u3_matrix_gradient(_u3_matrix(angles), angles[:, :, 1])
+    assert du3s.shape == (4, 2, 3, 2, 2)
+    for n, q in np.ndindex(4, 2):
+        numeric = _central_finite_differences(
+            lambda a: _u3_matrix(a.reshape(1, 1, 3))[0, 0], angles[n, q]
+        )
+        np.testing.assert_allclose(du3s[n, q], numeric, atol=1e-8)
+
+
+@pytest.mark.parametrize('base_gate_name', list(_BASE_GATES))
+@pytest.mark.parametrize('num_layers', [1, 2, 3])
+def test_template_infidelity_gradient_matches_finite_differences(
+    base_gate_name: str, num_layers: int
+) -> None:
+    base_gate = _BASE_GATES[base_gate_name]
+    prng = value.parse_random_generator(None)
+    target = random_special_unitary(4)
+    params = prng.uniform(0, 2 * np.pi, size=6 * (num_layers + 1))
+
+    def infidelity(x: np.ndarray) -> float:
+        return 1 - _decomposition_fidelity(_template_unitary(x, base_gate, num_layers), target)
+
+    infdlty, infdlty_gradient = _template_infidelity_and_gradient(
+        params, base_gate, num_layers, target
+    )
+    assert abs(infdlty - infidelity(params)) < 1e-7
+    assert infdlty_gradient.shape == params.shape
+    assert np.isrealobj(infdlty_gradient)
+    np.testing.assert_allclose(
+        infdlty_gradient, _central_finite_differences(infidelity, params), atol=1e-7
+    )
+
+
+def test_template_infidelity_zero_gradient() -> None:
+    target = np.kron(cirq.unitary(cirq.X), np.eye(2))
+    infdlty, gradient = _template_infidelity_and_gradient(np.zeros(12), _CZ, 1, target)
+    np.testing.assert_array_equal(gradient, np.zeros(12))
+    assert infdlty == 1
+
+
+# All seeds below are fixed per test (rather than drawn from a shared RNG) so
+# that the tests stay deterministic under pytest-randomly shuffling.
 
 
 @pytest.mark.parametrize('base_gate_name', list(_BASE_GATES))
