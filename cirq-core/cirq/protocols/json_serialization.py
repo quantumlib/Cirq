@@ -466,14 +466,24 @@ def cirq_type_from_json(type_str: str, resolvers: Sequence[JsonResolver] | None 
 
 @overload
 def to_json(
-    obj: Any, file_or_fn: IO | pathlib.Path | str, *, indent=2, separators=None, cls=CirqEncoder
+    obj: Any,
+    file_or_fn: IO | pathlib.Path | str,
+    *,
+    indent: int | None = None,
+    separators: tuple[str, str] | None = None,
+    cls=CirqEncoder,
 ) -> None:
     pass
 
 
 @overload
 def to_json(
-    obj: Any, file_or_fn: None = None, *, indent=2, separators=None, cls=CirqEncoder
+    obj: Any,
+    file_or_fn: None = None,
+    *,
+    indent: int | None = None,
+    separators: tuple[str, str] | None = None,
+    cls=CirqEncoder,
 ) -> str:
     pass
 
@@ -482,7 +492,7 @@ def to_json(
     obj: Any,
     file_or_fn: None | IO | pathlib.Path | str = None,
     *,
-    indent: int | None = 2,
+    indent: int | None = None,
     separators: tuple[str, str] | None = None,
     cls: type[json.JSONEncoder] = CirqEncoder,
 ) -> str | None:
@@ -570,7 +580,7 @@ def to_json_gzip(
     obj: Any,
     file_or_fn: None | IO | pathlib.Path | str = None,
     *,
-    indent: int = 2,
+    indent: int | None = None,
     cls: type[json.JSONEncoder] = CirqEncoder,
 ) -> bytes | None:
     """Write a gzipped JSON file containing a representation of obj.
