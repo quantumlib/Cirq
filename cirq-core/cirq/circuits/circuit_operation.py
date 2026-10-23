@@ -384,7 +384,10 @@ class CircuitOperation(ops.Operation):
     def _parameter_names_(self) -> frozenset[str]:
         # Union whole sets rather than individual names, so that large subcircuit name sets are
         # copied in bulk.
-        return frozenset().union(*self._parameter_name_sets())
+        sets = [s for s in self._parameter_name_sets() if s]
+        if len(sets) == 1 and isinstance(sets[0], frozenset):
+            return sets[0]
+        return frozenset().union(*sets)
 
     def _parameter_name_sets(self) -> Iterator[Set[str]]:
         yield protocols.parameter_names(self.repetitions)
@@ -402,13 +405,13 @@ class CircuitOperation(ops.Operation):
     def _mapping_preserves_parameter_names(self) -> bool:
         """Returns whether `_mapped_any_loop` has the same parameter names as `self.circuit`.
 
-        Measurement key mappings never change parameter names. Parameter resolution can, a qubit
-        map can introduce variable qubits, and inverting the subcircuit for negative repetitions
-        is not guaranteed to preserve them.
+        Measurement key mappings never change parameter names. Parameter resolution can, a
+        parameterized qubit map can introduce or replace variable qubits, and inverting the
+        subcircuit for negative repetitions is not guaranteed to preserve them.
         """
         return (
             not self.param_resolver
-            and not self.qubit_map
+            and not self._is_qubit_map_parameterized()
             and not (isinstance(self.repetitions, INT_CLASSES) and self.repetitions < 0)
         )
 
