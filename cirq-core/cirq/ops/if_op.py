@@ -262,5 +262,10 @@ class If(raw_types.Operation):
         subop_qasm = protocols.qasm(self._sub_operation, args=args, qubits=qubits, default=None)
         if subop_qasm is None:
             return None
+        from cirq.circuits import CircuitOperation
+
+        if isinstance(self._sub_operation, CircuitOperation):
+            subop_qasm_body = ''.join(f'    {line}\n' for line in subop_qasm.strip().split('\n'))
+            subop_qasm = f'{{\n{subop_qasm_body}}}'
         condition_qasm = " && ".join(protocols.qasm(c, args=args) for c in self._conditions)
         return f'if ({condition_qasm}) {subop_qasm}'
