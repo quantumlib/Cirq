@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 import pytest
 
 
@@ -42,3 +44,25 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         for k in skip_keywords.intersection(item.keywords):
             item.add_marker(skip_marks[k])
+
+
+def pytest_sessionstart(session) -> None:
+    """Setup number of threads to prevent oversubscription in pytest-xdist parallel run."""
+    if "PYTEST_XDIST_WORKER_COUNT" not in os.environ:
+        return
+    thread_env_vars = (
+        "BLIS_NUM_THREADS",
+        "MKL_NUM_THREADS",
+        "OMP_NUM_THREADS",
+        "OPENBLAS_NUM_THREADS",
+        "NUMBA_NUM_THREADS",
+        "NUMEXPR_NUM_THREADS",
+    )
+    worker_count = int(os.environ["PYTEST_XDIST_WORKER_COUNT"])
+    if hasattr(os, "sched_getaffinity"):
+        usable_cpu_count = len(os.sched_getaffinity(0))
+    else:
+        usable_cpu_count = os.cpu_count() or 1
+    threads_per_worker = max(usable_cpu_count // worker_count, 1)
+    for var in thread_env_vars:
+        os.environ.setdefault(var, str(threads_per_worker))

@@ -770,9 +770,7 @@ class GridDevice(cirq.Device):
         qubits = self._metadata.qubit_set
         for operation in operations:
             op_qubits = operation.qubits
-            if (
-                isinstance(operation, cirq.Gate) or isinstance(operation.gate, cirq.Gate)
-            ) and operation not in gateset:
+            if operation not in gateset:
                 raise ValueError(f'Operation {operation} contains a gate which is not supported.')
 
             for q in op_qubits:
