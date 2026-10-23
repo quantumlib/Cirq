@@ -752,7 +752,10 @@ class Operation(metaclass=abc.ABCMeta):
     @cached_method
     def _are_qubits_parameterized(self) -> bool:
         variable_qid_type = ops.VariableQid
-        return any(isinstance(q, variable_qid_type) for q in self.qubits)
+        for q in self.qubits:
+            if isinstance(q, variable_qid_type):
+                return True
+        return False
 
     def _is_parameterized_(self) -> bool:
         """Returns true if the Operation is parameterized, false otherwise."""
