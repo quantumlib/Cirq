@@ -37,6 +37,7 @@ from cirq.value.condition import (
     KeyCondition as KeyCondition,
     SympyCondition as SympyCondition,
     BitMaskKeyCondition as BitMaskKeyCondition,
+    OrCondition as OrCondition,
 )
 
 from cirq.value.digits import (
