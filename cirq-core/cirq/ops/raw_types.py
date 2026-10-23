@@ -752,7 +752,7 @@ class Operation(metaclass=abc.ABCMeta):
     @cached_method
     def _are_qubits_parameterized(self) -> bool:
         variable_qid_type = ops.VariableQid
-        for q in self.qubits:
+        for q in self.qubits: # noqa: SIM110
             if isinstance(q, variable_qid_type):
                 return True
         return False
