@@ -132,16 +132,22 @@ def _u3_matrix(alpha: float, beta: float, lam: float) -> np.ndarray:
     )
 
 
-def _u3_matrix_gradient(alpha: float, beta: float, lam: float) -> np.ndarray:
+def _u3_matrix_gradient(u3: np.ndarray, beta: float) -> np.ndarray:
     r"""Derivatives of the U3 gate with respect to each of its three angles.
+
+    Args:
+        u3: The U3 matrix, as returned by `_u3_matrix`.
+        beta: The angle $\beta$ used to build `u3`.
 
     Returns:
         Array of shape (3, 2, 2) with the derivatives with respect to
         $\alpha$, $\beta$ and $\lambda$, in that order.
     """
-    u3 = _u3_matrix(alpha, beta, lam)
-    d_phase = np.diag([0, 1j])
-    return np.array([0.5 * _u3_matrix(alpha + np.pi, beta, lam), d_phase @ u3, u3 @ d_phase])
+    e_beta = np.exp(1j * beta)
+    d_alpha = 0.5 * np.array([-u3[1] / e_beta, u3[0] * e_beta])
+    d_beta = np.array([[0, 0], 1j * u3[1]])
+    d_lam = np.array([[0, 1j * u3[0, 1]], [0, 1j * u3[1, 1]]])
+    return np.array([d_alpha, d_beta, d_lam])
 
 
 def _template_unitary(params: np.ndarray, base_gate: np.ndarray, num_layers: int) -> np.ndarray:
@@ -188,6 +194,7 @@ def _template_infidelity_and_gradient(
             the single-qubit gate pairs $k_0, \ldots, k_i$.
         base_gate: 4x4 unitary of the base two-qubit gate.
         num_layers: Number of base gate applications.
+        target: 4x4 unitary that the template is being fit to.
 
     Returns:
         The infidelity (a scalar) and the gradient of the infidelity with respect
@@ -206,10 +213,11 @@ def _template_infidelity_and_gradient(
         postfix.append(postfix[-1] @ ks[layer] @ base_gate)
     postfix.reverse()
 
-    fidelity = np.vdot(postfix[0] @ ks[0], target)
-    if fidelity == 0:
-        return 1, np.zeros(params.shape)
+    overlap = np.vdot(postfix[0] @ ks[0], target)
+    if overlap == 0:
+        return 1.0, np.zeros(params.shape)
 
+    gradient_scale = -np.conj(overlap) / (4 * abs(overlap))
     gradient = np.empty(blocks.shape)
     for layer in range(num_layers + 1):
         # contract together everything except for the u3 derivative
@@ -221,12 +229,13 @@ def _template_infidelity_and_gradient(
         ]
         # contract with the u3 derivative to get gradient
         for qubit in range(2):
-            for param_ind, du3 in enumerate(_u3_matrix_gradient(*blocks[layer, qubit])):
-                gradient[layer, qubit, param_ind] = -(
-                    np.conj(fidelity) * np.vdot(du3, envs[qubit])
-                ).real / (4 * abs(fidelity))
+            du3s = _u3_matrix_gradient(u3s[layer][qubit], blocks[layer, qubit, 1])
+            for param_ind, du3 in enumerate(du3s):
+                gradient[layer, qubit, param_ind] = (
+                    gradient_scale * np.vdot(du3, envs[qubit])
+                ).real
 
-    infidelity = 1.0 - abs(fidelity) / target.shape[0]
+    infidelity = 1.0 - abs(overlap) / target.shape[0]
     return infidelity, gradient.reshape(params.shape)
 
 

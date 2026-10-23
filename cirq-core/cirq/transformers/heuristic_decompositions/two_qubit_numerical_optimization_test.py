@@ -39,9 +39,6 @@ _SYCAMORE = cirq.unitary(cirq.FSimGate(np.pi / 2, np.pi / 6))
 
 _BASE_GATES = {'CZ': _CZ, 'iSWAP': _ISWAP, 'Sycamore': _SYCAMORE}
 
-# All seeds below are fixed per test (rather than drawn from a shared RNG) so
-# that the tests stay deterministic under pytest-randomly shuffling.
-
 
 def _reconstruct_actual_gate(result) -> np.ndarray:
     """Rebuild actual_gate from local_unitaries and base_gate_unitary."""
@@ -67,7 +64,9 @@ def test_u3_matrix_gradient_matches_finite_differences() -> None:
     prng = value.parse_random_generator(None)
     angles = prng.uniform(0, 2 * np.pi, size=3)
     numeric = _central_finite_differences(lambda a: _u3_matrix(*a), angles)
-    np.testing.assert_allclose(_u3_matrix_gradient(*angles), numeric, atol=1e-8)
+    np.testing.assert_allclose(
+        _u3_matrix_gradient(_u3_matrix(*angles), angles[1]), numeric, atol=1e-8
+    )
 
 
 @pytest.mark.parametrize('base_gate_name', list(_BASE_GATES))
@@ -99,6 +98,10 @@ def test_template_infidelity_zero_gradient() -> None:
     infdlty, gradient = _template_infidelity_and_gradient(np.zeros(12), _CZ, 1, target)
     np.testing.assert_array_equal(gradient, np.zeros(12))
     assert infdlty == 1
+
+
+# All seeds below are fixed per test (rather than drawn from a shared RNG) so
+# that the tests stay deterministic under pytest-randomly shuffling.
 
 
 @pytest.mark.parametrize('base_gate_name', list(_BASE_GATES))
