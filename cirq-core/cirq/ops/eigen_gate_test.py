@@ -22,6 +22,8 @@ import cirq
 from cirq import value
 from cirq.testing import assert_has_consistent_trace_distance_bound
 
+_NUMPY_SCALAR_TYPES = (np.float32, np.float64, np.double, np.int32, np.int64, np.short)
+
 
 class CExpZinGate(cirq.EigenGate, cirq.testing.TwoQubitGate):
     """Two-qubit gate for the following matrix:
@@ -345,6 +347,16 @@ def test_is_parameterized() -> None:
     assert not cirq.is_parameterized(CExpZinGate(1))
     assert not cirq.is_parameterized(CExpZinGate(3))
     assert cirq.is_parameterized(CExpZinGate(sympy.Symbol('a')))
+    for dtype in _NUMPY_SCALAR_TYPES:
+        assert not cirq.is_parameterized(CExpZinGate(dtype(1)))
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_SCALAR_TYPES)
+def test_is_parameterized_numpy(dtype) -> None:
+    gate = CExpZinGate(dtype(1))
+    assert not cirq.is_parameterized(gate)
+    assert isinstance(gate.exponent, np.number)
+    assert type(gate.exponent) is dtype
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
@@ -357,6 +369,105 @@ def test_resolve_parameters(resolve_fn) -> None:
 
     with pytest.raises(ValueError, match='Complex exponent'):
         resolve_fn(CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': 0.5j}))
+
+    for dtype in _NUMPY_SCALAR_TYPES:
+        assert resolve_fn(
+            CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': dtype(1)})
+        ) == CExpZinGate(1)
+    for dtype in (np.float32, np.float64, np.double):
+        assert resolve_fn(
+            CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': dtype(0.5)})
+        ) == CExpZinGate(0.5)
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_SCALAR_TYPES)
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve_parameters_numpy(resolve_fn, dtype) -> None:
+    resolved = resolve_fn(CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': dtype(1)}))
+    assert resolved == CExpZinGate(1)
+    identity = resolve_fn(CExpZinGate(dtype(1)), cirq.ParamResolver({}))
+    assert identity == CExpZinGate(dtype(1))
+    assert type(identity.exponent) is dtype
+
+
+@pytest.mark.parametrize('dtype', (np.float32, np.float64, np.double))
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve_parameters_numpy_half(resolve_fn, dtype) -> None:
+    resolved = resolve_fn(CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': dtype(0.5)}))
+    assert resolved == CExpZinGate(0.5)
+
+
+def _assert_python_number(value) -> None:
+    assert type(value) in (int, float)
+    assert not isinstance(value, np.number)
+
+
+@pytest.mark.parametrize(
+    'value',
+    [
+        np.float16(0.5),
+        np.float32(0.5),
+        np.float64(0.5),
+        np.double(0.5),
+        np.int8(1),
+        np.int16(1),
+        np.int32(1),
+        np.int64(1),
+        np.short(1),
+        np.uint8(1),
+        np.uint16(1),
+        np.uint32(1),
+        np.uint64(1),
+    ],
+)
+@pytest.mark.parametrize(
+    'gate_cls',
+    [cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.HPowGate, cirq.CZPowGate, cirq.CXPowGate],
+)
+def test_numpy_exponent_json_round_trip(value, gate_cls) -> None:
+    gate = gate_cls(exponent=value)
+    restored_gate = cirq.read_json(json_text=cirq.to_json(gate))
+    assert restored_gate == gate
+    _assert_python_number(restored_gate.exponent)
+
+    qubits = cirq.LineQubit.range(cirq.num_qubits(gate))
+    circuit = cirq.Circuit(gate.on(*qubits))
+    restored_circuit = cirq.read_json(json_text=cirq.to_json(circuit))
+    assert restored_circuit == circuit
+    restored_op = next(restored_circuit.all_operations())
+    _assert_python_number(restored_op.gate.exponent)
+
+
+def test_numpy_parameterized_circuit_json_round_trip() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.XPowGate(exponent=np.float32(0.5)).on(q0),
+        cirq.YPowGate(exponent=np.float64(0.25)).on(q0),
+        cirq.ZPowGate(exponent=np.int64(1)).on(q0),
+        cirq.CZPowGate(exponent=np.double(0.5)).on(q0, q1),
+        cirq.FSimGate(np.float32(0.25), np.float64(0.5)).on(q0, q1),
+        cirq.PhasedXZGate(
+            x_exponent=np.float64(0.5), z_exponent=np.float32(0.25), axis_phase_exponent=np.int8(0)
+        ).on(q0),
+        cirq.WaitGate(cirq.Duration(nanos=np.int32(5))).on(q0),
+        cirq.depolarize(np.float64(0.25)).on(q0),
+        cirq.bit_flip(np.float32(0.25)).on(q0),  # type: ignore[arg-type]
+        cirq.X.with_probability(np.float32(0.25)).on(q0),
+    )
+    restored = cirq.read_json(json_text=cirq.to_json(circuit))
+    assert restored == circuit
+    for op in restored.all_operations():
+        gate = op.gate
+        if isinstance(gate, cirq.EigenGate):
+            _assert_python_number(gate.exponent)
+        elif isinstance(gate, cirq.PhasedXZGate):
+            _assert_python_number(gate.x_exponent)
+            _assert_python_number(gate.z_exponent)
+            _assert_python_number(gate.axis_phase_exponent)
+        elif isinstance(gate, cirq.RandomGateChannel):
+            _assert_python_number(gate.probability)
+        elif isinstance(gate, (cirq.DepolarizingChannel, cirq.BitFlipChannel)):
+            _assert_python_number(gate.p)
 
 
 class WeightedZPowGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
