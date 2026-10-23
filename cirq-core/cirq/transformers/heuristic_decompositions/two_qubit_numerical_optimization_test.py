@@ -62,11 +62,14 @@ def _central_finite_differences(f, x: np.ndarray, h: float = 1e-6) -> np.ndarray
 
 def test_u3_matrix_gradient_matches_finite_differences() -> None:
     prng = value.parse_random_generator(None)
-    angles = prng.uniform(0, 2 * np.pi, size=3)
-    numeric = _central_finite_differences(lambda a: _u3_matrix(*a), angles)
-    np.testing.assert_allclose(
-        _u3_matrix_gradient(_u3_matrix(*angles), angles[1]), numeric, atol=1e-8
-    )
+    angles = prng.uniform(0, 2 * np.pi, size=(4, 2, 3))
+    du3s = _u3_matrix_gradient(_u3_matrix(angles), angles[:, :, 1])
+    assert du3s.shape == (4, 2, 3, 2, 2)
+    for n, q in np.ndindex(4, 2):
+        numeric = _central_finite_differences(
+            lambda a: _u3_matrix(a.reshape(1, 1, 3))[0, 0], angles[n, q]
+        )
+        np.testing.assert_allclose(du3s[n, q], numeric, atol=1e-8)
 
 
 @pytest.mark.parametrize('base_gate_name', list(_BASE_GATES))
