@@ -550,7 +550,7 @@ def test_type_serialization(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cl
     sto = SerializableTypeObject(cls)
     test_resolvers = [custom_resolver, *cirq.DEFAULT_RESOLVERS]
     expected_json = f'{{\n  "cirq_type": "SerializableTypeObject",\n  "test_type": "{typename}"\n}}'
-    assert cirq.to_json(sto) == expected_json
+    assert cirq.to_json(sto, indent=2) == expected_json
     assert cirq.read_json(json_text=expected_json, resolvers=test_resolvers) == sto
     assert_json_roundtrip_works(sto, resolvers=test_resolvers)
 
@@ -571,11 +571,7 @@ def test_invalid_type_deserialize() -> None:
 
 
 def test_to_from_strings() -> None:
-    x_json_text = """{
-  "cirq_type": "_PauliX",
-  "exponent": 1.0,
-  "global_shift": 0.0
-}"""
+    x_json_text = '{"cirq_type": "_PauliX", "exponent": 1.0, "global_shift": 0.0}'
     assert cirq.to_json(cirq.X) == x_json_text
     assert cirq.read_json(json_text=x_json_text) == cirq.X
 
@@ -746,9 +742,7 @@ def test_dataclass_json_dict() -> None:
 
 
 def test_numpy_values() -> None:
-    assert cirq.to_json({'value': np.array(1)}) == """{
-  "value": 1
-}"""
+    assert cirq.to_json({'value': np.array(1)}) == '{"value": 1}'
 
 
 def test_basic_time_assertions() -> None:

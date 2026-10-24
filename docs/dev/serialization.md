@@ -19,7 +19,7 @@ import cirq
 import sympy
 
 obj = cirq.X**sympy.Symbol('t')
-text = cirq.to_json(obj)
+text = cirq.to_json(obj, indent=2)
 
 print(text)
 # prints:

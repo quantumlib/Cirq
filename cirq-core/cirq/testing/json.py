@@ -18,6 +18,7 @@ import dataclasses
 import importlib.util
 import inspect
 import io
+import json
 import pathlib
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -155,7 +156,7 @@ def assert_json_roundtrip_works(obj, text_should_be=None, resolvers=None) -> Non
     Args:
         obj: The object to test round-tripping for.
         text_should_be: An optional argument to assert the JSON serialized
-            output.
+            output produced with `indent=2`.
         resolvers: Any resolvers if testing those other than the default.
 
     Raises:
@@ -168,7 +169,8 @@ def assert_json_roundtrip_works(obj, text_should_be=None, resolvers=None) -> Non
     if text_should_be is not None:
         buffer.seek(0)
         text = buffer.read()
-        assert text == text_should_be, text
+        text_pretty = json.dumps(json.loads(text), indent=2)
+        assert text_pretty == text_should_be, text_pretty
 
     buffer.seek(0)
     restored_obj = cirq.protocols.read_json(buffer, resolvers=resolvers)
