@@ -499,3 +499,18 @@ def test_variable_qid_resolution():
     assert resolved_cx_0x == cirq.X(cirq.LineQubit(0)).controlled_by(cirq.LineQubit(1))
     resolved_cx_xy = cirq.resolve_parameters(cx_xy, resolver)
     assert resolved_cx_xy == cirq.X(cirq.LineQubit(1)).controlled_by(cirq.LineQubit(2))
+
+
+@pytest.mark.parametrize("gate", [cirq.H, cirq.X, cirq.Z])
+@pytest.mark.parametrize("control_value", [True, False])
+def test_bool_control_values_match_ints(gate, control_value):
+    bool_op = cirq.ControlledOperation(
+        [cirq.LineQubit(0)], gate(cirq.LineQubit(1)), control_values=[control_value]
+    )
+    int_op = cirq.ControlledOperation(
+        [cirq.LineQubit(0)], gate(cirq.LineQubit(1)), control_values=[int(control_value)]
+    )
+
+    np.testing.assert_allclose(cirq.unitary(bool_op), cirq.unitary(int_op))
+
+    cirq.testing.assert_decompose_is_consistent_with_unitary(bool_op)
