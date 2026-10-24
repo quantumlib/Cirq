@@ -743,13 +743,19 @@ class Operation(metaclass=abc.ABCMeta):
 
     @cached_method
     def _qubit_parameter_names(self) -> frozenset[str]:
+        # Only variable qubits can carry parameters, so skip the generic protocol dispatch on every
+        # qubit in the common case where there are none.
+        if not self._are_qubits_parameterized():
+            return frozenset()
         return frozenset(protocols.parameter_names(self.qubits))
 
     @cached_method
     def _are_qubits_parameterized(self) -> bool:
-        from cirq.ops.variable_qid import VariableQid
-
-        return any(isinstance(q, VariableQid) for q in self.qubits)
+        variable_qid_type = ops.VariableQid
+        for q in self.qubits:  # noqa: SIM110
+            if isinstance(q, variable_qid_type):
+                return True
+        return False
 
     def _is_parameterized_(self) -> bool:
         """Returns true if the Operation is parameterized, false otherwise."""
@@ -1141,12 +1147,19 @@ def _operations_commutes_impl(
     # behave like the suboperations, so if the suboperations commute then these commute. Or
     # one of them is cold in which case it behaves like the identity, which always commutes.
     shared_qubits = ops1_qubits.intersection(ops2_qubits)
-    ops1_raw = [
-        op.without_classical_controls() for op in ops1 if not shared_qubits.isdisjoint(op.qubits)
-    ]
-    ops2_raw = [
-        op.without_classical_controls() for op in ops2 if not shared_qubits.isdisjoint(op.qubits)
-    ]
+    try:
+        ops1_raw = [
+            op.without_classical_controls()
+            for op in ops1
+            if not shared_qubits.isdisjoint(op.qubits)
+        ]
+        ops2_raw = [
+            op.without_classical_controls()
+            for op in ops2
+            if not shared_qubits.isdisjoint(op.qubits)
+        ]
+    except NotImplementedError:
+        return NotImplemented
     moment1 = circuits.Moment(ops1_raw)
     moment2 = circuits.Moment(ops2_raw)
 

@@ -193,28 +193,28 @@ class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
     This base class can be used to create two-qubit compilation target gatesets. It automatically
     implements the logic to
 
-        1. Apply `self.preprocess_transformers` to the input circuit, which by default will:
-            a) Expand composite gates acting on > 2 qubits using `cirq.expand_composite`.
-            b) Merge connected components of 1 & 2 qubit unitaries into tagged
-                `cirq.CircuitOperation` using `cirq.merge_k_qubit_unitaries`.
+    1. Apply `self.preprocess_transformers` to the input circuit, which by default will:
+        a) Expand composite gates acting on > 2 qubits using `cirq.expand_composite`.
+        b) Merge connected components of 1 & 2 qubit unitaries into tagged
+           `cirq.CircuitOperation` using `cirq.merge_k_qubit_unitaries`.
 
-        2. Apply `self.decompose_to_target_gateset` to rewrite each operation (including merged
-        connected components from 1b) using gates from this gateset.
-            a) Uses `self._decompose_single_qubit_operation`, `self._decompose_two_qubit_operation`
-               and `self._decompose_multi_qubit_operation` to figure out how to rewrite (merged
-               connected components of) operations using only gates from this gateset.
-            b) A merged connected component containing only 1 & 2q gates from this gateset is
-               replaced with a more efficient rewrite using `self._decompose_two_qubit_operation`
-               iff the rewritten op-tree is lesser number of 2q interactions.
+    2. Apply `self.decompose_to_target_gateset` to rewrite each operation (including merged
+       connected components from 1b) using gates from this gateset.
+        a) Uses `self._decompose_single_qubit_operation`, `self._decompose_two_qubit_operation`
+           and `self._decompose_multi_qubit_operation` to figure out how to rewrite (merged
+           connected components of) operations using only gates from this gateset.
+        b) A merged connected component containing only 1 & 2q gates from this gateset is
+           replaced with a more efficient rewrite using `self._decompose_two_qubit_operation`
+           iff the rewritten op-tree is lesser number of 2q interactions.
 
-            Replace connected components with inefficient implementations (higher number of 2q
-               interactions) with efficient rewrites to minimize total number of 2q interactions.
+       Replace connected components with inefficient implementations (higher number of 2q
+       interactions) with efficient rewrites to minimize total number of 2q interactions.
 
-        3. Apply `self.postprocess_transformers` to the transformed circuit, which by default will:
-            a) Apply `cirq.merge_single_qubit_moments_to_phxz` to preserve moment structure (eg:
-               alternating layers of single/two qubit gates).
-            b) Apply `cirq.drop_negligible_operations` and `cirq.drop_empty_moments` to minimize
-               circuit depth.
+    3. Apply `self.postprocess_transformers` to the transformed circuit, which by default will:
+        a) Apply `cirq.merge_single_qubit_moments_to_phxz` to preserve moment structure (eg:
+           alternating layers of single/two qubit gates).
+        b) Apply `cirq.drop_negligible_operations` and `cirq.drop_empty_moments` to minimize
+           circuit depth.
 
     Derived classes should simply implement `self._decompose_two_qubit_operation` abstract method
     and provide analytical decomposition of any 2q unitary using gates from the target gateset.
