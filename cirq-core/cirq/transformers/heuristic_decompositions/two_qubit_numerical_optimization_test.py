@@ -82,25 +82,25 @@ def test_template_infidelity_gradient_matches_finite_differences(
     target = random_special_unitary(4)
     params = prng.uniform(0, 2 * np.pi, size=6 * (num_layers + 1))
 
-    def infidelity(x: np.ndarray) -> float:
+    def decomp_infidelity(x: np.ndarray) -> float:
         return 1 - _decomposition_fidelity(_template_unitary(x, base_gate, num_layers), target)
 
-    infdlty, infdlty_gradient = _template_infidelity_and_gradient(
+    infidelity, infidelity_gradient = _template_infidelity_and_gradient(
         params, base_gate, num_layers, target
     )
-    assert abs(infdlty - infidelity(params)) < 1e-7
-    assert infdlty_gradient.shape == params.shape
-    assert np.isrealobj(infdlty_gradient)
+    assert abs(infidelity - decomp_infidelity(params)) < 1e-7
+    assert infidelity_gradient.shape == params.shape
+    assert np.isrealobj(infidelity_gradient)
     np.testing.assert_allclose(
-        infdlty_gradient, _central_finite_differences(infidelity, params), atol=1e-7
+        infidelity_gradient, _central_finite_differences(decomp_infidelity, params), atol=1e-9
     )
 
 
 def test_template_infidelity_zero_gradient() -> None:
     target = np.kron(cirq.unitary(cirq.X), np.eye(2))
-    infdlty, gradient = _template_infidelity_and_gradient(np.zeros(12), _CZ, 1, target)
+    infidelity, gradient = _template_infidelity_and_gradient(np.zeros(12), _CZ, 1, target)
     np.testing.assert_array_equal(gradient, np.zeros(12))
-    assert infdlty == 1
+    assert infidelity == 1
 
 
 # All seeds below are fixed per test (rather than drawn from a shared RNG) so
