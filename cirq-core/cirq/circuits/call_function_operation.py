@@ -50,6 +50,7 @@ class CallFunctionOperation(ops.Operation):
             circuit_function: The CircuitFunction to call.
             function_args: Positional argument values to pass to the CircuitFunction.
             param_resolver: Optional resolver for free parameters in the CircuitFunction.
+                The resolver is applied AFTER the CircuitFunction parameters are substituted.
 
         Raises:
             TypeError: If `circuit_function` is not a `CircuitFunction`.
@@ -68,21 +69,34 @@ class CallFunctionOperation(ops.Operation):
 
         self._circuit_function = circuit_function
         self._function_args = tuple(function_args)
-        self._param_resolver = study.ParamResolver(param_resolver)
+
+        # Only retain resolver entries that can affect the called circuit
+        resolver = study.ParamResolver(param_resolver)
+        possible_resolver_names = self._unresolved_parameter_names()
+        filtered_resolver_items = {
+            k: v
+            for k, v in resolver.param_dict.items()
+            if (k.name if isinstance(k, sympy.Symbol) else k) in possible_resolver_names
+        }
+        self._param_resolver = (
+            resolver
+            if len(filtered_resolver_items) == len(resolver.param_dict)
+            else study.ParamResolver(filtered_resolver_items)
+        )
 
         # resolve qubits if they are parameterized
-        function_param_mapping = dict(
-            zip(self._circuit_function.function_params, self._function_args)
+        function_param_mapping = study.ParamResolver(
+            dict(zip(self._circuit_function.function_params, self._function_args))
         )
+
+        def resolve_qubit(q: cirq.Qid) -> cirq.Qid:
+            if not isinstance(q, ops.VariableQid):
+                return q
+            q = protocols.resolve_parameters(q, function_param_mapping, recursive=False)
+            return protocols.resolve_parameters(q, self._param_resolver, recursive=False)
+
         self._qubits = tuple(
-            sorted(
-                protocols.resolve_parameters(
-                    protocols.resolve_parameters(q, function_param_mapping, recursive=False),
-                    self._param_resolver,
-                    recursive=False,
-                )
-                for q in self._circuit_function.all_qubits()
-            )
+            sorted({resolve_qubit(q) for q in self._circuit_function.all_qubits()})
         )
 
     @property
@@ -202,7 +216,7 @@ class CallFunctionOperation(ops.Operation):
         if not self._param_resolver:
             return base
         resolver_items = ", ".join(
-            f"{k}={self._param_resolver[k]}"
+            f"{k}={self._param_resolver.param_dict[k]}"
             for k in sorted(self._param_resolver.param_dict.keys(), key=lambda ki: str(ki))
         )
         return f"{base} [{resolver_items}]"

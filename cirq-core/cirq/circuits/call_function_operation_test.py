@@ -88,6 +88,10 @@ def test_parameter_resolution() -> None:
     assert op.qubits == (q,)
     assert op_resolved.qubits == (cirq.q(1),)
 
+    op_overlapping_resolver = cirq.CallFunctionOperation(cf, [0.5], {theta: 0.25})
+    assert cirq.parameter_names(op_overlapping_resolver) == {'x'}
+    assert op_overlapping_resolver.param_resolver == cirq.ParamResolver()
+
 
 def test_decompose() -> None:
     x = sympy.Symbol('x')
@@ -103,6 +107,10 @@ def test_decompose() -> None:
     resolved_op = cirq.resolve_parameters(op, {x: 4})
     test_circ = cirq.decompose(resolved_op)
     assert test_circ == [cirq.X(cirq.q(4)) ** 0.5]
+
+    resolved_op = cirq.resolve_parameters(op, {theta: 0.25})
+    test_circ = cirq.decompose(resolved_op)
+    assert test_circ == [cirq.X(q) ** 0.5]
 
     cf = cirq.CircuitFunction("test_function", c, function_params=[theta, x])
     op = cirq.CallFunctionOperation(cf, [0.5, 3])
@@ -120,6 +128,28 @@ def test_decompose() -> None:
     test_circ = cirq.decompose(op)
     ref_circ = [cirq.X(cirq.VariableLineQid(y)) ** 2]
     assert test_circ == ref_circ
+
+
+def test_same_qubits() -> None:
+    x = sympy.Symbol('x')
+    c = cirq.Circuit(cirq.Moment(cirq.X(cirq.q(0))), cirq.Moment(cirq.Z(cirq.VariableLineQid(x))))
+    cf = cirq.CircuitFunction('f', c, function_params=[x])
+    op = cirq.CallFunctionOperation(cf, [0])
+    assert op.qubits == (cirq.q(0),)
+
+    c = cirq.Circuit(cirq.Moment(cirq.X(cirq.q(0)), cirq.Z(cirq.VariableLineQid(x))))
+    cf = cirq.CircuitFunction('f', c, function_params=[x])
+    op = cirq.CallFunctionOperation(cf, [0])
+    assert op.qubits == (cirq.q(0),)
+    with pytest.raises(ValueError, match='Overlapping operations'):
+        cirq.decompose(op)
+
+    c = cirq.Circuit(cirq.CNOT(cirq.q(0), cirq.VariableLineQid(x)))
+    cf = cirq.CircuitFunction('f', c, function_params=[x])
+    op = cirq.CallFunctionOperation(cf, [0])
+    assert op.qubits == (cirq.q(0),)
+    with pytest.raises(ValueError, match='Duplicate qids for <cirq.CNOT'):
+        cirq.decompose(op)
 
 
 def test_with_qubits() -> None:
@@ -182,6 +212,14 @@ def test_str() -> None:
     cf = cirq.CircuitFunction("test_function", c, function_params=[theta, x])
     op = cirq.CallFunctionOperation(cf, [0.5, 3])
     assert str(op) == "test_function(0.5, 3)"
+
+    cf = cirq.CircuitFunction("test_function", c, function_params=[theta])
+    op = cirq.CallFunctionOperation(cf, [0.5])
+    swapped_op = cirq.resolve_parameters_once(op, {x: y, y: x})
+    assert str(swapped_op) == "test_function(0.5) [x=y, y=x]"
+
+    chained_op = cirq.resolve_parameters_once(op, {x: y, y: 2})
+    assert str(chained_op) == "test_function(0.5) [x=y, y=2]"
 
 
 def test_circuit_diagram() -> None:
