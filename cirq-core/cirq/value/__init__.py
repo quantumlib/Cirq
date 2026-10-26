@@ -77,7 +77,7 @@ from cirq.value.random_state import (
     parse_random_state as parse_random_state,
     RANDOM_STATE_OR_SEED_LIKE as RANDOM_STATE_OR_SEED_LIKE,
     parse_random_generator as parse_random_generator,
-    PRNG_OR_SEED_LIKE as PRNG_OR_SEED_LIKE,
+    reseed_default_prng as reseed_default_prng,
 )
 
 from cirq.value.timestamp import Timestamp as Timestamp
