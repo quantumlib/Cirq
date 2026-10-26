@@ -115,6 +115,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'CCYPowGate': cirq.CCYPowGate,
         'CCZPowGate': cirq.CCZPowGate,
         'Circuit': cirq.Circuit,
+        'CircuitFunction': cirq.CircuitFunction,
         'CircuitOperation': cirq.CircuitOperation,
         'ClassicallyControlledOperation': cirq.ClassicallyControlledOperation,
         'ClassicalDataDictionaryStore': cirq.ClassicalDataDictionaryStore,
@@ -235,6 +236,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'TrialResult': cirq.ResultDict,  # keep support for Cirq < 0.11.
         'TwoQubitDiagonalGate': cirq.TwoQubitDiagonalGate,
         'TwoQubitGateTabulation': cirq.TwoQubitGateTabulation,
+        'TwoQubitNumericalCompiler': cirq.TwoQubitNumericalCompiler,
         '_UnconstrainedDevice': cirq.devices.unconstrained_device._UnconstrainedDevice,
         '_Unit': cirq.study.sweeps._Unit,
         'VariableLineQid': cirq.ops.variable_qid.VariableLineQid,
@@ -242,6 +244,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'VarianceStoppingCriteria': cirq.work.VarianceStoppingCriteria,
         'VirtualTag': cirq.VirtualTag,
         'WaitGate': cirq.WaitGate,
+        'While': cirq.While,
         # The formatter keeps putting this back
         'XEBPhasedFSimCharacterizationOptions': cirq.experiments.XEBPhasedFSimCharacterizationOptions,  # noqa: E501
         '_XEigenState': cirq.value.product_state._XEigenState,

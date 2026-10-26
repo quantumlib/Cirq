@@ -19,3 +19,9 @@ from cirq.transformers.heuristic_decompositions.two_qubit_gate_tabulation import
     TwoQubitGateTabulationResult as TwoQubitGateTabulationResult,
     two_qubit_gate_product_tabulation as two_qubit_gate_product_tabulation,
 )
+
+from cirq.transformers.heuristic_decompositions.two_qubit_numerical_optimization import (
+    TwoQubitNumericalCompilationResult as TwoQubitNumericalCompilationResult,
+    TwoQubitNumericalCompiler as TwoQubitNumericalCompiler,
+    two_qubit_gate_numerical_compilation as two_qubit_gate_numerical_compilation,
+)

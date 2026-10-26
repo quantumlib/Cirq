@@ -9,7 +9,7 @@ coverage~=7.4
 
 # for parallel testing notebooks
 pytest-xdist
-filelock~=3.1
+filelock~=4.0
 
 # codeowners test dependency
 codeowners; platform_system != "Windows"

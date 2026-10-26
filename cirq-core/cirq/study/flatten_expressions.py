@@ -206,7 +206,7 @@ class _ParamFlattener(resolver.ParamResolver):
         *,  # Force keyword args
         get_param_name: Callable[[sympy.Expr], str] | None = None,
     ):
-        """Initializes a new _ParamFlattener.
+        """Initializes a new `_ParamFlattener`.
 
         Args:
             param_dict: A default initial mapping from some parameter names,
