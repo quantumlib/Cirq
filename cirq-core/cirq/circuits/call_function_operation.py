@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence, Set
+from collections.abc import Mapping, Sequence, Set
 from typing import Any, TYPE_CHECKING
 
 import sympy
@@ -43,6 +43,8 @@ class CallFunctionOperation(ops.Operation):
         circuit_function: cirq.CircuitFunction,
         function_args: Sequence[cirq.TParamVal] = (),
         param_resolver: study.ParamResolverOrSimilarType | None = None,
+        measurement_key_map: Mapping[str, str] | None = None,
+        parent_path: tuple[str, ...] = (),
     ) -> None:
         """Initializes a CallFunctionOperation.
 
@@ -51,11 +53,15 @@ class CallFunctionOperation(ops.Operation):
             function_args: Positional argument values to pass to the CircuitFunction.
             param_resolver: Optional resolver for free parameters in the CircuitFunction.
                 The resolver is applied AFTER the CircuitFunction parameters are substituted.
+            measurement_key_map: Remappings for measurement keys in the called circuit.
+            parent_path: Measurement keys produced by the called circuit are
+                prefixed with this path.
 
         Raises:
             TypeError: If `circuit_function` is not a `CircuitFunction`.
             ValueError: If the number of `function_args` does not match the number of
-                `function_params` in `circuit_function`.
+                `function_params` in `circuit_function`, or if `measurement_key_map` maps
+                to an invalid key.
         """
         if not isinstance(circuit_function, CircuitFunction):
             raise TypeError(
@@ -99,6 +105,15 @@ class CallFunctionOperation(ops.Operation):
             sorted({resolve_qubit(q) for q in self._circuit_function.all_qubits()})
         )
 
+        self._measurement_key_map = dict(measurement_key_map or {})
+        for mapped_key in self._measurement_key_map.values():
+            if value.MEASUREMENT_KEY_SEPARATOR in mapped_key:
+                raise ValueError(
+                    f'Mapping to invalid key: {mapped_key}. "{value.MEASUREMENT_KEY_SEPARATOR}" '
+                    'is not allowed for measurement keys in a CallFunctionOperation'
+                )
+        self._parent_path = tuple(parent_path)
+
     @property
     def circuit_function(self) -> cirq.CircuitFunction:
         return self._circuit_function
@@ -112,8 +127,28 @@ class CallFunctionOperation(ops.Operation):
         return self._param_resolver
 
     @property
+    def measurement_key_map(self) -> Mapping[str, str]:
+        return self._measurement_key_map
+
+    @property
+    def parent_path(self) -> tuple[str, ...]:
+        return self._parent_path
+
+    @property
     def qubits(self) -> tuple[cirq.Qid, ...]:
         return self._qubits
+
+    def replace(self, **changes: Any) -> CallFunctionOperation:
+        """Returns a copy of this operation with the specified changes."""
+        kwargs: dict[str, Any] = {
+            'circuit_function': self._circuit_function,
+            'function_args': self._function_args,
+            'param_resolver': self._param_resolver,
+            'measurement_key_map': self._measurement_key_map,
+            'parent_path': self._parent_path,
+            **changes,
+        }
+        return CallFunctionOperation(**kwargs)
 
     def with_qubits(self, *new_qubits: cirq.Qid) -> CallFunctionOperation:
         if tuple(new_qubits) == self._qubits:
@@ -121,10 +156,18 @@ class CallFunctionOperation(ops.Operation):
         raise ValueError("CallFunctionOperation does not support `with_qubits`.")
 
     def _decompose_(self) -> cirq.OP_TREE:
-        """Evaluates the CircuitFunction with function_args and resolves params."""
-        circuit = self._circuit_function(*self._function_args)
+        """Evaluates the CircuitFunction with function_args and applies all maps.
+
+        The order is: function args, then `param_resolver`, then `measurement_key_map`, then
+        key rescoping under `parent_path`.
+        """
+        circuit: cirq.AbstractCircuit = self._circuit_function(*self._function_args)
         if self._param_resolver:
             circuit = protocols.resolve_parameters(circuit, self._param_resolver, recursive=False)
+        if self._measurement_key_map:
+            circuit = protocols.with_measurement_key_mapping(circuit, self._measurement_key_map)
+        if self._parent_path:
+            circuit = protocols.with_rescoped_keys(circuit, self._parent_path)
         return circuit
 
     def _has_unitary_(self) -> bool:
@@ -136,19 +179,68 @@ class CallFunctionOperation(ops.Operation):
     def _is_measurement_(self) -> bool:
         return protocols.is_measurement(self._circuit_function)
 
+    def _mapped_keys(self, keys):
+        """Returns a set of keys after applying the measurement key mapping to them"""
+        if self._measurement_key_map:
+            keys = frozenset(
+                protocols.with_measurement_key_mapping(k, self._measurement_key_map) for k in keys
+            )
+        return keys
+
     def _measurement_key_objs_(self) -> frozenset[cirq.MeasurementKey]:
-        return protocols.measurement_key_objs(self._circuit_function)
+        keys = self._mapped_keys(protocols.measurement_key_objs(self._circuit_function))
+        if self._parent_path:
+            keys = frozenset(k.with_key_path_prefix(*self._parent_path) for k in keys)
+        return keys
 
     def _measurement_key_names_(self) -> frozenset[str]:
-        return protocols.measurement_key_names(self._circuit_function)
+        return frozenset(str(k) for k in self._measurement_key_objs_())
 
     def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
-        return protocols.control_keys(self._circuit_function)
+        return self._mapped_keys(protocols.control_keys(self._circuit_function))
 
-    def _value_equality_values_(
-        self,
-    ) -> tuple[cirq.CircuitFunction, tuple[cirq.TParamVal, ...], cirq.ParamResolver]:
-        return (self._circuit_function, self._function_args, self._param_resolver)
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> CallFunctionOperation:
+        """Returns a copy of this operation with `key_map` composed onto its key mapping.
+
+        Raises:
+            ValueError: If the composed mapping would merge two distinct measurement keys.
+        """
+        new_map = {}
+        for k_obj in protocols.measurement_keys_touched(self._circuit_function):
+            k = k_obj.name
+            k_new = self._measurement_key_map.get(k, k)
+            k_new = key_map.get(k_new, k_new)
+            if k_new != k:
+                new_map[k] = k_new
+        new_op = self.replace(measurement_key_map=new_map)
+        if len(protocols.measurement_keys_touched(new_op)) != len(
+            protocols.measurement_keys_touched(self)
+        ):
+            raise ValueError(
+                f'Collision in measurement key map composition. Original map:\n'
+                f'{self._measurement_key_map}\nApplied changes: {key_map}'
+            )
+        return new_op
+
+    def _with_key_path_(self, path: tuple[str, ...]) -> CallFunctionOperation:
+        return self.replace(parent_path=path)
+
+    def _with_key_path_prefix_(self, prefix: tuple[str, ...]) -> CallFunctionOperation:
+        return self.replace(parent_path=prefix + self._parent_path)
+
+    def _with_rescoped_keys_(
+        self, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey]
+    ) -> CallFunctionOperation:
+        return self.replace(parent_path=path + self._parent_path)
+
+    def _value_equality_values_(self) -> Any:
+        return (
+            self._circuit_function,
+            self._function_args,
+            self._param_resolver,
+            frozenset(self._measurement_key_map.items()),
+            self._parent_path,
+        )
 
     def _is_parameterized_(self) -> bool:
         """Returns True if the called circuit still contains unresolved parameters."""
@@ -180,15 +272,15 @@ class CallFunctionOperation(ops.Operation):
             v = protocols.resolve_parameters(v, resolver, recursive)
             if v != k:
                 new_params[k] = v
-        return CallFunctionOperation(
-            self._circuit_function, self._function_args, param_resolver=new_params
-        )
+        return self.replace(param_resolver=new_params)
 
     def _json_dict_(self) -> dict[str, Any]:
         return {
             'circuit_function': self._circuit_function,
             'function_args': list(self._function_args),
             'param_resolver': self._param_resolver,
+            'measurement_key_map': self._measurement_key_map,
+            'parent_path': self._parent_path,
         }
 
     @classmethod
@@ -197,29 +289,47 @@ class CallFunctionOperation(ops.Operation):
         circuit_function: cirq.CircuitFunction,
         function_args: Sequence[cirq.TParamVal],
         param_resolver: cirq.ParamResolver,
+        measurement_key_map: Mapping[str, str] | None = None,
+        parent_path: Sequence[str] = (),
         **kwargs: Any,
     ) -> CallFunctionOperation:
-        return cls(circuit_function, function_args, param_resolver=param_resolver)
+        return cls(
+            circuit_function,
+            function_args,
+            param_resolver=param_resolver,
+            measurement_key_map=measurement_key_map,
+            parent_path=tuple(parent_path),
+        )
 
     def __repr__(self) -> str:
         args = ", ".join(proper_repr(a) for a in self._function_args)
-        return (
+        result = (
             f"cirq.CallFunctionOperation("
             f"circuit_function={proper_repr(self._circuit_function)}, "
             f"function_args=[{args}], "
-            f"param_resolver={proper_repr(self._param_resolver.param_dict)})"
+            f"param_resolver={proper_repr(self._param_resolver.param_dict)}"
         )
+        if self._measurement_key_map:
+            result += f", measurement_key_map={proper_repr(self._measurement_key_map)}"
+        if self._parent_path:
+            result += f", parent_path={proper_repr(self._parent_path)}"
+        return result + ")"
 
     def __str__(self) -> str:
         args = ", ".join(str(p) for p in self._function_args)
-        base = f"{self._circuit_function.name}({args})"
-        if not self._param_resolver:
-            return base
-        resolver_items = ", ".join(
-            f"{k}={self._param_resolver.param_dict[k]}"
-            for k in sorted(self._param_resolver.param_dict.keys(), key=lambda ki: str(ki))
-        )
-        return f"{base} [{resolver_items}]"
+        result = f"{self._circuit_function.name}({args})"
+        if self._param_resolver:
+            resolver_items = ", ".join(
+                f"{k}={self._param_resolver.param_dict[k]}"
+                for k in sorted(self._param_resolver.param_dict.keys(), key=lambda ki: str(ki))
+            )
+            result += f" [{resolver_items}]"
+        if self._measurement_key_map:
+            key_items = ", ".join(f"{k}: {v}" for k, v in self._measurement_key_map.items())
+            result += f" key_map={{{key_items}}}"
+        if self._parent_path:
+            result += f" parent_path={self._parent_path}"
+        return result
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         formatted_args = ", ".join(str(p) for p in self._function_args)

@@ -25,4 +25,19 @@
         function_args=(2,),
         param_resolver={},
     ),
+    cirq.CallFunctionOperation(
+        circuit_function=cirq.CircuitFunction(
+            name='measure_func',
+            circuit=cirq.FrozenCircuit([
+                cirq.Moment(
+                    cirq.measure(cirq.LineQubit(0), key=cirq.MeasurementKey(name='m')),
+                ),
+            ]),
+            function_params=[],
+        ),
+        function_args=(),
+        param_resolver={},
+        measurement_key_map={'m': 'n'},
+        parent_path=('p', 'q'),
+    ),
 ]

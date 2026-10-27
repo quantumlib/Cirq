@@ -221,6 +221,17 @@ def test_str() -> None:
     chained_op = cirq.resolve_parameters_once(op, {x: y, y: 2})
     assert str(chained_op) == "test_function(0.5) [x=y, y=2]"
 
+    c_measured = cirq.Circuit(cirq.X(qx) ** theta, cirq.X(qy), cirq.measure(qx, key='m0'))
+    cf_measured = cirq.CircuitFunction("test_function", c_measured, function_params=[theta])
+    all_params_op = cirq.CallFunctionOperation(
+        circuit_function=cf_measured,
+        function_args=[0.5],
+        param_resolver={'x': 2},
+        measurement_key_map={'m0': 'a'},
+        parent_path=('p',),
+    )
+    assert str(all_params_op) == "test_function(0.5) [x=2] key_map={m0: a} parent_path=('p',)"
+
 
 def test_circuit_diagram() -> None:
     x = sympy.Symbol('x')
@@ -280,6 +291,71 @@ def test_measurement() -> None:
     assert cirq.measurement_key_names(op) == {'m0', 'm1'}
     assert cirq.control_keys(op) == {'m2'}
 
+    op = cirq.CallFunctionOperation(
+        cf, [0.5], measurement_key_map={'m0': 'a', 'm2': 'c'}, parent_path=('p',)
+    )
+    assert cirq.measurement_key_objs(op) == {
+        cirq.MeasurementKey('a', path=('p',)),
+        cirq.MeasurementKey('m1', path=('p',)),
+    }
+    assert cirq.measurement_key_names(op) == {'p:a', 'p:m1'}
+    assert cirq.control_keys(op) == {cirq.MeasurementKey('c')}
+
+    with pytest.raises(ValueError, match='Mapping to invalid key'):
+        _ = cirq.CallFunctionOperation(cf, [0.5], measurement_key_map={'m0': 'a:b'})
+
+
+def test_with_measurement_key_mapping() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.measure(q0, key='a'), cirq.measure(q1, key='b'))
+    cf = cirq.CircuitFunction("test_function", c)
+    op = cirq.CallFunctionOperation(cf, [])
+
+    mapped_op = cirq.with_measurement_key_mapping(op, {'a': 'x'})
+    assert mapped_op.measurement_key_map == {'a': 'x'}
+    assert cirq.measurement_key_names(mapped_op) == {'x', 'b'}
+    assert cirq.decompose(mapped_op) == [cirq.measure(q0, key='x'), cirq.measure(q1, key='b')]
+
+    remapped_op = cirq.with_measurement_key_mapping(mapped_op, {'x': 'y', 'zz': 'w'})
+    assert remapped_op.measurement_key_map == {'a': 'y'}
+    assert cirq.measurement_key_names(remapped_op) == {'y', 'b'}
+
+    with pytest.raises(ValueError, match='Collision in measurement key map composition'):
+        _ = cirq.with_measurement_key_mapping(op, {'a': 'b'})
+
+
+def test_with_key_path() -> None:
+    q0 = cirq.q(0)
+    c = cirq.Circuit(cirq.measure(q0, key='m'))
+    cf = cirq.CircuitFunction("test_function", c)
+    op = cirq.CallFunctionOperation(cf, [])
+
+    prefixed_op = cirq.with_key_path_prefix(op, ('p',))
+    assert prefixed_op.parent_path == ('p',)
+    assert cirq.measurement_key_names(prefixed_op) == {'p:m'}
+    assert cirq.decompose(prefixed_op) == [cirq.measure(q0, key=cirq.MeasurementKey('m', ('p',)))]
+
+    assert cirq.with_key_path_prefix(prefixed_op, ('outer',)).parent_path == ('outer', 'p')
+    assert cirq.with_key_path(prefixed_op, ('x',)).parent_path == ('x',)
+
+
+def test_circuit_operation_matches_simulator() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(
+        cirq.X(q0),
+        cirq.measure(q0, key='m'),
+        cirq.X(q1).with_classical_controls('m'),
+        cirq.measure(q1, key='n'),
+    )
+    cf = cirq.CircuitFunction("test_function", c)
+    op = cirq.CallFunctionOperation(cf, [])
+    repeated_circuit = cirq.Circuit(
+        cirq.CircuitOperation(cirq.FrozenCircuit(op), repetitions=2, use_repetition_ids=True)
+    )
+    assert cirq.measurement_key_names(repeated_circuit) == {'0:m', '0:n', '1:m', '1:n'}
+    result = cirq.Simulator().run(repeated_circuit, repetitions=3)
+    assert set(result.measurements) == cirq.measurement_key_names(repeated_circuit)
+
 
 def test_protocols() -> None:
     theta0, theta1, x = sympy.symbols('theta0 theta1 x')
@@ -297,4 +373,11 @@ def test_protocols() -> None:
 
     cf = cirq.CircuitFunction("test_function", c, function_params=[])
     op = cirq.CallFunctionOperation(cf, [], param_resolver={theta0: 0.5, 'theta1': 1})
+    cirq.testing.assert_implements_consistent_protocols(op)
+
+    c = cirq.Circuit(cirq.X(cirq.q(0)) ** theta0, cirq.measure(cirq.q(0), key='m'))
+    cf = cirq.CircuitFunction("test_function", c, function_params=[theta0])
+    op = cirq.CallFunctionOperation(
+        cf, [0.5], measurement_key_map={'m': 'n'}, parent_path=('p', 'q')
+    )
     cirq.testing.assert_implements_consistent_protocols(op)
