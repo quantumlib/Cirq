@@ -156,7 +156,7 @@ def assert_json_roundtrip_works(obj, text_should_be=None, resolvers=None) -> Non
     Args:
         obj: The object to test round-tripping for.
         text_should_be: An optional argument to assert the JSON serialized
-            output produced with `indent=2`.
+            output which must be pretty-formatted with `indent=2`.
         resolvers: Any resolvers if testing those other than the default.
 
     Raises:
