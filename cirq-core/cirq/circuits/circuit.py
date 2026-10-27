@@ -1208,6 +1208,8 @@ class AbstractCircuit(abc.ABC):
         include_tags: bool | Iterable[type] = True,
         precision: int | None = 3,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        moment_range: tuple[int, int] | None = None,
+        qubit_subset: frozenset[cirq.Qid] | None = None,
     ) -> str:
         """Returns text containing a diagram describing the circuit.
 
@@ -1221,6 +1223,7 @@ class AbstractCircuit(abc.ABC):
                 those tags.
             precision: Number of digits to display in text diagram
             qubit_order: Determines how qubits are ordered in the diagram.
+            moment_range: Half-open range restricting the subset of moments to be drawn, defaults to every moment. All qubits and control wires are still drawn.
 
         Returns:
             The text diagram.
@@ -1231,6 +1234,8 @@ class AbstractCircuit(abc.ABC):
             precision=precision,
             qubit_order=qubit_order,
             transpose=transpose,
+            moment_range=moment_range,
+            qubit_subset=qubit_subset,
         )
 
         return diagram.render(
@@ -1252,6 +1257,8 @@ class AbstractCircuit(abc.ABC):
         get_circuit_diagram_info: (
             Callable[[cirq.Operation, cirq.CircuitDiagramInfoArgs], cirq.CircuitDiagramInfo] | None
         ) = None,
+        moment_range: tuple[int, int] | None = None,
+        qubit_subset: frozenset[cirq.Qid] | None = None,
     ) -> cirq.TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
 
@@ -1269,11 +1276,12 @@ class AbstractCircuit(abc.ABC):
             qubit_order: Determines how qubits are ordered in the diagram.
             get_circuit_diagram_info: Gets circuit diagram info. Defaults to
                 protocol with fallback.
+            moment_range: Half-open range restricting the subset of moments to be drawn, defaults to every moment. All qubits and control wires are still drawn.
 
         Returns:
             The TextDiagramDrawer instance.
         """
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(qubit_subset if qubit_subset is not None else self.all_qubits())
         cbits = tuple(
             sorted(
                 {key for op in self.all_operations() for key in protocols.control_keys(op)}, key=str
@@ -1305,7 +1313,12 @@ class AbstractCircuit(abc.ABC):
             first_annotation_row += 1
 
         moment_groups: list[tuple[int, int]] = []
-        for moment in self.moments:
+
+        moments_to_draw: Sequence[Moment] = self.moments if moment_range is None else self.moments[moment_range[0] : moment_range[1]]
+
+        for moment in moments_to_draw:
+            if any(op.qubits and qubit_subset and any(q not in qubit_subset for q in op.qubits) for op in moment.operations):
+                continue
             _draw_moment_in_diagram(
                 moment=moment,
                 use_unicode_characters=use_unicode_characters,
