@@ -508,6 +508,7 @@ def to_json(
             indicate that the method should return the JSON text as its result.
             Defaults to `None`.
         indent: Pretty-print the resulting file with this indent level.
+            When `None` produce a compact JSON without a newline character.
             Passed to json.dump.
         separators: Passed to json.dump; key-value pairs delimiters defined as
             `(item_separator, key_separator)` tuple. Note that any non-standard
@@ -595,7 +596,7 @@ def to_json_gzip(
             indicate that the method should return the JSON text as its result.
             Defaults to `None`.
         indent: Pretty-print the resulting file with this indent level.
-            Passed to json.dump.
+            Produce a compact JSON when `None`.  Passed to json.dump.
         cls: Passed to json.dump; the default value of CirqEncoder
             enables the serialization of Cirq objects which implement
             the SupportsJSON protocol. To support serialization of 3rd
