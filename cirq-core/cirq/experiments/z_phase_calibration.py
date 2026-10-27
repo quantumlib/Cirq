@@ -55,9 +55,11 @@ def z_phase_calibration_workflow(
 
     For a given excitation-preserving two-qubit gate we assume an error model that can be described
     using Z-rotations:
+
                 0: ───Rz(a)───two_qubit_gate───Rz(c)───
                                 │
                 1: ───Rz(b)───two_qubit_gate───Rz(d)───
+
     for some angles a, b, c, and d.
 
     Since the two-qubit gate is a excitation-preserving-gate, it can be represented by an FSimGate

@@ -27,7 +27,7 @@ class BlochSphere(widget.Widget):
         Also initializes it's parent class Widget with the bundle file provided.
 
         Args:
-            sphere_radius: the radius of the bloch sphere in the three.js diagram.
+            sphere_radius: the radius of the Bloch sphere in the three.js diagram.
                 The default value is 5.
             state_vector: a state vector to pass in to be represented.
 

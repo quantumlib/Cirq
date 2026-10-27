@@ -614,9 +614,9 @@ class Moment:
             extra_qubits: Extra qubits/qudits to include in the diagram, even
                 if they don't have any operations applied in the moment.
             use_unicode_characters: Whether or not the output should use fancy
-                unicode characters or stick to plain ASCII. Unicode characters
+                Unicode characters or stick to plain ASCII. Unicode characters
                 look nicer, but some environments don't draw them with the same
-                width as ascii characters (which ruins the diagrams).
+                width as ASCII characters (which ruins the diagrams).
             precision: How precise numbers, such as angles, should be. Use None
                 for infinite precision, or an integer for a certain number of
                 digits of precision.

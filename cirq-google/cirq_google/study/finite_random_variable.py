@@ -121,17 +121,21 @@ class FiniteRandomVariable(SingleSweep):
         cls,
         *,
         key: cirq.TParamKey,
-        distribution: dict[str, float],
+        distribution: list[tuple[float, float]],
         seed: int,
         length: int,
         metadata: Any | None = None,
         **kwargs,
     ) -> 'FiniteRandomVariable':
-        # Convert json keys to floats
-        fixed_distribution = {float(key): distribution[key] for key in distribution}
         return cls(
-            key=key, distribution=fixed_distribution, seed=seed, length=length, metadata=metadata
+            key=key, distribution=dict(distribution), seed=seed, length=length, metadata=metadata
         )
 
     def _json_dict_(self) -> dict[str, Any]:
-        return cirq.obj_to_dict_helper(self, ["key", "distribution", "seed", "length", "metadata"])
+        return {
+            "key": self.key,
+            "distribution": list(self.distribution.items()),
+            "seed": self.seed,
+            "length": self.length,
+            "metadata": self.metadata,
+        }

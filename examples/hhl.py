@@ -58,13 +58,13 @@ Section 8.4: Searching without knowing the success probability
 === CIRCUIT ===
 Example of circuit with 2 register qubits.
 
-(0, 0): ─────────────────────────Ry(θ₄)─Ry(θ₁)─Ry(θ₂)─Ry(θ₃)──────────────M──
-                     ┌──────┐    │      │      │      │ ┌───┐
-(1, 0): ─H─@─────────│      │──X─@──────@────X─@──────@─│   │─────────@─H────
-           │         │QFT^-1│    │      │      │      │ │QFT│         │
-(2, 0): ─H─┼─────@───│      │──X─@────X─@────X─@────X─@─│   │─@───────┼─H────
-           │     │   └──────┘                           └───┘ │       │
-(3, 0): ───e^iAt─e^2iAt───────────────────────────────────────e^-2iAt─e^-iAt─
+    (0, 0): ─────────────────────────Ry(θ₄)─Ry(θ₁)─Ry(θ₂)─Ry(θ₃)──────────────M──
+                         ┌──────┐    │      │      │      │ ┌───┐
+    (1, 0): ─H─@─────────│      │──X─@──────@────X─@──────@─│   │─────────@─H────
+               │         │QFT^-1│    │      │      │      │ │QFT│         │
+    (2, 0): ─H─┼─────@───│      │──X─@────X─@────X─@────X─@─│   │─@───────┼─H────
+               │     │   └──────┘                           └───┘ │       │
+    (3, 0): ───e^iAt─e^2iAt───────────────────────────────────────e^-2iAt─e^-iAt─
 
 Note: QFT in the above diagram omits swaps, which are included implicitly by
 reversing qubit order for phase kickbacks.
@@ -385,7 +385,7 @@ class HHLAlgorithm:
 
         Returns:
             A pair of lists, containing for each X, Y and Z measurement goal:
-                - a numpy array with the results for successful simulations.
+                - a NumPy array with the results for successful simulations.
                 - the total number of simulation runs.
         """
         simulator = cirq.Simulator()

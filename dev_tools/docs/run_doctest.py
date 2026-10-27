@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env Python
 # Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,13 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Runs python doctest on all python source files in the cirq directory.
+"""Runs Python doctest on all Python source files in the cirq directory.
 
 See also:
     https://docs.python.org/3/library/doctest.html
 
 Usage:
-    python run_doctest.py [-q]
+    Python run_doctest.py [-q]
 
 The -q argument suppresses all output except the final result line and any error
 messages.
@@ -75,7 +75,7 @@ def run_tests(
         file_paths: The list of files to test.
         include_modules: If True, the snippets can use `cirq` without explicitly
             importing it.  E.g. `>>> cirq.LineQubit(0)`
-        include_local: If True, the file under test is imported as a python
+        include_local: If True, the file under test is imported as a Python
             module (only if the file extension is .py) and all globals defined
             in the file may be used by the snippets.
         quiet: Determines if progress output is shown.
@@ -113,7 +113,7 @@ def load_tests(
         file_paths: The list of files to test.
         include_modules: If True, the snippets can use `cirq` without explicitly
             importing it.  E.g. `>>> cirq.LineQubit(0)`
-        include_local: If True, the file under test is imported as a python
+        include_local: If True, the file under test is imported as a Python
             module (only if the file extension is .py) and all globals defined
             in the file may be used by the snippets.
         quiet: If True, suppress console output.
@@ -221,7 +221,7 @@ def resolve_module_name(file_path: str) -> str:
 
 
 def import_file(file_path: str) -> ModuleType:
-    """Finds and runs a python file as if were imported with an `import`
+    """Finds and runs a Python file as if were imported with an `import`
     statement.
 
     Args:

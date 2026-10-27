@@ -226,7 +226,7 @@ class Measurement(_message.Message):
 
     @_builtins.property
     def invert_mask(self) -> _containers.RepeatedScalarFieldContainer[_builtins.bool]:
-        """If not empty, a list of booleans describing whether the results should
+        """If not empty, a list of Booleans describing whether the results should
         be flipped for each of the qubits above. The length of this vector must
         match the length of the qubits, and the interpretation of whether to
         invert or not matches component-wise this list and the qubits' list.

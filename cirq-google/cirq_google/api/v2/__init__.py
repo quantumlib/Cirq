@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Data format v2 for google api."""
+"""Data format v2 for Google api."""
 
 from cirq_google.api.v2 import (
     device_pb2,  # noqa: F401

@@ -87,7 +87,10 @@ def test_construct_from_repeated_measurements() -> None:
             'b': np.array([[[0, 0, 0]], [[1, 1, 1]]]),
         },
     )
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Cannot extract 2D measurements"):
+        _ = r.measurements
+    # Check that a second access raises ValueError again.
+    with pytest.raises(ValueError, match="Cannot extract 2D measurements"):
         _ = r.measurements
     assert np.all(r.records['a'] == np.array([[[0, 0], [0, 1]], [[1, 0], [1, 1]]]))
     assert np.all(r.records['b'] == np.array([[[0, 0, 0]], [[1, 1, 1]]]))
@@ -443,7 +446,7 @@ def test_json_bit_packing_force() -> None:
 
 
 def test_json_unpack_compat() -> None:
-    """Test reading old json with serialized measurements array."""
+    """Test reading old JSON with serialized measurements array."""
     old_json = """
         {
             "cirq_type": "ResultDict",

@@ -24,7 +24,7 @@ from cirq_google.api.v1 import params_pb2
 
 
 def sweep_to_proto(sweep: cirq.Sweep, repetitions: int = 1) -> params_pb2.ParameterSweep:
-    """Converts sweep into an equivalent protobuf representation."""
+    """Converts sweep into an equivalent Protobuf representation."""
     product_sweep = None
     if sweep != cirq.UnitSweep:
         sweep = _to_zip_product(sweep)

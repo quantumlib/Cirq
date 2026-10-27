@@ -22,9 +22,7 @@ import cirq_google as cg
 
 def test_consistent_protocols():
     cirq.testing.assert_implements_consistent_protocols(
-        cg.WILLOW,
-        setup_code='import cirq\nimport numpy as np\nimport sympy\nimport cirq_google',
-        qubit_count=2,
+        cg.WILLOW, setup_code='import cirq\nimport sympy\nimport cirq_google', qubit_count=2
     )
 
 

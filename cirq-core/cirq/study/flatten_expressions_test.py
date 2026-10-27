@@ -22,7 +22,7 @@ from cirq.study import flatten_expressions
 # None of the following tests use expressions of the form
 # <constant term> - <other term> because the string of expressions containing
 # exactly two terms, one constant term and one non-constant term with a negative
-# factor, is not consistent between sympy versions <1.4 and >=1.4.
+# factor, is not consistent between SymPy versions <1.4 and >=1.4.
 
 
 def test_expr_map_names() -> None:

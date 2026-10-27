@@ -67,7 +67,7 @@ def test_value_of_substituted_types(val, resolved) -> None:
 def _assert_consistent_resolution(v, resolved):
     """Asserts that parameter resolution works consistently.
 
-    The ParamResolver.value_of method can resolve any Sympy expression -
+    The ParamResolver.value_of method can resolve any SymPy expression -
     subclasses of sympy.Basic. In the generic case, it calls `sympy.Basic.subs`
     to substitute symbols with values specified in a dict, which is known to be
     very slow. Instead value_of defines a pass-through shortcut for known

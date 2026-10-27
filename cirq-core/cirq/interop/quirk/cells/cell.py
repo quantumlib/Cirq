@@ -167,7 +167,7 @@ class Cell(metaclass=abc.ABCMeta):
 
 @value.value_equality
 class ExplicitOperationsCell(Cell):
-    """A quirk cell with known body operations and basis change operations."""
+    """A Quirk cell with known body operations and basis change operations."""
 
     def __init__(
         self, operations: Iterable[ops.Operation], basis_change: Iterable[ops.Operation] = ()

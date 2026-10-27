@@ -1132,7 +1132,7 @@ def test_density_matrix_trial_result_str() -> None:
         params=cirq.ParamResolver({}), measurements={}, final_simulator_state=final_simulator_state
     )
 
-    # numpy varies whitespace in its representation for different versions
+    # NumPy varies whitespace in its representation for different versions
     # Eliminate whitespace to harden tests against this variation
     result_no_whitespace = str(result).replace('\n', '').replace(' ', '')
     assert result_no_whitespace == (
@@ -1158,7 +1158,7 @@ def test_density_matrix_trial_result_repr_pretty() -> None:
 
     fake_printer = cirq.testing.FakePrinter()
     result._repr_pretty_(fake_printer, cycle=False)
-    # numpy varies whitespace in its representation for different versions
+    # NumPy varies whitespace in its representation for different versions
     # Eliminate whitespace to harden tests against this variation
     result_no_whitespace = fake_printer.text_pretty.replace('\n', '').replace(' ', '')
     assert result_no_whitespace == (

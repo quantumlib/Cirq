@@ -90,7 +90,7 @@ def generate_2d_ghz_circuit(
                      added to the circuit in a random order.
                      If False, they are
                      added by distance from the center.
-        rng_or_seed: An optional seed or numpy random number
+        rng_or_seed: An optional seed or NumPy random number
                      generator. Used only when randomized is True
         add_dd_and_align_right: If True, adds dynamical
                                 decoupling and aligns right.

@@ -374,7 +374,7 @@ class Calibration(abc.Mapping):
     the metric values for those qubits. If a metric acts globally and is attached to no specified
     number of qubits, the map will be from the empty tuple to the metrics values.
 
-    Calibrations act just like a python dictionary. For example you can get
+    Calibrations act just like a Python dictionary. For example you can get
     a list of all of the metric names using
 
         `calibration.keys()`
@@ -450,7 +450,7 @@ class Calibration(abc.Mapping):
         return f'cirq_google.Calibration(metrics={dict(self._metric_dict)!r})'
 
     def to_proto(self) -> v2.metrics_pb2.MetricsSnapshot:
-        """Reconstruct the protobuf message represented by this class."""
+        """Reconstruct the Protobuf message represented by this class."""
         proto = v2.metrics_pb2.MetricsSnapshot()
         for key in self._metric_dict:
             for targets, value_list in self._metric_dict[key].items():

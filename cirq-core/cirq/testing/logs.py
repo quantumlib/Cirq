@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Helper for testing python logging statements."""
+"""Helper for testing Python logging statements."""
 
 from __future__ import annotations
 
@@ -48,11 +48,11 @@ def assert_logs(
             any of the captures log messages.
         count: The expected number of messages in logs. Defaults to 1. If None is passed in counts
             are not checked.
-        min_level: The minimum level at which to capture the logs. See the python logging
+        min_level: The minimum level at which to capture the logs. See the Python logging
             module for valid levels. By default this captures at the
             `logging.WARNING` level and above, so this does not capture `logging.INFO`
             or `logging.DEBUG` logs by default.
-        max_level: The maximum level at which to capture the logs. See the python logging
+        max_level: The maximum level at which to capture the logs. See the Python logging
             module for valid levels. By default this captures to the `logging.CRITICAL` level
             thus, all the errors and critical messages will be captured as well.
         capture_warnings: Whether warnings from the python's `warnings` module

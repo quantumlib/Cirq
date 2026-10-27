@@ -737,7 +737,7 @@ def test_clifford_gate_from_tableau() -> None:
 
 
 def test_multi_clifford_decompose_by_unitary() -> None:
-    # Construct a random clifford gate:
+    # Construct a random Clifford gate:
     n, num_ops = 5, 20  # because we relied on unitary cannot test large-scale qubits
     gate_candidate = [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S, cirq.CNOT, cirq.CZ]
     for _ in range(10):
@@ -997,7 +997,6 @@ def test_cxswap_czswap() -> None:
 
     # cirq unitary for CNOT then SWAP (big endian)
     cxswap_expected = np.asarray([[1, 0, 0, 0], [0, 0, 0, 1], [0, 1, 0, 0], [0, 0, 1, 0]])
-    print(cirq.unitary(cirq.CXSWAP))
     assert np.allclose(cirq.unitary(cirq.CXSWAP), cxswap_expected)
 
     czswap_expected = np.asarray([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, -1]])

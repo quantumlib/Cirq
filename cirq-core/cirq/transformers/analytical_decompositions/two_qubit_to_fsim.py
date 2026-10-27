@@ -39,14 +39,14 @@ def decompose_two_qubit_interaction_into_four_fsim_gates(
     gates. It works by decomposing into two B gates and then decomposing each
     B gate into two of the given FSim gate.
 
-    This decomposition only works for FSim gates with a theta (iswap angle)
+    This decomposition only works for FSim gates with a theta (iSWAP angle)
     between 3/8π and 5/8π (i.e. within 22.5° of maximum strength) and a
     phi (cphase angle) between -π/4 and +π/4 (i.e. within 45° of minimum
     strength).
 
     Args:
         interaction: The two qubit operation to synthesize. This can either be
-            a cirq object (such as a gate, operation, or circuit) or a raw numpy
+            a cirq object (such as a gate, operation, or circuit) or a raw NumPy
             array specifying the 4x4 unitary matrix.
         fsim_gate: The only two qubit gate that is permitted to appear in the
             output. Must satisfy 3/8π < phi < 5/8π and abs(theta) < pi/4.
@@ -57,7 +57,7 @@ def decompose_two_qubit_interaction_into_four_fsim_gates(
 
     Returns:
         A list of operations implementing the desired two qubit unitary. The
-        list will include four operations of the given fsim gate, various single
+        list will include four operations of the given FSim gate, various single
         qubit operations, and a global phase operation.
 
     Raises:
@@ -158,7 +158,7 @@ def _decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops(
 
 
 class _BGate(ops.Gate):
-    """Single qubit gates and two of these can achieve any kak coefficients.
+    """Single qubit gates and two of these can achieve any KAK coefficients.
 
     References:
         Minimum construction of two-qubit quantum operations
@@ -244,15 +244,15 @@ def _fix_single_qubit_gates_around_kak_interaction(
     """Adds single qubit operations to complete a desired interaction.
 
     Args:
-        desired: The kak decomposition of the desired operation.
+        desired: The KAK decomposition of the desired operation.
         qubits: The pair of qubits that is being operated on.
-        operations: A list of operations that composes into the desired kak
+        operations: A list of operations that composes into the desired KAK
             interaction coefficients, but may not have the desired before/after
             single qubit operations or the desired global phase.
 
     Returns:
-        A list of operations whose kak decomposition approximately equals the
-        desired kak decomposition.
+        A list of operations whose KAK decomposition approximately equals the
+        desired KAK decomposition.
     """
     actual = linalg.kak_decomposition(circuits.Circuit(operations).unitary(qubit_order=qubits))
 

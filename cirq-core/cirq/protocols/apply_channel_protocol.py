@@ -295,7 +295,7 @@ def _apply_unitary(val: Any, args: ApplyChannelArgs) -> np.ndarray | None:
 
 
 def _apply_kraus(kraus: tuple[np.ndarray] | Sequence[Any], args: ApplyChannelArgs) -> np.ndarray:
-    """Directly apply the kraus operators to the target tensor."""
+    """Directly apply the Kraus operators to the target tensor."""
     # Initialize output.
     args.out_buffer[:] = 0
     # Stash initial state into buffer0.

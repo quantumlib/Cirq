@@ -288,7 +288,7 @@ class ZZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 class MSGate(XXPowGate):
     """The Mølmer–Sørensen gate, a native two-qubit operation in ion traps.
 
-    A rotation around the XX axis in the two-qubit bloch sphere.
+    A rotation around the XX axis in the two-qubit Bloch sphere.
 
     The gate implements the following unitary:
 

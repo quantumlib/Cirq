@@ -1,0 +1,685 @@
+# Copyright 2026 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+r"""Numerically-optimized compilation of arbitrary two-qubit unitaries.
+
+Implements the NuOp compilation technique of
+[arXiv:2106.15490](https://arxiv.org/abs/2106.15490){:.external}
+("Designing Calibration and Expressivity-Efficient Instruction Sets for
+Quantum Computing", Murali et al.). An arbitrary two-qubit unitary $U_t$ is
+decomposed into a template of `i` layers of a fixed hardware two-qubit "base"
+gate sandwiched between parameterized single-qubit U3 gates:
+
+    $$k_i \cdot G \cdot k_{i-1} \cdot \ldots \cdot G \cdot k_0 \approx U_t$$
+
+where $G$ is the base gate and each $k_j = U3 \otimes U3$ is a pair of
+single-qubit gates whose rotation angles ($6 (i + 1)$ real parameters in
+total) are treated as continuous optimization variables. A BFGS numerical
+optimizer maximizes the decomposition fidelity
+
+    $$F_d = |\mathrm{Tr}(U_d^\dagger U_t)| / \dim(U_t)$$
+
+between the target unitary $U_t$ and the unitary $U_d$ realized by the
+template. The number of layers is grown from 1 until a target fidelity is
+met. Optionally, given hardware error rates for the base gate(s), the
+compiler instead maximizes the overall fidelity
+
+    $$F_u = F_d \cdot F_h, \qquad F_h = \prod_g (1 - p_g)$$
+
+where the product in $F_h$ runs over all gates $g$ in the decomposition and
+$p_g$ is the error rate of gate $g$. This enables noise-adaptive approximate
+compilation: fewer, noisier-but-more-reliable base gates are preferred when
+hardware errors dominate, and the best base gate type is selected per target
+unitary.
+"""
+
+from __future__ import annotations
+
+import dataclasses
+import numbers
+from collections.abc import Sequence
+from typing import Any, NamedTuple, TYPE_CHECKING
+
+import numpy as np
+import scipy.optimize
+
+from cirq import linalg, value
+from cirq._compat import proper_repr
+
+if TYPE_CHECKING:
+    import cirq
+
+_SingleQubitGatePair = tuple[np.ndarray, np.ndarray]
+
+
+class TwoQubitNumericalCompilationResult(NamedTuple):
+    r"""Represents a numerical compilation of a target 2-qubit gate onto a base gate.
+
+    This object encodes the relationship between 4x4 unitary operators
+
+        $$U_{target} \approx k_i \cdot U_{base} \cdot k_{i-1} \cdot \ldots
+            \cdot k_1 \cdot U_{base} \cdot k_0$$
+
+    where $U_{target}, U_{base}$ are 2-local and $k_j$ are 1-local. Equality
+    holds up to a global phase within `decomposition_fidelity`.
+
+    Attributes:
+        base_gate_unitary: 4x4 unitary denoting $U_{base}$ above. If several
+            base gates were given to the compiler, this is the one that was
+            selected.
+        base_gate_index: Index of the selected base gate within the sequence
+            of base gates given to the compiler; 0 if a single base gate was
+            given. Allows the caller to recover the selected gate without
+            matching unitaries.
+        target_gate: 4x4 unitary denoting $U_{target}$ above.
+        local_unitaries: Sequence of 2-tuples
+            $(k_{00}, k_{01}), (k_{10}, k_{11}) \ldots$ where
+            $k_j = k_{j0} \otimes k_{j1}$ in the product above.
+            Each $k_{j0}, k_{j1}$ is a 2x2 unitary. Has `num_base_gates + 1`
+            entries.
+        actual_gate: 4x4 unitary denoting the right hand side above, ideally
+            equal to $U_{target}$ up to a global phase.
+        decomposition_fidelity: $F_d = |\mathrm{Tr}(U_d^\dagger U_t)| / 4$,
+            the Hilbert-Schmidt overlap between the realized and target
+            unitaries. 1.0 means an exact decomposition up to global phase.
+        hardware_fidelity: $F_h = \prod_g (1 - p_g)$ over all gates $g$ in
+            the decomposition, or None if no error rates were provided.
+        num_base_gates: Number of base gate applications (layers) used.
+        success: Whether the returned decomposition meets the requested
+            `target_fidelity`; measured by `decomposition_fidelity` $F_d$,
+            or by the overall fidelity $F_u = F_d \cdot F_h$ when error
+            rates were provided to the compiler.
+    """
+
+    base_gate_unitary: np.ndarray
+    base_gate_index: int
+    target_gate: np.ndarray
+    local_unitaries: tuple[_SingleQubitGatePair, ...]
+    actual_gate: np.ndarray
+    decomposition_fidelity: float
+    hardware_fidelity: float | None
+    num_base_gates: int
+    success: bool
+
+
+def _u3_matrix(angles: np.ndarray) -> np.ndarray:
+    r"""Single-qubit U3 gate used in the template.
+
+        $$U3(\alpha, \beta, \lambda) = \begin{pmatrix}
+            \cos(\alpha/2) & -e^{i\lambda} \sin(\alpha/2) \\
+            e^{i\beta} \sin(\alpha/2) & e^{i(\beta+\lambda)} \cos(\alpha/2)
+        \end{pmatrix}$$
+
+    which parametrizes all of SU(2) up to a global phase.
+
+    Args:
+        angles: Array of shape (..., 3) holding $(\alpha, \beta, \lambda)$ along the
+            last axis, e.g. (num_layers + 1, 2, 3) for every layer and qubit.
+
+    Returns:
+        Array of shape (..., 2, 2) with the corresponding U3 matrices.
+    """
+    alpha, beta, lam = angles[..., 0], angles[..., 1], angles[..., 2]
+    cos_a, sin_a = np.cos(alpha / 2), np.sin(alpha / 2)
+    e_beta, e_lam = np.exp(1j * beta), np.exp(1j * lam)
+    u3 = np.empty((*angles.shape[:-1], 2, 2), dtype=complex)
+    u3[..., 0, 0] = cos_a
+    u3[..., 0, 1] = -e_lam * sin_a
+    u3[..., 1, 0] = e_beta * sin_a
+    u3[..., 1, 1] = e_beta * e_lam * cos_a
+    return u3
+
+
+def _u3_matrix_gradient(u3: np.ndarray, beta: np.ndarray) -> np.ndarray:
+    r"""Derivatives of the U3 gate with respect to each of its three angles.
+
+    Args:
+        u3: Array of shape (..., 2, 2) of U3 matrices, as returned by `_u3_matrix`.
+        beta: Array of shape (...) with the angle $\beta$ used to build each `u3`.
+
+    Returns:
+        Array of shape (..., 3, 2, 2) with the derivatives with respect to
+        $\alpha$, $\beta$ and $\lambda$, in that order.
+    """
+    e_beta = np.exp(1j * beta)[..., np.newaxis]
+    du3 = np.zeros((*u3.shape[:-2], 3, 2, 2), dtype=complex)
+    du3[..., 0, 0, :] = -0.5 * u3[..., 1, :] * np.conj(e_beta)
+    du3[..., 0, 1, :] = 0.5 * u3[..., 0, :] * e_beta
+    du3[..., 1, 1, :] = 1j * u3[..., 1, :]
+    du3[..., 2, :, 1] = 1j * u3[..., :, 1]
+    return du3
+
+
+def _template_unitary(params: np.ndarray, base_gate: np.ndarray, num_layers: int) -> np.ndarray:
+    r"""Unitary realized by the layered template for the given angles.
+
+    Args:
+        params: Array of shape (num_layers + 1, 2, 3) with the U3 angles of
+            the single-qubit gate pairs $k_0, \ldots, k_i$.
+        base_gate: 4x4 unitary of the base two-qubit gate.
+        num_layers: Number of base gate applications.
+    """
+    blocks = params.reshape(num_layers + 1, 2, 3)
+    u3s = _u3_matrix(blocks)
+    ud = np.eye(4, dtype=complex)
+    for block in range(num_layers + 1):
+        k = np.kron(u3s[block, 0], u3s[block, 1])
+        ud = k @ ud
+        if block < num_layers:
+            ud = base_gate @ ud
+    return ud
+
+
+def _template_infidelity_and_gradient(
+    params: np.ndarray, base_gate: np.ndarray, num_layers: int, target: np.ndarray
+) -> tuple[float, np.ndarray]:
+    r"""Computes the infidelity of the template and its gradient with respect to its angles.
+
+    The derivative of the infidelity with respect to a parameter $\alpha_{ib}$ comes only from
+    the u3 matrix that is built using angle $\alpha_{ib}$:
+
+    $$
+    \frac{d U_{d}}{d \alpha_i} = \ldots \frac{d k_i}{d \alpha_i} \cdot U_{base}
+        \cdot k_{i-1} \cdot \ldots\cdot k_1 \cdot U_{base} \cdot k_0
+    $$
+
+    where the derivative of k is given as:
+
+    $$
+    \frac{d k}{d \alpha_{i0}} = \frac{d U3(\alpha_{i0}, \beta_{i0}, \lambda_{i0})}{d \alpha_{i0}}
+        \otimes U3(\alpha_{i1}, \beta_{i1}, \lambda_{i1})
+    $$
+
+    Args:
+        params: Array of shape (num_layers + 1, 2, 3) with the U3 angles of
+            the single-qubit gate pairs $k_0, \ldots, k_i$.
+        base_gate: 4x4 unitary of the base two-qubit gate.
+        num_layers: Number of base gate applications.
+        target: 4x4 unitary that the template is being fit to.
+
+    Returns:
+        The infidelity (a scalar) and the gradient of the infidelity with respect
+        to each parameter (a numpy array).
+    """
+    blocks = params.reshape(num_layers + 1, 2, 3)
+    u3s = _u3_matrix(blocks)
+    ks = np.einsum('nij,nkl->nikjl', u3s[:, 0], u3s[:, 1]).reshape(num_layers + 1, 4, 4)
+
+    # precomputes all terms before and after a given layer
+    prefix = [np.eye(4, dtype=complex)]
+    for layer in range(num_layers):
+        prefix.append(base_gate @ ks[layer] @ prefix[layer])
+    postfix = [np.eye(4, dtype=complex)]
+    for layer in range(num_layers, 0, -1):
+        postfix.append(postfix[-1] @ ks[layer] @ base_gate)
+    postfix.reverse()
+
+    overlap = np.vdot(postfix[0] @ ks[0], target)
+    if overlap == 0:
+        return 1.0, np.zeros(params.shape)
+
+    # contract together everything except for the u3 derivative:
+    env = np.conj(postfix).transpose(0, 2, 1) @ target @ np.conj(prefix).transpose(0, 2, 1)
+    env = env.reshape(num_layers + 1, 2, 2, 2, 2)
+    envs = np.stack(
+        [
+            np.einsum('nijkl,njl->nik', env, u3s[:, 1].conj()),
+            np.einsum('nijkl,nik->njl', env, u3s[:, 0].conj()),
+        ],
+        axis=1,
+    )
+    # contract with the u3 derivative to get gradient
+    gradient_scale = -np.conj(overlap) / (4 * abs(overlap))
+    du3s = _u3_matrix_gradient(u3s, blocks[:, :, 1])
+    gradient = (gradient_scale * np.einsum('nqpij,nqij->nqp', du3s.conj(), envs)).real
+
+    infidelity = 1.0 - abs(overlap) / target.shape[0]
+    return infidelity, gradient.reshape(params.shape)
+
+
+def _decomposition_fidelity(actual: np.ndarray, target: np.ndarray) -> float:
+    r"""$F_d = |\mathrm{Tr}(U_d^\dagger U_t)| / \dim(U_t)$."""
+    return abs(np.vdot(actual, target)) / target.shape[0]
+
+
+def _optimize_template(
+    target: np.ndarray,
+    base_gate: np.ndarray,
+    num_layers: int,
+    rng: np.random.RandomState,
+    num_restarts: int,
+    maxiter: int,
+) -> tuple[np.ndarray, float]:
+    r"""Best template angles for a fixed base gate and number of layers.
+
+    Runs BFGS from `num_restarts` random starting points and returns the angles
+    achieving the highest decomposition fidelity, along with that fidelity.
+
+    The optimized objective is the infidelity $1 - F_d$ with
+    $F_d = |\mathrm{Tr}(U_d^\dagger U_t)| / 4$.
+    """
+    num_params = 6 * (num_layers + 1)
+
+    def objf_and_gradient(x: np.ndarray) -> tuple[float, np.ndarray]:
+        return _template_infidelity_and_gradient(x, base_gate, num_layers, target)
+
+    best_x: np.ndarray | None = None
+    best_fidelity = -np.inf
+    bounds = [(0.0, 2 * np.pi)] * num_params
+    for _ in range(num_restarts):
+        x0 = rng.uniform(0.0, 2 * np.pi, size=num_params)
+        res = scipy.optimize.minimize(
+            objf_and_gradient,
+            x0,
+            jac=True,
+            method='L-BFGS-B',
+            bounds=bounds,
+            options={'maxiter': maxiter, 'ftol': 1e-18, 'gtol': 1e-14},
+        )
+        fidelity = 1.0 - res.fun if np.isfinite(res.fun) else -np.inf
+        if fidelity > best_fidelity:
+            best_fidelity = fidelity
+            best_x = res.x
+    # Inputs are validated to be finite unitaries, so every run has a finite
+    # objective value and best_x is always set.
+    assert best_x is not None
+    return best_x, best_fidelity
+
+
+def _result_from_angles(
+    params: np.ndarray,
+    base_gate: np.ndarray,
+    base_gate_index: int,
+    target: np.ndarray,
+    num_layers: int,
+    hardware_fidelity: float | None,
+    success: bool,
+) -> TwoQubitNumericalCompilationResult:
+    actual = _template_unitary(params, base_gate, num_layers)
+    blocks = params.reshape(num_layers + 1, 2, 3)
+    u3s = _u3_matrix(blocks)
+    local_unitaries = tuple((u3s[b, 0], u3s[b, 1]) for b in range(num_layers + 1))
+    return TwoQubitNumericalCompilationResult(
+        base_gate_unitary=base_gate,
+        base_gate_index=base_gate_index,
+        target_gate=target,
+        local_unitaries=local_unitaries,
+        actual_gate=actual,
+        decomposition_fidelity=_decomposition_fidelity(actual, target),
+        hardware_fidelity=hardware_fidelity,
+        num_base_gates=num_layers,
+        success=success,
+    )
+
+
+def two_qubit_gate_numerical_compilation(
+    target_unitary: np.ndarray,
+    base_gates: np.ndarray | Sequence[np.ndarray],
+    *,
+    target_fidelity: float | None = None,
+    max_layers: int = 3,
+    base_gate_error_rates: Sequence[float] | None = None,
+    single_qubit_error_rates: float | tuple[float, float] | None = None,
+    num_restarts: int = 5,
+    maxiter: int = 1000,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+) -> TwoQubitNumericalCompilationResult:
+    r"""Compile a two-qubit unitary onto hardware base gate(s) via numerical optimization.
+
+    Implements the NuOp compilation technique of
+    [arXiv:2106.15490](https://arxiv.org/abs/2106.15490){:.external}.
+    The target unitary is decomposed into `i` layers of a base two-qubit gate
+    sandwiched between parameterized single-qubit gates,
+
+    $k_i \cdot G \cdot k_{i-1} \cdot \ldots \cdot G \cdot k_0 \approx U_t$,
+
+    where the angles of the 1-local unitaries $k_j$ are found by a BFGS
+    numerical optimizer maximizing the decomposition fidelity
+    $F_d = |\mathrm{Tr}(U_d^\dagger U_t)| / 4$.
+
+    The number of layers is grown from 1 upward, optimizing each template in
+    turn, and the first decomposition whose fidelity meets `target_fidelity`
+    is returned. With several base gates, all of them are tried at each layer
+    count, so the returned decomposition is the one with the fewest layers
+    across all gate types. If no template with at most `max_layers` layers
+    meets `target_fidelity`, the highest-fidelity decomposition found is
+    returned with `success` set to False.
+
+    If error rates are given (`base_gate_error_rates` and/or
+    `single_qubit_error_rates`), the compiler additionally accounts
+    for hardware noise: instead of stopping at the first decomposition meeting
+    `target_fidelity`, all (base gate, layer count) combinations up to
+    `max_layers` are optimized, and the decomposition maximizing the overall
+    fidelity $F_u = F_d \cdot F_h$ is returned, where the hardware fidelity
+    $F_h$ is the product of (1 - error_rate) over all gates in the
+    decomposition. This can deliberately select an approximate decomposition
+    with fewer base gates when hardware noise dominates the decomposition
+    error, and selects the best base gate type for each target unitary. In
+    this mode `success` reports whether the selected decomposition meets
+    `target_fidelity` in terms of $F_u$.
+
+    Args:
+        target_unitary: The 4x4 unitary to compile.
+        base_gates: A single 4x4 base gate unitary, or a sequence of them.
+            Each base gate must be entangling for arbitrary targets to be
+            compilable.
+        target_fidelity: Decomposition fidelity threshold. Layer growth stops
+            once it is met; `success` in the result reports whether the
+            returned decomposition meets it. Should be a float slightly below
+            1, e.g. 1 - 1e-8 (the default) for exact compilation or 0.99 for
+            approximate. Required when hardware error rates are given: the
+            threshold then applies to the overall fidelity $F_u = F_d \cdot
+            F_h$.
+        max_layers: Maximum number of base gate applications allowed.
+        base_gate_error_rates: Optional hardware error rate of each base gate,
+            one per entry of `base_gates`. When error rates are given, the
+            compiler maximizes the overall fidelity $F_u = F_d \cdot F_h$
+            over all (base gate, layer count) combinations instead of
+            stopping at the first decomposition meeting `target_fidelity`.
+        single_qubit_error_rates: Optional hardware error rate of each
+            single-qubit gate, folded into the hardware fidelity $F_h$.
+            Either a single rate applied to both qubits, or a pair of rates
+            (one per qubit the two-qubit gate acts on), e.g. from per-qubit
+            calibration data.
+        num_restarts: Number of random restarts of the BFGS optimizer per
+            (base gate, layer count) pair. Higher values improve accuracy at
+            the cost of runtime.
+        maxiter: Maximum number of iterations of each BFGS run.
+        random_state: Random state or seed used to generate the optimizer's
+            starting points.
+
+    Returns:
+        A TwoQubitNumericalCompilationResult with the best decomposition found.
+
+    Raises:
+        ValueError: If `target_unitary` is not a finite 4x4 unitary,
+            `base_gates` is empty, malformed, or contains non-finite or
+            non-unitary matrices, `base_gate_error_rates` does not match
+            `base_gates`, `target_fidelity` is not set while hardware error
+            rates are given, or `target_fidelity`, `max_layers`,
+            `num_restarts`, `maxiter`, `base_gate_error_rates` or
+            `single_qubit_error_rates` are out of range.
+    """
+    target = np.asarray(target_unitary)
+    if target.shape != (4, 4):
+        raise ValueError(f'target_unitary must have shape (4, 4), got {target.shape}')
+    if not np.isfinite(target).all():
+        raise ValueError('target_unitary must contain only finite values')
+    if not linalg.is_unitary(target):
+        raise ValueError('target_unitary must be unitary')
+    if max_layers < 1:
+        raise ValueError(f'max_layers must be at least 1, got {max_layers}')
+    if num_restarts < 1:
+        raise ValueError(f'num_restarts must be at least 1, got {num_restarts}')
+    if maxiter < 1:
+        raise ValueError(f'maxiter must be at least 1, got {maxiter}')
+
+    gates = np.asarray(base_gates, dtype=complex)
+    if gates.shape == (4, 4):
+        gates = gates[np.newaxis]
+    if gates.ndim != 3 or gates.shape[1:] != (4, 4) or gates.shape[0] == 0:
+        raise ValueError(
+            f'base_gates must be a 4x4 unitary or a sequence of them, got {gates.shape}'
+        )
+    if not all(np.isfinite(gate).all() and linalg.is_unitary(gate) for gate in gates):
+        raise ValueError('base_gates must contain only finite unitaries')
+    noise_adaptive = base_gate_error_rates is not None or single_qubit_error_rates is not None
+    if base_gate_error_rates is None:
+        base_gate_error_rates = [0.0] * gates.shape[0]
+    if len(base_gate_error_rates) != gates.shape[0]:
+        raise ValueError(
+            f'Expected one error rate per base gate ({gates.shape[0]}), '
+            f'got {len(base_gate_error_rates)}'
+        )
+    if any(not 0 <= p <= 1 for p in base_gate_error_rates):
+        raise ValueError(f'base_gate_error_rates must be in [0, 1], got {base_gate_error_rates}')
+    if single_qubit_error_rates is None:
+        single_qubit_error_rate_pair = (0.0, 0.0)
+    else:
+        sqe = np.atleast_1d(np.asarray(single_qubit_error_rates, dtype=float))
+        if not 1 <= sqe.size <= 2:
+            raise ValueError(
+                'single_qubit_error_rates must be a single rate or a pair of rates '
+                f'(one per qubit), got {single_qubit_error_rates}'
+            )
+        single_qubit_error_rate_pair = (sqe[0], sqe[-1])
+        if any(not 0 <= p <= 1 for p in single_qubit_error_rate_pair):
+            raise ValueError(
+                f'single_qubit_error_rates must be in [0, 1], got {single_qubit_error_rates}'
+            )
+    if target_fidelity is None:
+        if noise_adaptive:
+            raise ValueError(
+                'target_fidelity must be set explicitly when base_gate_error_rates or '
+                'single_qubit_error_rates is given'
+            )
+        target_fidelity = 1 - 1e-8
+    if not 0 < target_fidelity < 1:
+        raise ValueError(f'target_fidelity must be in (0, 1), got {target_fidelity}')
+
+    rng = value.parse_random_state(random_state)
+
+    best: TwoQubitNumericalCompilationResult | None = None
+    best_overall = -np.inf
+    if not noise_adaptive:
+        # Layer growth: iterate layer counts in increasing order and return the
+        # first (base gate, layer count) meeting the target fidelity. Fall back
+        # to the highest-fidelity decomposition if none meets the threshold.
+        for num_layers in range(1, max_layers + 1):
+            for gate_idx, base_gate in enumerate(gates):
+                params, fidelity = _optimize_template(
+                    target, base_gate, num_layers, rng, num_restarts, maxiter
+                )
+                result = _result_from_angles(
+                    params,
+                    base_gate,
+                    gate_idx,
+                    target,
+                    num_layers,
+                    None,
+                    fidelity >= target_fidelity,
+                )
+                if fidelity > best_overall:
+                    best_overall = fidelity
+                    best = result
+                if fidelity >= target_fidelity:
+                    return result
+    else:
+        # With error rates given, maximize the overall fidelity Fu = Fd * Fh
+        # over all (base gate, layer count) combinations.
+        for gate_idx, base_gate in enumerate(gates):
+            for num_layers in range(1, max_layers + 1):
+                params, fidelity = _optimize_template(
+                    target, base_gate, num_layers, rng, num_restarts, maxiter
+                )
+                hardware_fidelity = (1 - base_gate_error_rates[gate_idx]) ** num_layers
+                hardware_fidelity *= (
+                    (1 - single_qubit_error_rate_pair[0]) * (1 - single_qubit_error_rate_pair[1])
+                ) ** (num_layers + 1)
+                if fidelity * hardware_fidelity > best_overall:
+                    best_overall = fidelity * hardware_fidelity
+                    best = _result_from_angles(
+                        params,
+                        base_gate,
+                        gate_idx,
+                        target,
+                        num_layers,
+                        hardware_fidelity,
+                        success=fidelity * hardware_fidelity >= target_fidelity,
+                    )
+
+    assert best is not None
+    return best
+
+
+# Maximum elementwise distance under which a cached compilation is reused for
+# a new query unitary. Covers floating-point noise in the input (e.g. from
+# different fusion orders); far below any meaningful decomposition error.
+_CACHE_TOLERANCE = 1e-10
+
+
+@dataclasses.dataclass(frozen=True, eq=False)
+class TwoQubitNumericalCompiler:
+    r"""A two-qubit gate compiler based on numerical optimization (NuOp).
+
+    Holds a fixed set of hardware base gates (and optionally their error
+    rates) so that arbitrary two-qubit unitaries can be compiled repeatedly
+    with the same configuration via `compile_two_qubit_gate`. See
+    `cirq.two_qubit_gate_numerical_compilation` for details of the algorithm.
+
+    This class supports JSON serialization, but only when `random_state` is
+    None or an integer seed; a live numpy random generator cannot be
+    serialized.
+    """
+
+    base_gates: tuple[np.ndarray, ...]
+    base_gate_error_rates: tuple[float, ...] | None = None
+    target_fidelity: float | None = None
+    max_layers: int = 3
+    single_qubit_error_rates: float | tuple[float, float] | None = None
+    num_restarts: int = 5
+    maxiter: int = 1000
+    max_cache_size: int = 128
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None
+    _cache: list[tuple[np.ndarray, TwoQubitNumericalCompilationResult]] = dataclasses.field(
+        default_factory=list, repr=False, init=False, compare=False
+    )
+
+    def __post_init__(self) -> None:
+        if self.max_cache_size < 1:
+            raise ValueError(f'max_cache_size must be at least 1, got {self.max_cache_size}')
+        if self.target_fidelity is None and (
+            self.base_gate_error_rates is not None or self.single_qubit_error_rates is not None
+        ):
+            raise ValueError(
+                'target_fidelity must be set explicitly when base_gate_error_rates or '
+                'single_qubit_error_rates is given'
+            )
+
+    def compile_two_qubit_gate(self, unitary: np.ndarray) -> TwoQubitNumericalCompilationResult:
+        """Compile the given 4x4 unitary onto this compiler's base gate(s).
+
+        Results are memoized (least-recently-used, up to `max_cache_size`
+        entries): compiling a unitary whose entries are all within 1e-10 of
+        a cached unitary returns the cached result instead of re-running the
+        numerical optimization, so unitaries differing only by
+        floating-point noise (e.g. from different fusion orders) still hit.
+        """
+        query = np.array(unitary, dtype=complex)
+        for i in range(len(self._cache) - 1, -1, -1):
+            cached_unitary, result = self._cache[i]
+            if np.max(np.abs(cached_unitary - query)) <= _CACHE_TOLERANCE:
+                self._cache.append(self._cache.pop(i))  # Mark as most recently used.
+                return result
+        result = two_qubit_gate_numerical_compilation(
+            unitary,
+            self.base_gates,
+            target_fidelity=self.target_fidelity,
+            max_layers=self.max_layers,
+            base_gate_error_rates=self.base_gate_error_rates,
+            single_qubit_error_rates=self.single_qubit_error_rates,
+            num_restarts=self.num_restarts,
+            maxiter=self.maxiter,
+            random_state=self.random_state,
+        )
+        self._cache.append((query, result))
+        if len(self._cache) > self.max_cache_size:
+            self._cache.pop(0)
+        return result
+
+    def _json_dict_(self) -> dict[str, Any]:
+        if self.random_state is not None and not isinstance(self.random_state, numbers.Integral):
+            raise ValueError(
+                'TwoQubitNumericalCompiler can only be JSON-serialized when '
+                'random_state is None or an integer seed, got '
+                f'{type(self.random_state).__name__}.'
+            )
+        return {
+            'base_gates': [gate.tolist() for gate in self.base_gates],
+            'base_gate_error_rates': self.base_gate_error_rates,
+            'target_fidelity': self.target_fidelity,
+            'max_layers': self.max_layers,
+            'single_qubit_error_rates': self.single_qubit_error_rates,
+            'num_restarts': self.num_restarts,
+            'maxiter': self.maxiter,
+            'max_cache_size': self.max_cache_size,
+            'random_state': self.random_state,
+        }
+
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        base_gates,
+        base_gate_error_rates,
+        target_fidelity,
+        max_layers,
+        single_qubit_error_rates,
+        num_restarts,
+        maxiter,
+        max_cache_size,
+        random_state,
+        **kwargs,
+    ):
+        return cls(
+            base_gates=tuple(np.asarray(gate, dtype=complex) for gate in base_gates),
+            base_gate_error_rates=(
+                None if base_gate_error_rates is None else tuple(base_gate_error_rates)
+            ),
+            target_fidelity=target_fidelity,
+            max_layers=max_layers,
+            single_qubit_error_rates=(
+                tuple(single_qubit_error_rates)
+                if isinstance(single_qubit_error_rates, list)
+                else single_qubit_error_rates
+            ),
+            num_restarts=num_restarts,
+            maxiter=maxiter,
+            max_cache_size=max_cache_size,
+            random_state=random_state,
+        )
+
+    def __repr__(self) -> str:
+        gates = ', '.join(proper_repr(gate) for gate in self.base_gates)
+        if len(self.base_gates) == 1:
+            gates += ','
+        return (
+            f'cirq.TwoQubitNumericalCompiler(base_gates=({gates}), '
+            f'base_gate_error_rates={proper_repr(self.base_gate_error_rates)}, '
+            f'target_fidelity={self.target_fidelity!r}, '
+            f'max_layers={self.max_layers!r}, '
+            f'single_qubit_error_rates={self.single_qubit_error_rates!r}, '
+            f'num_restarts={self.num_restarts!r}, '
+            f'maxiter={self.maxiter!r}, '
+            f'max_cache_size={self.max_cache_size!r}, '
+            f'random_state={self.random_state!r})'
+        )
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return (
+            len(self.base_gates) == len(other.base_gates)
+            and all(
+                np.array_equal(own, theirs)
+                for own, theirs in zip(self.base_gates, other.base_gates)
+            )
+            and self.base_gate_error_rates == other.base_gate_error_rates
+            and self.target_fidelity == other.target_fidelity
+            and self.max_layers == other.max_layers
+            and self.single_qubit_error_rates == other.single_qubit_error_rates
+            and self.num_restarts == other.num_restarts
+            and self.maxiter == other.maxiter
+            and self.max_cache_size == other.max_cache_size
+            and self.random_state == other.random_state
+        )

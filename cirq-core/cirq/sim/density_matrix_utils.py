@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import math
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
@@ -58,7 +59,7 @@ def sample_density_matrix(
         Measurement results with True corresponding to the ``|1⟩`` state.
         The outer list is for repetitions, and the inner corresponds to
         measurements ordered by the supplied qubits. These lists
-        are wrapped as a numpy ndarray.
+        are wrapped as a NumPy ndarray.
 
     Raises:
         ValueError: ``repetitions`` is less than one or size of ``matrix`` is
@@ -127,9 +128,9 @@ def measure_density_matrix(
         seed: A seed for the pseudorandom number generator.
 
     Returns:
-        A tuple of a list and a numpy array. The list is an array of booleans
+        A tuple of a list and a NumPy array. The list is an array of Booleans
         corresponding to the measurement values (ordered by the indices). The
-        numpy array is the post measurement matrix. This matrix has the same
+        NumPy array is the post measurement matrix. This matrix has the same
         shape and dtype as the input matrix.
 
     Raises:
@@ -223,8 +224,8 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
     """
     shape = density_matrix.shape
     half_index = len(shape) // 2
-    row_size = np.prod(shape[:half_index]).item() if shape else 0
-    col_size = np.prod(shape[half_index:]).item() if shape else 0
+    row_size = math.prod(shape[:half_index]) if shape else 0
+    col_size = math.prod(shape[half_index:]) if shape else 0
     if row_size != col_size:
         raise ValueError(f'Matrix was not square. Shape was {shape}')
     if row_size & (row_size - 1):

@@ -11,6 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Helpers for converting to/from api data formats."""
+"""Helpers for converting to/from API data formats."""
 
 from cirq_google.api import v2  # noqa: F401

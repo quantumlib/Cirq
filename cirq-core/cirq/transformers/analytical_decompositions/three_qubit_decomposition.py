@@ -256,11 +256,11 @@ def _multiplexed_angles(theta: Sequence[float] | np.ndarray) -> np.ndarray:
     |i>, then, multiplexed_angles returns a[i] that can be used in a circuit
     similar to this:
 
-    ---rz(a[0])-X---rz(a[1])--X--rz(a[2])-X--rz(a[3])--X
-                |             |           |            |
-    ------------@-------------|-----------@------------|
-                              |                        |
-    --------------------------@------------------------@
+        ---rz(a[0])-X---rz(a[1])--X--rz(a[2])-X--rz(a[3])--X
+                    |             |           |            |
+        ------------@-------------|-----------@------------|
+                                  |                        |
+        --------------------------@------------------------@
 
     Args:
         theta: the desired angles for each basis state of the select qubits

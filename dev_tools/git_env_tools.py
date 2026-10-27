@@ -82,11 +82,11 @@ def fetch_github_pull_request(
     pull_request_number: int,
     verbose: bool,
 ) -> prepared_env.PreparedEnv:
-    """Uses content from github to create a dir for testing and comparisons.
+    """Uses content from GitHub to create a dir for testing and comparisons.
 
     Args:
         destination_directory: The location to fetch the contents into.
-        repository: The github repository that the commit lives under.
+        repository: The GitHub repository that the commit lives under.
         pull_request_number: The id of the pull request to clone. If None, then
             the main branch is cloned instead.
         verbose: When set, more progress output is produced.

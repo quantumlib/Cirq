@@ -31,6 +31,7 @@ class RZRotation(Gauge):
     """Represents an ISWAP Gauge composed of Rz rotations.
 
     The gauge replaces an ISWAP gate with either
+
         0: ───Rz(t)──────iSwap───Rz(sgn*t)───
                             │
         1: ───Rz(-sgn*t)───iSwap───Rz(-t)───
@@ -41,7 +42,7 @@ class RZRotation(Gauge):
     def weight(self) -> float:
         return 2.0
 
-    def _rz(self, theta, sgn: int) -> ConstantGauge:
+    def _rz(self, theta, sgn: int | np.integer) -> ConstantGauge:
         """Returns an ISWAP Gauge composed of Rz rotations.
 
         0: ───Rz(theta)──────iSwap───Rz(sgn*theta)───
@@ -69,6 +70,7 @@ class XYRotation(Gauge):
     """Represents an ISWAP Gauge composed of XY rotations.
 
     The gauge replaces an ISWAP gate with either
+
         0: ───XY(a)───iSwap───XY(b)───
                         │
         1: ───XY(b)───iSwap───XY(a)───
