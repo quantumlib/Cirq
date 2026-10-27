@@ -743,6 +743,8 @@ def test_dataclass_json_dict() -> None:
 
 def test_numpy_values() -> None:
     assert cirq.to_json({'value': np.array(1)}) == '{"value": 1}'
+    # verify support for special floating point values
+    assert_json_roundtrip_works(np.array([np.nan, -np.inf, np.inf]))
 
 
 def test_basic_time_assertions() -> None:
