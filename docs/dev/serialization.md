@@ -113,7 +113,7 @@ The expression must eval correctly when only `cirq`, `pandas as pd`,
 Ideally, the contents of the `.repr` file are exactly the output of
 `repr(your_obj)`.
 `your_class_name.json` should contain the expected JSON output when serializing
-the test value from `your_class_name.repr`.  We recommend to create the expected
+the test value from `your_class_name.repr`.  We recommend creating the expected
 JSON in a human-readable form, for example, by using a `cirq.to_json(obj, indent=2)`
 call, or by formatting the output with the `jq .` command.
 

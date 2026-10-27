@@ -510,7 +510,7 @@ def to_json(
         indent: Pretty-print the resulting file with this indent level.
             Passed to json.dump.
         separators: Passed to json.dump; key-value pairs delimiters defined as
-            `(item_separator, key_separators)` tuple. Note that any non-standard
+            `(item_separator, key_separator)` tuple. Note that any non-standard
             operators (':', ',') will cause `read_json` to fail.
         cls: Passed to json.dump; the default value of CirqEncoder
             enables the serialization of Cirq objects which implement
