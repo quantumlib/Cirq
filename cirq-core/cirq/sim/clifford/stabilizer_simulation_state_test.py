@@ -116,7 +116,9 @@ def test_apply_mixture_skips_multi_qubit_operations() -> None:
 def test_act_on_multi_qubit_wait_gate_does_not_compute_mixture() -> None:
     qubits = cirq.LineQubit.range(3)
     wait = cirq.WaitGate(cirq.Duration(nanos=10), num_qubits=len(qubits)).on(*qubits)
-    pauli_string = cirq.PauliString(cirq.Z(qubits[0]), cirq.X(qubits[2]))
+    pauli_string: cirq.PauliString[cirq.LineQubit] = cirq.PauliString(
+        cirq.Z(qubits[0]), cirq.X(qubits[2])
+    )
 
     with mock.patch.object(cirq.protocols, 'mixture', wraps=cirq.protocols.mixture) as mixture:
         assert pauli_string.after(wait) == pauli_string
