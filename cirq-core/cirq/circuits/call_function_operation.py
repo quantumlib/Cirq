@@ -320,7 +320,7 @@ class CallFunctionOperation(ops.Operation):
         result = f"{self._circuit_function.name}({args})"
         if self._param_resolver:
             resolver_items = ", ".join(
-                f"{k}={self._param_resolver.param_dict[k]}"
+                f"{k}={self._param_resolver.value_of(k, recursive=False)}"
                 for k in sorted(self._param_resolver.param_dict.keys(), key=lambda ki: str(ki))
             )
             result += f" [{resolver_items}]"
