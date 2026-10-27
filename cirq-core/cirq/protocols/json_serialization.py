@@ -471,7 +471,7 @@ def to_json(
     *,
     indent: int | None = None,
     separators: tuple[str, str] | None = None,
-    cls=CirqEncoder,
+    cls: type[json.JSONEncoder] = CirqEncoder,
 ) -> None:
     pass
 
@@ -483,7 +483,7 @@ def to_json(
     *,
     indent: int | None = None,
     separators: tuple[str, str] | None = None,
-    cls=CirqEncoder,
+    cls: type[json.JSONEncoder] = CirqEncoder,
 ) -> str:
     pass
 
