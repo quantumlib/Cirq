@@ -777,6 +777,11 @@ class TaggedOperation(Operation):
     can be initialized with using `Operation.with_tags(tag)`
     or by using `TaggedOperation(op, tag)`.
 
+    A TaggedOperation never wraps another TaggedOperation: wrapping an
+    already-tagged operation merges the tags into a single wrapper, with the
+    inner tags first. This keeps `untagged` and `tags` complete without
+    having to unwrap multiple layers.
+
     Tags added can be of any type, but they should be Hashable in order
     to allow equality checking.  If you wish to serialize operations into
     JSON, you should restrict yourself to only use objects that have a JSON
@@ -787,6 +792,9 @@ class TaggedOperation(Operation):
     """
 
     def __init__(self, sub_operation: cirq.Operation, *tags: Hashable):
+        if isinstance(sub_operation, TaggedOperation):
+            tags = (*sub_operation.tags, *tags)
+            sub_operation = sub_operation.sub_operation
         self._sub_operation = sub_operation
         self._tags = tuple(tags)
         if any(isinstance(tag, type) for tag in tags):
