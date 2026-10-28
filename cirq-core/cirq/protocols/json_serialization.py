@@ -581,6 +581,7 @@ def to_json_gzip(
     obj: Any,
     file_or_fn: None | IO | pathlib.Path | str = None,
     *,
+    compresslevel: int = 7,
     indent: int | None = None,
     cls: type[json.JSONEncoder] = CirqEncoder,
 ) -> bytes | None:
@@ -597,6 +598,9 @@ def to_json_gzip(
             Defaults to `None`.
         indent: Pretty-print the resulting file with this indent level.
             Produce a compact JSON when `None`.  Passed to json.dump.
+        compresslevel: Passed to gzip.compress; an integer from 0 to 9 specifying
+            the level of gzip compression.  The default value 7 is a compromise to
+            produce good compression at about 40% less time than at level 9.
         cls: Passed to json.dump; the default value of CirqEncoder
             enables the serialization of Cirq objects which implement
             the SupportsJSON protocol. To support serialization of 3rd
@@ -605,11 +609,13 @@ def to_json_gzip(
     """
     json_str = to_json(obj, indent=indent, cls=cls)
     if isinstance(file_or_fn, (str, pathlib.Path)):
-        with gzip.open(file_or_fn, 'wt', encoding='utf-8') as actually_a_file:
+        with gzip.open(
+            file_or_fn, 'wt', encoding='utf-8', compresslevel=compresslevel
+        ) as actually_a_file:
             actually_a_file.write(json_str)
             return None
 
-    gzip_data = gzip.compress(bytes(json_str, encoding='utf-8'))
+    gzip_data = gzip.compress(bytes(json_str, encoding='utf-8'), compresslevel=compresslevel)
     if file_or_fn is None:
         return gzip_data
 
