@@ -2275,17 +2275,13 @@ def test_to_text_diagram_moment_range(circuit_cls):
     )
     assert c.to_text_diagram() == c.to_text_diagram(moment_range=(0, len(c)))
 
+
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_to_text_diagram_qubit_subset_with_qubit_order(circuit_cls):
     qa = cirq.NamedQubit('2')
     qb = cirq.NamedQubit('3')
     qc = cirq.NamedQubit('4')
-    c = circuit_cls(
-        [
-            cirq.Moment([cirq.X(qa), cirq.X(qb)]),
-            cirq.Moment([cirq.X(qb), cirq.X(qc)]),
-        ]
-    )
+    c = circuit_cls([cirq.Moment([cirq.X(qa), cirq.X(qb)]), cirq.Moment([cirq.X(qb), cirq.X(qc)])])
     expected_reversed = """
 3: ───X───X───
 
@@ -2297,10 +2293,7 @@ def test_to_text_diagram_qubit_subset_with_qubit_order(circuit_cls):
     )
 
     cirq.testing.assert_has_diagram(
-        c,
-        expected_reversed,
-        qubit_subset=[qa, qb],
-        qubit_order=cirq.QubitOrder.explicit([qb, qa]),
+        c, expected_reversed, qubit_subset=[qa, qb], qubit_order=cirq.QubitOrder.explicit([qb, qa])
     )
 
     cirq.testing.assert_has_diagram(
@@ -2309,12 +2302,11 @@ def test_to_text_diagram_qubit_subset_with_qubit_order(circuit_cls):
         qubit_subset=[qa, qb],
         qubit_order=cirq.QubitOrder.sorted_by(lambda q: -int(q.name)),
     )
-    assert c.to_text_diagram(
-        qubit_subset=[qa, qb], qubit_order=[qb, qa]
-    ) == c.to_text_diagram(qubit_subset=[qb, qa], qubit_order=[qb, qa])
+    assert c.to_text_diagram(qubit_subset=[qa, qb], qubit_order=[qb, qa]) == c.to_text_diagram(
+        qubit_subset=[qb, qa], qubit_order=[qb, qa]
+    )
 
 
-    
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_to_text_diagram_qubit_subset(circuit_cls):
     qa = cirq.NamedQubit('2')
@@ -2363,13 +2355,37 @@ def test_to_text_diagram_qubit_subset(circuit_cls):
     cirq.testing.assert_has_diagram(c_empty, "")
     assert c_empty.to_text_diagram() == c_empty.to_text_diagram(qubit_subset=[])
     assert c.to_text_diagram(qubit_subset=[qb, qa]) == c.to_text_diagram(qubit_subset=[qa, qb])
-    c_empty = circuit_cls([], )
+    c_empty = circuit_cls([])
     cirq.testing.assert_has_diagram(c_empty, """""")
-    assert c_empty.to_text_diagram() == c_empty.to_text_diagram(qubit_subset = [])
-    assert c.to_text_diagram(qubit_subset = [qb, qa]) == c.to_text_diagram(qubit_subset=[qa, qb])
-    
-    
-    
+    assert c_empty.to_text_diagram() == c_empty.to_text_diagram(qubit_subset=[])
+    assert c.to_text_diagram(qubit_subset=[qb, qa]) == c.to_text_diagram(qubit_subset=[qa, qb])
+
+
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_to_text_diagram_qubit_subset_crossing_gate(circuit_cls):
+    qa = cirq.NamedQubit('2')
+    qb = cirq.NamedQubit('3')
+    qc = cirq.NamedQubit('4')
+    c = circuit_cls([cirq.Moment([cirq.X(qa), cirq.CNOT(qb, qc)]), cirq.Moment([cirq.CZ(qa, qc)])])
+    cirq.testing.assert_has_diagram(
+        c,
+        """
+2: ───X───@───
+
+3: ───@───────
+""",
+        qubit_subset=[qa, qb],
+    )
+    cirq.testing.assert_has_diagram(
+        c,
+        """
+2: ───X───@───
+          │
+4: ───X───@───
+""",
+        qubit_subset=[qa, qc],
+    )
+
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_to_text_diagram_qubit_subset_errors(circuit_cls):

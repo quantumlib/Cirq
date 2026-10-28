@@ -1223,7 +1223,8 @@ class AbstractCircuit(abc.ABC):
                 those tags.
             precision: Number of digits to display in text diagram
             qubit_order: Determines how qubits are ordered in the diagram.
-            moment_range: Half-open range restricting the subset of moments to be drawn, defaults to every moment. All qubits and control wires are still drawn.
+            moment_range: Determines which moments to display in the diagram.
+            qubit_subset: Determines which qubits to display in the diagram.
 
         Returns:
             The text diagram.
@@ -1276,12 +1277,32 @@ class AbstractCircuit(abc.ABC):
             qubit_order: Determines how qubits are ordered in the diagram.
             get_circuit_diagram_info: Gets circuit diagram info. Defaults to
                 protocol with fallback.
-            moment_range: Half-open range restricting the subset of moments to be drawn, defaults to every moment. All qubits and control wires are still drawn.
+            moment_range: Determines which moments to display in the diagram.
+            qubit_subset: Determines which qubits to display in the diagram.
 
         Returns:
             The TextDiagramDrawer instance.
         """
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(qubit_subset if qubit_subset is not None else self.all_qubits())
+        moments_to_draw: Sequence[Moment] = (
+            self.moments
+            if moment_range is None
+            else self.moments[moment_range[0] : moment_range[1]]
+        )
+        if qubit_subset is None:
+            visible = self.all_qubits()
+        else:
+            subset = frozenset(qubit_subset)
+            if not subset <= self.all_qubits():
+                raise ValueError(
+                    f'qubit_subset has qubits not in circuit: {subset - self.all_qubits()}'
+                )
+            if not isinstance(qubit_order, ops.QubitOrder) and not frozenset(qubit_order) <= subset:
+                raise ValueError('qubit_order contains qubits not in qubit_subset')
+            moments_to_draw = [m for m in moments_to_draw if not subset.isdisjoint(m.qubits)]
+            visible = subset & frozenset(q for m in moments_to_draw for q in m.qubits)
+        qubits = tuple(
+            q for q in ops.QubitOrder.as_qubit_order(qubit_order).order_for(visible) if q in visible
+        )
         cbits = tuple(
             sorted(
                 {key for op in self.all_operations() for key in protocols.control_keys(op)}, key=str
@@ -1314,11 +1335,7 @@ class AbstractCircuit(abc.ABC):
 
         moment_groups: list[tuple[int, int]] = []
 
-        moments_to_draw: Sequence[Moment] = self.moments if moment_range is None else self.moments[moment_range[0] : moment_range[1]]
-
         for moment in moments_to_draw:
-            if any(op.qubits and qubit_subset and any(q not in qubit_subset for q in op.qubits) for op in moment.operations):
-                continue
             _draw_moment_in_diagram(
                 moment=moment,
                 use_unicode_characters=use_unicode_characters,
@@ -2793,7 +2810,9 @@ def _draw_moment_in_diagram(
         qubits = tuple(op.qubits)
         cbits = tuple(protocols.measurement_keys_touched(op) & label_map.keys())
         labels = qubits + cbits
-        indices = [label_map[label] for label in labels]
+        indices = [label_map[label] for label in labels if label in label_map]
+        if not indices:
+            continue
         y1 = min(indices)
         y2 = max(indices)
 
@@ -2821,10 +2840,14 @@ def _draw_moment_in_diagram(
         # Print gate qubit labels.
         symbols = info._wire_symbols_including_formatted_exponent(
             args,
-            preferred_exponent_index=max(range(len(labels)), key=lambda i: label_map[labels[i]]),
+            preferred_exponent_index=max(
+                (i for i in range(len(labels)) if labels[i] in label_map),
+                key=lambda i: label_map[labels[i]],
+            ),
         )
         for s, q in zip(symbols, labels):
-            out_diagram.write(x, label_map[q], s)
+            if q in label_map:
+                out_diagram.write(x, label_map[q], s)
 
         max_x = max(max_x, x)
 
