@@ -143,6 +143,19 @@ def test_str_and_repr() -> None:
     )
     assert eval(repr(op2)) == op2
 
+    q0, q1 = cirq.LineQubit.range(2)
+    op_multiline = cirq.If(sympy.Symbol('s'), cirq.X(q0), cirq.X(q1))
+    assert str(op_multiline) == """\
+If(s, [ 0: ───X─── ]
+      [            ]
+      [ 1: ───X─── ])"""
+
+    op_multiline_multi_cond = cirq.If(['a', 'b'], cirq.X(q0), cirq.X(q1))
+    assert str(op_multiline_multi_cond) == """\
+If([a, b], [ 0: ───X─── ]
+           [            ]
+           [ 1: ───X─── ])"""
+
 
 def test_parameterized_and_resolve() -> None:
     q = cirq.LineQubit(0)
@@ -228,6 +241,18 @@ t: ═══^════════════
     )
 
 
+@pytest.mark.parametrize('sub_operation', [[], cirq.Circuit()])
+def test_diagram_empty_op_tree(sub_operation: cirq.OP_TREE) -> None:
+    op = cirq.If('a', sub_operation)
+
+    assert isinstance(op.sub_operation, cirq.CircuitOperation)
+    assert op.sub_operation.circuit == cirq.FrozenCircuit()
+
+    args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT
+    assert op._circuit_diagram_info_(args) is NotImplemented
+    assert cirq.circuit_diagram_info(op, default=None) is None
+
+
 def test_simulation() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     # If q0 measured as 1, flip q1.
@@ -268,7 +293,7 @@ def test_qasm() -> None:
     op = cirq.If('a', cirq.X(q1))
     circuit = cirq.Circuit(cirq.measure(q0, key='a'), op)
     qasm_str = cirq.qasm(circuit)
-    assert 'if (m_a==1) x q[1];' in qasm_str
+    assert 'if (m_a==1) x q[1];\n' in qasm_str
 
     op_multi = cirq.If(['a', 'b'], cirq.X(q1))
     with pytest.raises(ValueError, match='QASM 2.0 does not support multiple conditions'):
@@ -276,10 +301,36 @@ def test_qasm() -> None:
 
     circuit_multi = cirq.Circuit(cirq.measure(q0, key='a'), cirq.measure(q0, key='b'), op_multi)
     qasm_str_3 = cirq.qasm(circuit_multi, args=cirq.QasmArgs(version='3.0'))
-    assert 'if (m_a!=0 && m_b!=0) x q[1];' in qasm_str_3
+    assert 'if (m_a!=0 && m_b!=0) {\n  x q[1];\n}\n' in qasm_str_3
+
+    op_nested = cirq.If('a', cirq.If('b', cirq.X(q1)))
+    assert op_nested == op_multi
+    qasm_nested = cirq.qasm(
+        cirq.Circuit(cirq.measure(q0, key='a'), cirq.measure(q0, key='b'), op_nested),
+        args=cirq.QasmArgs(version='3.0'),
+    )
+    assert 'if (m_a!=0 && m_b!=0) {\n  x q[1];\n}\n' in qasm_nested
+
+
+def test_qasm_multi_statement_sub_operation() -> None:
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+    # CCZ is exported as 3 QASM statements, all of which must be conditioned.
+    op = cirq.If('a', cirq.CCZ(q1, q2, q3))
+    circuit = cirq.Circuit(cirq.measure(q0, key='a'), op)
+
+    qasm_2 = cirq.qasm(circuit)
+    assert 'if (m_a==1) h q[3];\nif (m_a==1) ccx q[1],q[2],q[3];\nif (m_a==1) h q[3];\n' in qasm_2
+
+    qasm_3 = cirq.qasm(circuit, args=cirq.QasmArgs(version='3.0'))
+    assert 'if (m_a!=0) {\n  h q[3];\n  ccx q[1],q[2],q[3];\n  h q[3];\n}\n' in qasm_3
 
 
 def test_qasm_sub_op_no_qasm() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    op_circuit_op = cirq.If('a', cirq.X(q0), cirq.Y(q1))
+    assert isinstance(op_circuit_op.sub_operation, cirq.CircuitOperation)
+    assert cirq.qasm(op_circuit_op, args=cirq.QasmArgs(version='3.0'), default=None) is None
+
     class NoQasmOp(cirq.Operation):
         @property
         def qubits(self):
