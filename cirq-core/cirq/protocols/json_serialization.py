@@ -466,14 +466,24 @@ def cirq_type_from_json(type_str: str, resolvers: Sequence[JsonResolver] | None 
 
 @overload
 def to_json(
-    obj: Any, file_or_fn: IO | pathlib.Path | str, *, indent=2, separators=None, cls=CirqEncoder
+    obj: Any,
+    file_or_fn: IO | pathlib.Path | str,
+    *,
+    indent: int | None = None,
+    separators: tuple[str, str] | None = None,
+    cls: type[json.JSONEncoder] = CirqEncoder,
 ) -> None:
     pass
 
 
 @overload
 def to_json(
-    obj: Any, file_or_fn: None = None, *, indent=2, separators=None, cls=CirqEncoder
+    obj: Any,
+    file_or_fn: None = None,
+    *,
+    indent: int | None = None,
+    separators: tuple[str, str] | None = None,
+    cls: type[json.JSONEncoder] = CirqEncoder,
 ) -> str:
     pass
 
@@ -482,7 +492,7 @@ def to_json(
     obj: Any,
     file_or_fn: None | IO | pathlib.Path | str = None,
     *,
-    indent: int | None = 2,
+    indent: int | None = None,
     separators: tuple[str, str] | None = None,
     cls: type[json.JSONEncoder] = CirqEncoder,
 ) -> str | None:
@@ -498,9 +508,10 @@ def to_json(
             indicate that the method should return the JSON text as its result.
             Defaults to `None`.
         indent: Pretty-print the resulting file with this indent level.
+            When `None` produce a compact JSON without a newline character.
             Passed to json.dump.
         separators: Passed to json.dump; key-value pairs delimiters defined as
-            `(item_separator, key_separators)` tuple. Note that any non-standard
+            `(item_separator, key_separator)` tuple. Note that any non-standard
             operators (':', ',') will cause `read_json` to fail.
         cls: Passed to json.dump; the default value of CirqEncoder
             enables the serialization of Cirq objects which implement
@@ -549,7 +560,7 @@ def read_json(
             or both are specified.
     """
     if (file_or_fn is None) == (json_text is None):
-        raise ValueError('Must specify ONE of "file_or_fn" or "json".')
+        raise ValueError('Must specify ONE of "file_or_fn" or "json_text".')
 
     if resolvers is None:
         resolvers = DEFAULT_RESOLVERS
@@ -570,7 +581,7 @@ def to_json_gzip(
     obj: Any,
     file_or_fn: None | IO | pathlib.Path | str = None,
     *,
-    indent: int = 2,
+    indent: int | None = None,
     cls: type[json.JSONEncoder] = CirqEncoder,
 ) -> bytes | None:
     """Write a gzipped JSON file containing a representation of obj.
@@ -585,7 +596,7 @@ def to_json_gzip(
             indicate that the method should return the JSON text as its result.
             Defaults to `None`.
         indent: Pretty-print the resulting file with this indent level.
-            Passed to json.dump.
+            Produce a compact JSON when `None`.  Passed to json.dump.
         cls: Passed to json.dump; the default value of CirqEncoder
             enables the serialization of Cirq objects which implement
             the SupportsJSON protocol. To support serialization of 3rd
