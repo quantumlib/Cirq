@@ -48,7 +48,7 @@ extend_skip_glob = ["*_pb2.py"]
 
 [tool.mypy]
 exclude = [
-    '/setup\.py',
+    '(^|/)setup\.py$',
     'cirq-google/cirq_google/cloud/',
 ]
 exclude_gitignore = true
