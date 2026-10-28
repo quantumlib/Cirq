@@ -28,8 +28,14 @@ document(TParamKey, """A parameter that a parameter resolver may map to a value.
 TParamVal = float | np.integer | np.floating | sympy.Expr
 document(
     TParamVal,
-    """A value that a parameter resolver may return for a parameter """
-    """(real float, NumPy integer or floating-point number, or sympy).""",
+    """A value that a parameter resolver may return for a parameter.
+
+    This is a real float, a NumPy integer or floating-point number, or a sympy expression.
+
+    NumPy fixed-width scalars are stored as given, so they keep NumPy's overflow and wraparound
+    behavior in gate arithmetic. For example, an unsigned integer exponent can overflow in
+    `cirq.inverse`.
+    """,
 )
 
 TParamValComplex = complex | np.number | sympy.Expr

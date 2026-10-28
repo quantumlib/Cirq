@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
 import cirq
@@ -72,3 +73,14 @@ def test_qasm_args_formatting() -> None:
     args = cirq.QasmArgs(precision=6)
     assert args.format_field(0.00001234, '') == '1.2e-05'
     assert args.format_field(0.00001234, 'half_turns') == 'pi*1.2e-05'
+
+
+@pytest.mark.parametrize('dtype, value', [(np.float32, 0.125), (np.int64, 2)])
+def test_qasm_numpy_scalar_parameters(dtype, value) -> None:
+    q = cirq.LineQubit(0)
+    numpy_gate = cirq.XPowGate(exponent=dtype(value))
+    assert type(numpy_gate.exponent) is dtype
+    expected = cirq.qasm(cirq.Circuit(cirq.XPowGate(exponent=value).on(q)))
+    actual = cirq.qasm(cirq.Circuit(numpy_gate.on(q)))
+    assert f'rx(pi*{value}) q[0];' in actual
+    assert actual == expected
