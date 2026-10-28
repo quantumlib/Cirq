@@ -45,8 +45,7 @@ class StabilizerChFormSimulationState(
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             prng: The pseudo random number generator (or seed) to use for
-                probabilistic effects. Anything accepted by
-                `cirq.value.parse_random_generator`.
+                probabilistic effects.
             initial_state: The initial state for the simulation. This can be a
                 full CH form passed by reference which will be modified inplace,
                 or a big-endian int in the computational basis. If the state is

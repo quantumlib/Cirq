@@ -12,7 +12,6 @@ import sympy
 import cirq
 import cirq.contrib.quimb as ccq
 import cirq.testing
-from cirq import value
 
 
 def assert_same_output_as_dense(circuit, qubit_order, initial_state=0, grouping=None) -> None:
@@ -265,9 +264,7 @@ def test_measurement_str() -> None:
 def test_trial_result_str() -> None:
     q0 = cirq.LineQubit(0)
     final_simulator_state = ccq.mps_simulator.MPSState(
-        qubits=(q0,),
-        prng=value.parse_random_generator(0),
-        simulation_options=ccq.mps_simulator.MPSOptions(),
+        qubits=(q0,), prng=None, simulation_options=ccq.mps_simulator.MPSOptions()
     )
     result = ccq.mps_simulator.MPSTrialResult(
         params=cirq.ParamResolver({}),
@@ -280,9 +277,7 @@ def test_trial_result_str() -> None:
 def test_trial_result_repr_pretty() -> None:
     q0 = cirq.LineQubit(0)
     final_simulator_state = ccq.mps_simulator.MPSState(
-        qubits=(q0,),
-        prng=value.parse_random_generator(0),
-        simulation_options=ccq.mps_simulator.MPSOptions(),
+        qubits=(q0,), prng=None, simulation_options=ccq.mps_simulator.MPSOptions()
     )
     result = ccq.mps_simulator.MPSTrialResult(
         params=cirq.ParamResolver({}),
@@ -312,17 +307,17 @@ def test_state_equal() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     state0 = ccq.mps_simulator.MPSState(
         qubits=(q0,),
-        prng=value.parse_random_generator(0),
+        prng=None,
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1e-3, sum_prob_atol=1e-3),
     )
     state1a = ccq.mps_simulator.MPSState(
         qubits=(q1,),
-        prng=value.parse_random_generator(0),
+        prng=None,
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1e-3, sum_prob_atol=1e-3),
     )
     state1b = ccq.mps_simulator.MPSState(
         qubits=(q1,),
-        prng=value.parse_random_generator(0),
+        prng=None,
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1729.0, sum_prob_atol=1e-3),
     )
     assert state0 == state0  # noqa: PLR0124
@@ -348,7 +343,7 @@ def test_random_circuits_equal_more_cols() -> None:
 
 def test_tensor_index_names() -> None:
     qubits = cirq.LineQubit.range(12)
-    state = ccq.mps_simulator.MPSState(qubits=qubits, prng=value.parse_random_generator(0))
+    state = ccq.mps_simulator.MPSState(qubits=qubits, prng=None)
 
     assert state.i_str(0) == "i_00"
     assert state.i_str(11) == "i_11"
@@ -475,9 +470,7 @@ def test_simulation_state_initializer() -> None:
         _records={cirq.MeasurementKey('test'): [(4,)]}
     )
     s = ccq.mps_simulator.MPSState(
-        qubits=(cirq.LineQubit(0),),
-        prng=np.random.RandomState(0),
-        classical_data=expected_classical_data,
+        qubits=(cirq.LineQubit(0),), prng=None, classical_data=expected_classical_data
     )
     assert s.qubits == (cirq.LineQubit(0),)
     assert s.classical_data == expected_classical_data
@@ -489,7 +482,7 @@ def test_simulation_state_initializer() -> None:
 
 
 def test_act_on_gate() -> None:
-    args = ccq.mps_simulator.MPSState(qubits=cirq.LineQubit.range(3), prng=np.random.RandomState(0))
+    args = ccq.mps_simulator.MPSState(qubits=cirq.LineQubit.range(3), prng=None)
 
     cirq.act_on(cirq.X, args, [cirq.LineQubit(1)])
     np.testing.assert_allclose(

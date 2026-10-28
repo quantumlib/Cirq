@@ -578,7 +578,6 @@ class MPSState(SimulationState[_MPSHandler]):
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             prng: A random number generator (or seed), used to simulate measurements.
-                Anything accepted by `cirq.value.parse_random_generator`.
             simulation_options: Numerical options for the simulation.
             grouping: How to group qubits together, if None all are individual.
             initial_state: An integer representing the initial state.

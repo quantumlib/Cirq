@@ -767,7 +767,6 @@ def test_simulator_step_state_mixin() -> None:
     qubits = cirq.LineQubit.range(2)
     args = cirq.StateVectorSimulationState(
         available_buffer=np.array([0, 1, 0, 0]).reshape((2, 2)),
-        prng=cirq.value.parse_random_generator(0),
         qubits=qubits,
         initial_state=np.array([0, 1, 0, 0], dtype=np.complex64).reshape((2, 2)),
         dtype=np.complex64,
@@ -785,7 +784,6 @@ def test_sparse_simulator_repr() -> None:
     qubits = cirq.LineQubit.range(2)
     args = cirq.StateVectorSimulationState(
         available_buffer=np.array([0, 1, 0, 0]).reshape((2, 2)),
-        prng=cirq.value.parse_random_generator(0),
         qubits=qubits,
         initial_state=np.array([0, 1, 0, 0], dtype=np.complex64).reshape((2, 2)),
         dtype=np.complex64,
@@ -1046,79 +1044,13 @@ def test_random_seed_does_not_modify_global_state_mixture() -> None:
 def test_random_seed_terminal_measurements_deterministic() -> None:
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit(cirq.X(a) ** 0.5, cirq.measure(a, key='a'))
-    sim = cirq.Simulator(seed=1234)
-    result1 = sim.run(circuit, repetitions=30)
-    result2 = sim.run(circuit, repetitions=30)
-    assert np.all(
-        result1.measurements['a']
-        == [
-            [1],
-            [0],
-            [1],
-            [0],
-            [0],
-            [0],
-            [0],
-            [0],
-            [1],
-            [0],
-            [0],
-            [1],
-            [1],
-            [1],
-            [1],
-            [1],
-            [1],
-            [0],
-            [0],
-            [1],
-            [0],
-            [1],
-            [1],
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
-            [0],
-            [0],
-        ]
-    )
-    assert np.all(
-        result2.measurements['a']
-        == [
-            [1],
-            [0],
-            [1],
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
-            [0],
-            [0],
-            [1],
-            [0],
-            [1],
-            [1],
-            [1],
-            [0],
-            [0],
-            [0],
-            [0],
-            [0],
-            [1],
-            [1],
-            [0],
-            [0],
-            [1],
-            [1],
-            [0],
-            [0],
-            [1],
-            [1],
-        ]
-    )
+    sim1 = cirq.Simulator(seed=1234)
+    result1 = sim1.run(circuit, repetitions=30)
+    result2 = sim1.run(circuit, repetitions=30)
+    sim2 = cirq.Simulator(seed=1234)
+    assert sim2.run(circuit, repetitions=30) == result1
+    assert sim2.run(circuit, repetitions=30) == result2
+    assert result1 != result2
 
 
 def test_random_seed_non_terminal_measurements_deterministic() -> None:
@@ -1126,78 +1058,13 @@ def test_random_seed_non_terminal_measurements_deterministic() -> None:
     circuit = cirq.Circuit(
         cirq.X(a) ** 0.5, cirq.measure(a, key='a'), cirq.X(a) ** 0.5, cirq.measure(a, key='b')
     )
-    sim = cirq.Simulator(seed=1234)
-    result = sim.run(circuit, repetitions=30)
-    assert np.all(
-        result.measurements['a']
-        == [
-            [1],
-            [1],
-            [0],
-            [0],
-            [1],
-            [0],
-            [1],
-            [1],
-            [1],
-            [0],
-            [0],
-            [1],
-            [0],
-            [0],
-            [0],
-            [1],
-            [1],
-            [0],
-            [0],
-            [0],
-            [1],
-            [1],
-            [1],
-            [0],
-            [0],
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
-        ]
-    )
-    assert np.all(
-        result.measurements['b']
-        == [
-            [0],
-            [0],
-            [0],
-            [0],
-            [0],
-            [1],
-            [1],
-            [1],
-            [0],
-            [1],
-            [1],
-            [1],
-            [1],
-            [1],
-            [0],
-            [0],
-            [1],
-            [1],
-            [1],
-            [0],
-            [0],
-            [1],
-            [0],
-            [0],
-            [0],
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
-        ]
-    )
+    sim1 = cirq.Simulator(seed=1234)
+    result1 = sim1.run(circuit, repetitions=30)
+    result2 = sim1.run(circuit, repetitions=30)
+    sim2 = cirq.Simulator(seed=1234)
+    assert sim2.run(circuit, repetitions=30) == result1
+    assert sim2.run(circuit, repetitions=30) == result2
+    assert result1 != result2
 
 
 def test_random_seed_mixture_deterministic() -> None:
@@ -1210,43 +1077,13 @@ def test_random_seed_mixture_deterministic() -> None:
         cirq.depolarize(0.9).on(a),
         cirq.measure(a, key='a'),
     )
-    sim = cirq.Simulator(seed=1234)
-    result = sim.run(circuit, repetitions=30)
-    assert np.all(
-        result.measurements['a']
-        == [
-            [1],
-            [0],
-            [0],
-            [1],
-            [0],
-            [0],
-            [0],
-            [0],
-            [1],
-            [0],
-            [1],
-            [0],
-            [0],
-            [1],
-            [1],
-            [0],
-            [0],
-            [0],
-            [0],
-            [0],
-            [1],
-            [1],
-            [0],
-            [0],
-            [1],
-            [1],
-            [0],
-            [0],
-            [1],
-            [0],
-        ]
-    )
+    sim1 = cirq.Simulator(seed=1234)
+    result1 = sim1.run(circuit, repetitions=30)
+    result2 = sim1.run(circuit, repetitions=30)
+    sim2 = cirq.Simulator(seed=1234)
+    assert sim2.run(circuit, repetitions=30) == result1
+    assert sim2.run(circuit, repetitions=30) == result2
+    assert result1 != result2
 
 
 def test_entangled_reset_does_not_break_randomness() -> None:

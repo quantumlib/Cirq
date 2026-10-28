@@ -46,8 +46,7 @@ class CliffordTableauSimulationState(StabilizerSimulationState[clifford_tableau.
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             prng: The pseudo random number generator (or seed) to use for
-                probabilistic effects. Anything accepted by
-                `cirq.value.parse_random_generator`.
+                probabilistic effects.
             classical_data: The shared classical data container for this
                 simulation.
         """

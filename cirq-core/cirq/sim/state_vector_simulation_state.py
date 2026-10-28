@@ -341,8 +341,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             prng: The pseudo random number generator (or seed) to use for
-                probabilistic effects. Anything accepted by
-                `cirq.value.parse_random_generator`.
+                probabilistic effects.
             initial_state: The initial state for the simulation in the
                 computational basis.
             dtype: The `numpy.dtype` of the inferred state vector. One of

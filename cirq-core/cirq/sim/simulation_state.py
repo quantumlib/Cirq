@@ -48,8 +48,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
 
         Args:
             prng: The pseudo random number generator (or seed) to use for
-                probabilistic effects. Anything accepted by
-                `cirq.value.parse_random_generator`.
+                probabilistic effects.
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.

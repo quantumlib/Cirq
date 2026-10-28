@@ -136,8 +136,8 @@ def test_destabilizers() -> None:
 
 
 def test_measurement() -> None:
-    repetitions = 500
-    prng = np.random.default_rng(seed=123456)
+    repetitions = 5000
+    prng = cirq.value.parse_random_generator(None)
 
     # 1. The final state is |0>
     res = []

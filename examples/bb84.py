@@ -146,6 +146,7 @@ def main(num_qubits=8):
     # Setup eavesdropped protocol
     print('Simulating eavesdropped protocol')
     np.random.seed(200)  # Seed random generator for consistent results
+    cirq.value.reseed_default_prng(200)
     alice_basis = [np.random.randint(0, 2) for _ in range(num_qubits)]
     alice_state = [np.random.randint(0, 2) for _ in range(num_qubits)]
     bob_basis = [np.random.randint(0, 2) for _ in range(num_qubits)]
@@ -161,15 +162,14 @@ def main(num_qubits=8):
 
     # Run simulations.
     repetitions = 1
-    simulator = cirq.Simulator(seed=200)  # Seed simulator for consistent results
-    result = simulator.run(program=alice_eve_circuit, repetitions=repetitions)
+    result = cirq.Simulator().run(program=alice_eve_circuit, repetitions=repetitions)
     eve_state = [result.measurements[str(q)].item() for q in qubits]
 
     eve_bob_circuit = make_bb84_circ(num_qubits, eve_basis, bob_basis, eve_state)
 
     # Run simulations.
     repetitions = 1
-    result = simulator.run(program=eve_bob_circuit, repetitions=repetitions)
+    result = cirq.Simulator().run(program=eve_bob_circuit, repetitions=repetitions)
     result_bitstring = bitstring([result.measurements[str(q)].item() for q in qubits])
 
     # Take only qubits where bases match

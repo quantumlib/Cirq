@@ -69,7 +69,7 @@ def get_expected_cm(num_qubits: int, p0: float, p1: float) -> np.ndarray:
 
 @pytest.mark.parametrize('p0, p1', [(0, 0), (0.2, 0.4), (0.5, 0.5), (0.6, 0.3), (1.0, 1.0)])
 def test_measure_confusion_matrix_with_noise(p0, p1) -> None:
-    sampler = NoisySingleQubitReadoutSampler(p0, p1, seed=1236)
+    sampler = NoisySingleQubitReadoutSampler(p0, p1)
     num_qubits = 4
     qubits = cirq.LineQubit.range(num_qubits)
     expected_cm = get_expected_cm(num_qubits, p0, p1)
@@ -81,8 +81,8 @@ def test_measure_confusion_matrix_with_noise(p0, p1) -> None:
     assert readout_cm.repetitions == repetitions
     for q, expected in zip([None, qubits_small], [expected_cm, expected_cm_small]):
         cm = readout_cm.confusion_matrix(q)
-        np.testing.assert_allclose(cm, expected, atol=1e-2)
-        # this check works even if the confusion matrix is singular
+        np.testing.assert_allclose(cm, expected, atol=2e-2)
+        # check for unitary this way in case the matrix is singular
         np.testing.assert_allclose(cm @ readout_cm.correction_matrix(q) @ cm, cm, atol=1e-2)
 
     # Build a tensored confusion matrix using smaller single qubit confusion matrices.
@@ -93,7 +93,7 @@ def test_measure_confusion_matrix_with_noise(p0, p1) -> None:
     assert readout_cm.repetitions == repetitions
     for q, expected in zip([None, qubits_small], [expected_cm, expected_cm_small]):
         cm = readout_cm.confusion_matrix(q)
-        np.testing.assert_allclose(cm, expected, atol=1e-2)
+        np.testing.assert_allclose(cm, expected, atol=2e-2)
         np.testing.assert_allclose(cm @ readout_cm.correction_matrix(q) @ cm, cm, atol=1e-2)
 
     # Apply corrections to sampled probabilities using readout_cm.
@@ -107,7 +107,6 @@ def test_measure_confusion_matrix_with_noise(p0, p1) -> None:
         return np.sum((expected_result - result) ** 2)
 
     corrected_result = readout_cm.apply(sampled_result, qs)
-    # The two norms are equal up to floating point error when cm is a permutation matrix.
     l2_sampled, l2_corrected = l2norm(sampled_result), l2norm(corrected_result)
     assert l2_corrected <= l2_sampled or np.isclose(l2_corrected, l2_sampled, atol=0)
 

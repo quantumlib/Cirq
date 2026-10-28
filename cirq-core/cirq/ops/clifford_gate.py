@@ -325,7 +325,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
 
         base_tableau = qis.CliffordTableau(len(qubit_order))
         args = sim.clifford.CliffordTableauSimulationState(
-            tableau=base_tableau, qubits=qubit_order, prng=np.random.default_rng(0)  # unused
+            tableau=base_tableau, qubits=qubit_order, prng=None  # unused
         )
         for op in operations:
             protocols.act_on(op, args, allow_decompose=True)
