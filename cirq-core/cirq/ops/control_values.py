@@ -16,9 +16,12 @@ from __future__ import annotations
 
 import abc
 import itertools
+import operator
 from collections.abc import Collection, Iterator, Sequence
 from functools import cached_property
 from typing import Any, TYPE_CHECKING
+
+import numpy as np
 
 from cirq import protocols, value
 
@@ -139,13 +142,23 @@ class AbstractControlValues(abc.ABC):
         return SumOfProducts((*self.expand(), *other.expand()))
 
 
+def _control_value_to_int(control_value: Any) -> int:
+    # Convert bools (including numpy bools) to 0/1 so they are not treated as boolean masks when
+    # used as indices later. operator.index rejects floats and strings, which int() would silently
+    # truncate or split into characters.
+    if isinstance(control_value, (bool, np.bool_)):
+        return int(control_value)
+    return operator.index(control_value)
+
+
 class ProductOfSums(AbstractControlValues):
     """Represents control values as N OR (sum) clauses, each of which applies to one qubit."""
 
     def __init__(self, data: Sequence[int | Collection[int]]):
-        # Convert bools to 0/1 so they are not treated as boolean masks when used as indices later.
         self._qubit_sums: tuple[tuple[int, ...], ...] = tuple(
-            (int(cv),) if isinstance(cv, int) else tuple(sorted({int(v) for v in cv}))
+            (_control_value_to_int(cv),)
+            if isinstance(cv, int)
+            else tuple(sorted({_control_value_to_int(v) for v in cv}))
             for cv in data
         )
 
@@ -246,7 +259,7 @@ class SumOfProducts(AbstractControlValues):
 
     def __init__(self, data: Collection[Sequence[int]], *, name: str | None = None):
         self._conjunctions: tuple[tuple[int, ...], ...] = tuple(
-            sorted({tuple(int(v) for v in cv) for cv in data})
+            sorted({tuple(_control_value_to_int(v) for v in cv) for cv in data})
         )
         self._name = name
         if not len(self._conjunctions):

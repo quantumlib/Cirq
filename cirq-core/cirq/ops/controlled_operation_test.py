@@ -503,14 +503,55 @@ def test_variable_qid_resolution():
 
 @pytest.mark.parametrize("gate", [cirq.H, cirq.X, cirq.Z])
 @pytest.mark.parametrize("control_value", [True, False])
-def test_bool_control_values_match_ints(gate, control_value):
+@pytest.mark.parametrize("use_sum_of_products", [True, False])
+def test_bool_control_values_match_ints(gate, control_value, use_sum_of_products):
+    def make_control_values(value):
+        if use_sum_of_products:
+            return cirq.SumOfProducts([[value]])
+        return [value]
+
     bool_op = cirq.ControlledOperation(
-        [cirq.LineQubit(0)], gate(cirq.LineQubit(1)), control_values=[control_value]
+        [cirq.LineQubit(0)],
+        gate(cirq.LineQubit(1)),
+        control_values=make_control_values(control_value),
     )
     int_op = cirq.ControlledOperation(
-        [cirq.LineQubit(0)], gate(cirq.LineQubit(1)), control_values=[int(control_value)]
+        [cirq.LineQubit(0)],
+        gate(cirq.LineQubit(1)),
+        control_values=make_control_values(int(control_value)),
     )
 
     np.testing.assert_allclose(cirq.unitary(bool_op), cirq.unitary(int_op))
 
     cirq.testing.assert_decompose_is_consistent_with_unitary(bool_op)
+    cirq.testing.assert_implements_consistent_protocols(bool_op)
+
+
+def test_bool_control_values_mixed_with_ints_match_ints():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    bool_op = cirq.ControlledOperation([q0, q1], cirq.X(q2), control_values=[True, 0])
+    int_op = cirq.ControlledOperation([q0, q1], cirq.X(q2), control_values=[1, 0])
+
+    np.testing.assert_allclose(cirq.unitary(bool_op), cirq.unitary(int_op))
+    cirq.testing.assert_decompose_is_consistent_with_unitary(bool_op)
+
+
+def test_bool_control_values_sum_of_products_two_controls_match_ints():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    bool_op = cirq.ControlledOperation(
+        [q0, q1], cirq.H(q2), control_values=cirq.SumOfProducts([[True, False]])
+    )
+    int_op = cirq.ControlledOperation(
+        [q0, q1], cirq.H(q2), control_values=cirq.SumOfProducts([[1, 0]])
+    )
+
+    np.testing.assert_allclose(cirq.unitary(bool_op), cirq.unitary(int_op))
+    cirq.testing.assert_decompose_is_consistent_with_unitary(bool_op)
+
+
+def test_bool_control_values_controlled_gate_match_ints():
+    bool_gate = cirq.ControlledGate(cirq.H, control_values=[False])
+    int_gate = cirq.ControlledGate(cirq.H, control_values=[0])
+
+    np.testing.assert_allclose(cirq.unitary(bool_gate), cirq.unitary(int_gate))
+    cirq.testing.assert_implements_consistent_protocols(bool_gate)

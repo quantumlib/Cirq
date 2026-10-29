@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
 import cirq
@@ -356,3 +357,30 @@ def test_bool_control_values_are_stored_as_ints():
     control_values = cirq.SumOfProducts([[True, False]])
     assert tuple(control_values) == ((1, 0),)
     assert all(type(v) is int for values in control_values for v in values)
+
+
+def test_bool_control_values_str():
+    assert str(cirq.ProductOfSums([False])) == 'C0'
+    assert str(cirq.SumOfProducts([[True, False]])) == 'C_10'
+
+
+def test_numpy_bool_arrays_are_stored_as_ints():
+    control_values = cirq.ProductOfSums(np.array([[True], [False]]))
+    assert tuple(control_values) == ((1,), (0,))
+    assert all(type(v) is int for values in control_values for v in values)
+
+    control_values = cirq.SumOfProducts(np.array([[True, False]]))
+    assert tuple(control_values) == ((1, 0),)
+    assert all(type(v) is int for values in control_values for v in values)
+
+
+@pytest.mark.parametrize('data', [[[1.5]], np.array([[1.5]]), ['01']])
+def test_product_of_sums_rejects_non_integer_clauses(data):
+    with pytest.raises(TypeError):
+        _ = cirq.ProductOfSums(data)
+
+
+@pytest.mark.parametrize('data', [np.array([[1.5]]), [[1.5]], ['01']])
+def test_sum_of_products_rejects_non_integer_conjunctions(data):
+    with pytest.raises(TypeError):
+        _ = cirq.SumOfProducts(data)
