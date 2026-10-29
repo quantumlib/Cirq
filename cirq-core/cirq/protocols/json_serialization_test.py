@@ -23,6 +23,7 @@ import io
 import json
 import os
 import pathlib
+import sys
 import warnings
 from typing import Any
 from unittest import mock
@@ -606,18 +607,20 @@ def test_json_gzip_compresslevel() -> None:
     assert gzip.decompress(gzip_data_level_9) == json_bytes
 
 
+@pytest.mark.xfail(
+    sys.version_info < (3, 13),
+    reason="gzip header OS byte may vary in Python versions prior to 3.13.",
+)
 def test_json_gzip_is_reproducible(tmp_path: pathlib.Path) -> None:
     expected_bytes = (
-        # gzip.compress(b'1', compresslevel=1, mtime=0)
-        # Python 3.11, 3.12
-        b'\x1f\x8b\x08\x00\x00\x00\x00\x00\x04\x033\x04\x00\xb7\xef\xdc\x83\x01\x00\x00\x00',
-        # Python 3.13, 3.14
-        b'\x1f\x8b\x08\x00\x00\x00\x00\x00\x04\xff3\x04\x00\xb7\xef\xdc\x83\x01\x00\x00\x00',
+        # gzip.compress(b'1', compresslevel=1, mtime=0) using Python 3.13
+        b'\x1f\x8b\x08\x00\x00\x00\x00\x00\x04\xff3\x04\x00\xb7\xef\xdc\x83\x01\x00\x00\x00'
     )
-    assert cirq.to_json_gzip(1) in expected_bytes
+    actual_bytes = cirq.to_json_gzip(1)
     gzip_file_path = tmp_path.joinpath("one.json.gz")
     cirq.to_json_gzip(1, gzip_file_path)
-    assert gzip_file_path.read_bytes() in expected_bytes
+    assert gzip_file_path.read_bytes() == actual_bytes
+    assert actual_bytes == expected_bytes
 
 
 def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: str | None):
