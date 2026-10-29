@@ -613,8 +613,7 @@ def to_json_gzip(
 
     The object may be a cirq object or have data members that are cirq
     objects which implement the SupportsJSON protocol.  The gzip output
-    is reproducible as it does not store the filename and timestamp
-    in its header.
+    is reproducible assuming the same Python version and OS platform.
 
     Args:
         obj: An object which can be serialized to a JSON representation.
