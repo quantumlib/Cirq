@@ -122,6 +122,10 @@ class StabilizerSimulationState(
         return True
 
     def _strat_apply_mixture(self, val: Any, qubits: Sequence[cirq.Qid]) -> bool:
+        if len(qubits) != 1:
+            # The sampled unitary can only be applied via a single-qubit Clifford decomposition
+            # below, so skip computing an exponentially large dense mixture for multi-qubit ops.
+            return NotImplemented
         mixture = protocols.mixture(val, None)
         if mixture is None:
             return NotImplemented
