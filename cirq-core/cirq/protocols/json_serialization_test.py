@@ -606,6 +606,17 @@ def test_json_gzip_compresslevel() -> None:
     assert gzip.decompress(gzip_data_level_9) == json_bytes
 
 
+def test_json_gzip_is_reproducible(tmp_path: pathlib.Path) -> None:
+    expected_bytes = (
+        # gzip.compress(b'1', compresslevel=1, mtime=0)
+        b'\x1f\x8b\x08\x00\x00\x00\x00\x00\x04\x033\x04\x00\xb7\xef\xdc\x83\x01\x00\x00\x00'
+    )
+    assert cirq.to_json_gzip(1) == expected_bytes
+    gzip_file_path = tmp_path.joinpath("one.json.gz")
+    cirq.to_json_gzip(1, gzip_file_path)
+    assert gzip_file_path.read_bytes() == expected_bytes
+
+
 def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: str | None):
     content = path.read_text()
     ctx_managers: list[contextlib.AbstractContextManager] = [contextlib.suppress()]
