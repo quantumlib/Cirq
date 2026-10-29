@@ -599,8 +599,9 @@ def to_json_gzip(
         indent: Pretty-print the resulting file with this indent level.
             Produce a compact JSON when `None`.  Passed to json.dump.
         compresslevel: Passed to gzip.compress; an integer from 0 to 9 specifying
-            the level of gzip compression.  The default value 7 is a compromise to
-            produce good compression at about 40% less time than at level 9.
+            the level of gzip compression.  The default value 1 results in the
+            fastest performance with a compression rate of plain JSON increased
+            to about 3.4% compared to 2.3% at level 9.
         cls: Passed to json.dump; the default value of CirqEncoder
             enables the serialization of Cirq objects which implement
             the SupportsJSON protocol. To support serialization of 3rd
