@@ -603,7 +603,7 @@ def to_json_gzip(
 
 def to_json_gzip(
     obj: Any,
-    file_or_fn: None | IO | pathlib.Path | str = None,
+    file_or_fn: IO | pathlib.Path | str | None = None,
     *,
     compresslevel: int = 1,
     indent: int | None = None,
@@ -620,12 +620,12 @@ def to_json_gzip(
             an IO object (such as a file or buffer) to write to, or `None` to
             indicate that the method should return the JSON text as its result.
             Defaults to `None`.
-        indent: Pretty-print the resulting file with this indent level.
-            Produce a compact JSON when `None`.  Passed to json.dump.
         compresslevel: Passed to gzip.compress; an integer from 0 to 9 specifying
             the level of gzip compression.  The default value 1 results in the
             fastest performance with a compression rate of plain JSON increased
             to about 3.4% compared to 2.3% at level 9.
+        indent: Pretty-print the resulting file with this indent level.
+            Produce a compact JSON when `None`.  Passed to json.dump.
         cls: Passed to json.dump; the default value of CirqEncoder
             enables the serialization of Cirq objects which implement
             the SupportsJSON protocol. To support serialization of 3rd
