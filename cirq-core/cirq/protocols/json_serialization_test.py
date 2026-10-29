@@ -608,8 +608,7 @@ def test_json_gzip_compresslevel() -> None:
 
 
 @pytest.mark.xfail(
-    sys.version_info < (3, 13),
-    reason="gzip header OS byte may vary in Python 3.12 and earlier.",
+    sys.version_info < (3, 13), reason="gzip header OS byte may vary in Python 3.12 and earlier."
 )
 def test_json_gzip_is_reproducible(tmp_path: pathlib.Path) -> None:
     expected_bytes = (
