@@ -17,6 +17,7 @@ from __future__ import annotations
 import contextlib
 import dataclasses
 import datetime
+import gzip
 import importlib
 import io
 import json
@@ -590,6 +591,19 @@ def test_to_from_json_gzip() -> None:
         _ = cirq.read_json_gzip(io.StringIO(), gzip_raw=gzip_data)
     with pytest.raises(ValueError):
         _ = cirq.read_json_gzip()
+
+
+def test_json_gzip_compresslevel() -> None:
+    qubits = cirq.LineQubit.range(100)
+    test_circuit = cirq.Circuit(
+        10 * [cirq.X.on_each(*qubits), cirq.Y.on_each(*qubits), cirq.Z.on_each(*qubits)]
+    )
+    gzip_data_level_1 = cirq.to_json_gzip(test_circuit, compresslevel=1)
+    gzip_data_level_9 = cirq.to_json_gzip(test_circuit, compresslevel=9)
+    assert len(gzip_data_level_9) < 0.9 * len(gzip_data_level_1)
+    json_bytes = cirq.to_json(test_circuit).encode()
+    assert gzip.decompress(gzip_data_level_1) == json_bytes
+    assert gzip.decompress(gzip_data_level_9) == json_bytes
 
 
 def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: str | None):

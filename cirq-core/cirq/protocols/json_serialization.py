@@ -577,6 +577,30 @@ def read_json(
     return json.load(cast(IO, file_or_fn), object_hook=obj_hook)
 
 
+@overload
+def to_json_gzip(
+    obj: Any,
+    file_or_fn: IO | pathlib.Path | str,
+    *,
+    compresslevel: int = 1,
+    indent: int | None = None,
+    cls: type[json.JSONEncoder] = CirqEncoder,
+) -> None:
+    pass
+
+
+@overload
+def to_json_gzip(
+    obj: Any,
+    file_or_fn: None = None,
+    *,
+    compresslevel: int = 1,
+    indent: int | None = None,
+    cls: type[json.JSONEncoder] = CirqEncoder,
+) -> bytes:
+    pass
+
+
 def to_json_gzip(
     obj: Any,
     file_or_fn: None | IO | pathlib.Path | str = None,
