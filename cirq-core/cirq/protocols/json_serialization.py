@@ -581,7 +581,7 @@ def to_json_gzip(
     obj: Any,
     file_or_fn: None | IO | pathlib.Path | str = None,
     *,
-    compresslevel: int = 7,
+    compresslevel: int = 1,
     indent: int | None = None,
     cls: type[json.JSONEncoder] = CirqEncoder,
 ) -> bytes | None:
