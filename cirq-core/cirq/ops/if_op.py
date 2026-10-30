@@ -33,7 +33,7 @@ class If(raw_types.Operation):
 
     This operation decomposes into a `cirq.ClassicallyControlledOperation`.
 
-    Note: This is an experimental function designed as part of a prototype
+    Note: This is an experimental class designed as part of a prototype
     for Cirq 2.0.  The interface for this class is subject to change between versions.
     """
 
@@ -154,9 +154,12 @@ class If(raw_types.Operation):
 
     def __str__(self) -> str:
         if len(self._conditions) == 1:
-            return f'If({self._conditions[0]}, {self._sub_operation})'
-        keys = ', '.join(str(c) for c in self._conditions)
-        return f'If([{keys}], {self._sub_operation})'
+            prefix = f'If({self._conditions[0]}, '
+        else:
+            keys = ', '.join(str(c) for c in self._conditions)
+            prefix = f'If([{keys}], '
+        sub_op_str = str(self._sub_operation).replace('\n', '\n' + ' ' * len(prefix))
+        return f'{prefix}{sub_op_str})'
 
     def __repr__(self) -> str:
         if len(self._conditions) == 1:
@@ -165,9 +168,9 @@ class If(raw_types.Operation):
 
     @_compat.cached_method
     def _is_parameterized_(self) -> bool:
-        return any(
-            protocols.is_parameterized(c) for c in self._conditions
-        ) or protocols.is_parameterized(self._sub_operation)
+        return protocols.is_parameterized(self._conditions) or protocols.is_parameterized(
+            self._sub_operation
+        )
 
     @_compat.cached_method
     def _parameter_names_(self) -> frozenset[str]:
@@ -193,8 +196,8 @@ class If(raw_types.Operation):
             label_map=args.label_map,
         )
         sub_info = protocols.circuit_diagram_info(self._sub_operation, sub_args, None)
-        if sub_info is None:
-            return NotImplemented  # pragma: no cover
+        if sub_info is None or not sub_info.wire_symbols:
+            return NotImplemented
         control_label_count = 0
         if args.label_map is not None:
             control_label_count = len({k for c in self._conditions for k in c.keys})
@@ -251,9 +254,7 @@ class If(raw_types.Operation):
         self, *, args: cirq.QasmArgs | None = None, qubits: Sequence[cirq.Qid] | None = None
     ) -> str | None:
         if args is None:
-            from cirq.protocols.qasm import QasmArgs
-
-            args = QasmArgs()
+            args = protocols.QasmArgs()
         args.validate_version('2.0', '3.0')
         if args.version == "2.0" and len(self._conditions) > 1:
             raise ValueError(
@@ -263,4 +264,15 @@ class If(raw_types.Operation):
         if subop_qasm is None:
             return None
         condition_qasm = " && ".join(protocols.qasm(c, args=args) for c in self._conditions)
-        return f'if ({condition_qasm}) {subop_qasm}'
+        if args.version == "2.0":
+            # QASM 2.0 does not support scoped blocks, so condition every statement
+            # of the sub-operation individually.  This is equivalent to a block,
+            # because the sub-operation cannot contain measurements that could
+            # change the condition.
+            return ''.join(
+                f'if ({condition_qasm}) {stmt.strip()};\n'
+                for stmt in subop_qasm.split(';')
+                if stmt.strip()
+            )
+        body = ''.join(f'  {line}\n' for line in subop_qasm.splitlines())
+        return f'if ({condition_qasm}) {{\n{body}}}\n'
