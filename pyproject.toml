@@ -115,6 +115,7 @@ module = [
     "ply.*",
     "proto.*",
     "pylatex.*",
+    "pytest.*",
     "qiskit.*",
     "quimb.*",
     "scipy.*",
