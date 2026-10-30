@@ -25,8 +25,18 @@ from cirq._doc import document
 TParamKey = str | sympy.Expr
 document(TParamKey, """A parameter that a parameter resolver may map to a value.""")
 
-TParamVal = float | sympy.Expr
-document(TParamVal, """A value that a parameter resolver may return for a parameter.""")
+TParamVal = float | np.integer | np.floating | sympy.Expr
+document(
+    TParamVal,
+    """A value that a parameter resolver may return for a parameter.
+
+    This is a real float, a NumPy integer or floating-point number, or a sympy expression.
+
+    NumPy fixed-width scalars are stored as given, so they keep NumPy's overflow and wraparound
+    behavior in gate arithmetic. For example, an unsigned integer exponent can overflow in
+    `cirq.inverse`.
+    """,
+)
 
 TParamValComplex = complex | np.number | sympy.Expr
 document(TParamValComplex, """A complex value that parameter resolvers may use for parameters.""")

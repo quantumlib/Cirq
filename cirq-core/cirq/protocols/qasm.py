@@ -19,6 +19,8 @@ from collections.abc import Iterable, Mapping
 from types import NotImplementedType
 from typing import Any, Protocol, TYPE_CHECKING, TypeVar
 
+import numpy as np
+
 from cirq import ops
 from cirq._doc import doc_private
 
@@ -69,6 +71,8 @@ class QasmArgs(string.Formatter):
 
     def format_field(self, value: Any, spec: str) -> str:
         """Method of string.Formatter that specifies the output of format()."""
+        if isinstance(value, (np.integer, np.floating)):
+            value = value.item()
         if isinstance(value, (float, int)):
             if isinstance(value, float):
                 value = round(value, self.precision)
