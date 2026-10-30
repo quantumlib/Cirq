@@ -110,6 +110,7 @@ follow_imports_for_stubs = true
 module = [
     "IPython.*",
     "_pytest.*",
+    "absl.*",
     "astroid.*",
     "filelock.*",
     "mpl_toolkits.*",
