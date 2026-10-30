@@ -1,0 +1,1 @@
+[cirq.PauliRotationGate(cirq.DensePauliString('XYZI', coefficient=1), 0.2), cirq.PauliRotationGate(cirq.DensePauliString('XZ', coefficient=-1), 1)]
