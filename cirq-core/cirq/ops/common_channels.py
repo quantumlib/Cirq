@@ -847,9 +847,9 @@ class PhaseDampingChannel(raw_types.Gate):
     def _has_kraus_(self) -> bool:
         return True
 
-    def _mixture_(self) -> Sequence[tuple[float, np.ndarray]]:
-        p = (1 - np.sqrt(1 - self._gamma)) / 2
-        return ((1 - p, protocols.unitary(identity.I)), (p, protocols.unitary(pauli_gates.Z)))
+    def _mixture_(self) -> Sequence[tuple[float, Any]]:
+        p = float(self._gamma / (2.0 * (1.0 + np.sqrt(1.0 - self._gamma))))
+        return ((1.0 - p, identity.I), (p, pauli_gates.Z))
 
     def _has_mixture_(self) -> bool:
         return True
