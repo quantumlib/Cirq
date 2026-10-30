@@ -77,19 +77,13 @@ def test_sample_density_matrix() -> None:
 def test_sample_density_matrix_seed() -> None:
     density_matrix = 0.5 * np.eye(2)
 
-    samples = cirq.sample_density_matrix(density_matrix, [0], repetitions=10, seed=1234)
-    assert np.array_equal(
-        samples,
-        [[False], [True], [False], [True], [True], [False], [False], [True], [True], [True]],
+    samples1 = cirq.sample_density_matrix(density_matrix, [0], repetitions=10, seed=1234)
+    samples2 = cirq.sample_density_matrix(
+        density_matrix, [0], repetitions=10, seed=np.random.default_rng(1234)
     )
-
-    samples = cirq.sample_density_matrix(
-        density_matrix, [0], repetitions=10, seed=np.random.RandomState(1234)
-    )
-    assert np.array_equal(
-        samples,
-        [[False], [True], [False], [True], [True], [False], [False], [True], [True], [True]],
-    )
+    assert np.array_equal(samples1, samples2)
+    samples3 = cirq.sample_density_matrix(density_matrix, [0], repetitions=10, seed=1235)
+    assert not np.array_equal(samples1, samples3)
 
 
 def test_sample_empty_density_matrix() -> None:
@@ -252,14 +246,11 @@ def test_measure_density_matrix_seed() -> None:
     n = 5
     matrix = np.eye(2**n) / 2**n
 
-    bits, out_matrix1 = cirq.measure_density_matrix(matrix, range(n), seed=1234)
-    assert bits == [False, False, True, True, False]
-
-    bits, out_matrix2 = cirq.measure_density_matrix(
-        matrix, range(n), seed=np.random.RandomState(1234)
+    bits1, out_matrix1 = cirq.measure_density_matrix(matrix, range(n), seed=1234)
+    bits2, out_matrix2 = cirq.measure_density_matrix(
+        matrix, range(n), seed=np.random.default_rng(1234)
     )
-    assert bits == [False, False, True, True, False]
-
+    assert bits1 == bits2
     np.testing.assert_allclose(out_matrix1, out_matrix2)
 
 

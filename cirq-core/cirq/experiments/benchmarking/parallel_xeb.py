@@ -331,9 +331,7 @@ def simulate_circuit_library(
     if pool is None:
         simulation_results = [
             simulate_circuit(
-                sim.Simulator(seed=np.random.RandomState(), dtype=np.complex128),
-                circuit=circuit,
-                cycle_depths=cycle_depths,
+                sim.Simulator(dtype=np.complex128), circuit=circuit, cycle_depths=cycle_depths
             )
             for circuit in all_circuits
         ]
@@ -342,7 +340,7 @@ def simulate_circuit_library(
         tasks = [
             pool.submit(
                 simulate_circuit,
-                simulator=sim.Simulator(seed=np.random.RandomState(), dtype=np.complex128),
+                simulator=sim.Simulator(dtype=np.complex128),
                 circuit=circuit,
                 cycle_depths=cycle_depths,
             )

@@ -137,17 +137,13 @@ def test_sample_state_repetitions() -> None:
 def test_sample_state_seed() -> None:
     state = np.ones(2) / np.sqrt(2)
 
-    samples = cirq.sample_state_vector(state, [0], repetitions=10, seed=1234)
-    assert np.array_equal(
-        samples,
-        [[False], [True], [False], [True], [True], [False], [False], [True], [True], [True]],
+    samples1 = cirq.sample_state_vector(state, [0], repetitions=10, seed=1234)
+    samples2 = cirq.sample_state_vector(
+        state, [0], repetitions=10, seed=np.random.default_rng(1234)
     )
-
-    samples = cirq.sample_state_vector(state, [0], repetitions=10, seed=np.random.RandomState(1234))
-    assert np.array_equal(
-        samples,
-        [[False], [True], [False], [True], [True], [False], [False], [True], [True], [True]],
-    )
+    assert np.array_equal(samples1, samples2)
+    samples3 = cirq.sample_state_vector(state, [0], repetitions=10, seed=1235)
+    assert not np.array_equal(samples1, samples3)
 
 
 def test_sample_state_negative_repetitions() -> None:
@@ -267,18 +263,11 @@ def test_measure_state_seed(use_np_transpose: bool) -> None:
     n = 10
     initial_state = np.ones(2**n) / 2 ** (n / 2)
 
-    bits, state1 = cirq.measure_state_vector(initial_state, range(n), seed=1234)
-    np.testing.assert_equal(
-        bits, [False, False, True, True, False, False, False, True, False, False]
+    bits1, state1 = cirq.measure_state_vector(initial_state, range(n), seed=1234)
+    bits2, state2 = cirq.measure_state_vector(
+        initial_state, range(n), seed=np.random.default_rng(1234)
     )
-
-    bits, state2 = cirq.measure_state_vector(
-        initial_state, range(n), seed=np.random.RandomState(1234)
-    )
-    np.testing.assert_equal(
-        bits, [False, False, True, True, False, False, False, True, False, False]
-    )
-
+    assert bits1 == bits2
     np.testing.assert_allclose(state1, state2)
 
 

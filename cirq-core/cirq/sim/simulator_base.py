@@ -96,7 +96,7 @@ class SimulatorBase(
                 at the end.
         """
         self._dtype = dtype
-        self._prng = value.parse_random_state(seed)
+        self._prng = value.parse_random_generator(seed)
         self._noise = devices.NoiseModel.from_noise_model_like(noise)
         self._split_untangled_states = split_untangled_states
 

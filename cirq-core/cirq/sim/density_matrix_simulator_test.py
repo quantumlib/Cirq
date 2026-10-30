@@ -1190,19 +1190,12 @@ def test_random_seed() -> None:
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit(cirq.X(a) ** 0.5, cirq.measure(a))
 
-    sim = cirq.DensityMatrixSimulator(seed=1234)
-    result = sim.run(circuit, repetitions=10)
-    assert np.all(
-        result.measurements['a']
-        == [[False], [True], [False], [True], [True], [False], [False], [True], [True], [True]]
-    )
+    sim1 = cirq.DensityMatrixSimulator(seed=1234)
+    result1 = sim1.run(circuit, repetitions=10)
 
-    sim = cirq.DensityMatrixSimulator(seed=np.random.RandomState(1234))
-    result = sim.run(circuit, repetitions=10)
-    assert np.all(
-        result.measurements['a']
-        == [[False], [True], [False], [True], [True], [False], [False], [True], [True], [True]]
-    )
+    sim2 = cirq.DensityMatrixSimulator(seed=np.random.default_rng(1234))
+    result2 = sim2.run(circuit, repetitions=10)
+    assert result1 == result2
 
 
 def test_random_seed_does_not_modify_global_state_terminal_measurements() -> None:
@@ -1240,79 +1233,13 @@ def test_random_seed_does_not_modify_global_state_non_terminal_measurements() ->
 def test_random_seed_terminal_measurements_deterministic() -> None:
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit(cirq.X(a) ** 0.5, cirq.measure(a, key='a'))
-    sim = cirq.DensityMatrixSimulator(seed=1234)
-    result1 = sim.run(circuit, repetitions=30)
-    result2 = sim.run(circuit, repetitions=30)
-    assert np.all(
-        result1.measurements['a']
-        == [
-            [0],
-            [1],
-            [0],
-            [1],
-            [1],
-            [0],
-            [0],
-            [1],
-            [1],
-            [1],
-            [0],
-            [1],
-            [1],
-            [1],
-            [0],
-            [1],
-            [1],
-            [0],
-            [1],
-            [1],
-            [0],
-            [1],
-            [0],
-            [0],
-            [1],
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
-        ]
-    )
-    assert np.all(
-        result2.measurements['a']
-        == [
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
-            [0],
-            [0],
-            [0],
-            [1],
-            [1],
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
-            [1],
-            [0],
-            [1],
-            [1],
-            [1],
-            [1],
-            [1],
-            [1],
-        ]
-    )
+    sim1 = cirq.DensityMatrixSimulator(seed=1234)
+    result1 = sim1.run(circuit, repetitions=30)
+    result2 = sim1.run(circuit, repetitions=30)
+    sim2 = cirq.DensityMatrixSimulator(seed=1234)
+    assert sim2.run(circuit, repetitions=30) == result1
+    assert sim2.run(circuit, repetitions=30) == result2
+    assert result1 != result2
 
 
 def test_random_seed_non_terminal_measurements_deterministic() -> None:
@@ -1320,78 +1247,13 @@ def test_random_seed_non_terminal_measurements_deterministic() -> None:
     circuit = cirq.Circuit(
         cirq.X(a) ** 0.5, cirq.measure(a, key='a'), cirq.X(a) ** 0.5, cirq.measure(a, key='b')
     )
-    sim = cirq.DensityMatrixSimulator(seed=1234)
-    result = sim.run(circuit, repetitions=30)
-    assert np.all(
-        result.measurements['a']
-        == [
-            [0],
-            [0],
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
-            [1],
-            [0],
-            [0],
-            [1],
-            [0],
-            [0],
-            [1],
-            [1],
-            [1],
-            [0],
-            [0],
-            [0],
-            [0],
-            [1],
-            [0],
-            [0],
-            [0],
-            [1],
-            [1],
-            [1],
-            [1],
-        ]
-    )
-    assert np.all(
-        result.measurements['b']
-        == [
-            [1],
-            [1],
-            [0],
-            [1],
-            [1],
-            [1],
-            [1],
-            [1],
-            [0],
-            [1],
-            [1],
-            [0],
-            [1],
-            [1],
-            [1],
-            [0],
-            [0],
-            [1],
-            [1],
-            [1],
-            [0],
-            [1],
-            [1],
-            [1],
-            [1],
-            [1],
-            [0],
-            [1],
-            [1],
-            [1],
-        ]
-    )
+    sim1 = cirq.DensityMatrixSimulator(seed=1234)
+    result1 = sim1.run(circuit, repetitions=30)
+    result2 = sim1.run(circuit, repetitions=30)
+    sim2 = cirq.DensityMatrixSimulator(seed=1234)
+    assert sim2.run(circuit, repetitions=30) == result1
+    assert sim2.run(circuit, repetitions=30) == result2
+    assert result1 != result2
 
 
 def test_simulate_with_invert_mask() -> None:

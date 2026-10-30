@@ -261,7 +261,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
             ValueError: if 'circuit' has non-unitary elements, as differences
                 in behavior between sampling steps break this algorithm.
         """
-        prng = value.parse_random_state(seed)
+        prng = value.parse_random_generator(seed)
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         base_circuit = circuits.Circuit(ops.I(q) for q in qubits) + circuit.unfreeze()
         qmap = {q: i for i, q in enumerate(qubits)}
@@ -845,7 +845,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
 
         Compare with `_confuse_result` in cirq-core/cirq/sim/simulation_state.py.
         """
-        prng = value.parse_random_state(seed)
+        prng = value.parse_random_generator(seed)
         for rep in bits:
             dims = [q.dimension for q in qubits]
             for indices, confuser in confusion_map.items():

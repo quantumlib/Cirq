@@ -50,23 +50,20 @@ def test_sample() -> None:
 
 def test_sample_seed_unitary() -> None:
     q = cirq.NamedQubit('q')
-    circuit = cirq.Circuit(cirq.X(q) ** 0.2, cirq.measure(q))
-    result = cirq.sample(circuit, repetitions=10, seed=1234)
-    measurements = result.measurements['q']
-    assert np.all(
-        measurements
-        == [[False], [False], [False], [False], [False], [False], [False], [False], [True], [False]]
-    )
+    circuit = cirq.Circuit(cirq.X(q) ** 0.5, cirq.measure(q))
+    result1 = cirq.sample(circuit, repetitions=10, seed=1234)
+    result2 = cirq.sample(circuit, repetitions=10, seed=np.random.default_rng(1234))
+    assert result1 == result2
+    assert result1 != cirq.sample(circuit, repetitions=10, seed=1235)
 
 
 def test_sample_seed_non_unitary() -> None:
     q = cirq.NamedQubit('q')
     circuit = cirq.Circuit(cirq.depolarize(0.5).on(q), cirq.measure(q))
-    result = cirq.sample(circuit, repetitions=10, seed=1234)
-    assert np.all(
-        result.measurements['q']
-        == [[False], [False], [False], [True], [True], [False], [False], [True], [True], [True]]
-    )
+    result1 = cirq.sample(circuit, repetitions=10, seed=1234)
+    result2 = cirq.sample(circuit, repetitions=10, seed=np.random.default_rng(1234))
+    assert result1 == result2
+    assert result1 != cirq.sample(circuit, repetitions=10, seed=1235)
 
 
 def test_sample_sweep() -> None:
@@ -104,23 +101,13 @@ def test_sample_sweep() -> None:
 def test_sample_sweep_seed() -> None:
     q = cirq.NamedQubit('q')
     circuit = cirq.Circuit(cirq.X(q) ** sympy.Symbol('t'), cirq.measure(q))
+    params = [cirq.ParamResolver({'t': 0.5})] * 3
 
-    results = cirq.sample_sweep(
-        circuit, [cirq.ParamResolver({'t': 0.5})] * 3, repetitions=2, seed=1234
-    )
-    assert np.all(results[0].measurements['q'] == [[False], [True]])
-    assert np.all(results[1].measurements['q'] == [[False], [True]])
-    assert np.all(results[2].measurements['q'] == [[True], [False]])
-
-    results = cirq.sample_sweep(
-        circuit,
-        [cirq.ParamResolver({'t': 0.5})] * 3,
-        repetitions=2,
-        seed=np.random.RandomState(1234),
-    )
-    assert np.all(results[0].measurements['q'] == [[False], [True]])
-    assert np.all(results[1].measurements['q'] == [[False], [True]])
-    assert np.all(results[2].measurements['q'] == [[True], [False]])
+    results1 = cirq.sample_sweep(circuit, params, repetitions=10, seed=1234)
+    results2 = cirq.sample_sweep(circuit, params, repetitions=10, seed=np.random.default_rng(1234))
+    assert results1 == results2
+    # The sweep draws from a single generator, so identical resolvers give different samples.
+    assert results1[0] != results1[1]
 
 
 def test_final_state_vector_different_program_types() -> None:
@@ -355,7 +342,7 @@ def test_final_density_matrix_seed_with_collapsing() -> None:
     )
     np.testing.assert_allclose(
         cirq.final_density_matrix(
-            [cirq.X(a) ** 0.5, cirq.measure(a)], seed=124, ignore_measurement_results=False
+            [cirq.X(a) ** 0.5, cirq.measure(a)], seed=126, ignore_measurement_results=False
         ),
         [[1, 0], [0, 0]],
         atol=1e-4,
