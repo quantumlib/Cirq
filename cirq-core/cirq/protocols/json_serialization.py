@@ -612,7 +612,8 @@ def to_json_gzip(
     """Write a gzipped JSON file containing a representation of obj.
 
     The object may be a cirq object or have data members that are cirq
-    objects which implement the SupportsJSON protocol.
+    objects which implement the SupportsJSON protocol.  The gzip output
+    is reproducible assuming the same Python version and OS platform.
 
     Args:
         obj: An object which can be serialized to a JSON representation.
@@ -632,15 +633,13 @@ def to_json_gzip(
             party classes, prefer adding the `_json_dict_` magic method
             to your classes rather than overriding this default.
     """
-    json_str = to_json(obj, indent=indent, cls=cls)
+    json_bytes = to_json(obj, indent=indent, cls=cls).encode()
+    gzip_data = gzip.compress(json_bytes, compresslevel=compresslevel, mtime=0)
     if isinstance(file_or_fn, (str, pathlib.Path)):
-        with gzip.open(
-            file_or_fn, 'wt', encoding='utf-8', compresslevel=compresslevel
-        ) as actually_a_file:
-            actually_a_file.write(json_str)
-            return None
+        actually_a_path = pathlib.Path(file_or_fn)
+        actually_a_path.write_bytes(gzip_data)
+        return None
 
-    gzip_data = gzip.compress(bytes(json_str, encoding='utf-8'), compresslevel=compresslevel)
     if file_or_fn is None:
         return gzip_data
 
