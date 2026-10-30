@@ -231,3 +231,17 @@ def test_set_variable_act_on_edge_cases() -> None:
     op_complex = cirq.SetVariable(a, 1 + 2 * sympy.I)
     assert op_complex._act_on_(state)
     assert state.param_resolver.value_of(a) == 1 + 2j
+
+
+def test_set_variable_from_json_rejects_string_expression() -> None:
+    a = sympy.Symbol('a')
+    valid = cirq.to_json(cirq.SetVariable(a, sympy.Symbol('b') + 1))
+    assert cirq.read_json(json_text=valid) == cirq.SetVariable(a, sympy.Symbol('b') + 1)
+
+    malicious = (
+        '{"cirq_type": "SetVariable", '
+        '"target": {"cirq_type": "sympy.Symbol", "name": "a"}, '
+        '"expression": "b + 1"}'
+    )
+    with pytest.raises(ValueError, match="must be a serialized sympy expression"):
+        cirq.read_json(json_text=malicious)
