@@ -111,6 +111,7 @@ module = [
     "IPython.*",
     "_pytest.*",
     "astroid.*",
+    "filelock.*",
     "mpl_toolkits.*",
     "networkx.*",
     "pandas.*",
