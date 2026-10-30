@@ -278,6 +278,11 @@ def test_qasm() -> None:
     qasm_str_3 = cirq.qasm(circuit_multi, args=cirq.QasmArgs(version='3.0'))
     assert 'if (m_a!=0 && m_b!=0) x q[1];' in qasm_str_3
 
+    op_longbody = cirq.If('a', (cirq.X(q1), cirq.Z(q1)))
+    circuit_multi = cirq.Circuit(cirq.measure(q0, key='a'), op_longbody)
+    qasm_str_4 = cirq.qasm(circuit_multi)
+    assert 'if (m_a==1) {\n    x q[1];\n    z q[1];\n}' in qasm_str_4
+
 
 def test_qasm_sub_op_no_qasm() -> None:
     class NoQasmOp(cirq.Operation):
