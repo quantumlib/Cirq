@@ -67,6 +67,7 @@ from cirq._version import __version__ as __version__
 from cirq.circuits import (
     AbstractCircuit as AbstractCircuit,
     Alignment as Alignment,
+    CallFunctionOperation as CallFunctionOperation,
     Circuit as Circuit,
     CircuitFunction as CircuitFunction,
     CircuitOperation as CircuitOperation,

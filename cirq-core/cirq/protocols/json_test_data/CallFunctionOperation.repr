@@ -1,0 +1,43 @@
+[
+    cirq.CallFunctionOperation(
+        circuit_function=cirq.CircuitFunction(
+            name='test_func',
+            circuit=cirq.FrozenCircuit([
+                cirq.Moment(
+                    (cirq.X**sympy.Symbol('theta')).on(cirq.VariableLineQid(sympy.Symbol('qx'), dimension=2)),
+                ),
+            ]),
+            function_params=[sympy.Symbol('qx')],
+        ),
+        function_args=(1,),
+        param_resolver={sympy.Symbol('theta'): 0.5},
+    ),
+    cirq.CallFunctionOperation(
+        circuit_function=cirq.CircuitFunction(
+            name='test_func',
+            circuit=cirq.FrozenCircuit([
+                cirq.Moment(
+                    (cirq.X**sympy.Symbol('theta')).on(cirq.VariableLineQid(sympy.Symbol('qx'), dimension=2)),
+                ),
+            ]),
+            function_params=[sympy.Symbol('qx')],
+        ),
+        function_args=(2,),
+        param_resolver={},
+    ),
+    cirq.CallFunctionOperation(
+        circuit_function=cirq.CircuitFunction(
+            name='measure_func',
+            circuit=cirq.FrozenCircuit([
+                cirq.Moment(
+                    cirq.measure(cirq.LineQubit(0), key=cirq.MeasurementKey(name='m')),
+                ),
+            ]),
+            function_params=[],
+        ),
+        function_args=(),
+        param_resolver={},
+        measurement_key_map={'m': 'n'},
+        parent_path=('p', 'q'),
+    ),
+]
