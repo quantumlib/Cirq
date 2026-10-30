@@ -100,20 +100,14 @@ follow_imports_for_stubs = true
 # Non-Google
 [[tool.mypy.overrides]]
 module = [
-    "IPython.*",
-    "_pytest.*",
     "absl.*",
     "astroid.*",
-    "filelock.*",
-    "matplotlib.*",
     "mpl_toolkits.*",
     "networkx.*",
     "pandas.*",
     "ply.*",
     "proto.*",
     "pylatex.*",
-    "pylint.*",
-    "pytest.*",
     "qiskit.*",
     "quimb.*",
     "scipy.*",
