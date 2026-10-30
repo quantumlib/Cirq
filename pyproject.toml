@@ -47,6 +47,7 @@ extend_skip_glob = ["*_pb2.py"]
 
 
 [tool.mypy]
+# '/setup\.py' purposefully excludes all setup.py files _except_ the top-level one.
 exclude = [
     '/setup\.py',
     'cirq-google/cirq_google/cloud/',
