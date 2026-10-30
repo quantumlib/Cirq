@@ -47,6 +47,7 @@ extend_skip_glob = ["*_pb2.py"]
 
 
 [tool.mypy]
+# '/setup\.py' purposefully excludes all setup.py files _except_ the top-level one.
 exclude = [
     '/setup\.py',
     'cirq-google/cirq_google/cloud/',
@@ -65,7 +66,14 @@ ignore_missing_imports = true
 
 # Require explicit reexport from cirq modules
 [[tool.mypy.overrides]]
-module = ["cirq.*"]
+module = [
+    "cirq.*",
+    "cirq_aqt.*",
+    "cirq_google.*",
+    "cirq_ionq.*",
+    "cirq_pasqal.*",
+    "cirq_web.*"
+]
 no_implicit_reexport = true
 
 # Generated code
