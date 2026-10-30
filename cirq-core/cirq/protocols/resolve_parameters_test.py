@@ -114,24 +114,6 @@ def test_resolve_parameters(resolve_fn) -> None:
     assert resolve_fn(1.1, resolver) == 1.1
     assert resolve_fn(1j, resolver) == 1j
 
-    for dtype in _NUMPY_SCALAR_TYPES:
-        val = dtype(1)
-        zero = dtype(0)
-        assert resolve_fn(val, resolver) == val
-        assert type(resolve_fn(val, resolver)) is dtype
-        assert resolve_fn((val, val), resolver) == (val, val)
-        assert resolve_fn([val, val], resolver) == [val, val]
-        assert resolve_fn(a, {a: val}) == val
-        assert type(resolve_fn(a, {a: val})) is dtype
-        assert resolve_fn((a, b, c), {a: val, b: val, c: val}) == (val, val, val)
-        assert resolve_fn([a, b, c], {a: val, b: val, c: val}) == [val, val, val]
-        resolved_switch = resolve_fn(SimpleParameterSwitch('a'), {a: val})
-        assert resolved_switch.parameter == val
-        assert type(resolved_switch.parameter) is dtype
-        assert resolve_fn(SimpleParameterSwitch(zero), r).parameter == zero
-        assert not cirq.is_parameterized(SimpleParameterSwitch(zero))
-        assert cirq.is_parameterized(SimpleParameterSwitch(val))
-
 
 def test_is_parameterized() -> None:
     a, b = tuple(sympy.Symbol(l) for l in 'ab')
@@ -147,13 +129,6 @@ def test_is_parameterized() -> None:
     assert not cirq.is_parameterized(1)
     assert not cirq.is_parameterized(1.1)
     assert not cirq.is_parameterized(1j)
-    for dtype in _NUMPY_SCALAR_TYPES:
-        val = dtype(1)
-        assert not cirq.is_parameterized(val)
-        assert not cirq.is_parameterized((val, val))
-        assert not cirq.is_parameterized([val, x])
-        assert cirq.is_parameterized([a, val])
-        assert cirq.is_parameterized((a, val))
 
 
 def test_parameter_names() -> None:
@@ -168,11 +143,6 @@ def test_parameter_names() -> None:
     assert cirq.parameter_names(1) == set()
     assert cirq.parameter_names(1.1) == set()
     assert cirq.parameter_names(1j) == set()
-    for dtype in _NUMPY_SCALAR_TYPES:
-        val = dtype(1)
-        assert cirq.parameter_names(val) == set()
-        assert cirq.parameter_names((val, val)) == set()
-        assert cirq.parameter_names([a, val]) == {'a'}
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
@@ -199,19 +169,6 @@ def test_recursive_resolve() -> None:
     assert cirq.resolve_parameters_once([a, b], {a: b, b: c}) == [b, c]
     assert cirq.resolve_parameters_once(a, {}) == a
 
-    for dtype in _NUMPY_SCALAR_TYPES:
-        resolver = cirq.ParamResolver({a: b + 3, b: c + 2, c: dtype(1)})
-        assert cirq.resolve_parameters(a, resolver) == 6
-        assert cirq.resolve_parameters(b, resolver) == 3
-        assert cirq.resolve_parameters(c, resolver) == 1
-        assert cirq.resolve_parameters_once(c, resolver) == dtype(1)
-        assert type(cirq.resolve_parameters_once(c, resolver)) is dtype
-        chained = cirq.ParamResolver({a: b, b: dtype(1)})
-        assert cirq.resolve_parameters(a, chained) == 1
-        assert type(cirq.resolve_parameters(a, chained)) is dtype
-        assert cirq.resolve_parameters_once(a, chained) == b
-        assert cirq.resolve_parameters_once(b, chained) == dtype(1)
-
     resolver = cirq.ParamResolver({a: b, b: a})
     assert cirq.resolve_parameters_once(a, resolver) == b
     with pytest.raises(RecursionError):
@@ -226,6 +183,86 @@ def test_resolve_parameters_numpy_scalars(resolve_fn, dtype) -> None:
     assert cirq.parameter_names(val) == set()
     assert resolve_fn(val, {'a': 0}) is val
     assert resolve_fn((val, val), {}) == (val, val)
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_SCALAR_TYPES)
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve_parameters_numpy(resolve_fn, dtype) -> None:
+    a, b, c = tuple(sympy.Symbol(l) for l in 'abc')
+    x, y, z = 0, 4, 7
+    resolver = {a: x, b: y, c: z}
+
+    val = dtype(1)
+    assert resolve_fn((val, val), resolver) == (val, val)
+    assert resolve_fn([val, val], resolver) == [val, val]
+    assert resolve_fn(a, {a: val}) == val
+    assert type(resolve_fn(a, {a: val})) is dtype
+    assert resolve_fn((a, b, c), {a: val, b: val, c: val}) == (val, val, val)
+    assert resolve_fn([a, b, c], {a: val, b: val, c: val}) == [val, val, val]
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_SCALAR_TYPES)
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve_parameters_numpy_parameter_switch(resolve_fn, dtype) -> None:
+    class SimpleParameterSwitch:
+        def __init__(self, var):
+            self.parameter = var
+
+        def _is_parameterized_(self) -> bool:
+            return self.parameter != 0
+
+        def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool):
+            self.parameter = resolver.value_of(self.parameter, recursive)
+            return self
+
+    a = sympy.Symbol('a')
+    r = cirq.ParamResolver({'a': 0})
+
+    val = dtype(1)
+    zero = dtype(0)
+    resolved_switch = resolve_fn(SimpleParameterSwitch('a'), {a: val})
+    assert resolved_switch.parameter == val
+    assert type(resolved_switch.parameter) is dtype
+    assert resolve_fn(SimpleParameterSwitch(zero), r).parameter == zero
+    assert not cirq.is_parameterized(SimpleParameterSwitch(zero))
+    assert cirq.is_parameterized(SimpleParameterSwitch(val))
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_SCALAR_TYPES)
+def test_is_parameterized_numpy(dtype) -> None:
+    a = sympy.Symbol('a')
+    x = 0
+
+    val = dtype(1)
+    assert not cirq.is_parameterized((val, val))
+    assert not cirq.is_parameterized([val, x])
+    assert cirq.is_parameterized([a, val])
+    assert cirq.is_parameterized((a, val))
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_SCALAR_TYPES)
+def test_parameter_names_numpy(dtype) -> None:
+    a = sympy.Symbol('a')
+
+    val = dtype(1)
+    assert cirq.parameter_names((val, val)) == set()
+    assert cirq.parameter_names([a, val]) == {'a'}
+
+
+@pytest.mark.parametrize('dtype', _NUMPY_SCALAR_TYPES)
+def test_recursive_resolve_numpy(dtype) -> None:
+    a, b, c = [sympy.Symbol(l) for l in 'abc']
+    resolver = cirq.ParamResolver({a: b + 3, b: c + 2, c: dtype(1)})
+    assert cirq.resolve_parameters(a, resolver) == 6
+    assert cirq.resolve_parameters(b, resolver) == 3
+    assert cirq.resolve_parameters(c, resolver) == 1
+    assert cirq.resolve_parameters_once(c, resolver) == dtype(1)
+    assert type(cirq.resolve_parameters_once(c, resolver)) is dtype
+    chained = cirq.ParamResolver({a: b, b: dtype(1)})
+    assert cirq.resolve_parameters(a, chained) == 1
+    assert type(cirq.resolve_parameters(a, chained)) is dtype
+    assert cirq.resolve_parameters_once(a, chained) == b
+    assert cirq.resolve_parameters_once(b, chained) == dtype(1)
 
 
 @pytest.mark.parametrize('gate_cls', _EIGEN_GATES)

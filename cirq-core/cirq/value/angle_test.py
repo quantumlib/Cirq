@@ -205,3 +205,19 @@ def test_chosen_angle_to_canonical_half_turns() -> None:
         _ = cirq.chosen_angle_to_canonical_half_turns(degs=0, rads=0)
     with pytest.raises(ValueError):
         _ = cirq.chosen_angle_to_canonical_half_turns(half_turns=0, rads=0, degs=0)
+
+
+def test_chosen_angle_numpy_rads_degs_and_default() -> None:
+    # The calls are spelled out, not parametrized over the function, so that mypy checks the
+    # NumPy arguments against the annotations.
+    np.testing.assert_allclose(
+        cirq.chosen_angle_to_half_turns(rads=np.float32(0.5)), 0.5 / np.pi, rtol=1e-6
+    )
+    assert cirq.chosen_angle_to_half_turns(degs=np.int64(90)) == 0.5
+    assert cirq.chosen_angle_to_half_turns(default=np.float32(0.5)) == 0.5
+
+    np.testing.assert_allclose(
+        cirq.chosen_angle_to_canonical_half_turns(rads=np.float32(0.5)), 0.5 / np.pi, rtol=1e-6
+    )
+    assert cirq.chosen_angle_to_canonical_half_turns(degs=np.int64(90)) == 0.5
+    assert cirq.chosen_angle_to_canonical_half_turns(default=np.float32(0.5)) == 0.5
