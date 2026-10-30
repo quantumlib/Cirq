@@ -100,7 +100,6 @@ follow_imports_for_stubs = true
 # Non-Google
 [[tool.mypy.overrides]]
 module = [
-    "absl.*",
     "astroid.*",
     "mpl_toolkits.*",
     "networkx.*",
