@@ -41,6 +41,8 @@ if TYPE_CHECKING:
 
     import cirq
 
+_PHXZ_IDENTITY = ops.PhasedXZGate(axis_phase_exponent=0, x_exponent=0.0, z_exponent=0.0)
+
 
 @transformer_api.transformer
 def merge_single_qubit_gates_to_phased_x_and_z(
@@ -106,7 +108,7 @@ def merge_single_qubit_gates_to_phxz(
         u = protocols.unitary(circuit_op)
         if protocols.num_qubits(circuit_op) == 0:
             return ops.GlobalPhaseGate(u[0, 0]).on()
-        gate = single_qubit_decompositions.single_qubit_matrix_to_phxz(u, atol) or ops.I
+        gate = single_qubit_decompositions.single_qubit_matrix_to_phxz(u, atol) or _PHXZ_IDENTITY
         phxz_op = gate.on(circuit_op.qubits[0])
         return phxz_op.with_tags(*merge_tags_fn(circuit_op)) if merge_tags_fn else phxz_op
 

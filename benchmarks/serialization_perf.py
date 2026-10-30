@@ -20,15 +20,15 @@ import cirq
 
 PARAMETERS = (
     # num_qubits num_moments expected_gzip_size
-    (100, 100, 31874),
-    (100, 1000, 316622),
-    (100, 4000, 1265955),
-    (500, 100, 147916),
-    (500, 1000, 1479772),
-    (500, 4000, 5918482),
-    (1000, 100, 285386),
-    (1000, 1000, 2853094),
-    (1000, 4000, 11412197),
+    (100, 100, 30437),
+    (100, 1000, 302194),
+    (100, 4000, 1207989),
+    (500, 100, 148714),
+    (500, 1000, 1487181),
+    (500, 4000, 5948809),
+    (1000, 100, 283969),
+    (1000, 1000, 2840325),
+    (1000, 4000, 11361481),
 )
 
 
@@ -58,7 +58,7 @@ def _make_circuit(num_qubits: int, num_moments: int) -> cirq.Circuit:
 
 @pytest.mark.parametrize(
     ["num_qubits", "num_moments", "_expected_gzip_size"],
-    _mark_slow(PARAMETERS, {(500, 4000, 5918482), (1000, 1000, 2853094), (1000, 4000, 11412197)}),
+    _mark_slow(PARAMETERS, {(500, 4000, 5948809), (1000, 1000, 2840325), (1000, 4000, 11361481)}),
     ids=[f"{nq}-{nm}" for nq, nm, _ in PARAMETERS],
 )
 @pytest.mark.benchmark(group="serialization")
@@ -72,7 +72,7 @@ def test_json_serialization(
 
 @pytest.mark.parametrize(
     ["num_qubits", "num_moments", "expected_gzip_size"],
-    _mark_slow(PARAMETERS, {(500, 4000, 5918482), (1000, 1000, 2853094), (1000, 4000, 11412197)}),
+    _mark_slow(PARAMETERS, {(500, 4000, 5948809), (1000, 1000, 2840325), (1000, 4000, 11361481)}),
     ids=[f"{nq}-{nm}" for nq, nm, _ in PARAMETERS],
 )
 @pytest.mark.benchmark(group="serialization")
@@ -85,3 +85,33 @@ def test_json_gzip_serialization(
     # tolerate absolute increase by 1KB or a relative increase by 1 per mille
     allowed_size = expected_gzip_size + max(expected_gzip_size // 1000, 1024)
     assert len(gzip_data) < allowed_size
+
+
+@pytest.mark.parametrize(
+    ["num_qubits", "num_moments", "_expected_gzip_size"],
+    _mark_slow(PARAMETERS, {(500, 4000, 5948809), (1000, 1000, 2840325), (1000, 4000, 11361481)}),
+    ids=[f"{nq}-{nm}" for nq, nm, _ in PARAMETERS],
+)
+@pytest.mark.benchmark(group="serialization")
+def test_json_deserialization(
+    benchmark, num_qubits: int, num_moments: int, _expected_gzip_size: int
+) -> None:
+    """Benchmark cirq.read_json."""
+    circuit = _make_circuit(num_qubits, num_moments)
+    json_text = cirq.to_json(circuit)
+    benchmark(cirq.read_json, json_text=json_text)
+
+
+@pytest.mark.parametrize(
+    ["num_qubits", "num_moments", "_expected_gzip_size"],
+    _mark_slow(PARAMETERS, {(500, 4000, 5948809), (1000, 1000, 2840325), (1000, 4000, 11361481)}),
+    ids=[f"{nq}-{nm}" for nq, nm, _ in PARAMETERS],
+)
+@pytest.mark.benchmark(group="serialization")
+def test_json_gzip_deserialization(
+    benchmark, num_qubits: int, num_moments: int, _expected_gzip_size: int
+) -> None:
+    """Benchmark cirq.read_json_gzip."""
+    circuit = _make_circuit(num_qubits, num_moments)
+    gzip_raw = cirq.to_json_gzip(circuit)
+    benchmark(cirq.read_json_gzip, gzip_raw=gzip_raw)

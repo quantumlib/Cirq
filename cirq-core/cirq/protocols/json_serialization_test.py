@@ -17,6 +17,7 @@ from __future__ import annotations
 import contextlib
 import dataclasses
 import datetime
+import gzip
 import importlib
 import io
 import json
@@ -550,7 +551,7 @@ def test_type_serialization(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cl
     sto = SerializableTypeObject(cls)
     test_resolvers = [custom_resolver, *cirq.DEFAULT_RESOLVERS]
     expected_json = f'{{\n  "cirq_type": "SerializableTypeObject",\n  "test_type": "{typename}"\n}}'
-    assert cirq.to_json(sto) == expected_json
+    assert cirq.to_json(sto, indent=2) == expected_json
     assert cirq.read_json(json_text=expected_json, resolvers=test_resolvers) == sto
     assert_json_roundtrip_works(sto, resolvers=test_resolvers)
 
@@ -571,11 +572,7 @@ def test_invalid_type_deserialize() -> None:
 
 
 def test_to_from_strings() -> None:
-    x_json_text = """{
-  "cirq_type": "_PauliX",
-  "exponent": 1.0,
-  "global_shift": 0.0
-}"""
+    x_json_text = '{"cirq_type": "_PauliX", "exponent": 1.0, "global_shift": 0.0}'
     assert cirq.to_json(cirq.X) == x_json_text
     assert cirq.read_json(json_text=x_json_text) == cirq.X
 
@@ -594,6 +591,33 @@ def test_to_from_json_gzip() -> None:
         _ = cirq.read_json_gzip(io.StringIO(), gzip_raw=gzip_data)
     with pytest.raises(ValueError):
         _ = cirq.read_json_gzip()
+
+
+def test_json_gzip_compresslevel() -> None:
+    qubits = cirq.LineQubit.range(100)
+    test_circuit = cirq.Circuit(
+        10 * [cirq.X.on_each(*qubits), cirq.Y.on_each(*qubits), cirq.Z.on_each(*qubits)]
+    )
+    gzip_data_level_1 = cirq.to_json_gzip(test_circuit, compresslevel=1)
+    gzip_data_level_9 = cirq.to_json_gzip(test_circuit, compresslevel=9)
+    assert len(gzip_data_level_9) < 0.9 * len(gzip_data_level_1)
+    json_bytes = cirq.to_json(test_circuit).encode()
+    assert gzip.decompress(gzip_data_level_1) == json_bytes
+    assert gzip.decompress(gzip_data_level_9) == json_bytes
+
+
+def test_json_gzip_is_reproducible(tmp_path: pathlib.Path) -> None:
+    expected_bytes = (
+        # gzip.compress(b'1', compresslevel=1, mtime=0) using Python 3.13
+        b'\x1f\x8b\x08\x00\x00\x00\x00\x00\x04\xff3\x04\x00\xb7\xef\xdc\x83\x01\x00\x00\x00'
+    )
+    actual_bytes = cirq.to_json_gzip(1)
+    gzip_file_path = tmp_path.joinpath("one.json.gz")
+    cirq.to_json_gzip(1, gzip_file_path)
+    assert gzip_file_path.read_bytes() == actual_bytes
+    # compare without the gzip header OS byte which may vary over Python versions
+    assert actual_bytes.startswith(expected_bytes[:9])
+    assert actual_bytes.endswith(expected_bytes[10:])
 
 
 def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: str | None):
@@ -746,9 +770,9 @@ def test_dataclass_json_dict() -> None:
 
 
 def test_numpy_values() -> None:
-    assert cirq.to_json({'value': np.array(1)}) == """{
-  "value": 1
-}"""
+    assert cirq.to_json({'value': np.array(1)}) == '{"value": 1}'
+    # Verify support for special floating point values.
+    assert_json_roundtrip_works(np.array([np.nan, -np.inf, np.inf]))
 
 
 def test_basic_time_assertions() -> None:

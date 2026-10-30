@@ -18,7 +18,10 @@ include = [
     # Failure to do so will result in false positives.
     "./*",
 ]
-omit = ["benchmarks/*"]
+omit = [
+    ".venv/*",
+    "benchmarks/*"
+]
 patch = ["subprocess"]
 # Speed up pytest-cov on Python 3.12+ by enabling sys.monitoring if possible.
 core = "sysmon"
@@ -44,6 +47,7 @@ extend_skip_glob = ["*_pb2.py"]
 
 
 [tool.mypy]
+# '/setup\.py' purposefully excludes all setup.py files _except_ the top-level one.
 exclude = [
     '/setup\.py',
     'cirq-google/cirq_google/cloud/',
@@ -62,7 +66,14 @@ ignore_missing_imports = true
 
 # Require explicit reexport from cirq modules
 [[tool.mypy.overrides]]
-module = ["cirq.*"]
+module = [
+    "cirq.*",
+    "cirq_aqt.*",
+    "cirq_google.*",
+    "cirq_ionq.*",
+    "cirq_pasqal.*",
+    "cirq_web.*"
+]
 no_implicit_reexport = true
 
 # Generated code
@@ -101,10 +112,7 @@ module = [
     "_pytest.*",
     "absl.*",
     "astroid.*",
-    "cachetools.*",
     "filelock.*",
-    "ipywidgets.*",
-    "matplotlib.*",
     "mpl_toolkits.*",
     "networkx.*",
     "pandas.*",
@@ -115,7 +123,6 @@ module = [
     "pytest.*",
     "qiskit.*",
     "quimb.*",
-    "ruamel.*",
     "scipy.*",
     "setuptools.*",
     "stimcirq.*",
@@ -149,6 +156,7 @@ asyncio_default_fixture_loop_scope = "function"
 fail-on = ["I"]
 ignore-long-lines = "^(.*#\\w*pylint: disable.*|\\s*(# )?[<\\[\\(]?https?://\\S+[>\\]\\)]?)$"
 ignore-paths=[
+    ".venv/",
     "cirq-[^/]*/build/",
     "cirq-google/cirq_google/cloud/",
     "cirq-web/cirq_web/node_modules/",
