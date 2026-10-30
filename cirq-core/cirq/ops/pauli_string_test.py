@@ -1409,6 +1409,9 @@ def test_conjugated_by_normal_gates() -> None:
     assert_conjugation(cirq.Y(a), clifford_op, cirq.X(a))
     assert_conjugation(cirq.Z(a), clifford_op, -cirq.Z(a))
 
+    with pytest.raises(ValueError, match='has no gate'):
+        _ = cirq.X(a).conjugated_by(cirq.CircuitOperation(cirq.FrozenCircuit()))
+
 
 def test_conjugated_by_op_gate_of_clifford_gate_type() -> None:
     a = cirq.LineQubit(0)
