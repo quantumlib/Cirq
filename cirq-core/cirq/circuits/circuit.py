@@ -23,9 +23,11 @@ from __future__ import annotations
 
 import abc
 import enum
+import functools
 import html
 import itertools
 import math
+import warnings
 from collections import defaultdict
 from collections.abc import (
     Callable,
@@ -1208,6 +1210,7 @@ class AbstractCircuit(abc.ABC):
         include_tags: bool | Iterable[type] = True,
         precision: int | None = 3,
         qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        style: str | None = None,
     ) -> str:
         """Returns text containing a diagram describing the circuit.
 
@@ -1221,9 +1224,16 @@ class AbstractCircuit(abc.ABC):
                 those tags.
             precision: Number of digits to display in text diagram
             qubit_order: Determines how qubits are ordered in the diagram.
+            style: Selects the diagram style when `use_unicode_characters` is
+                `True`. `"simple"` (or `None`) draws subcircuits inside
+                square brackets `[ ... ]`. `"boxy"` draws Unicode box
+                borders around subcircuits.
 
         Returns:
             The text diagram.
+
+        Raises:
+            ValueError: If `style` is not `None`, `"simple"`, or `"boxy"`.
         """
         diagram = self.to_text_diagram_drawer(
             use_unicode_characters=use_unicode_characters,
@@ -1231,6 +1241,7 @@ class AbstractCircuit(abc.ABC):
             precision=precision,
             qubit_order=qubit_order,
             transpose=transpose,
+            style=style,
         )
 
         return diagram.render(
@@ -1252,6 +1263,7 @@ class AbstractCircuit(abc.ABC):
         get_circuit_diagram_info: (
             Callable[[cirq.Operation, cirq.CircuitDiagramInfoArgs], cirq.CircuitDiagramInfo] | None
         ) = None,
+        style: str | None = None,
     ) -> cirq.TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
 
@@ -1269,10 +1281,31 @@ class AbstractCircuit(abc.ABC):
             qubit_order: Determines how qubits are ordered in the diagram.
             get_circuit_diagram_info: Gets circuit diagram info. Defaults to
                 protocol with fallback.
+            style: Selects the diagram style when `use_unicode_characters` is
+                `True`. `"simple"` (or `None`) draws subcircuits inside
+                square brackets `[ ... ]`. `"boxy"` draws Unicode box
+                borders around subcircuits.
 
         Returns:
             The TextDiagramDrawer instance.
+
+        Raises:
+            ValueError: If `style` is not `None`, `"simple"`, or `"boxy"`.
         """
+        if style not in (None, 'simple', 'boxy'):
+            raise ValueError(
+                f'Unrecognized diagram style: {style!r}. Must be None, "simple", or "boxy".'
+            )
+        if style is not None and not use_unicode_characters:
+            warnings.warn(
+                'Cannot select a diagram style when use_unicode_characters=False; '
+                'ignoring style and using "simple".',
+                UserWarning,
+            )
+            style = 'simple'
+        if style is None:
+            style = 'simple'
+
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         cbits = tuple(
             sorted(
@@ -1317,6 +1350,7 @@ class AbstractCircuit(abc.ABC):
                 include_tags=include_tags,
                 first_annotation_row=first_annotation_row,
                 transpose=transpose,
+                style=style,
             )
 
         w = diagram.width()
@@ -2768,9 +2802,12 @@ def _draw_moment_in_diagram(
     include_tags: bool | Iterable[type],
     first_annotation_row: int,
     transpose: bool,
+    style: str = 'simple',
 ):
     if get_circuit_diagram_info is None:
-        get_circuit_diagram_info = protocols.circuit_diagram_info_protocol._op_info_with_fallback
+        get_circuit_diagram_info = functools.partial(
+            protocols.circuit_diagram_info_protocol._op_info_with_fallback, style=style
+        )
     x0 = out_diagram.width()
 
     non_global_ops = [op for op in moment.operations if op.qubits]
@@ -2778,7 +2815,8 @@ def _draw_moment_in_diagram(
     max_x = x0
     for op in non_global_ops:
         qubits = tuple(op.qubits)
-        cbits = tuple(protocols.measurement_keys_touched(op) & label_map.keys())
+        touched_keys = protocols.measurement_keys_touched(op)
+        cbits = tuple(k for k in label_map if k in touched_keys)
         labels = qubits + cbits
         indices = [label_map[label] for label in labels]
         y1 = min(indices)
@@ -2804,6 +2842,13 @@ def _draw_moment_in_diagram(
         # Draw vertical line linking the gate's qubits.
         if y2 > y1 and info.connected:
             out_diagram.vertical_line(x, y1, y2, doubled=len(cbits) != 0)
+            if style == 'boxy' and use_unicode_characters and cbits:
+                for label_entity, y in label_map.items():
+                    if y1 < y < y2 and label_entity not in labels:
+                        if isinstance(label_entity, ops.Qid):
+                            out_diagram.write(x, y, '─', '│')
+                        else:
+                            out_diagram.write(x, y, '═', '║')
 
         # Print gate qubit labels.
         symbols = info._wire_symbols_including_formatted_exponent(
