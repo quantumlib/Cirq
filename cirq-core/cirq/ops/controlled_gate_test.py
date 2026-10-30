@@ -770,8 +770,9 @@ def test_str() -> None:
     assert str(C2Restricted) == 'C2Restricted'
 
 
-def test_controlled_mixture() -> None:
-    c_yes = cirq.ControlledGate(sub_gate=cirq.phase_flip(0.25), num_controls=1)
+@pytest.mark.parametrize('sub_gate', [cirq.phase_flip(0.25), cirq.phase_damp(0.75)])
+def test_controlled_mixture(sub_gate) -> None:
+    c_yes = cirq.ControlledGate(sub_gate=sub_gate, num_controls=1)
     assert cirq.has_mixture(c_yes)
     assert cirq.approx_eq(cirq.mixture(c_yes), [(0.75, np.eye(4)), (0.25, cirq.unitary(cirq.CZ))])
 

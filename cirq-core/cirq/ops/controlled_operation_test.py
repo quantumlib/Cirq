@@ -468,9 +468,10 @@ def test_controlled_operation_gate() -> None:
     assert op.gate is None
 
 
-def test_controlled_mixture() -> None:
+@pytest.mark.parametrize('sub_gate', [cirq.phase_flip(0.25), cirq.phase_damp(0.75)])
+def test_controlled_mixture(sub_gate) -> None:
     a, b = cirq.LineQubit.range(2)
-    c_yes = cirq.ControlledOperation(controls=[b], sub_operation=cirq.phase_flip(0.25).on(a))
+    c_yes = cirq.ControlledOperation(controls=[b], sub_operation=sub_gate.on(a))
     assert cirq.has_mixture(c_yes)
     assert cirq.approx_eq(cirq.mixture(c_yes), [(0.75, np.eye(4)), (0.25, cirq.unitary(cirq.CZ))])
 
