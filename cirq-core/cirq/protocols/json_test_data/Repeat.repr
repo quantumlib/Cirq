@@ -1,0 +1,5 @@
+[
+    cirq.Repeat(3, cirq.X(cirq.LineQubit(0))),
+    cirq.Repeat(2, cirq.X(cirq.LineQubit(0)), cirq.Y(cirq.LineQubit(1))),
+    cirq.Repeat(4, cirq.H(cirq.LineQubit(0)), cirq.measure(cirq.LineQubit(0), key='m')),
+]
