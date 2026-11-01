@@ -148,8 +148,8 @@ def test_calibration_timestamp_str():
         calibration.timestamp_str(tz=datetime.timezone(datetime.timedelta(hours=1)))
         == '2019-07-08 01:00:00.021000+01:00'
     )
-    c2 = cg.Calibration(v2.metrics_pb2.MetricsSnapshot(timestamp_ms=1723795877630))
-    assert c2.timestamp_str(tz=datetime.timezone.utc) == '2024-08-16 08:11:17.630000+00:00'
+    calibration = cg.Calibration(v2.metrics_pb2.MetricsSnapshot(timestamp_ms=1723795877630))
+    assert calibration.timestamp_str(tz=datetime.timezone.utc) == '2024-08-16 08:11:17.630000+00:00'
 
 
 def test_to_proto():
