@@ -500,7 +500,6 @@ class Calibration(abc.Mapping):
             The string in ISO 8601 format YYYY-MM-DDTHH:MM:SS.ffffff.
         """
         dt = datetime.datetime.fromtimestamp(self.timestamp / 1000, tz)
-        dt += datetime.timedelta(microseconds=self.timestamp % 1000000)
         return dt.isoformat(sep=' ', timespec=timespec)
 
     def str_to_key(self, target: str) -> cirq.GridQubit | str:
