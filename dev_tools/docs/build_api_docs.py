@@ -97,12 +97,12 @@ def _cirq_visit_function_def(self, node: ast.FunctionDef | ast.AsyncFunctionDef)
         if arg and arg.annotation:
             self.annotations[arg.arg] = signature._source_from_ast(arg.annotation)
 
-    for arg, default in [
-        *zip(reversed(pos_args), reversed(node.args.defaults)),
-        *zip(node.args.kwonlyargs, node.args.kw_defaults),
-    ]:
-        if default is not None:
-            self.defaults[arg.arg] = self._preprocess_default(default)
+    for arg, default in zip(reversed(pos_args), reversed(node.args.defaults)):
+        self.defaults[arg.arg] = self._preprocess_default(default)
+
+    for arg, kw_default in zip(node.args.kwonlyargs, node.args.kw_defaults):
+        if kw_default is not None:
+            self.defaults[arg.arg] = self._preprocess_default(kw_default)
 
 
 def _cirq_signature_str(self) -> str:
@@ -131,11 +131,6 @@ def _cirq_signature_str(self) -> str:
         *varkw,
     ]
 
-    return_annotation_text = ''
-    if self.return_annotation is not signature.EMPTY:
-        if signature.EMPTY not in self.return_annotation:
-            return_annotation_text = formatter.format_return(self.return_annotation)
-
     arguments_signature = ''
     if all_args_list:
         str_signature = ',\n'.join(all_args_list)
@@ -144,8 +139,11 @@ def _cirq_signature_str(self) -> str:
             str_signature = textwrap.fill(str_signature, width=80)
         arguments_signature = '\n' + textwrap.indent(str_signature, prefix='    ') + '\n'
 
-    if return_annotation_text:
-        return f'({arguments_signature}) -> {return_annotation_text}'
+    if (
+        self.return_annotation is not signature.EMPTY
+        and signature.EMPTY not in self.return_annotation
+    ):
+        return f'({arguments_signature}) -> {formatter.format_return(self.return_annotation)}'
     return f'({arguments_signature})'
 
 
