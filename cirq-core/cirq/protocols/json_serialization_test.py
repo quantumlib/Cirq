@@ -598,11 +598,11 @@ def test_json_gzip_compresslevel() -> None:
     test_circuit = cirq.Circuit(
         10 * [cirq.X.on_each(*qubits), cirq.Y.on_each(*qubits), cirq.Z.on_each(*qubits)]
     )
-    gzip_data_level_1 = cirq.to_json_gzip(test_circuit, compresslevel=1)
+    gzip_data_level_0 = cirq.to_json_gzip(test_circuit, compresslevel=0)
     gzip_data_level_9 = cirq.to_json_gzip(test_circuit, compresslevel=9)
-    assert len(gzip_data_level_9) < 0.9 * len(gzip_data_level_1)
+    assert len(gzip_data_level_9) < 0.1 * len(gzip_data_level_0)
     json_bytes = cirq.to_json(test_circuit).encode()
-    assert gzip.decompress(gzip_data_level_1) == json_bytes
+    assert gzip.decompress(gzip_data_level_0) == json_bytes
     assert gzip.decompress(gzip_data_level_9) == json_bytes
 
 
