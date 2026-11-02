@@ -208,9 +208,9 @@ def _map_operations_impl(
             ).with_tags(*op.tags)
         res = map_func(op, idx)
         mapped_ops = [res] if isinstance(res, ops.Operation) else [*ops.flatten_to_ops(res)]
-        if not mapped_ops:
-            return []
-        if len(mapped_ops) == 1 and (not raise_if_add_qubits or mapped_ops[0].qubits == op.qubits):
+        if (not mapped_ops
+            or (len(mapped_ops) == 1
+                and (not raise_if_add_qubits or mapped_ops[0].qubits == op.qubits))):
             return mapped_ops
         mapped_ops_qubits: set[cirq.Qid] = set()
         has_overlapping_ops = False
