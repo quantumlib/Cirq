@@ -25,12 +25,14 @@ This script needs to cater for both of these cases.
 
 from __future__ import annotations
 
+import ast
 import os
+import textwrap
 import types
 
 import networkx
 from absl import app, flags
-from tensorflow_docs.api_generator import doc_controls, generate_lib, public_api
+from tensorflow_docs.api_generator import doc_controls, generate_lib, public_api, signature
 
 import cirq
 import cirq_aqt
@@ -80,7 +82,82 @@ def filter_type_checking(path, parent, children):
     return filtered_children
 
 
+def _cirq_visit_function_def(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
+    """Visits a `FunctionDef` or `AsyncFunctionDef` AST node to extract type hints and defaults.
+
+    Works around a limitation in `tensorflow_docs.api_generator.signature` (see
+    https://github.com/quantumlib/Cirq/issues/4657) where annotations on `*args`, `**kwargs`,
+    positional-only (`/`) parameters, and `async def` functions are ignored.
+    """
+    if node.returns:
+        self.return_annotation = signature._source_from_ast(node.returns)
+
+    pos_args = node.args.posonlyargs + node.args.args
+    for arg in (*pos_args, *node.args.kwonlyargs, node.args.vararg, node.args.kwarg):
+        if arg and arg.annotation:
+            self.annotations[arg.arg] = signature._source_from_ast(arg.annotation)
+
+    for arg, default in [
+        *zip(reversed(pos_args), reversed(node.args.defaults)),
+        *zip(node.args.kwonlyargs, node.args.kw_defaults),
+    ]:
+        if default is not None:
+            self.defaults[arg.arg] = self._preprocess_default(default)
+
+
+def _cirq_signature_str(self) -> str:
+    """Formats a `TfSignature` into a string, preserving all parameter annotations and defaults.
+
+    Works around limitations in `tensorflow_docs.api_generator.signature.TfSignature.__str__`
+    by formatting all parameters (including positional-only, `*args`, and `**kwargs`) via
+    `format_kwargs` to preserve defaults and type annotations, then assembling them in
+    canonical parameter-kind order.
+    """
+    formatter = signature.FormatArguments(parser_config=self.parser_config)
+    params = list(self.parameters.values())
+    pairs = list(zip(params, formatter.format_kwargs(params)))
+
+    pos_only = [f for p, f in pairs if p.kind == p.POSITIONAL_ONLY]
+    pos_or_kw = [f for p, f in pairs if p.kind == p.POSITIONAL_OR_KEYWORD]
+    varargs = [f'*{f}' for p, f in pairs if p.kind == p.VAR_POSITIONAL]
+    kw_only = [f for p, f in pairs if p.kind == p.KEYWORD_ONLY]
+    varkw = [f'**{f}' for p, f in pairs if p.kind == p.VAR_KEYWORD]
+
+    all_args_list = [
+        *([*pos_only, '/'] if pos_only else []),
+        *pos_or_kw,
+        *(varargs or (['*'] if kw_only else [])),
+        *kw_only,
+        *varkw,
+    ]
+
+    return_annotation_text = ''
+    if self.return_annotation is not signature.EMPTY:
+        if signature.EMPTY not in self.return_annotation:
+            return_annotation_text = formatter.format_return(self.return_annotation)
+
+    arguments_signature = ''
+    if all_args_list:
+        str_signature = ',\n'.join(all_args_list)
+        # An expectation of 80 characters is built into the DevSite formatter.
+        if len(str_signature) + 4 < 80:
+            str_signature = textwrap.fill(str_signature, width=80)
+        arguments_signature = '\n' + textwrap.indent(str_signature, prefix='    ') + '\n'
+
+    if return_annotation_text:
+        return f'({arguments_signature}) -> {return_annotation_text}'
+    return f'({arguments_signature})'
+
+
+def _patch_tf_docs_signature_handlers() -> None:
+    """Patches `tensorflow_docs.api_generator.signature` to preserve `*args`/`**kwargs` types."""
+    signature._ArgDefaultAndAnnotationExtractor.visit_FunctionDef = _cirq_visit_function_def
+    signature._ArgDefaultAndAnnotationExtractor.visit_AsyncFunctionDef = _cirq_visit_function_def
+    signature.TfSignature.__str__ = _cirq_signature_str
+
+
 def main(unused_argv):
+    _patch_tf_docs_signature_handlers()
     generate_cirq()
     generate_cirq_google()
     generate_cirq_aqt()
