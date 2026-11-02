@@ -241,6 +241,36 @@ t: ═══^════════════
     )
 
 
+def test_diagram_nested_while_same_key() -> None:
+    q0 = cirq.LineQubit(0)
+    op = cirq.If('a', cirq.While('a', cirq.X(q0)))
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(op),
+        """
+0: ───X(While=a)(If=a)───
+      ║
+a: ═══^══════════════════
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_diagram_nested_while_different_key() -> None:
+    q0 = cirq.LineQubit(0)
+    op = cirq.If('a', cirq.While('b', cirq.X(q0)))
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(op),
+        """
+0: ───X(While=b)───
+      ║
+a: ═══^════════════
+      ║
+b: ═══^════════════
+""",
+        use_unicode_characters=True,
+    )
+
+
 @pytest.mark.parametrize('sub_operation', [[], cirq.Circuit()])
 def test_diagram_empty_op_tree(sub_operation: cirq.OP_TREE) -> None:
     op = cirq.If('a', sub_operation)
@@ -249,6 +279,31 @@ def test_diagram_empty_op_tree(sub_operation: cirq.OP_TREE) -> None:
     assert op.sub_operation.circuit == cirq.FrozenCircuit()
 
     args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT
+    assert op._circuit_diagram_info_(args) is NotImplemented
+    assert cirq.circuit_diagram_info(op, default=None) is None
+
+
+def test_diagram_sub_operation_empty_wire_symbols() -> None:
+    class EmptyWireSymbolsOp(cirq.Operation):
+        @property
+        def qubits(self) -> tuple[cirq.Qid, ...]:
+            return ()
+
+        def with_qubits(self, *new_qubits: cirq.Qid) -> cirq.Operation:
+            return self  # pragma: no cover
+
+        def _circuit_diagram_info_(
+            self, args: cirq.CircuitDiagramInfoArgs
+        ) -> cirq.CircuitDiagramInfo:
+            return cirq.CircuitDiagramInfo(wire_symbols=())
+
+    sub_op = EmptyWireSymbolsOp()
+    op = cirq.If('a', sub_op)
+    assert op.sub_operation is sub_op
+    assert op.qubits == ()
+
+    args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT
+    assert cirq.circuit_diagram_info(sub_op, args) == cirq.CircuitDiagramInfo(wire_symbols=())
     assert op._circuit_diagram_info_(args) is NotImplemented
     assert cirq.circuit_diagram_info(op, default=None) is None
 
@@ -294,6 +349,9 @@ def test_qasm() -> None:
     circuit = cirq.Circuit(cirq.measure(q0, key='a'), op)
     qasm_str = cirq.qasm(circuit)
     assert 'if (m_a==1) x q[1];\n' in qasm_str
+    # A single-statement sub-operation is not wrapped in a block in QASM 3.0.
+    qasm_str_3_single = cirq.qasm(circuit, args=cirq.QasmArgs(version='3.0'))
+    assert 'if (m_a!=0) x q[1];\n' in qasm_str_3_single
 
     op_multi = cirq.If(['a', 'b'], cirq.X(q1))
     with pytest.raises(ValueError, match='QASM 2.0 does not support multiple conditions'):
@@ -301,7 +359,7 @@ def test_qasm() -> None:
 
     circuit_multi = cirq.Circuit(cirq.measure(q0, key='a'), cirq.measure(q0, key='b'), op_multi)
     qasm_str_3 = cirq.qasm(circuit_multi, args=cirq.QasmArgs(version='3.0'))
-    assert 'if (m_a!=0 && m_b!=0) {\n  x q[1];\n}\n' in qasm_str_3
+    assert 'if (m_a!=0 && m_b!=0) x q[1];\n' in qasm_str_3
 
     op_nested = cirq.If('a', cirq.If('b', cirq.X(q1)))
     assert op_nested == op_multi
@@ -309,7 +367,7 @@ def test_qasm() -> None:
         cirq.Circuit(cirq.measure(q0, key='a'), cirq.measure(q0, key='b'), op_nested),
         args=cirq.QasmArgs(version='3.0'),
     )
-    assert 'if (m_a!=0 && m_b!=0) {\n  x q[1];\n}\n' in qasm_nested
+    assert 'if (m_a!=0 && m_b!=0) x q[1];\n' in qasm_nested
 
 
 def test_qasm_multi_statement_sub_operation() -> None:
@@ -322,7 +380,7 @@ def test_qasm_multi_statement_sub_operation() -> None:
     assert 'if (m_a==1) h q[3];\nif (m_a==1) ccx q[1],q[2],q[3];\nif (m_a==1) h q[3];\n' in qasm_2
 
     qasm_3 = cirq.qasm(circuit, args=cirq.QasmArgs(version='3.0'))
-    assert 'if (m_a!=0) {\n  h q[3];\n  ccx q[1],q[2],q[3];\n  h q[3];\n}\n' in qasm_3
+    assert 'if (m_a!=0) {\n    h q[3];\n    ccx q[1],q[2],q[3];\n    h q[3];\n}\n' in qasm_3
 
 
 def test_qasm_sub_op_no_qasm() -> None:

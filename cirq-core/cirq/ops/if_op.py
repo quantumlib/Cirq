@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import textwrap
 from collections.abc import Mapping, Sequence
 from types import NotImplementedType
 from typing import Any, TYPE_CHECKING
@@ -200,7 +201,15 @@ class If(raw_types.Operation):
             return NotImplemented
         control_label_count = 0
         if args.label_map is not None:
-            control_label_count = len({k for c in self._conditions for k in c.keys})
+            # If self._sub_operation is already controlled by a key that is also
+            # used in self._conditions (e.g., cirq.If('a', cirq.While('a', ...))),
+            # sub_info.wire_symbols already includes '^' for that key and Cirq's
+            # diagram drawer deduplicates classical wire rows. Subtract those keys
+            # so we only append '^' for control keys without a symbol from sub_info.
+            # (The sub-operation cannot contain measurements, so only its control
+            # keys need to be considered.)
+            sub_keys = protocols.control_keys(self._sub_operation)
+            control_label_count = len({k for c in self._conditions for k in c.keys} - sub_keys)
         wire_symbols = sub_info.wire_symbols + ('^',) * control_label_count
         if control_label_count == 0 or any(
             not isinstance(c, value.KeyCondition) for c in self._conditions
@@ -264,6 +273,8 @@ class If(raw_types.Operation):
         if subop_qasm is None:
             return None
         condition_qasm = " && ".join(protocols.qasm(c, args=args) for c in self._conditions)
+        if subop_qasm.count(';') == 1:
+            return f'if ({condition_qasm}) {subop_qasm}'
         if args.version == "2.0":
             # QASM 2.0 does not support scoped blocks, so condition every statement
             # of the sub-operation individually.  This is equivalent to a block,
@@ -274,5 +285,5 @@ class If(raw_types.Operation):
                 for stmt in subop_qasm.split(';')
                 if stmt.strip()
             )
-        body = ''.join(f'  {line}\n' for line in subop_qasm.splitlines())
+        body = textwrap.indent(subop_qasm, '    ')
         return f'if ({condition_qasm}) {{\n{body}}}\n'
