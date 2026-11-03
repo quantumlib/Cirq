@@ -37,7 +37,7 @@ results. Some of its features include:
 
 *   Flexible gate definitions and custom gates
 *   Parameterized circuits with symbolic variables
-*   Circuit transformation, compilation and optimization
+*   Circuit transformation, compilation, and optimization
 *   Hardware device modeling
 *   Noise modeling
 *   Multiple built-in quantum circuit simulators
@@ -49,7 +49,7 @@ results. Some of its features include:
 
 ## Installation
 
-Cirq supports Python version 3.11 and later, and can be used on Linux, MacOS,
+Cirq supports Python version 3.11 and later, and can be used on Linux, macOS,
 and Windows, as well as [Google Colab](https://colab.google). For complete
 installation instructions, please refer to the
 [Install](https://quantumai.google/cirq/start/install) section of the online
@@ -137,11 +137,11 @@ documentation for Cirq is available.
 *   The [Experiments page](https://quantumai.google/cirq/experiments/) on the
     Cirq documentation site has yet more examples, from simple to advanced.
 
-[examples subdirectory](https://github.com/quantumlib/cirq/tree/main/examples/)
+[examples subdirectory](https://github.com/quantumlib/Cirq/tree/main/examples/)
 
 ### Change log
 
-*   The [Cirq releases](https://github.com/quantumlib/cirq/releases) page on
+*   The [Cirq releases](https://github.com/quantumlib/Cirq/releases) page on
     GitHub lists the changes in each release.
 
 ## Integrations
@@ -189,7 +189,7 @@ counting. We are dedicated to cultivating an open and inclusive community to
 build software for quantum computers, and have a community [code of conduct].
 
 [contributions]: https://github.com/quantumlib/Cirq/graphs/contributors
-[code of conduct]: https://github.com/quantumlib/cirq/blob/main/CODE_OF_CONDUCT.md
+[code of conduct]: https://github.com/quantumlib/Cirq/blob/main/CODE_OF_CONDUCT.md
 
 ### Announcements
 
@@ -232,7 +232,7 @@ Cirq releases take place approximately every quarter.
 
 [Open an issue on GitHub]: https://github.com/quantumlib/Cirq/issues/new/choose
 [list of good first issues]: https://github.com/quantumlib/Cirq/contribute
-[contribution guidelines]: https://github.com/quantumlib/cirq/blob/main/CONTRIBUTING.md
+[contribution guidelines]: https://github.com/quantumlib/Cirq/blob/main/CONTRIBUTING.md
 [pull requests]: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests
 
 <a id="how-to-cite-cirq"></a><a id="how-to-cite"></a>
