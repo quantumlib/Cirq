@@ -162,6 +162,7 @@ develop quantum programs for a variety of applications.
 | Quantum error correction (QEC)? | [Stim]<br>[Chromobius]<br>[Tesseract Decoder] |
 | Chemistry and/or material science? | [OpenFermion]<br>[OpenFermion-FQE]<br>[OpenFermion-PySCF]<br>[OpenFermion-Psi4] |
 | Quantum machine learning (QML)? | [TensorFlow Quantum] |
+| Optimizing tensor network contractions? | [TNCO] |
 | Real experiments using Cirq?                    | [ReCirq] |
 
 </div>
@@ -177,6 +178,7 @@ develop quantum programs for a variety of applications.
 [Stim]: https://github.com/quantumlib/stim
 [TensorFlow Quantum]: https://github.com/tensorflow/quantum
 [Tesseract Decoder]: https://github.com/quantumlib/Tesseract-decoder
+[TNCO]: https://github.com/google-research/tnco
 
 ## Community
 
