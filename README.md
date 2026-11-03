@@ -131,11 +131,13 @@ documentation for Cirq is available.
 
 ### Examples
 
-*   The [examples subdirectory](./examples/) of the Cirq GitHub repo has many
+*   The [examples subdirectory] of the Cirq GitHub repo has many
     programs illustrating the application of Cirq to everything from common
     textbook algorithms to more advanced methods.
 *   The [Experiments page](https://quantumai.google/cirq/experiments/) on the
     Cirq documentation site has yet more examples, from simple to advanced.
+
+[examples subdirectory](https://github.com/quantumlib/cirq/tree/main/examples/)
 
 ### Change log
 
