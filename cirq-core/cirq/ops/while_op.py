@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import textwrap
 from collections.abc import Mapping, Sequence
 from types import NotImplementedType
 from typing import Any, TYPE_CHECKING
@@ -283,5 +284,5 @@ class While(raw_types.Operation):
         if subop_qasm is None:
             return None
         condition_qasm = " && ".join(protocols.qasm(c, args=args) for c in self._conditions)
-        body = ''.join(f'  {line}\n' for line in subop_qasm.splitlines())
+        body = textwrap.indent(subop_qasm, '    ')
         return f'while ({condition_qasm}) {{\n{body}}}\n'
