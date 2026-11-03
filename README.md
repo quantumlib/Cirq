@@ -231,7 +231,8 @@ Cirq releases take place approximately every quarter.
 [contribution guidelines]: https://github.com/quantumlib/cirq/blob/main/CONTRIBUTING.md
 [pull requests]: https://help.github.com/articles/about-pull-requests
 
-## Citing Cirq<a name="how-to-cite-cirq"></a><a name="how-to-cite"></a>
+<a id="how-to-cite-cirq"></a><a id="how-to-cite"></a>
+## Citing Cirq
 
 When publishing articles or otherwise writing about Cirq, please cite the Cirq
 version you use – it will help others reproduce your results. We use Zenodo to
