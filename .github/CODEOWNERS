@@ -9,13 +9,9 @@
 #### Cirq docs maintainers ####
 
 docs/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-contributors
-docs/tutorials/google/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-contributors @wcourtney @verult @hoisinberg
-docs/noise/qcvv/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-contributors @mrwojtek
+docs/tutorials/google/**/*.* @quantumlib/cirq-maintainers
 
 #### Hardware module maintainers ####
-
-cirq-google/**/*.* @quantumlib/cirq-maintainers @wcourtney @verult @hoisinberg
-docs/google/**/*.* @quantumlib/cirq-maintainers @wcourtney @verult @hoisinberg
 
 cirq-aqt/**/*.*          @quantumlib/cirq-maintainers @quantumlib/cirq-aqt-contributors
 docs/hardware/aqt/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-aqt-contributors
@@ -27,7 +23,3 @@ cirq-pasqal/**/*.*          @quantumlib/cirq-maintainers @quantumlib/cirq-pasqal
 docs/hardware/pasqal/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-pasqal-contributors
 
 docs/hardware/azure-quantum/**/*.* @quantumlib/cirq-maintainers @quantumlib/cirq-azure-contributors
-
-#### Experiments maintainers ####
-
-cirq-core/cirq/experiments/**/*.* @quantumlib/cirq-maintainers @mrwojtek
