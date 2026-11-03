@@ -178,7 +178,7 @@ develop quantum programs for a variety of applications.
 ## Community
 
 <a href="https://github.com/quantumlib/Cirq/graphs/contributors"><img
-width="150em" alt="Total number of contributors to Cirq"
+width="150" alt="Total number of contributors to Cirq"
 src="https://img.shields.io/github/contributors/quantumlib/cirq?label=Contributors&logo=github&color=ccc&style=flat-square"/></a>
 
 Cirq has benefited from [contributions] by over 250 people and
