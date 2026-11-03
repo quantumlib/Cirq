@@ -155,25 +155,28 @@ develop quantum programs for a variety of applications.
 
 | Your interests                                  | Software to explore  |
 |-------------------------------------------------|----------------------|
+| Programming NISQ quantum computers? | [Cirq] |
 | Quantum algorithms?<br>Fault-tolerant quantum computing (FTQC)? | [Qualtran] |
-| Large circuits and/or a lot of simulations?     | [qsim] |
+| Large circuits and/or a lot of simulations? | [qsim] |
 | Circuits with thousands of qubits and millions of Clifford operations? | [Stim] |
-| Quantum error correction (QEC)?                 | [Stim] |
-| Chemistry and/or material science?              | [OpenFermion]<br>[OpenFermion-FQE]<br>[OpenFermion-PySCF]<br>[OpenFermion-Psi4] |
-| Quantum machine learning (QML)?                 | [TensorFlow Quantum] |
+| Quantum error correction (QEC)? | [Stim]<br>[Chromobius]<br>[Tesseract Decoder] |
+| Chemistry and/or material science? | [OpenFermion]<br>[OpenFermion-FQE]<br>[OpenFermion-PySCF]<br>[OpenFermion-Psi4] |
+| Quantum machine learning (QML)? | [TensorFlow Quantum] |
 | Real experiments using Cirq?                    | [ReCirq] |
 
 </div>
 
-[Qualtran]: https://github.com/quantumlib/qualtran
-[qsim]: https://github.com/quantumlib/qsim
-[Stim]: https://github.com/quantumlib/stim
-[OpenFermion]: https://github.com/quantumlib/openfermion
+[Chromobius]: https://github.com/quantumlib/chromobius
 [OpenFermion-FQE]: https://github.com/quantumlib/OpenFermion-FQE
-[OpenFermion-PySCF]: https://github.com/quantumlib/OpenFermion-PySCF
 [OpenFermion-Psi4]: https://github.com/quantumlib/OpenFermion-Psi4
-[TensorFlow Quantum]: https://github.com/tensorflow/quantum
+[OpenFermion-PySCF]: https://github.com/quantumlib/OpenFermion-PySCF
+[OpenFermion]: https://github.com/quantumlib/openfermion
+[qsim]: https://github.com/quantumlib/qsim
+[Qualtran]: https://github.com/quantumlib/qualtran
 [ReCirq]: https://github.com/quantumlib/ReCirq
+[Stim]: https://github.com/quantumlib/stim
+[TensorFlow Quantum]: https://github.com/tensorflow/quantum
+[Tesseract Decoder]: https://github.com/quantumlib/Tesseract-decoder
 
 ## Community
 
@@ -203,6 +206,7 @@ Cirq releases take place approximately every quarter.
 
 [`cirq-announce`]: https://groups.google.com/g/cirq-announce
 [repository notifications]: https://docs.github.com/github/managing-subscriptions-and-notifications-on-github/configuring-notifications
+[Cirq]: https://github.com/quantumlib/Cirq
 [Cirq releases Atom feed]: https://github.com/quantumlib/Cirq/releases.atom
 [PyPI releases RSS feed]: https://pypi.org/rss/project/cirq/releases.xml
 
