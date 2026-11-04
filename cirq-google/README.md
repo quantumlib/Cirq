@@ -23,7 +23,7 @@ computers, where the details of quantum hardware are vital to achieving
 state-of-the-art results. For more information about Cirq, please visit the
 [Cirq documentation site].
 
-[Cirq]: https://github.com/quantumlib/cirq
+[Cirq]: https://github.com/quantumlib/Cirq
 [Cirq documentation site]: https://quantumai.google/cirq
 
 ## Installation
