@@ -52,6 +52,7 @@ def test_sample_seed_unitary() -> None:
     q = cirq.NamedQubit('q')
     circuit = cirq.Circuit(cirq.X(q) ** 0.5, cirq.measure(q))
     result1 = cirq.sample(circuit, repetitions=10, seed=1234)
+    assert result1.measurements['q'].shape == (10, 1)
     result2 = cirq.sample(circuit, repetitions=10, seed=np.random.default_rng(1234))
     assert result1 == result2
     assert result1 != cirq.sample(circuit, repetitions=10, seed=1235)
@@ -61,6 +62,7 @@ def test_sample_seed_non_unitary() -> None:
     q = cirq.NamedQubit('q')
     circuit = cirq.Circuit(cirq.depolarize(0.5).on(q), cirq.measure(q))
     result1 = cirq.sample(circuit, repetitions=10, seed=1234)
+    assert result1.measurements['q'].shape == (10, 1)
     result2 = cirq.sample(circuit, repetitions=10, seed=np.random.default_rng(1234))
     assert result1 == result2
     assert result1 != cirq.sample(circuit, repetitions=10, seed=1235)
@@ -104,6 +106,8 @@ def test_sample_sweep_seed() -> None:
     params = [cirq.ParamResolver({'t': 0.5})] * 3
 
     results1 = cirq.sample_sweep(circuit, params, repetitions=10, seed=1234)
+    assert len(results1) == 3
+    assert results1[0].measurements['q'].shape == (10, 1)
     results2 = cirq.sample_sweep(circuit, params, repetitions=10, seed=np.random.default_rng(1234))
     assert results1 == results2
     # The sweep draws from a single generator, so identical resolvers give different samples.

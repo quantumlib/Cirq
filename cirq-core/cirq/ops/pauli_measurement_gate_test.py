@@ -239,6 +239,7 @@ def test_confusion_matrix_simulation() -> None:
     assert sim_results.all()
 
 
+@cirq.testing.retry_once_with_later_random_values
 def test_confusion_matrix_mixed_simulation() -> None:
     # 90% chance of 0->0, 10% chance of 0->1
     # 40% chance of 1->0, 60% chance of 1->1

@@ -138,6 +138,7 @@ def test_sample_state_seed() -> None:
     state = np.ones(2) / np.sqrt(2)
 
     samples1 = cirq.sample_state_vector(state, [0], repetitions=10, seed=1234)
+    assert samples1.shape == (10, 1)
     samples2 = cirq.sample_state_vector(
         state, [0], repetitions=10, seed=np.random.default_rng(1234)
     )
@@ -264,6 +265,7 @@ def test_measure_state_seed(use_np_transpose: bool) -> None:
     initial_state = np.ones(2**n) / 2 ** (n / 2)
 
     bits1, state1 = cirq.measure_state_vector(initial_state, range(n), seed=1234)
+    assert len(bits1) == n
     bits2, state2 = cirq.measure_state_vector(
         initial_state, range(n), seed=np.random.default_rng(1234)
     )

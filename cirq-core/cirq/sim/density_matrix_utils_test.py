@@ -78,6 +78,7 @@ def test_sample_density_matrix_seed() -> None:
     density_matrix = 0.5 * np.eye(2)
 
     samples1 = cirq.sample_density_matrix(density_matrix, [0], repetitions=10, seed=1234)
+    assert samples1.shape == (10, 1)
     samples2 = cirq.sample_density_matrix(
         density_matrix, [0], repetitions=10, seed=np.random.default_rng(1234)
     )
@@ -247,6 +248,7 @@ def test_measure_density_matrix_seed() -> None:
     matrix = np.eye(2**n) / 2**n
 
     bits1, out_matrix1 = cirq.measure_density_matrix(matrix, range(n), seed=1234)
+    assert len(bits1) == n
     bits2, out_matrix2 = cirq.measure_density_matrix(
         matrix, range(n), seed=np.random.default_rng(1234)
     )

@@ -1046,6 +1046,7 @@ def test_random_seed_terminal_measurements_deterministic() -> None:
     circuit = cirq.Circuit(cirq.X(a) ** 0.5, cirq.measure(a, key='a'))
     sim1 = cirq.Simulator(seed=1234)
     result1 = sim1.run(circuit, repetitions=30)
+    assert result1.measurements['a'].shape == (30, 1)
     result2 = sim1.run(circuit, repetitions=30)
     sim2 = cirq.Simulator(seed=1234)
     assert sim2.run(circuit, repetitions=30) == result1
@@ -1060,6 +1061,8 @@ def test_random_seed_non_terminal_measurements_deterministic() -> None:
     )
     sim1 = cirq.Simulator(seed=1234)
     result1 = sim1.run(circuit, repetitions=30)
+    assert result1.measurements['a'].shape == (30, 1)
+    assert result1.measurements['b'].shape == (30, 1)
     result2 = sim1.run(circuit, repetitions=30)
     sim2 = cirq.Simulator(seed=1234)
     assert sim2.run(circuit, repetitions=30) == result1
@@ -1079,6 +1082,7 @@ def test_random_seed_mixture_deterministic() -> None:
     )
     sim1 = cirq.Simulator(seed=1234)
     result1 = sim1.run(circuit, repetitions=30)
+    assert result1.measurements['a'].shape == (30, 1)
     result2 = sim1.run(circuit, repetitions=30)
     sim2 = cirq.Simulator(seed=1234)
     assert sim2.run(circuit, repetitions=30) == result1

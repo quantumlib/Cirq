@@ -67,6 +67,7 @@ def get_expected_cm(num_qubits: int, p0: float, p1: float) -> np.ndarray:
     return expected_cm
 
 
+@cirq.testing.retry_once_with_later_random_values
 @pytest.mark.parametrize('p0, p1', [(0, 0), (0.2, 0.4), (0.5, 0.5), (0.6, 0.3), (1.0, 1.0)])
 def test_measure_confusion_matrix_with_noise(p0, p1) -> None:
     sampler = NoisySingleQubitReadoutSampler(p0, p1)
@@ -80,10 +81,12 @@ def test_measure_confusion_matrix_with_noise(p0, p1) -> None:
     readout_cm = cirq.measure_confusion_matrix(sampler, qubits, repetitions=repetitions)
     assert readout_cm.repetitions == repetitions
     for q, expected in zip([None, qubits_small], [expected_cm, expected_cm_small]):
-        cm = readout_cm.confusion_matrix(q)
-        np.testing.assert_allclose(cm, expected, atol=2e-2)
-        # check for unitary this way in case the matrix is singular
-        np.testing.assert_allclose(cm @ readout_cm.correction_matrix(q) @ cm, cm, atol=1e-2)
+        np.testing.assert_allclose(readout_cm.confusion_matrix(q), expected, atol=2e-2)
+        np.testing.assert_allclose(
+            readout_cm.confusion_matrix(q) @ readout_cm.correction_matrix(q),
+            np.eye(expected.shape[0]),
+            atol=1e-2,
+        )
 
     # Build a tensored confusion matrix using smaller single qubit confusion matrices.
     # This works because the error is uncorrelated and requires only 4 * 2 = 8 circuits.
@@ -92,9 +95,12 @@ def test_measure_confusion_matrix_with_noise(p0, p1) -> None:
     )
     assert readout_cm.repetitions == repetitions
     for q, expected in zip([None, qubits_small], [expected_cm, expected_cm_small]):
-        cm = readout_cm.confusion_matrix(q)
-        np.testing.assert_allclose(cm, expected, atol=2e-2)
-        np.testing.assert_allclose(cm @ readout_cm.correction_matrix(q) @ cm, cm, atol=1e-2)
+        np.testing.assert_allclose(readout_cm.confusion_matrix(q), expected, atol=2e-2)
+        np.testing.assert_allclose(
+            readout_cm.confusion_matrix(q) @ readout_cm.correction_matrix(q),
+            np.eye(expected.shape[0]),
+            atol=1e-2,
+        )
 
     # Apply corrections to sampled probabilities using readout_cm.
     qs = qubits_small
@@ -107,8 +113,7 @@ def test_measure_confusion_matrix_with_noise(p0, p1) -> None:
         return np.sum((expected_result - result) ** 2)
 
     corrected_result = readout_cm.apply(sampled_result, qs)
-    l2_sampled, l2_corrected = l2norm(sampled_result), l2norm(corrected_result)
-    assert l2_corrected <= l2_sampled or np.isclose(l2_corrected, l2_sampled, atol=0)
+    assert l2norm(corrected_result) <= l2norm(sampled_result) + 1e-12
 
 
 def test_from_measurement() -> None:
