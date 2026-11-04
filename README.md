@@ -136,7 +136,7 @@ documentation for Cirq is available.
 *   The [Experiments page](https://quantumai.google/cirq/experiments/) on the
     Cirq documentation site has yet more examples, from simple to advanced.
 
-[examples subdirectory](https://github.com/quantumlib/Cirq/tree/main/examples/)
+[examples subdirectory]: https://github.com/quantumlib/Cirq/tree/main/examples/
 
 ### Change log
 
@@ -234,7 +234,7 @@ Cirq releases take place approximately every quarter.
 [Open an issue on GitHub]: https://github.com/quantumlib/Cirq/issues/new/choose
 [list of good first issues]: https://github.com/quantumlib/Cirq/contribute
 [contribution guidelines]: https://github.com/quantumlib/Cirq/blob/main/CONTRIBUTING.md
-[pull requests]: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests
+[pull requests]: https://docs.github.com/en/pull-requests/reference/pull-requests
 
 <a id="how-to-cite-cirq"></a><a id="how-to-cite"></a>
 ## Citing Cirq
