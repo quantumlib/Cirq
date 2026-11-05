@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+from unittest import mock
+
 import numpy as np
 import pytest
 import sympy
@@ -233,15 +236,13 @@ def test_set_variable_act_on_edge_cases() -> None:
     assert state.param_resolver.value_of(a) == 1 + 2j
 
 
-def test_set_variable_from_json_rejects_string_expression() -> None:
+@mock.patch('sympy.sympify')
+def test_set_variable_from_json_rejects_string_expression(mock_sympify: mock.MagicMock) -> None:
     a = sympy.Symbol('a')
     valid = cirq.to_json(cirq.SetVariable(a, sympy.Symbol('b') + 1))
     assert cirq.read_json(json_text=valid) == cirq.SetVariable(a, sympy.Symbol('b') + 1)
 
-    malicious = (
-        '{"cirq_type": "SetVariable", '
-        '"target": {"cirq_type": "sympy.Symbol", "name": "a"}, '
-        '"expression": "b + 1"}'
-    )
+    malicious = json.dumps({**json.loads(valid), "expression": "b + 1"})
     with pytest.raises(ValueError, match="must be a serialized sympy expression"):
         cirq.read_json(json_text=malicious)
+    mock_sympify.assert_not_called()
