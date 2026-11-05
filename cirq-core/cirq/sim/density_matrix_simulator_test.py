@@ -1192,6 +1192,7 @@ def test_random_seed() -> None:
 
     sim1 = cirq.DensityMatrixSimulator(seed=1234)
     result1 = sim1.run(circuit, repetitions=10)
+    assert result1.measurements['a'].shape == (10, 1)
 
     sim2 = cirq.DensityMatrixSimulator(seed=np.random.default_rng(1234))
     result2 = sim2.run(circuit, repetitions=10)
