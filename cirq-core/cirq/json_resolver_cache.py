@@ -137,6 +137,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'DepolarizingChannel': cirq.DepolarizingChannel,
         'DeviceMetadata': cirq.DeviceMetadata,
         'Duration': cirq.Duration,
+        'For': cirq.For,
         'FrozenCircuit': cirq.FrozenCircuit,
         'FSimGate': cirq.FSimGate,
         'GateFamily': cirq.GateFamily,

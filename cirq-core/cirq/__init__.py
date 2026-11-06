@@ -223,6 +223,7 @@ from cirq.ops import (
     flatten_op_tree as flatten_op_tree,
     flatten_to_ops as flatten_to_ops,
     flatten_to_ops_or_moments as flatten_to_ops_or_moments,
+    For as For,
     FREDKIN as FREDKIN,
     freeze_op_tree as freeze_op_tree,
     FSimGate as FSimGate,

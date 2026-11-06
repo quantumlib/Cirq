@@ -1,0 +1,12 @@
+[
+    cirq.For(
+        sympy.Symbol('i'),
+        [0, 1, 2],
+        cirq.Y(cirq.NamedQubit('target')),
+    ),
+    cirq.For(
+        [0, 1],
+        cirq.X(cirq.LineQubit(0)),
+        cirq.Y(cirq.LineQubit(1)),
+    ),
+]
