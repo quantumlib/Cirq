@@ -1307,7 +1307,7 @@ def test_expectation_from_state_vector_invalid_input() -> None:
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     psum = cirq.X(q0) + 2 * cirq.Y(q1) + 3 * cirq.Z(q3)
     q_map = {q0: 0, q1: 1, q3: 2}
-    wf: np.ndarray = np.array([1, 0, 0, 0, 0, 0, 0], dtype=np.complex64)
+    wf: np.ndarray = np.array([1, 0, 0, 0, 0, 0, 0, 0], dtype=np.complex64)
 
     im_psum = (1j + 1) * psum
     with pytest.raises(NotImplementedError, match='non-Hermitian'):
@@ -1333,8 +1333,13 @@ def test_expectation_from_state_vector_invalid_input() -> None:
     with pytest.raises(ValueError, match='indices'):
         psum.expectation_from_state_vector(wf, {q0: 0, q1: 0, q3: 2})
 
-    with pytest.raises(ValueError, match='9'):
-        psum.expectation_from_state_vector(np.arange(9, dtype=np.complex64), q_map)
+    for bad_size in (3, 5, 7, 9):
+        with pytest.raises(ValueError, match='shape'):
+            psum.expectation_from_state_vector(np.zeros(bad_size, dtype=np.complex64), q_map)
+        with pytest.raises(ValueError, match='shape'):
+            psum.expectation_from_state_vector(
+                np.zeros(bad_size, dtype=np.complex64), q_map, check_preconditions=False
+            )
     q_map_2 = {q0: 0, q1: 1, q2: 2, q3: 3}
     with pytest.raises(ValueError, match='normalized'):
         psum.expectation_from_state_vector(np.arange(16, dtype=np.complex64), q_map_2)
