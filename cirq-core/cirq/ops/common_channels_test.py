@@ -552,7 +552,28 @@ def test_phase_damping_channel() -> None:
         ),
     )
     cirq.testing.assert_consistent_channel(d)
-    assert not cirq.has_mixture(d)
+    cirq.testing.assert_consistent_mixture(d)
+
+
+@pytest.mark.parametrize('gamma, p', [(0.75, 0.25), (0.36, 0.1)])
+def test_phase_damping_mixture(gamma, p) -> None:
+    d = cirq.phase_damp(gamma)
+    assert cirq.has_mixture(d)
+    assert_mixtures_equal(cirq.mixture(d), ((1 - p, np.eye(2)), (p, Z)))
+
+
+def test_phase_damping_mixture_small_gamma() -> None:
+    (_, _), (p, _) = cirq.mixture(cirq.phase_damp(1e-15))
+    np.testing.assert_allclose(p, 2.5e-16, rtol=1e-6)
+
+
+@pytest.mark.parametrize('gamma', [0.0, 0.1, 0.5, 0.9, 1.0])
+def test_phase_damping_mixture_matches_kraus(gamma: float) -> None:
+    d = cirq.phase_damp(gamma)
+    mixture_kraus = [np.sqrt(p) * u for p, u in cirq.mixture(d)]
+    np.testing.assert_allclose(
+        cirq.kraus_to_choi(cirq.kraus(d)), cirq.kraus_to_choi(mixture_kraus), atol=1e-8
+    )
 
 
 def test_phase_damping_channel_repr() -> None:
