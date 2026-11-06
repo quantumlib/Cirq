@@ -345,6 +345,43 @@ def test_sympy() -> None:
     assert_json_roundtrip_works(sympy.EulerGamma)
 
 
+@mock.patch('sympy.parsing.sympy_parser.parse_expr')
+@pytest.mark.parametrize(
+    'expr',
+    [
+        sympy.Add(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Mul(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Pow(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Pow(2, sympy.Symbol('s')),
+        sympy.GreaterThan(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.StrictGreaterThan(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.LessThan(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.StrictLessThan(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Equality(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Unequality(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.And(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Or(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Not(sympy.Symbol('s')),
+        sympy.Xor(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Indexed(sympy.IndexedBase(sympy.Symbol('s')), sympy.Integer(1)),
+        sympy.IndexedBase(sympy.Symbol('s')),
+    ],
+    ids=lambda expr: type(expr),
+)
+def test_sympy_rejects_string_expression(mock_parse_expr: mock.MagicMock, expr: sympy.Expr) -> None:
+    s_json = cirq.to_json(sympy.Symbol('s'), indent=None)
+    t_json = cirq.to_json(sympy.Symbol('t'), indent=None)
+    json_text = cirq.to_json(expr, indent=None)
+    bad_json_texts = [
+        json_text.replace(s_json, '"s+1"'),
+        *([json_text.replace(t_json, '"t+1"')] if t_json in json_text else []),
+    ]
+    for bad in bad_json_texts:
+        with pytest.raises(ValueError, match="Expected a serialized sympy expression"):
+            _ = cirq.read_json(json_text=bad)
+        mock_parse_expr.assert_not_called()
+
+
 class SBKImpl(cirq.SerializableByKey):
     """A test implementation of SerializableByKey."""
 
