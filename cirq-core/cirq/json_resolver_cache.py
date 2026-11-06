@@ -17,12 +17,13 @@ from __future__ import annotations
 
 import datetime
 import functools
-from typing import NamedTuple, TYPE_CHECKING
+from typing import Any, NamedTuple, TYPE_CHECKING, TypeVar
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Sequence
+
     import cirq
     from cirq.protocols.json_serialization import ObjectFactory
-
 
 # Needed for backwards compatible named tuples of CrossEntropyResult
 CrossEntropyPair = NamedTuple('CrossEntropyPair', [('num_cycle', int), ('xeb_fidelity', float)])
@@ -44,12 +45,15 @@ CrossEntropyResultDict = NamedTuple(
 def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     import numpy as np
     import pandas as pd
+    import sympy
 
     import cirq
     from cirq.devices import InsertionNoiseModel, NoiseModelFromNoiseProperties, ThermalNoiseModel
     from cirq.devices.noise_model import _NoNoiseModel
     from cirq.experiments import GridInteractionLayer
     from cirq.ops import raw_types
+
+    TSymPy = TypeVar('TSymPy', bound=sympy.Basic)
 
     def _boolean_hamiltonian_gate_op(qubit_map, boolean_strs, theta):
         return cirq.BooleanHamiltonianGate(
@@ -99,7 +103,17 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     def _symmetricalqidpair(qids):
         return frozenset(qids)
 
-    import sympy
+    def _sympy_check_args(cls: type[TSymPy]) -> Callable[[Sequence[Any]], TSymPy]:
+        @functools.wraps(cls)
+        def wrapper(args: Sequence[Any]) -> TSymPy:
+            for arg in args:
+                if not isinstance(arg, sympy.Basic):
+                    raise ValueError(
+                        f"Expected a serialized sympy expression, got {type(arg).__name__}."
+                    )
+            return cls(*args)
+
+        return wrapper
 
     return {
         'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
@@ -274,21 +288,21 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'pandas.Index': pd.Index,
         'pandas.MultiIndex': pd.MultiIndex.from_tuples,
         'sympy.Symbol': sympy.Symbol,
-        'sympy.Add': lambda args: sympy.Add(*args),
-        'sympy.Mul': lambda args: sympy.Mul(*args),
-        'sympy.Pow': lambda args: sympy.Pow(*args),
-        'sympy.GreaterThan': lambda args: sympy.GreaterThan(*args),
-        'sympy.StrictGreaterThan': lambda args: sympy.StrictGreaterThan(*args),
-        'sympy.LessThan': lambda args: sympy.LessThan(*args),
-        'sympy.StrictLessThan': lambda args: sympy.StrictLessThan(*args),
-        'sympy.Equality': lambda args: sympy.Equality(*args),
-        'sympy.Unequality': lambda args: sympy.Unequality(*args),
-        'sympy.And': lambda args: sympy.And(*args),
-        'sympy.Or': lambda args: sympy.Or(*args),
-        'sympy.Not': lambda args: sympy.Not(*args),
-        'sympy.Xor': lambda args: sympy.Xor(*args),
-        'sympy.Indexed': lambda args: sympy.Indexed(*args),
-        'sympy.IndexedBase': lambda args: sympy.IndexedBase(*args),
+        'sympy.Add': _sympy_check_args(sympy.Add),
+        'sympy.Mul': _sympy_check_args(sympy.Mul),
+        'sympy.Pow': _sympy_check_args(sympy.Pow),
+        'sympy.GreaterThan': _sympy_check_args(sympy.GreaterThan),
+        'sympy.StrictGreaterThan': _sympy_check_args(sympy.StrictGreaterThan),
+        'sympy.LessThan': _sympy_check_args(sympy.LessThan),
+        'sympy.StrictLessThan': _sympy_check_args(sympy.StrictLessThan),
+        'sympy.Equality': _sympy_check_args(sympy.Equality),
+        'sympy.Unequality': _sympy_check_args(sympy.Unequality),
+        'sympy.And': _sympy_check_args(sympy.And),
+        'sympy.Or': _sympy_check_args(sympy.Or),
+        'sympy.Not': _sympy_check_args(sympy.Not),
+        'sympy.Xor': _sympy_check_args(sympy.Xor),
+        'sympy.Indexed': _sympy_check_args(sympy.Indexed),
+        'sympy.IndexedBase': _sympy_check_args(sympy.IndexedBase),
         'sympy.Float': lambda approx: sympy.Float(approx),
         'sympy.Integer': sympy.Integer,
         'sympy.Rational': sympy.Rational,
