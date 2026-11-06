@@ -382,6 +382,11 @@ def test_qasm_multi_statement_sub_operation() -> None:
     qasm_3 = cirq.qasm(circuit, args=cirq.QasmArgs(version='3.0'))
     assert 'if (m_a!=0) {\n    h q[3];\n    ccx q[1],q[2],q[3];\n    h q[3];\n}\n' in qasm_3
 
+    op_longbody = cirq.If('a', (cirq.X(q1), cirq.Z(q1)))
+    circuit_multi = cirq.Circuit(cirq.measure(q0, key='a'), op_longbody)
+    qasm_str_4 = cirq.qasm(circuit_multi)
+    assert 'if (m_a==1) {\n    x q[1];\n    z q[1];\n}' in qasm_str_4
+
 
 def test_qasm_sub_op_no_qasm() -> None:
     q0, q1 = cirq.LineQubit.range(2)
