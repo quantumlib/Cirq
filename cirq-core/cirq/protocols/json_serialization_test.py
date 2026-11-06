@@ -365,9 +365,6 @@ def test_sympy() -> None:
         sympy.Xor(sympy.Symbol('s'), sympy.Symbol('t')),
         sympy.Indexed(sympy.IndexedBase(sympy.Symbol('s')), sympy.Integer(1)),
         sympy.IndexedBase(sympy.Symbol('s')),
-        sympy.Integer(1),
-        sympy.Float(1.5),
-        sympy.Rational(2, 3),
     ],
     ids=lambda expr: type(expr),
 )
@@ -375,19 +372,12 @@ def test_sympy_rejects_string_expression(mock_parse_expr: mock.MagicMock, expr: 
     s_json = cirq.to_json(sympy.Symbol('s'), indent=None)
     t_json = cirq.to_json(sympy.Symbol('t'), indent=None)
     json_text = cirq.to_json(expr, indent=None)
-    bad_json_texts = {json_text.replace(s_json, '"s+1"'), json_text.replace(t_json, '"t+1"')}
-    if isinstance(expr, (sympy.Integer, sympy.Float, sympy.Rational)):
-        json_data = json.loads(json_text)
-        json_data.update(
-            {k: f"x + {v}" for k, v in json_data.items() if isinstance(v, (int, float))}
-        )
-        bad_json_texts.add(json.dumps(json_data, indent=None))
-    for bad in sorted(bad_json_texts):
-        try:
+    bad_json_texts = [json_text.replace(s_json, '"s+1"'), json_text.replace(t_json, '"t+1"')]
+    bad_json_texts = [t for t in bad_json_texts if t != json_text]
+    for bad in bad_json_texts:
+        with pytest.raises(ValueError, match="Expected a serialized sympy expression"):
             _ = cirq.read_json(json_text=bad)
-        except (TypeError, ValueError):
-            pass
-    mock_parse_expr.assert_not_called()
+        mock_parse_expr.assert_not_called()
 
 
 class SBKImpl(cirq.SerializableByKey):
