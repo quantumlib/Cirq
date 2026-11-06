@@ -372,8 +372,10 @@ def test_sympy_rejects_string_expression(mock_parse_expr: mock.MagicMock, expr: 
     s_json = cirq.to_json(sympy.Symbol('s'), indent=None)
     t_json = cirq.to_json(sympy.Symbol('t'), indent=None)
     json_text = cirq.to_json(expr, indent=None)
-    bad_json_texts = [json_text.replace(s_json, '"s+1"'), json_text.replace(t_json, '"t+1"')]
-    bad_json_texts = [t for t in bad_json_texts if t != json_text]
+    bad_json_texts = [
+        json_text.replace(s_json, '"s+1"'),
+        *([json_text.replace(t_json, '"t+1"')] if t_json in json_text else []),
+    ]
     for bad in bad_json_texts:
         with pytest.raises(ValueError, match="Expected a serialized sympy expression"):
             _ = cirq.read_json(json_text=bad)
