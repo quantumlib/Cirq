@@ -1,0 +1,2 @@
+[cirq.OrCondition((cirq.KeyCondition(key=cirq.MeasurementKey('a')), cirq.BitMaskKeyCondition(key=cirq.MeasurementKey('b'), target_value=2, equal_target=True)), invert=False),
+ cirq.OrCondition((cirq.KeyCondition(key=cirq.MeasurementKey('c')),), invert=True)]

@@ -316,3 +316,59 @@ class SympyCondition(Condition):
                 # Measurements get prepended with "m_", so the condition needs to be too.
                 return f'm_{self.expr.lhs}=={self.expr.rhs}'
         raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
+
+
+@dataclasses.dataclass(frozen=True)
+class OrCondition(Condition):
+    """Implements logical OR for classical condition evaluation."""
+
+    conditions: tuple[Condition, ...]
+    invert: bool = False
+
+    def __post_init__(self):
+        if not self.conditions:
+            raise ValueError('At least one condition must be provided.')
+        # Wrap conditions around a tuple if not already, to maintain hashability. The dataclass is
+        # frozen, so the field must be set via `object.__setattr__`.
+        object.__setattr__(self, 'conditions', tuple(self.conditions))
+
+    @property
+    def keys(self) -> tuple[cirq.MeasurementKey, ...]:
+        return tuple(k for c in self.conditions for k in c.keys)
+
+    def replace_key(
+        self, current: cirq.MeasurementKey, replacement: cirq.MeasurementKey
+    ) -> Condition:
+        return OrCondition(
+            tuple(c.replace_key(current, replacement) for c in self.conditions), invert=self.invert
+        )
+
+    def __repr__(self):
+        return f'cirq.OrCondition({self.conditions!r}, invert={self.invert!r})'
+
+    def resolve(self, classical_data: cirq.ClassicalDataStoreReader) -> bool:
+        val = any(c.resolve(classical_data) for c in self.conditions)
+        return val if not self.invert else not val
+
+    @property
+    def qasm(self):
+        qasm = '(' + (' || '.join(f'{c.qasm}' for c in self.conditions)) + ')'
+        if len(self.conditions) == 1:
+            qasm = self.conditions[0].qasm
+            return qasm if not self.invert else f'!({qasm})'
+        return qasm if not self.invert else f'!{qasm}'
+
+    def _qasm_(self, args: cirq.QasmArgs, **kwargs) -> str | None:
+        args.validate_version('2.0', '3.0', '3.1')
+        if args.version == "2.0" and len(self.conditions) > 1:
+            raise ValueError(
+                'QASM 2.0 does not support multiple conditions. Consider exporting with QASM 3.0.'
+            )
+        return self.qasm
+
+    def _json_dict_(self) -> dict[str, Any]:
+        return json_serialization.dataclass_json_dict(self)
+
+    @classmethod
+    def _from_json_dict_(cls, conditions, invert=False, **kwargs):
+        return cls(conditions=conditions, invert=invert)
