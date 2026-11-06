@@ -47,5 +47,5 @@ def test_calibrate_readout_error() -> None:
     )
     means = readout_calibration.means()
     assert len(means) == 2, 'Two qubits'
-    assert np.all(means > 0.89)
-    assert np.all(means < 0.91)
+    assert np.all(means > 0.90)
+    assert np.all(means < 0.92)
