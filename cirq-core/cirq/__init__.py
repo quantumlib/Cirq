@@ -273,6 +273,8 @@ from cirq.ops import (
     PAULI_STRING_LIKE as PAULI_STRING_LIKE,
     PauliInteractionGate as PauliInteractionGate,
     PauliMeasurementGate as PauliMeasurementGate,
+    PauliRotation as PauliRotation,
+    PauliRotationGate as PauliRotationGate,
     PauliString as PauliString,
     PauliStringGateOperation as PauliStringGateOperation,
     PauliStringPhasor as PauliStringPhasor,
