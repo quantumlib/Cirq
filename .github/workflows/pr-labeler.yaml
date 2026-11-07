@@ -109,6 +109,7 @@ jobs:
 
       - name: Label the PR with area labels
         uses: actions/labeler@f27b608878404679385c85cfa523b85ccb86e213 # v6.1.0
+        continue-on-error: true
         with:
           repo-token: ${{secrets.GITHUB_TOKEN}}
           configuration-path: .github/labeler.yaml
