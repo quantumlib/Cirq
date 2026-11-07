@@ -158,7 +158,7 @@ class ProductOfSums(AbstractControlValues):
         self._qubit_sums: tuple[tuple[int, ...], ...] = tuple(
             (
                 (_control_value_to_int(cv),)
-                if isinstance(cv, int)
+                if isinstance(cv, (int, np.integer, np.bool_))
                 else tuple(sorted({_control_value_to_int(v) for v in cv}))
             )
             for cv in data

@@ -555,3 +555,14 @@ def test_bool_control_values_controlled_gate_match_ints():
 
     np.testing.assert_allclose(cirq.unitary(bool_gate), cirq.unitary(int_gate))
     cirq.testing.assert_implements_consistent_protocols(bool_gate)
+
+
+@pytest.mark.parametrize("control_values", [np.array([True, False]), np.array([1, 0])])
+def test_numpy_array_control_values_match_ints(control_values):
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    numpy_op = cirq.ControlledOperation([q0, q1], cirq.X(q2), control_values=control_values)
+    int_op = cirq.ControlledOperation([q0, q1], cirq.X(q2), control_values=[1, 0])
+
+    assert numpy_op == int_op
+    np.testing.assert_allclose(cirq.unitary(numpy_op), cirq.unitary(int_op))
+    cirq.testing.assert_decompose_is_consistent_with_unitary(numpy_op)

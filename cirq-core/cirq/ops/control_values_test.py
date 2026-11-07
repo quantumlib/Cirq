@@ -374,13 +374,24 @@ def test_numpy_bool_arrays_are_stored_as_ints():
     assert all(type(v) is int for values in control_values for v in values)
 
 
-@pytest.mark.parametrize('data', [[[1.5]], np.array([[1.5]]), ['01']])
+@pytest.mark.parametrize(
+    'data', [np.array([1, 0]), np.array([True, False]), [np.int64(1), np.True_, 0, False]]
+)
+def test_product_of_sums_numpy_scalars_are_stored_as_ints(data):
+    control_values = cirq.ProductOfSums(data)
+    assert tuple(control_values) == tuple((int(v),) for v in data)
+    assert all(type(v) is int for values in control_values for v in values)
+
+
+@pytest.mark.parametrize(
+    'data', [[[1.5]], [[1.0]], np.array([[1.5]]), np.array([[1.0]]), np.array([1.5]), ['01']]
+)
 def test_product_of_sums_rejects_non_integer_clauses(data):
     with pytest.raises(TypeError):
         _ = cirq.ProductOfSums(data)
 
 
-@pytest.mark.parametrize('data', [np.array([[1.5]]), [[1.5]], ['01']])
+@pytest.mark.parametrize('data', [np.array([[1.5]]), np.array([[1.0]]), [[1.5]], [[1.0]], ['01']])
 def test_sum_of_products_rejects_non_integer_conjunctions(data):
     with pytest.raises(TypeError):
         _ = cirq.SumOfProducts(data)
