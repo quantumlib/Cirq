@@ -156,9 +156,11 @@ class ProductOfSums(AbstractControlValues):
 
     def __init__(self, data: Sequence[int | Collection[int]]):
         self._qubit_sums: tuple[tuple[int, ...], ...] = tuple(
-            (_control_value_to_int(cv),)
-            if isinstance(cv, int)
-            else tuple(sorted({_control_value_to_int(v) for v in cv}))
+            (
+                (_control_value_to_int(cv),)
+                if isinstance(cv, int)
+                else tuple(sorted({_control_value_to_int(v) for v in cv}))
+            )
             for cv in data
         )
 
