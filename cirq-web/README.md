@@ -26,7 +26,7 @@ browser-based 3D visualization tools and features in Cirq. `cirq-web` also
 provides a development environment for contributors to create and add their
 own visualizations to the module.
 
-[Cirq]: https://github.com/quantumlib/cirq
+[Cirq]: https://github.com/quantumlib/Cirq
 [Cirq documentation site]: https://quantumai.google/cirq
 
 ## Installation
