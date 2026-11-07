@@ -1822,6 +1822,7 @@ class Circuit(AbstractCircuit):
                 or generally anything meeting the `cirq.OP_TREE` contract.
                 Non-moment entries will be appended according to the specified
                 insertion strategy; see `Circuit.append` for specific mechanics.
+                `cirq.Moment` entries are added intact.
             strategy: When initializing the circuit with operations and moments
                 from `contents`, this determines how the operations are packed
                 together. This option does not affect later insertions into the
@@ -2265,14 +2266,19 @@ class Circuit(AbstractCircuit):
 
         Moments within the operation tree are inserted intact. Operations are
         inserted into the moment specified by the index and 'InsertStrategy'.
-        Operations affecting similar qubits are separated into different moments
-        according to the insertion strategy.
+        Operations acting on a common qubit are separated into different
+        moments according to the insertion strategy.
 
-        Measurements with the same keys are discouraged and will be separated
-        into different moments; prefer multi-qubit measurements. Controlled
-        operations and measurements with the same key will also be separated.
-        Special use cases requiring these operations to be in the same moment
-        should insert them as a moment.
+        Measurement and control keys are respected in the same way: two
+        measurements with the same key, or a measurement and an operation
+        classically controlled by that key, are never placed into the same
+        moment. Several operations classically controlled by the same key can
+        still share a moment. To measure several qubits under one key, prefer
+        a single multi-qubit measurement, e.g. `cirq.measure(q0, q1, key="m")`,
+        or use distinct keys. An explicitly constructed `cirq.Moment` is
+        inserted intact and its operations are not checked for overlapping
+        keys; therefore such operations can be intentionally packed into one
+        moment, e.g. `cirq.Moment(cirq.measure(q0, key="m"), cirq.measure(q1, key="m"))`.
 
         Args:
             index: The index to insert all the operations at.
@@ -2610,14 +2616,19 @@ class Circuit(AbstractCircuit):
         """Appends operations onto the end of the circuit.
 
         Moments within the operation tree are appended intact. Operations
-        affecting similar qubits are separated into different moments according
+        acting on a common qubit are separated into different moments according
         to the insertion strategy.
 
-        Measurements with the same keys are discouraged and will be separated
-        into different moments; prefer multi-qubit measurements. Controlled
-        operations and measurements with the same key will also be separated.
-        Special use cases requiring these operations to be in the same moment
-        should append them as a moment.
+        Measurement and control keys are respected in the same way: two
+        measurements with the same key, or a measurement and an operation
+        classically controlled by that key, are never placed into the same
+        moment. Several operations classically controlled by the same key can
+        still share a moment. To measure several qubits under one key, prefer
+        a single multi-qubit measurement, e.g. `cirq.measure(q0, q1, key="m")`,
+        or use distinct keys. An explicitly constructed `cirq.Moment` is
+        inserted intact and its operations are not checked for overlapping
+        keys; therefore such operations can be intentionally packed into one
+        moment, e.g. `cirq.Moment(cirq.measure(q0, key="m"), cirq.measure(q1, key="m"))`.
 
         Args:
             moment_or_operation_tree: The moment or operation tree to append.
