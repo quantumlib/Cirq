@@ -231,7 +231,7 @@ def _estimate_pauli_traces_general(
     """Estimates the Pauli traces in case the circuit is not Clifford.
 
     In this case we cannot use the speedup implemented in the function
-    _estimate_pauli_traces_clifford() above, and so do a slow, density matrix
+    `_estimate_pauli_traces_clifford()` above, and so do a slow, density matrix
     simulation.
 
     Args:
@@ -312,7 +312,7 @@ class DFEIntermediateResult:
     """A container for debug and run data returned from `direct_fidelity_estimation`.
 
     This is useful when running a long-computation on an actual computer, which is expensive.
-    This allows theses runs to be more easily debugged offline.
+    This allows these runs to be more easily debugged offline.
     """
 
     # If the circuit is Clifford, the Clifford tableau from which we can extract
@@ -470,7 +470,7 @@ def parse_arguments(args):
     # TODO: Offer some guidance on how to set this flag. Maybe have an
     # option to do an exhaustive sample and do numerical studies to know which
     # choice is the best.
-    # Github issue: https://github.com/quantumlib/Cirq/issues/2802
+    # GitHub issue: https://github.com/quantumlib/Cirq/issues/2802
     parser.add_argument(
         '--n_measured_operators',
         default=10,

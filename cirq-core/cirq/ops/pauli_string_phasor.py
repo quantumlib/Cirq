@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import numbers
 from collections.abc import Iterable, Iterator, Sequence, Set
-from typing import cast, TYPE_CHECKING
+from typing import Any, cast, TYPE_CHECKING
 
 from cirq import protocols, value
 from cirq._compat import deprecated, proper_repr
@@ -115,7 +115,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
 
     @property
     def pauli_string(self) -> cirq.PauliString:
-        """The underlying pauli string."""
+        """The underlying Pauli string."""
         return self._pauli_string
 
     @property
@@ -191,7 +191,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
         return protocols.CircuitDiagramInfo(wire_symbols=syms, exponent=self.exponent_relative)
 
     def conjugated_by(self, clifford: cirq.OP_TREE) -> PauliStringPhasor:
-        r"""Returns the Pauli string conjugated by a clifford operation.
+        r"""Returns the Pauli string conjugated by a Clifford operation.
 
         The PauliStringPhasor $P$ conjugated by the Clifford operation $C$ is
           $C^\dagger P C$.
@@ -207,7 +207,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
     ) -> PauliStringPhasor:  # pragma: no cover
         """Determines how the Pauli phasor changes when conjugated by Cliffords.
 
-        The output and input pauli phasors are related by a circuit equivalence.
+        The output and input Pauli phasors are related by a circuit equivalence.
         In particular, this circuit:
 
             ───ops───INPUT_PAULI_PHASOR───
@@ -228,7 +228,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
         Args:
             ops: The operations to move over the string.
             after_to_before: Determines whether the operations start after the
-                pauli string, instead of before (and so are moving in the
+                Pauli string, instead of before (and so are moving in the
                 opposite direction).
         """
         new_pauli_string: ps.PauliString = ps.PauliString()
@@ -256,14 +256,14 @@ class PauliStringPhasor(gate_operation.GateOperation):
             return f'exp({sign}iπ{exponent}*{self.pauli_string})'
         return f'({self.pauli_string})**{self.exponent_relative}'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(
             self, ['pauli_string', 'qubits', 'exponent_neg', 'exponent_pos']
         )
 
     @classmethod
     def _from_json_dict_(cls, pauli_string, exponent_neg, exponent_pos, **kwargs):
-        qubits = kwargs['qubits'] if 'qubits' in kwargs else None
+        qubits = kwargs.get('qubits', None)
         return PauliStringPhasor(
             pauli_string=pauli_string,
             qubits=qubits,
@@ -444,7 +444,7 @@ class PauliStringPhasorGate(raw_types.Gate):
             exponent_neg=self.exponent_neg,
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.obj_to_dict_helper(
             self, ['dense_pauli_string', 'exponent_neg', 'exponent_pos']
         )
@@ -452,7 +452,7 @@ class PauliStringPhasorGate(raw_types.Gate):
 
 def xor_nonlocal_decompose(
     qubits: Iterable[raw_types.Qid], onto_qubit: cirq.Qid
-) -> Iterable[raw_types.Operation]:
+) -> Iterator[raw_types.Operation]:
     """Decomposition ignores connectivity."""
     for qubit in qubits:
         if qubit != onto_qubit:

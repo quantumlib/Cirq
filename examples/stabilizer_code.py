@@ -49,7 +49,7 @@ def _gaussian_elimination(
 ) -> int:
     """Gaussian elimination for standard form.
 
-    Performs a Gaussian elemination of the input matrix and transforms it into its reduced row
+    Performs a Gaussian elimination of the input matrix and transforms it into its reduced row
     echelon form. The elimination is done only on a sub-section of the matrix (specified) by
     ranges of rows and columns. The matrix elements are integers {0, 1} interpreted as elements
     of GF(2).
@@ -120,7 +120,7 @@ def _transfer_to_standard_form(
     """Puts the stabilizer matrix in its standardized form, as in section 4.1 of the thesis.
 
     Args:
-        M: The stabilizier matrix, to be standardized.
+        M: The stabilizer matrix, to be standardized.
         n: Dimension of the code words.
         k: Dimension of the message words.
 

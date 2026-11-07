@@ -45,9 +45,9 @@ class QasmArgs(string.Formatter):
 
         Args:
             precision: The number of digits after the decimal to show for
-                numbers in the qasm code.
+                numbers in the QASM code.
             version: The QASM version to target. Objects may return different
-                qasm depending on version.
+                QASM depending on version.
             qubit_id_map: A dictionary mapping qubits to qreg QASM identifiers.
             meas_key_id_map: A dictionary mapping measurement keys to creg QASM
                 identifiers.

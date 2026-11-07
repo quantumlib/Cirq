@@ -1,0 +1,225 @@
+/* Copyright 2026 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/* Custom style overrides for Cirq's Triage Party web site. */
+
+/* Put more space between the logo and the title text. */
+img[alt="logo"] {
+  margin-left: 10px !important;
+}
+
+/* Change the color of the navbar to be the QAI blue. */
+.navbar,
+.navbar-menu {
+  background-color: #2d53b8;
+}
+
+.navbar-item {
+  background-color: #2d53b8;
+}
+
+/* Change the look & feel of the description box. */
+pre,
+code {
+  font-family: system-ui, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  white-space: normal !important;
+  background-color: #fbf1c3 !important;
+  color: #333 !important;
+}
+
+/* Adjust the look & feel of the data tables. */
+.section {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #fff;
+}
+
+.section-title,
+.stat-title,
+.stats {
+  color: #333 !important;
+}
+
+.subtitle {
+  color: #666666 !important;
+}
+
+.is-active {
+  background-color: #4d73d8 !important;
+}
+
+section:first-of-type {
+  flex-grow: 1;
+}
+
+.box-header {
+  background-color: #dddddf;
+  color: #222;
+}
+
+.dataTables_filter label {
+  color: #2f2f2f;
+}
+
+.hd {
+  background-color: #eeeeee;
+  color: #222;
+}
+
+nav,
+section:last-of-type {
+  flex-shrink: 0;
+}
+
+/* Hide the "Reactions" column. */
+.dataTable th:nth-child(5),
+td:nth-child(5) {
+  display: none !important;
+}
+
+/* Add 1px horizontal space around avatars in the Cmntrs column. */
+.dataTable td:nth-child(9) img {
+  margin-left: 1px !important;
+  margin-right: 1px !important;
+}
+
+/* Adjust the look & feel of the GitHub tags. */
+.gh-label,
+.gh-tag {
+  border-radius: 6px;
+}
+
+.gh-tag {
+  padding: 3px !important;
+  border: 1px dotted #333333;
+  border-radius: 6px;
+}
+
+/* Right-align the "Tags" column (the last column) and rename it to "Status". */
+td.cell-tags,
+.tags-col,
+.col-tags,
+.tags-col > div,
+.col-tags > div {
+  text-align: right !important;
+}
+
+th.tags-col,
+th:last-child {
+  text-align: right !important;
+}
+
+/* Adjust the Triage Party tags (the ones in the last column). */
+.tag-commented,
+.tag-author-last,
+.tag-member-last,
+.tag-pr-merged,
+.tag-pr-closed,
+.tag-open-milestone,
+.tag-assigned,
+.tag-assignee-updated,
+.tag-contributor-last,
+.tag-collaborator-last,
+.tag-similar {
+  display: none !important;
+}
+
+/* The tags we want to replace text for: hide parent layout footprint */
+.tag-send,
+.tag-recv,
+.tag-recv-q,
+.tag-approved,
+.tag-pr-approved,
+.tag-unreviewed,
+.tag-pr-unreviewed,
+.tag-new-commits,
+.tag-pr-new-commits {
+  font-size: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background-color: transparent !important;
+  margin: 2px !important;
+  height: auto !important;
+  width: auto !important;
+  line-height: normal !important;
+}
+
+/* Restore the text size and style the pseudo-elements to look like tags */
+.tag-send::after,
+.tag-recv::after,
+.tag-recv-q::after,
+.tag-approved::after,
+.tag-pr-approved::after,
+.tag-unreviewed::after,
+.tag-pr-unreviewed::after,
+.tag-new-commits::after,
+.tag-pr-new-commits::after {
+  font-size: 0.75rem !important;
+  padding: 0.375em 0.75em !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1.5 !important;
+}
+
+.tag-send::after {
+  content: "Last comment: team";
+  color: darkolivegreen !important;
+  border: 1px dotted #333333;
+  border-radius: 6px;
+}
+
+.tag-recv::after {
+  content: "Last comment: author";
+  color: darkorange !important;
+  border: 1px dotted #333333;
+  border-radius: 6px;
+  background-color: #ffffff !important;
+}
+
+.tag-recv-q::after {
+  content: "Question waiting";
+  background-color: wheat !important;
+  color: purple !important;
+  border: 1px dotted #333333;
+  border-radius: 6px;
+}
+
+.tag-approved::after,
+.tag-pr-approved::after {
+  content: "PR approved";
+  color: green !important;
+  border: 1px dotted #333333;
+  border-radius: 6px;
+}
+
+.tag-unreviewed::after,
+.tag-pr-unreviewed::after {
+  content: "PR needs review";
+  color: red !important;
+  border: 1px dotted #333333;
+  border-radius: 6px;
+  background-color: #ffffff !important;
+}
+
+.tag-new-commits::after,
+.tag-pr-new-commits::after {
+  content: "New commits";
+  color: purple !important;
+  border: 1px dotted #333333;
+  border-radius: 6px;
+  background-color: #ffffff !important;
+}

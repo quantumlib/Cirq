@@ -80,7 +80,7 @@ class EngineProcessorRecord(ProcessorRecord):
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.dataclass_json_dict(self)
 
 

@@ -112,7 +112,7 @@ class GateFamily:
         """Init GateFamily.
 
         Args:
-            gate: A python `type` inheriting from `cirq.Gate` for type based membership checks, or
+            gate: A Python `type` inheriting from `cirq.Gate` for type based membership checks, or
                 a non-parameterized instance of a `cirq.Gate` for equality based membership checks.
             name: The name of the gate family.
             description: Human readable description of the gate family.
@@ -202,7 +202,7 @@ class GateFamily:
         The default predicate depends on the gate family initialization type:
 
         - Instance Family: `cirq.equal_up_to_global_phase(gate, self.gate)`
-            if self._ignore_global_phase else `gate == self.gate`.
+            if `self._ignore_global_phase` else `gate == self.gate`.
         - Type Family: `isinstance(gate, self.gate)`.
 
         Args:
@@ -214,7 +214,7 @@ class GateFamily:
                 if self._ignore_global_phase
                 else gate == self._gate
             )
-        return isinstance(gate, self.gate)  # type: ignore
+        return isinstance(gate, self.gate)  # type: ignore[arg-type]
 
     def __contains__(self, item: raw_types.Gate | raw_types.Operation) -> bool:
         if self._should_check_tags:
@@ -439,8 +439,8 @@ class Gateset:
                 )
                 return True
 
-        # Check exact instance equality next
-        if g in self._instance_gate_families:
+        # Check exact instance equality next (only for hashable gates)
+        if isinstance(g, Hashable) and g in self._instance_gate_families:
             assert item in self._instance_gate_families[g], (
                 f"{item} instance matches {self._instance_gate_families[g]} but "
                 f"is not accepted by it."

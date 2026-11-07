@@ -27,7 +27,7 @@ class AbstractInitialMapper(metaclass=abc.ABCMeta):
     """Base class for creating custom initial mapping strategies.
 
     An initial mapping strategy is a placement strategy that places logical qubit variables in an
-    input circuit onto physical qubits that correspond to a specified device. This placment can be
+    input circuit onto physical qubits that correspond to a specified device. This placement can be
     thought of as a mapping k -> m[k] where k is a logical qubit and m[k] is the physical qubit it
     is mapped to. Any initial mapping strategy must satisfy two constraints:
         1. all logical qubits must be placed on the device if the number of logical qubits is <=
@@ -69,7 +69,7 @@ class HardCodedInitialMapper(AbstractInitialMapper):
         Raises:
             ValueError: if the qubits in circuit are not a subset of the qubit keys in the mapping.
         """
-        if not circuit.all_qubits().issubset(set(self._map.keys())):
+        if not circuit.all_qubits().issubset(self._map.keys()):
             raise ValueError("The qubits in circuit must be a subset of the keys in the mapping")
         return self._map
 

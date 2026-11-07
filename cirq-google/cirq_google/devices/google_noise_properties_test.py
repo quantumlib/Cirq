@@ -41,7 +41,7 @@ DEFAULT_GATE_NS: dict[type, float] = {
     # cirq.WaitGate is a special case.
 }
 
-# Mock pauli error rates for 1- and 2-qubit gates.
+# Mock Pauli error rates for 1- and 2-qubit gates.
 SINGLE_QUBIT_ERROR = 0.001
 TWO_QUBIT_ERROR = 0.01
 
@@ -54,8 +54,8 @@ def sample_noise_properties(
     # Known false positive: https://github.com/PyCQA/pylint/issues/5857
     return GoogleNoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
-        t1_ns={q: 1e5 for q in system_qubits},
-        tphi_ns={q: 2e5 for q in system_qubits},
+        t1_ns=dict.fromkeys(system_qubits, 1e5),
+        tphi_ns=dict.fromkeys(system_qubits, 2e5),
         readout_errors={q: [SINGLE_QUBIT_ERROR, TWO_QUBIT_ERROR] for q in system_qubits},
         gate_pauli_errors={
             **{
@@ -80,9 +80,7 @@ def sample_noise_properties(
 def test_consistent_repr():
     q0, q1 = cirq.LineQubit.range(2)
     test_props = sample_noise_properties([q0, q1], [(q0, q1), (q1, q0)])
-    cirq.testing.assert_equivalent_repr(
-        test_props, setup_code="import cirq, cirq_google\nimport numpy as np"
-    )
+    cirq.testing.assert_equivalent_repr(test_props, setup_code="import cirq, cirq_google")
 
 
 def test_equals():

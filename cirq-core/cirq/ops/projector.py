@@ -31,7 +31,7 @@ class ProjectorString:
         """Constructor for ProjectorString
 
         Args:
-            projector_dict: A python dictionary mapping from cirq.Qid to integers. A key value pair
+            projector_dict: A Python dictionary mapping from cirq.Qid to integers. A key value pair
                 represents the desired computational basis state for that qubit.
             coefficient: Initial scalar coefficient. Defaults to 1.
         """

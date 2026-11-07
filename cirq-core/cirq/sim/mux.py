@@ -79,7 +79,7 @@ def sample(
     # State vector simulation is much faster, but only works if no randomness.
     if noise_model == devices.NO_NOISE:
         if _is_clifford_circuit(program):
-            # If all non-measurement operations are clifford, use the Clifford
+            # If all non-measurement operations are Clifford, use the Clifford
             # simulator.
             return clifford_simulator.CliffordSimulator(seed=seed).run(
                 program, param_resolver=param_resolver, repetitions=repetitions
@@ -142,7 +142,7 @@ def final_state_vector(
 
     Returns:
         The state vector resulting from applying the given unitary operations to
-        the desired initial state. Specifically, a numpy array containing the
+        the desired initial state. Specifically, a NumPy array containing the
         amplitudes in np.kron order, where the order of arguments to kron
         is determined by the qubit order argument (which defaults to just
         sorting the qubits that are present into an ascending order).
@@ -206,7 +206,7 @@ def sample_sweep(
         Result list for this run; one for each possible parameter
         resolver.
     """
-    prng = value.parse_random_state(seed)
+    prng = value.parse_random_generator(seed)
 
     trial_results: list[study.Result] = []
     for param_resolver in study.to_resolvers(params):
@@ -230,7 +230,7 @@ def final_density_matrix(
     param_resolver: cirq.ParamResolverOrSimilarType = None,
     qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     dtype: type[np.complexfloating] = np.complex64,
-    seed: int | np.random.RandomState | None = None,
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ignore_measurement_results: bool = True,
 ) -> np.ndarray:
     """Returns the density matrix resulting from simulating the circuit.
@@ -301,8 +301,8 @@ def final_density_matrix(
         if handling_classical_control:
             # case 1: classical control
             noise_applied = circuit_like.with_noise(noise) if noise is not None else circuit_like
-            defered = measurement_transformers.defer_measurements(noise_applied)
-            dephased = measurement_transformers.dephase_measurements(defered)
+            deferred = measurement_transformers.defer_measurements(noise_applied)
+            dephased = measurement_transformers.dephase_measurements(deferred)
             program = dephased
         elif ignore_measurement_results:
             # case 2: no classical control, only terminal measurement

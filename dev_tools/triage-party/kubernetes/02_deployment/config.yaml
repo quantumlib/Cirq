@@ -1,0 +1,213 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Summary: defines the application-level configuration for Triage Party,
+# including GitHub repositories, collections, filters, and rule definitions.
+
+settings:
+  name: Quantum AI
+  repos:
+    - https://github.com/quantumlib/Cirq
+  min_similarity: 0.7
+
+  member-roles:
+    # Automatically add members from these roles (exclude default of "member")
+    # See https://developer.github.com/v4/enum/commentauthorassociation/
+    - collaborator
+    - owner
+
+  members:
+    - 95-martin-orion
+    - dabacon
+    - dstrain115
+    - maffoo
+    - mhucka
+    - mpharrigan
+    - pavoljuhas
+    - Strilanc
+    - tanujkhattar
+    - viathor
+
+collections:
+  - id: cynq
+    name: Cirq Cynque
+    rules:
+      - issue-discussion
+      - pr-discussion
+
+  - id: daily-issue-triage
+    name: Issue triage
+    rules:
+      - issue-needs-triage
+      - issue-needs-kind
+      - issue-needs-classification
+
+  - id: daily-pr-review
+    name: PR review
+    rules:
+      - needs-review
+
+  - id: discovery
+    name: Issue discoverability
+    description: |-
+      To help contributors find work that matches their skills, time, and ambitions, add labels
+      for complexity and skill level required using the complexity/* and skill-level/* labels,
+      respectively.
+    rules:
+      - issue-needs-discoverability
+
+rules:
+  ## Daily triage
+  issue-needs-triage:
+    name: "Issues that need triaging"
+    resolution: "Add a triage/* label"
+    type: issue
+    filters:
+      - label: "!triage/.*"
+
+  issue-needs-kind:
+    name: "Issues that need 'kind' labels"
+    resolution: "Add a kind/* label"
+    type: issue
+    filters:
+      - label: "!kind/.*"
+
+  issue-needs-classification:
+    name: "Issues that need 'area' labels"
+    resolution: "Add area/* labels"
+    type: issue
+    filters:
+      - label: "!(area)/.*"
+
+  issue-needs-discoverability:
+    name: "Issues that are hard to discover"
+    resolution: "Add complexity/* skill/* labels"
+    type: issue
+    filters:
+      - label: "kind/.*"
+      - label: "triage/accepted"
+      - label: "!(area/google)"
+      - label: "!(complexity|skill)/.*"
+      - label: "!(good first issue|good for learning|help wanted)"
+
+  needs-review:
+    name: "PRs that needs review"
+    resolution: "Review the PRs on GitHub"
+    type: pull_request
+    filters:
+      - title: "!.*(WIP|wip).*"
+      - tag: "!draft"
+      - tag: "(new-commits|unreviewed)"
+
+  ### Cirq Cynque
+
+  issue-discussion:
+    name: "Issues that need discussion"
+    resolution: "Discuss the issue and update the triage tag"
+    type: issue
+    filters:
+      - label: "triage/discuss"
+
+  pr-discussion:
+    name: "PRs that need discussion"
+    resolution: "Discuss the PR"
+    type: pull_request
+    filters:
+      - title: "!.*(WIP|wip).*"
+      - label: "triage/discuss"
+      - tag: "!draft"
+
+  ### Milestone Kanban ###
+  milestone-not-started:
+    name: "Not started"
+    type: issue
+    filters:
+      - tag: open-milestone
+      - tag: "!assignee-updated"
+      - tag: "!(assignee-open-pr|assignee-closed-pr)"
+
+  milestone-assignee-updated:
+    name: "In Progress"
+    type: issue
+    filters:
+      - tag: open-milestone
+      - tag: "assignee-updated"
+      - tag: "!(pr-changes-requested|pr-reviewer-comment|pr-unreviewed|pr-new-commits|pr-approved|pr-changes-requested)"
+
+  milestone-pr-needs-work:
+    name: "PR needs work"
+    type: issue
+    filters:
+      - tag: open-milestone
+      - tag: "(pr-changes-requested|pr-reviewer-comment)"
+
+  milestone-pr-needs-review:
+    name: "PR needs Review"
+    type: issue
+    filters:
+      - tag: open-milestone
+      - tag: "(pr-unreviewed|pr-new-commits)"
+
+  milestone-pr-needs-merge:
+    name: "PR needs Merge"
+    type: issue
+    filters:
+      - tag: open-milestone
+      - tag: "(pr-approved|pr-approved-but-pushed)"
+
+  milestone-recently-closed:
+    name: "Finish Line"
+    type: issue
+    filters:
+      - tag: open-milestone
+      - state: closed
+      - updated: -30d
+
+  ### Important Kanban ###
+  important-not-milestoned:
+    name: "Not in milestone"
+    type: issue
+    filters:
+      - label: "priority/p0|priority/high"
+      - tag: "!open-milestone"
+      - tag: "!assignee-updated"
+      - tag: "!(assignee-open-pr|assignee-closed-pr)"
+
+  ### Quarterly scrub ###
+  bugs-recv:
+    name: "Bugs that deserve a follow-up comment"
+    resolution: "Comment or close the issue"
+    type: issue
+    filters:
+      - tag: recv
+      - responded: +7d
+      - label: "kind/bug-report"
+
+  features-recv:
+    name: "Features that deserve a follow-up comment"
+    resolution: "Comment or close the issue"
+    type: issue
+    filters:
+      - tag: recv
+      - responded: +7d
+      - label: "kind/feature-request"
+
+  design-issues-recv:
+    name: "Design issues that are going stale"
+    resolution: "Comment or close the issue"
+    type: issue
+    filters:
+      - tag: recv
+      - responded: +7d
+      - label: "kind/design-issue"

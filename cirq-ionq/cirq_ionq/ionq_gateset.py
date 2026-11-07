@@ -127,13 +127,13 @@ def decompose_all_to_all_connect_ccz_gate(
 
     For example, for qubits in the same ion trap, the decomposition of CCZ gate will be:
 
-    0: ──────────────@──────────────────@───@───p──────@───
-                     │                  │   │          │
-    1: ───@──────────┼───────@───p──────┼───X───p^-1───X───
-          │          │       │          │
-    2: ───X───p^-1───X───p───X───p^-1───X───p──────────────
+        0: ──────────────@──────────────────@───@───p──────@───
+                         │                  │   │          │
+        1: ───@──────────┼───────@───p──────┼───X───p^-1───X───
+              │          │       │          │
+        2: ───X───p^-1───X───p───X───p^-1───X───p──────────────
 
-    where p = T**ccz_gate._exponent
+    where `p = T**ccz_gate._exponent`
     """
     if len(qubits) != 3:
         raise ValueError(f'Expect 3 qubits for CCZ gate, got {len(qubits)} qubits.')
@@ -153,7 +153,8 @@ def decompose_all_to_all_connect_ccz_gate(
         else []
     )
 
-    return global_phase_operation + [
+    return [
+        *global_phase_operation,
         cirq.CNOT(b, c),
         p(c) ** -1,
         cirq.CNOT(a, c),

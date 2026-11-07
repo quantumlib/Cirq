@@ -102,9 +102,10 @@ class StatePreparationChannel(raw_types.Gate):
         This allows is to take any input state to the target state.
         The operator satisfies the completeness relation Sum(E^ E) = I.
         """
-        operator = np.zeros(shape=(2**self._num_qubits,) * 3, dtype=np.complex128)
-        for i in range(len(operator)):
-            operator[i, :, i] = self._state
+        N = 2**self._num_qubits
+        operator = np.zeros(shape=(N, N, N), dtype=self._state.dtype)
+        idx = np.arange(N)
+        operator[idx, :, idx] = self._state
         return operator
 
     def __repr__(self) -> str:

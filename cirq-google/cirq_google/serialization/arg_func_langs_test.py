@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 import base64
-import inspect
 from typing import cast
 
 import numpy as np
@@ -43,19 +42,6 @@ from cirq_google.serialization.arg_func_langs import (
     internal_gate_arg_to_proto,
     internal_gate_from_proto,
 )
-
-
-def _json_format_kwargs() -> dict[str, bool]:
-    """Determine kwargs to pass to json_format.MessageToDict.
-
-    Protobuf v5 has a different signature for MessageToDict. If we ever move to requiring
-    protobuf >= 5 this can be removed.
-    """
-    sig = inspect.signature(json_format.MessageToDict)
-    new_arg = "always_print_fields_with_no_presence"
-    old_arg = "including_default_value_fields"
-    arg = new_arg if new_arg in sig.parameters else old_arg
-    return {arg: True}
 
 
 @pytest.mark.parametrize(
@@ -190,7 +176,7 @@ def test_correspondence(value: ARG_LIKE, proto: v2.program_pb2.Arg):
     parsed = arg_from_proto(msg)
     packed = json_format.MessageToDict(
         arg_to_proto(value),
-        **_json_format_kwargs(),
+        always_print_fields_with_no_presence=True,
         preserving_proto_field_name=True,
         use_integers_for_enums=True,
     )
@@ -204,8 +190,8 @@ def test_none_to_none_arg_roundtrip():
 
 def test_double_value():
     """Note: due to backwards compatibility, double_val conversion is one-way.
-    double_val can be converted to python float,
-    but a python float is converted into a float_val not a double_val.
+    double_val can be converted to Python float,
+    but a Python float is converted into a float_val not a double_val.
     """
     msg = v2.program_pb2.Arg()
     msg.arg_value.double_value = 1.0
@@ -221,13 +207,13 @@ def test_serialize_sympy_constants():
     proto = arg_to_proto(sympy.pi)
     packed = json_format.MessageToDict(
         proto,
-        **_json_format_kwargs(),
+        always_print_fields_with_no_presence=True,
         preserving_proto_field_name=True,
         use_integers_for_enums=True,
     )
     assert len(packed) == 1
     assert len(packed['arg_value']) == 1
-    # protobuf 3.12+ truncates floats to 4 bytes
+    # Protobuf 3.12+ truncates floats to 4 bytes
     assert np.isclose(packed['arg_value']['float_value'], np.float32(sympy.pi), atol=1e-7)
 
 
@@ -246,7 +232,7 @@ def test_serialize_conversion(value: ARG_LIKE, proto: v2.program_pb2.Arg):
     json_format.ParseDict(proto, msg)
     packed = json_format.MessageToDict(
         arg_to_proto(value),
-        **_json_format_kwargs(),
+        always_print_fields_with_no_presence=True,
         preserving_proto_field_name=True,
         use_integers_for_enums=True,
     )

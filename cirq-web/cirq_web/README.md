@@ -1,6 +1,6 @@
 ## Cirq Visualizations
 
-_This section contains instructions for calling Typescript
+_This section contains instructions for calling TypeScript
 visualization in Cirq using Python._
 
 The `cirq_web` package runs separately from the rest of Cirq, and can be used
@@ -120,7 +120,7 @@ sent and viewed anywhere, regardless of whether the recipient has Cirq
 installed on their computer or not.
 
 
-## Cirq Typescript Development
+## Cirq TypeScript Development
 
 _This section contains the instructions for visualization tools in
 a web browser or Colab/Juptyer notebooks. We do this using Typescript._
@@ -135,7 +135,7 @@ haven't already.
 For developing 3D visualizations, we rely on the
 [three.js](https://threejs.org/) framework.
 
-For bundling the Typescript into Javascript that can be run in the browser,
+For bundling the TypeScript into JavaScript that can be run in the browser,
 and for overall ease of development, we use
 [Webpack](https://webpack.js.org/).
 
@@ -155,7 +155,7 @@ check/npx [YOUR_COMMAND]
 The reference example for the build structure of a visualization is the Bloch
 sphere. Reference the `src/bloch_sphere/main.ts` file and the
 `src/bloch_sphere/bloch_sphere.ts` file to see the code. The
-`src/bloch_sphere/` directory should serve as a guide for how Typescript
+`src/bloch_sphere/` directory should serve as a guide for how TypeScript
 visualizations in Cirq should be structured. Visualizations should have:
 
 *   A "root" folder within the `src/` directory labeled according to the
@@ -211,7 +211,7 @@ Points](https://webpack.js.org/concepts/entry-points/).
 Following this structure, you will be able to bundle your visualization by
 running the command `npx webpack --mode production` in this directory, or
 `check/ts-build` from the top-level directory. This will build the bundled
-Javascript file(s) within the `dist/` directory, where you can access and
+JavaScript file(s) within the `dist/` directory, where you can access and
 reference them in HTML.
 
 ### Developing visualizations
@@ -249,20 +249,20 @@ so you won't be able to find them on the file system.
 <script src="/YOUR_VIZ_NAME.bundle.js"></script>
 ```
 
-Note that you can also inspect the bundle Javascript from the browser by
+Note that you can also inspect the bundle JavaScript from the browser by
 navigating to `http://localhost:8080/YOUR_VIZ_NAME.bundle.js`.
 
 ### Developing in a Jupyter Notebook
 
 An alternative to developing using `webpack-dev-server` is to bundle the
-Typescript and reference the Javascript output. You can spin up a notebook
+TypeScript and reference the JavaScript output. You can spin up a notebook
 server with `jupyter notebook`, and bundle (while watching for live changes
 and updating accordingly) with `npx webpack --mode production --watch`. These
 processes must run simultaneously. This is especially useful for if you want
 to work with integrating Python code into your visualization. There's an
 example notebook `example.ipynb` that provides an example on how to do this.
 
-**NOTE:** In order to access the bundled javascript, you need to include the
+**NOTE:** In order to access the bundled JavaScript, you need to include the
 full path to it: `cirq_web/dist/YOUR_VIZ_NAME.bundle.js`. If you make any
 changes to the directory structure, take into account that the path may change
 as well.
@@ -275,18 +275,18 @@ viewed in Colab.
 
 ### Formatting and linting
 
-All Typescript files need to be formatted/linted according to [Google's public
-Typescript style guide](https://google.github.io/styleguide/tsguide.html). We
+All TypeScript files need to be formatted/linted according to [Google's public
+TypeScript style guide](https://google.github.io/styleguide/tsguide.html). We
 use Google's open source tool [GTS](https://github.com/google/gts) to handle
 this for you. Run `npm run fix` to handle fixing changes automatically, or
 refer to the `package.json` file for more options.
 
 ### Testing
 
-We expect developed visualizations to be well tested. The Cirq typescript
+We expect developed visualizations to be well tested. The Cirq TypeScript
 development environment requires two types of tests for any created
 visualization, unit testing and visualization testing. Unit testing ensures
-that the Typescript you wrote compiles correctly and generates the appropriate
+that the TypeScript you wrote compiles correctly and generates the appropriate
 Three.js objects without breaking the rest of your code. Visualization testing
 actually compares the visualizations by building the visualization, taking a
 PNG screenshot, and comparing it to an expected PNG.

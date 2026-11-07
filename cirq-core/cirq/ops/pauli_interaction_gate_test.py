@@ -26,11 +26,13 @@ _bools = (False, True)
 _paulis = (cirq.X, cirq.Y, cirq.Z)
 
 
-def _all_interaction_gates(exponents=(1,)):
-    for pauli0, invert0, pauli1, invert1, e in itertools.product(
-        _paulis, _bools, _paulis, _bools, exponents
-    ):
-        yield cirq.PauliInteractionGate(pauli0, invert0, pauli1, invert1, exponent=e)
+def _all_interaction_gates(exponents=(1,)) -> list[cirq.PauliInteractionGate]:
+    return [
+        cirq.PauliInteractionGate(pauli0, invert0, pauli1, invert1, exponent=e)
+        for pauli0, invert0, pauli1, invert1, e in itertools.product(
+            _paulis, _bools, _paulis, _bools, exponents
+        )
+    ]
 
 
 @pytest.mark.parametrize('gate', _all_interaction_gates())
@@ -119,11 +121,8 @@ def test_text_diagrams() -> None:
         cirq.PauliInteractionGate(cirq.Y, True, cirq.Z, True)(q0, q1),
         cirq.PauliInteractionGate(cirq.Z, True, cirq.Y, True)(q0, q1),
     )
-    assert (
-        circuit.to_text_diagram().strip()
-        == """
+    assert circuit.to_text_diagram().strip() == """
 q0: ───X───(-X)───X──────(-X)───X───Y───@───(-Y)───(-@)───
        │   │      │      │      │   │   │   │      │
 q1: ───X───X──────(-X)───(-X)───Y───@───Y───(-@)───(-Y)───
     """.strip()
-    )

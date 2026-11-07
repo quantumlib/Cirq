@@ -15,44 +15,20 @@
 from __future__ import annotations
 
 import datetime
-from typing import Any, TYPE_CHECKING
+from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING
 
-from cirq import _compat
 from cirq_google.api import v2
 from cirq_google.devices import grid_device
-from cirq_google.engine import (
-    abstract_processor,
-    calibration,
-    processor_config,
-    processor_sampler,
-    util,
-)
+from cirq_google.engine import abstract_processor, processor_config, processor_sampler, util
 
 if TYPE_CHECKING:
-    from google.protobuf import any_pb2
 
     import cirq
     import cirq_google as cg
     import cirq_google.cloud.quantum as quantum
     import cirq_google.engine.abstract_job as abstract_job
     import cirq_google.engine.engine as engine_base
-
-
-def _date_to_timestamp(union_time: datetime.datetime | datetime.date | int | None) -> int | None:
-    if isinstance(union_time, int):
-        return union_time
-    elif isinstance(union_time, datetime.datetime):
-        return int(union_time.timestamp())
-    elif isinstance(union_time, datetime.date):
-        return int(datetime.datetime.combine(union_time, datetime.datetime.min.time()).timestamp())
-    return None
-
-
-def _fix_deprecated_allowlisted_users_args(
-    args: tuple[Any, ...], kwargs: dict[str, Any]
-) -> tuple[tuple[Any, ...], dict[str, Any]]:
-    kwargs['allowlisted_users'] = kwargs.pop('whitelisted_users')
-    return args, kwargs
 
 
 class EngineProcessor(abstract_processor.AbstractProcessor):
@@ -104,6 +80,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         device_config_name: str | None = None,
         device_config_revision: processor_config.DeviceConfigRevision | None = None,
         max_concurrent_jobs: int = 100,
+        circuits_per_job: int = 1,
     ) -> cg.engine.ProcessorSampler:
         """Returns the default sampler backed by the engine.
 
@@ -116,6 +93,12 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
                 simultaneously to the Engine. This client-side throttle can be
                 used to proactively reduce load to the backends and avoid quota
                 violations when pipelining circuit executions.
+            circuits_per_job:  If set to greater than 1, this will batch multiple
+                circuits within the same API call when calling run_batch() or
+                run_batch_async() up to a maximum of `circuits_per_job`.
+                Note that actual hardware execution order is not guaranteed
+                if circuits_per_job > 1. (For instance, the hardware may run
+                all circuits for the first sweep point, then the second point, etc.).
 
         Returns:
             A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
@@ -123,6 +106,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             when sampled.
 
         """
+        processor_config.validate_device_config_revision(device_config_revision)
         processor = self._inner_processor()
 
         device_config_name = (
@@ -137,6 +121,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
                 snapshot_id=device_config_revision.id,
                 device_config_name=device_config_name,
                 max_concurrent_jobs=max_concurrent_jobs,
+                circuits_per_job=circuits_per_job,
             )
         if isinstance(device_config_revision, processor_config.Run):
             return processor_sampler.ProcessorSampler(
@@ -144,6 +129,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
                 run_name=device_config_revision.id,
                 device_config_name=device_config_name,
                 max_concurrent_jobs=max_concurrent_jobs,
+                circuits_per_job=circuits_per_job,
             )
 
         return processor_sampler.ProcessorSampler(
@@ -151,11 +137,16 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             run_name=processor.default_device_config_key.run,
             device_config_name=device_config_name,
             max_concurrent_jobs=max_concurrent_jobs,
+            circuits_per_job=circuits_per_job,
         )
 
     async def run_sweep_async(
         self,
-        program: cirq.AbstractCircuit,
+        program: (
+            cirq.AbstractCircuit
+            | Sequence[cirq.AbstractCircuit]
+            | Mapping[str, cirq.AbstractCircuit]
+        ),
         *,
         device_config_name: str,
         run_name: str = "",
@@ -177,6 +168,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         Args:
             program: The Circuit to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
+                A list or mapping of circuits can also be provided.  If so,
+                it will be executed as a KeyedCircuit.
             run_name: A unique identifier representing an automation run for the
                 processor. An Automation Run contains a collection of device
                 configurations for the processor.
@@ -275,73 +268,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             raise ValueError('Processor does not have a device specification')
         return grid_device.GridDevice.from_proto(spec)
 
-    def list_calibrations(
-        self,
-        earliest_timestamp: datetime.datetime | datetime.date | int | None = None,
-        latest_timestamp: datetime.datetime | datetime.date | int | None = None,
-    ) -> list[calibration.Calibration]:
-        """Retrieve metadata about a specific calibration run.
-
-        Params:
-            earliest_timestamp: The earliest timestamp of a calibration to return in UTC.
-            latest_timestamp: The latest timestamp of a calibration to return in UTC.
-
-        Returns:
-            The list of calibration data with the most recent first.
-        """
-        earliest_timestamp_seconds = _date_to_timestamp(earliest_timestamp)
-        latest_timestamp_seconds = _date_to_timestamp(latest_timestamp)
-
-        if earliest_timestamp_seconds and latest_timestamp_seconds:
-            filter_str = (
-                f'timestamp >= {earliest_timestamp_seconds:d} AND '
-                f'timestamp <= {latest_timestamp_seconds:d}'
-            )
-        elif earliest_timestamp_seconds:
-            filter_str = f'timestamp >= {earliest_timestamp_seconds:d}'
-        elif latest_timestamp_seconds:
-            filter_str = f'timestamp <= {latest_timestamp_seconds:d}'
-        else:
-            filter_str = ''
-        response = self.context.client.list_calibrations(
-            self.project_id, self.processor_id, filter_str
-        )
-        return [_to_calibration(c.data) for c in list(response)]
-
-    def get_calibration(self, calibration_timestamp_seconds: int) -> calibration.Calibration:
-        """Retrieve metadata about a specific calibration run.
-
-        Params:
-            calibration_timestamp_seconds: The timestamp of the calibration in
-                seconds since epoch.
-
-        Returns:
-            The calibration data.
-        """
-        response = self.context.client.get_calibration(
-            self.project_id, self.processor_id, calibration_timestamp_seconds
-        )
-        return _to_calibration(response.data)
-
-    def get_current_calibration(self) -> calibration.Calibration | None:
-        """Returns metadata about the current calibration for a processor.
-
-        Returns:
-            The calibration data or None if there is no current calibration.
-        """
-        response = self.context.client.get_current_calibration(self.project_id, self.processor_id)
-        if response is not None:
-            return _to_calibration(response.data)
-        else:
-            return None
-
-    @_compat.deprecated_parameter(
-        deadline='v1.7',
-        fix='Change whitelisted_users to allowlisted_users.',
-        parameter_desc='whitelisted_users',
-        match=lambda args, kwargs: 'whitelisted_users' in kwargs,
-        rewrite=_fix_deprecated_allowlisted_users_args,
-    )
     def create_reservation(
         self,
         start_time: datetime.datetime,
@@ -410,13 +336,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             self.project_id, self.processor_id, reservation_id
         )
 
-    @_compat.deprecated_parameter(
-        deadline='v1.7',
-        fix='Change whitelisted_users to allowlisted_users.',
-        parameter_desc='whitelisted_users',
-        match=lambda args, kwargs: 'whitelisted_users' in kwargs,
-        rewrite=_fix_deprecated_allowlisted_users_args,
-    )
     def update_reservation(
         self,
         reservation_id: str,
@@ -511,7 +430,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
     ) -> processor_config.ProcessorConfig | None:
         """Retrieves a ProcessorConfig from an automation run.
 
-        If no `run_name` and `config_name` are specified, the inernally configured default config
+        If no `run_name` and `config_name` are specified, the internally configured default config
         is returned.
 
         Args:
@@ -547,13 +466,13 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
            List of ProcessorConfigs for this processor.
         """
         default_device_key = self._inner_processor().default_device_config_key
-        device_revsion = (
+        device_revision = (
             device_config_revision
             if device_config_revision
             else processor_config.Run(default_device_key.run)
         )
         return self.engine().list_processor_configs(
-            processor_id=self.processor_id, device_config_revision=device_revsion
+            processor_id=self.processor_id, device_config_revision=device_revision
         )
 
     def __str__(self):
@@ -561,11 +480,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             f"EngineProcessor(project_id={self.project_id!r}, "
             f"processor_id={self.processor_id!r})"
         )
-
-
-def _to_calibration(calibration_any: any_pb2.Any) -> calibration.Calibration:
-    metrics = v2.metrics_pb2.MetricsSnapshot.FromString(calibration_any.value)
-    return calibration.Calibration(metrics)
 
 
 def _to_date_time_filters(

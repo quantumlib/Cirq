@@ -195,9 +195,9 @@ class AQTSampler(cirq.Sampler):
             return emit("No workspaces accessible with this access token contain resources.")
 
         col_widths = [
-            max([len(w['id']) for w in workspaces]),
-            max([len(d['name']) for w in workspaces for d in w['resources']]),
-            max([len(d['id']) for w in workspaces for d in w['resources']]),
+            max(len(w['id']) for w in workspaces),
+            max(len(d['name']) for w in workspaces for d in w['resources']),
+            max(len(d['id']) for w in workspaces for d in w['resources']),
             3,
         ]
         SEPARATOR = "+-" + "-+-".join(col_width * "-" for col_width in col_widths) + "-+"
@@ -230,7 +230,7 @@ class AQTSampler(cirq.Sampler):
     ) -> str:
         """Generates the JSON string from a Circuit.
 
-        The json format is defined as follows:
+        The JSON format is defined as follows:
 
         [[op_string,gate_exponent,qubits]]
 
@@ -246,7 +246,7 @@ class AQTSampler(cirq.Sampler):
             param_resolver: Param resolver for resolving parameters in circuit.
 
         Returns:
-            json formatted string of the sequence.
+            JSON formatted string of the sequence.
 
         Raises:
             RuntimeError: If the circuit is empty.
@@ -327,7 +327,7 @@ class AQTSampler(cirq.Sampler):
     def _send_json(
         self, *, json_str: str, id_str: str, repetitions: int = 1, num_qubits: int = 1
     ) -> np.ndarray:
-        """Sends the json string to the remote AQT device.
+        """Sends the JSON string to the remote AQT device.
 
         Submits a pre-prepared JSON string representing a circuit to the AQT
         API, then polls for the result, which is parsed and returned when
@@ -337,7 +337,7 @@ class AQTSampler(cirq.Sampler):
         no timeout in the result polling.
 
         Args:
-            json_str: Json representation of the circuit.
+            json_str: JSON representation of the circuit.
             id_str: A label to help identify a circuit.
             repetitions: Number of repetitions.
             num_qubits: Number of qubits present in the device.
@@ -389,7 +389,7 @@ class AQTSampler(cirq.Sampler):
                 raise RuntimeError('Got unexpected return data from AQT server: \n' + str(data))
             if data['response']['status'] == 'finished':
                 break
-            elif data['response']['status'] == 'error':
+            if data['response']['status'] == 'error':
                 raise RuntimeError('Got unexpected return data from AQT server: \n' + str(data))
             time.sleep(1.0)
 
@@ -414,7 +414,7 @@ class AQTSampler(cirq.Sampler):
 
         Args:
             program: The circuit to simulate.
-            Should be generated using AQTSampler.generate_circuit_from_list
+                Should be generated using `AQTSampler.generate_circuit_from_list`.
             params: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
 
@@ -423,7 +423,7 @@ class AQTSampler(cirq.Sampler):
             resolver.
         """
         # TODO: Use measurement name from circuit.
-        # Github issue: https://github.com/quantumlib/Cirq/issues/2199
+        # GitHub issue: https://github.com/quantumlib/Cirq/issues/2199
         meas_name = 'm'
         trial_results: list[cirq.Result] = []
         for param_resolver in cirq.to_resolvers(params):
@@ -478,7 +478,7 @@ class AQTSamplerLocalSimulator(AQTSampler):
         """Replaces the remote host with a local simulator
 
         Args:
-            json_str: Json representation of the circuit.
+            json_str: JSON representation of the circuit.
             id_str: A label to help identify a datapoint.
             repetitions: Number of repetitions.
             num_qubits: Number of qubits present in the device.

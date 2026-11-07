@@ -43,7 +43,7 @@ class SupportsParameterization(Protocol):
     @doc_private
     def _parameter_names_(self) -> Set[str]:
         """Returns a collection of string names of parameters that require
-        resolution. If _is_parameterized_ is False, the collection is empty.
+        resolution. If `_is_parameterized_` is False, the collection is empty.
         The converse is not necessarily true, because some objects may report
         that they are parameterized when they contain symbolic constants which
         need to be evaluated, but no free symbols.
@@ -60,7 +60,7 @@ class ResolvableValue(Protocol):
         """Returns a resolved value during parameter resolution.
 
         Use this to mark a custom type as "resolved", instead of requiring
-        further parsing like we do with Sympy symbols.
+        further parsing like we do with SymPy symbols.
         """
 
 
@@ -102,7 +102,7 @@ def parameter_names(val: Any) -> Set[str]:
 
     Returns:
         A set of parameter names if the object is parameterized. It the object
-        does not implement the _parameter_names_ magic method or that method
+        does not implement the `_parameter_names_` magic method or that method
         returns NotImplemented, returns an empty set.
     """
     if isinstance(val, sympy.Basic):
@@ -128,7 +128,7 @@ def parameter_symbols(val: Any) -> Set[sympy.Symbol]:
 
     Returns:
         A set of parameter symbols if the object is parameterized. It the object
-        does not implement the _parameter_symbols_ magic method or that method
+        does not implement the `_parameter_symbols_` magic method or that method
         returns NotImplemented, returns an empty set.
     """
     return {sympy.Symbol(name) for name in parameter_names(val)}
@@ -154,7 +154,7 @@ def resolve_parameters(
         replaced with floats or terminal symbols according to the
         given `cirq.ParamResolver`. If `val` has no `_resolve_parameters_`
         method or if it returns NotImplemented, `val` itself is returned.
-        Note that in some cases, such as when directly resolving a sympy
+        Note that in some cases, such as when directly resolving a SymPy
         Symbol, the return type could differ from the input type; however,
         for the much more common case of resolving parameters on cirq
         objects (or if resolving a Union[Symbol, float] instead of just a
@@ -164,7 +164,7 @@ def resolve_parameters(
     Raises:
         RecursionError if the ParamResolver detects a loop in resolution.
         ValueError if `recursive=False` is passed to an external
-            _resolve_parameters_ method with no `recursive` parameter.
+            `_resolve_parameters_` method with no `recursive` parameter.
     """
     if not param_resolver:
         return val
@@ -188,7 +188,7 @@ def resolve_parameters(
     if result is not NotImplemented:
         return result
 
-    # Handle special cases for sympy expressions and sequences.
+    # Handle special cases for SymPy expressions and sequences.
     # These may not in fact preserve types, but we pretend they do by casting.
     if isinstance(val, sympy.Expr):
         return cast(T, param_resolver.value_of(val, recursive))

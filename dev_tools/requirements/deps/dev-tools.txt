@@ -8,11 +8,8 @@
 -r packaging.txt
 -r ruff.txt
 
-# For testing and analyzing code.
-asv
-
 # For verifying behavior of qasm output.
-qiskit-aer~=0.17.0
+qiskit-aer~=0.18.0
 
 # For testing stimcirq compatibility (cirq-google)
 stimcirq

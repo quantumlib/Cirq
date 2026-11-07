@@ -37,7 +37,7 @@ def test_modules() -> None:
         raw_setup={
             'name': 'module1',
             'version': '1.2.3.dev',
-            'url': 'http://github.com/quantumlib/cirq',
+            'url': 'https://github.com/quantumlib/Cirq',
             'author': 'The Cirq Developers',
             'author_email': 'cirq-dev@googlegroups.com',
             'maintainer': 'The Quantum AI open-source software maintainers',
@@ -179,9 +179,7 @@ def test_replace_version_errors() -> None:
 
 @chdir(target_dir=None)
 def test_error() -> None:
-    f = open("setup.py", mode='w')
-    f.write('name="test"')
-    f.close()
+    Path("setup.py").write_text('name="test"')
 
     with pytest.raises(AssertionError, match=r"Invalid setup.py - setup\(\) was not called.*"):
         modules.main(["list", "--mode", "folder", "--include-parent"])

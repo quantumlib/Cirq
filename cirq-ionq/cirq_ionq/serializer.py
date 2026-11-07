@@ -68,7 +68,7 @@ class SerializedProgram:
 
 
 class Serializer:
-    """Takes gates supported by IonQ's API and converts them to IonQ json form.
+    """Takes gates supported by IonQ's API and converts them to IonQ JSON form.
 
     Note that this does only serialization, it does not do any decomposition into the supported
     gate set.
@@ -172,7 +172,7 @@ class Serializer:
             self._validate_circuit(circuit)
             self._validate_qubits(circuit.all_qubits())
 
-        num_qubits = max([self._num_qubits(circuit) for circuit in circuits])
+        num_qubits = max(self._num_qubits(circuit) for circuit in circuits)
 
         gateset = None
         for circuit in circuits:
@@ -233,7 +233,7 @@ class Serializer:
         """Validates qubit types and values."""
         if any(not isinstance(q, line_qubit.LineQubit) for q in all_qubits):
             raise ValueError(
-                f'All qubits must be cirq.LineQubits but were {set(type(q) for q in all_qubits)}'
+                f'All qubits must be cirq.LineQubits but were { {type(q) for q in all_qubits} }'
             )
         if any(cast(line_qubit.LineQubit, q).x < 0 for q in all_qubits):
             raise ValueError(
@@ -351,16 +351,16 @@ class Serializer:
                 f'Found in a PauliStringPhasorGate a negative evolution time {time}.'
             )
         if little_endian_pauli_string == "" or time == 0:
-            seralized_gate = {}
+            serialized_gate = {}
         else:
-            seralized_gate = {
+            serialized_gate = {
                 'gate': 'pauliexp',
                 'terms': [little_endian_pauli_string],
                 "coefficients": coefficients,
                 'targets': targets,
                 'time': time,
             }
-        return seralized_gate
+        return serialized_gate
 
     # These could potentially be using serialize functions on the gates themselves.
     def _serialize_gpi_gate(self, gate: GPIGate, targets: Sequence[int]) -> dict | None:

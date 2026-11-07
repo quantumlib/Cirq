@@ -161,7 +161,7 @@ def test_run_mixture(dtype: type[np.complexfloating], split: bool) -> None:
     np.testing.assert_equal(result.measurements['q(1)'], [[0]] * 100)
     # Test that we get at least one of each result. Probability of this test
     # failing is 2 ** (-99).
-    q0_measurements = set(x[0] for x in result.measurements['q(0)'].tolist())
+    q0_measurements = {x[0] for x in result.measurements['q(0)'].tolist()}
     assert q0_measurements == {0, 1}
 
 
@@ -182,7 +182,7 @@ def test_run_qudit_mixture(dtype: type[np.complexfloating], split: bool) -> None
     np.testing.assert_equal(result.measurements['q(1) (d=2)'], [[0]] * 100)
     # Test that we get at least one of each result. Probability of this test
     # failing is about 3 * (2/3) ** 100.
-    q0_measurements = set(x[0] for x in result.measurements['q(0) (d=3)'].tolist())
+    q0_measurements = {x[0] for x in result.measurements['q(0) (d=3)'].tolist()}
     assert q0_measurements == {0, 1, 2}
 
 
@@ -199,7 +199,7 @@ def test_run_channel(dtype: type[np.complexfloating], split: bool) -> None:
     np.testing.assert_equal(result.measurements['q(1)'], [[0]] * 100)
     # Test that we get at least one of each result. Probability of this test
     # failing is 2 ** (-99).
-    q0_measurements = set(x[0] for x in result.measurements['q(0)'].tolist())
+    q0_measurements = {x[0] for x in result.measurements['q(0)'].tolist()}
     assert q0_measurements == {0, 1}
 
 
@@ -220,7 +220,7 @@ def test_run_decomposable_channel(dtype: type[np.complexfloating], split: bool) 
     np.testing.assert_equal(result.measurements['q(1)'], [[0]] * 100)
     # Test that we get at least one of each result. Probability of this test
     # failing is 2 ** (-99).
-    q0_measurements = set(x[0] for x in result.measurements['q(0)'].tolist())
+    q0_measurements = {x[0] for x in result.measurements['q(0)'].tolist()}
     assert q0_measurements == {0, 1}
 
 
@@ -252,7 +252,7 @@ def test_run_qudit_channel(dtype: type[np.complexfloating], split: bool) -> None
     np.testing.assert_equal(result.measurements['q(1) (d=4)'], [[0]] * 100)
     # Test that we get at least one of each result. Probability of this test
     # failing is about (3/4) ** 100.
-    q0_measurements = set(x[0] for x in result.measurements['q(0) (d=3)'].tolist())
+    q0_measurements = {x[0] for x in result.measurements['q(0) (d=3)'].tolist()}
     assert q0_measurements == {0, 1, 2}
 
 
@@ -533,9 +533,11 @@ def test_reset_one_qubit_does_not_affect_partial_trace_of_other_qubits(
 
 @pytest.mark.parametrize(
     'dtype,circuit',
-    itertools.product(
-        [np.complex64, np.complex128],
-        [cirq.testing.random_circuit(cirq.LineQubit.range(4), 5, 0.9) for _ in range(20)],
+    list(
+        itertools.product(
+            [np.complex64, np.complex128],
+            [cirq.testing.random_circuit(cirq.LineQubit.range(4), 5, 0.9) for _ in range(20)],
+        )
     ),
 )
 def test_simulate_compare_to_state_vector_simulator(
@@ -1130,7 +1132,7 @@ def test_density_matrix_trial_result_str() -> None:
         params=cirq.ParamResolver({}), measurements={}, final_simulator_state=final_simulator_state
     )
 
-    # numpy varies whitespace in its representation for different versions
+    # NumPy varies whitespace in its representation for different versions
     # Eliminate whitespace to harden tests against this variation
     result_no_whitespace = str(result).replace('\n', '').replace(' ', '')
     assert result_no_whitespace == (
@@ -1156,7 +1158,7 @@ def test_density_matrix_trial_result_repr_pretty() -> None:
 
     fake_printer = cirq.testing.FakePrinter()
     result._repr_pretty_(fake_printer, cycle=False)
-    # numpy varies whitespace in its representation for different versions
+    # NumPy varies whitespace in its representation for different versions
     # Eliminate whitespace to harden tests against this variation
     result_no_whitespace = fake_printer.text_pretty.replace('\n', '').replace(' ', '')
     assert result_no_whitespace == (
@@ -1188,19 +1190,13 @@ def test_random_seed() -> None:
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit(cirq.X(a) ** 0.5, cirq.measure(a))
 
-    sim = cirq.DensityMatrixSimulator(seed=1234)
-    result = sim.run(circuit, repetitions=10)
-    assert np.all(
-        result.measurements['a']
-        == [[False], [True], [False], [True], [True], [False], [False], [True], [True], [True]]
-    )
+    sim1 = cirq.DensityMatrixSimulator(seed=1234)
+    result1 = sim1.run(circuit, repetitions=10)
+    assert result1.measurements['a'].shape == (10, 1)
 
-    sim = cirq.DensityMatrixSimulator(seed=np.random.RandomState(1234))
-    result = sim.run(circuit, repetitions=10)
-    assert np.all(
-        result.measurements['a']
-        == [[False], [True], [False], [True], [True], [False], [False], [True], [True], [True]]
-    )
+    sim2 = cirq.DensityMatrixSimulator(seed=np.random.default_rng(1234))
+    result2 = sim2.run(circuit, repetitions=10)
+    assert result1 == result2
 
 
 def test_random_seed_does_not_modify_global_state_terminal_measurements() -> None:
@@ -1238,79 +1234,14 @@ def test_random_seed_does_not_modify_global_state_non_terminal_measurements() ->
 def test_random_seed_terminal_measurements_deterministic() -> None:
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit(cirq.X(a) ** 0.5, cirq.measure(a, key='a'))
-    sim = cirq.DensityMatrixSimulator(seed=1234)
-    result1 = sim.run(circuit, repetitions=30)
-    result2 = sim.run(circuit, repetitions=30)
-    assert np.all(
-        result1.measurements['a']
-        == [
-            [0],
-            [1],
-            [0],
-            [1],
-            [1],
-            [0],
-            [0],
-            [1],
-            [1],
-            [1],
-            [0],
-            [1],
-            [1],
-            [1],
-            [0],
-            [1],
-            [1],
-            [0],
-            [1],
-            [1],
-            [0],
-            [1],
-            [0],
-            [0],
-            [1],
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
-        ]
-    )
-    assert np.all(
-        result2.measurements['a']
-        == [
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
-            [0],
-            [0],
-            [0],
-            [1],
-            [1],
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
-            [1],
-            [0],
-            [1],
-            [1],
-            [1],
-            [1],
-            [1],
-            [1],
-        ]
-    )
+    sim1 = cirq.DensityMatrixSimulator(seed=1234)
+    result1 = sim1.run(circuit, repetitions=30)
+    assert result1.measurements['a'].shape == (30, 1)
+    result2 = sim1.run(circuit, repetitions=30)
+    sim2 = cirq.DensityMatrixSimulator(seed=1234)
+    assert sim2.run(circuit, repetitions=30) == result1
+    assert sim2.run(circuit, repetitions=30) == result2
+    assert result1 != result2
 
 
 def test_random_seed_non_terminal_measurements_deterministic() -> None:
@@ -1318,78 +1249,15 @@ def test_random_seed_non_terminal_measurements_deterministic() -> None:
     circuit = cirq.Circuit(
         cirq.X(a) ** 0.5, cirq.measure(a, key='a'), cirq.X(a) ** 0.5, cirq.measure(a, key='b')
     )
-    sim = cirq.DensityMatrixSimulator(seed=1234)
-    result = sim.run(circuit, repetitions=30)
-    assert np.all(
-        result.measurements['a']
-        == [
-            [0],
-            [0],
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
-            [0],
-            [1],
-            [1],
-            [0],
-            [0],
-            [1],
-            [0],
-            [0],
-            [1],
-            [1],
-            [1],
-            [0],
-            [0],
-            [0],
-            [0],
-            [1],
-            [0],
-            [0],
-            [0],
-            [1],
-            [1],
-            [1],
-            [1],
-        ]
-    )
-    assert np.all(
-        result.measurements['b']
-        == [
-            [1],
-            [1],
-            [0],
-            [1],
-            [1],
-            [1],
-            [1],
-            [1],
-            [0],
-            [1],
-            [1],
-            [0],
-            [1],
-            [1],
-            [1],
-            [0],
-            [0],
-            [1],
-            [1],
-            [1],
-            [0],
-            [1],
-            [1],
-            [1],
-            [1],
-            [1],
-            [0],
-            [1],
-            [1],
-            [1],
-        ]
-    )
+    sim1 = cirq.DensityMatrixSimulator(seed=1234)
+    result1 = sim1.run(circuit, repetitions=30)
+    assert result1.measurements['a'].shape == (30, 1)
+    assert result1.measurements['b'].shape == (30, 1)
+    result2 = sim1.run(circuit, repetitions=30)
+    sim2 = cirq.DensityMatrixSimulator(seed=1234)
+    assert sim2.run(circuit, repetitions=30) == result1
+    assert sim2.run(circuit, repetitions=30) == result2
+    assert result1 != result2
 
 
 def test_simulate_with_invert_mask() -> None:
@@ -1525,9 +1393,7 @@ def test_separated_states_str_does_not_merge() -> None:
     circuit = cirq.Circuit(cirq.measure(q0), cirq.measure(q1), cirq.X(q0))
 
     result = cirq.DensityMatrixSimulator().simulate(circuit)
-    assert (
-        str(result)
-        == """measurements: q(0)=0 q(1)=0
+    assert str(result) == """measurements: q(0)=0 q(1)=0
 
 qubits: (cirq.LineQubit(0),)
 final density matrix:
@@ -1542,7 +1408,6 @@ final density matrix:
 phase:
 final density matrix:
 [[1.+0.j]]"""
-    )
 
 
 def test_unseparated_states_str() -> None:
@@ -1550,9 +1415,7 @@ def test_unseparated_states_str() -> None:
     circuit = cirq.Circuit(cirq.measure(q0), cirq.measure(q1), cirq.X(q0))
 
     result = cirq.DensityMatrixSimulator(split_untangled_states=False).simulate(circuit)
-    assert (
-        str(result)
-        == """measurements: q(0)=0 q(1)=0
+    assert str(result) == """measurements: q(0)=0 q(1)=0
 
 qubits: (cirq.LineQubit(0), cirq.LineQubit(1))
 final density matrix:
@@ -1560,7 +1423,6 @@ final density matrix:
  [0.+0.j 0.+0.j 0.+0.j 0.+0.j]
  [0.+0.j 0.+0.j 1.+0.j 0.+0.j]
  [0.+0.j 0.+0.j 0.+0.j 0.+0.j]]"""
-    )
 
 
 def test_sweep_unparameterized_prefix_not_repeated_even_non_unitaries() -> None:

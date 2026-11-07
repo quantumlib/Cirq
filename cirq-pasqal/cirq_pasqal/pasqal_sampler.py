@@ -51,7 +51,7 @@ class PasqalSampler(cirq.work.Sampler):
             circuit: The circuit to be run
             param_resolver: Param resolver for the
         Returns:
-            json serialized string
+            JSON serialized string
         """
         circuit = cirq.protocols.resolve_parameters(circuit, param_resolver)
         serialized_circuit = cirq.to_json(circuit)
@@ -63,12 +63,12 @@ class PasqalSampler(cirq.work.Sampler):
         Args:
             task_id: id of the current task.
         Returns:
-            json representation of the results
+            JSON representation of the results
         """
 
         url = f'{self.remote_host}/get-result/{task_id}'
         while True:
-            response = requests.get(url, headers=self._authorization_header, verify=False)
+            response = requests.get(url, headers=self._authorization_header)
             response.raise_for_status()
 
             result = response.text
@@ -80,17 +80,16 @@ class PasqalSampler(cirq.work.Sampler):
     def _send_serialized_circuit(
         self, serialization_str: str, repetitions: int = 1
     ) -> cirq.study.Result:
-        """Sends the json string to the remote Pasqal device
+        """Sends the JSON string to the remote Pasqal device
         Args:
-            serialization_str: Json representation of the circuit.
+            serialization_str: JSON representation of the circuit.
             repetitions: Number of repetitions.
         Returns:
-            json representation of the results
+            JSON representation of the results
         """
         simulate_url = f'{self.remote_host}/simulate/no-noise/submit'
         submit_response = requests.post(
             simulate_url,
-            verify=False,
             headers={"Repetitions": str(repetitions), **self._authorization_header},
             data=serialization_str,
         )

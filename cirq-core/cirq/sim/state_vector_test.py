@@ -65,7 +65,7 @@ def test_sample_state_big_endian() -> None:
         state = cirq.to_valid_state_vector(x, 3)
         sample = cirq.sample_state_vector(state, [2, 1, 0])
         results.append(sample)
-    expecteds = [[list(reversed(x))] for x in list(itertools.product([False, True], repeat=3))]
+    expecteds = [[list(reversed(x))] for x in itertools.product([False, True], repeat=3)]
     for result, expected in zip(results, expecteds):
         np.testing.assert_equal(result, expected)
 
@@ -137,17 +137,14 @@ def test_sample_state_repetitions() -> None:
 def test_sample_state_seed() -> None:
     state = np.ones(2) / np.sqrt(2)
 
-    samples = cirq.sample_state_vector(state, [0], repetitions=10, seed=1234)
-    assert np.array_equal(
-        samples,
-        [[False], [True], [False], [True], [True], [False], [False], [True], [True], [True]],
+    samples1 = cirq.sample_state_vector(state, [0], repetitions=10, seed=1234)
+    assert samples1.shape == (10, 1)
+    samples2 = cirq.sample_state_vector(
+        state, [0], repetitions=10, seed=np.random.default_rng(1234)
     )
-
-    samples = cirq.sample_state_vector(state, [0], repetitions=10, seed=np.random.RandomState(1234))
-    assert np.array_equal(
-        samples,
-        [[False], [True], [False], [True], [True], [False], [False], [True], [True], [True]],
-    )
+    assert np.array_equal(samples1, samples2)
+    samples3 = cirq.sample_state_vector(state, [0], repetitions=10, seed=1235)
+    assert not np.array_equal(samples1, samples3)
 
 
 def test_sample_state_negative_repetitions() -> None:
@@ -193,7 +190,7 @@ def test_measure_state_computational_basis(use_np_transpose: bool) -> None:
         bits, state = cirq.measure_state_vector(initial_state, [2, 1, 0])
         results.append(bits)
         np.testing.assert_almost_equal(state, initial_state)
-    expected = [list(reversed(x)) for x in list(itertools.product([False, True], repeat=3))]
+    expected = [list(reversed(x)) for x in itertools.product([False, True], repeat=3)]
     assert results == expected
 
 
@@ -205,7 +202,7 @@ def test_measure_state_reshape(use_np_transpose: bool) -> None:
         bits, state = cirq.measure_state_vector(initial_state, [2, 1, 0])
         results.append(bits)
         np.testing.assert_almost_equal(state, initial_state)
-    expected = [list(reversed(x)) for x in list(itertools.product([False, True], repeat=3))]
+    expected = [list(reversed(x)) for x in itertools.product([False, True], repeat=3)]
     assert results == expected
 
 
@@ -267,18 +264,12 @@ def test_measure_state_seed(use_np_transpose: bool) -> None:
     n = 10
     initial_state = np.ones(2**n) / 2 ** (n / 2)
 
-    bits, state1 = cirq.measure_state_vector(initial_state, range(n), seed=1234)
-    np.testing.assert_equal(
-        bits, [False, False, True, True, False, False, False, True, False, False]
+    bits1, state1 = cirq.measure_state_vector(initial_state, range(n), seed=1234)
+    assert len(bits1) == n
+    bits2, state2 = cirq.measure_state_vector(
+        initial_state, range(n), seed=np.random.default_rng(1234)
     )
-
-    bits, state2 = cirq.measure_state_vector(
-        initial_state, range(n), seed=np.random.RandomState(1234)
-    )
-    np.testing.assert_equal(
-        bits, [False, False, True, True, False, False, False, True, False, False]
-    )
-
+    assert bits1 == bits2
     np.testing.assert_allclose(state1, state2)
 
 

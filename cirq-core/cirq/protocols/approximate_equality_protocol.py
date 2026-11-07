@@ -115,7 +115,9 @@ def approx_eq(val: Any, other: Any, *, atol: float = 1e-8) -> bool:
 
     # If the values are iterable, try comparing recursively on items.
     if isinstance(val, Iterable) and isinstance(other, Iterable):
-        return _approx_eq_iterables(val, other, atol=atol)
+        result = _approx_eq_iterables(val, other, atol=atol)
+        if result is not NotImplemented:
+            return result
 
     # Last resort: exact equality.
     return val == other
@@ -140,6 +142,17 @@ def _approx_eq_iterables(val: Iterable, other: Iterable, *, atol: float) -> bool
         NotImplemented when approximate equality is not implemented for given
         types.
     """
+
+    if isinstance(val, (set, frozenset)):
+        try:
+            val = sorted(val)
+        except TypeError:
+            return NotImplemented
+    if isinstance(other, (set, frozenset)):
+        try:
+            other = sorted(other)
+        except TypeError:
+            return NotImplemented
 
     iter1 = iter(val)
     iter2 = iter(other)

@@ -29,9 +29,9 @@ from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
 _POOL_NUM_PROCESSES = min(4, multiprocessing.cpu_count())
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def pool() -> Iterator[multiprocessing.pool.Pool]:
-    ctx = multiprocessing.get_context()
+    ctx = multiprocessing.get_context('spawn')
     with ctx.Pool(_POOL_NUM_PROCESSES) as pool:
         yield pool
 
@@ -46,7 +46,9 @@ def test_simulate_2q_xeb_circuits(pool) -> None:
     ]
     cycle_depths = list(range(3, 50, 9))
 
-    df = simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths)
+    df = simulate_2q_xeb_circuits(
+        circuits=circuits, cycle_depths=cycle_depths, simulator=cirq.Simulator(dtype=np.complex128)
+    )
     assert len(df) == len(cycle_depths) * len(circuits)
     for (circuit_i, cycle_depth), row in df.iterrows():
         assert 0 <= circuit_i < len(circuits)

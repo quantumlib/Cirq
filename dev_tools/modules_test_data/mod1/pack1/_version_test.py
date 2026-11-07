@@ -1,5 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-import pack1._version  # type: ignore
+import pack1._version  # type: ignore[import-not-found]
 
 
 def test_version() -> None:

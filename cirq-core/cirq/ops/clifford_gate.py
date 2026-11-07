@@ -57,7 +57,7 @@ def _to_clifford_tableau(
     x_to: tuple[Pauli, bool] | None = None,
     z_to: tuple[Pauli, bool] | None = None,
 ) -> qis.CliffordTableau:
-    """Transfer the rotation map to clifford tableau representation"""
+    """Transfer the rotation map to Clifford tableau representation"""
     if x_to is None and z_to is None and rotation_map is None:
         raise ValueError(
             "The function either takes rotation_map or a combination "
@@ -105,7 +105,7 @@ def _validate_map_input(
                 'was' if len(pauli_map_to) == 1 else 'were',
             )
         )
-    if len(set((to for to, _ in pauli_map_to.values()))) != len(pauli_map_to):
+    if len({to for to, _ in pauli_map_to.values()}) != len(pauli_map_to):
         raise ValueError('A rotation cannot map two Paulis to the same')
     return {frm: (to, flip) for frm, (to, flip) in pauli_map_to.items()}
 
@@ -114,7 +114,7 @@ def _pad_tableau(
     clifford_tableau: qis.CliffordTableau, num_qubits_after_padding: int, axes: list[int]
 ) -> qis.CliffordTableau:
     """Roughly, this function copies self.tableau into the "identity" matrix."""
-    # Sanity check
+    # Validate inputs
     if len(set(axes)) != clifford_tableau.n:
         raise ValueError(
             "Input axes of padding should match with the number of qubits in the input tableau."
@@ -125,10 +125,11 @@ def _pad_tableau(
             "num_qubits_after_padding."
         )
     padded_tableau = qis.CliffordTableau(num_qubits_after_padding)
-    v_index = np.concatenate((np.asarray(axes), num_qubits_after_padding + np.asarray(axes)))
+    axes_a = np.asarray(axes)
+    v_index = np.concatenate((axes_a, num_qubits_after_padding + axes_a))
 
-    padded_tableau.xs[np.ix_(v_index, axes)] = clifford_tableau.xs
-    padded_tableau.zs[np.ix_(v_index, axes)] = clifford_tableau.zs
+    padded_tableau.xs[np.ix_(v_index, axes_a)] = clifford_tableau.xs
+    padded_tableau.zs[np.ix_(v_index, axes_a)] = clifford_tableau.zs
     padded_tableau.rs[v_index] = clifford_tableau.rs
     return padded_tableau
 
@@ -137,6 +138,8 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
     """A metaclass used to lazy initialize several common Clifford Gate as class attributes."""
 
     # These are class properties so we define them as properties on a metaclass.
+
+    # ruff: disable[N805]
 
     @property
     def all_single_qubit_cliffords(cls) -> Sequence[cirq.SingleQubitCliffordGate]:
@@ -272,12 +275,12 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
 
         Args:
             tableau: A CliffordTableau to define the effect of Clifford Gate applying on
-            the stabilizer state or Pauli group. The meaning of tableau here is
-                    To  X   Z    sign
-            from  X  [ X_x Z_x | r_x ]
-            from  Z  [ X_z Z_z | r_z ]
-            Each row in the Clifford tableau indicates how the transformation of original
-            Pauli gates to the new gates after applying this Clifford Gate.
+                the stabilizer state or Pauli group. The meaning of tableau here is
+                        To  X   Z    sign
+                from  X  [ X_x Z_x | r_x ]
+                from  Z  [ X_z Z_z | r_z ]
+                Each row in the Clifford tableau indicates how the transformation of original
+                Pauli gates to the new gates after applying this Clifford Gate.
 
         Returns:
             A CliffordGate instance, which has the transformation defined by
@@ -285,7 +288,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
 
         Raises:
             ValueError: When input tableau is wrong type or the tableau does not
-            satisfy the symplectic property.
+                satisfy the symplectic property.
         """
         if not isinstance(tableau, qis.CliffordTableau):
             raise ValueError('Input argument has to be a CliffordTableau instance.')
@@ -322,7 +325,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
 
         base_tableau = qis.CliffordTableau(len(qubit_order))
         args = sim.clifford.CliffordTableauSimulationState(
-            tableau=base_tableau, qubits=qubit_order, prng=np.random.RandomState(0)  # unused
+            tableau=base_tableau, qubits=qubit_order, prng=None  # unused
         )
         for op in operations:
             protocols.act_on(op, args, allow_decompose=True)
@@ -370,7 +373,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         #   ---(CliffordGate^-1)---ZI---CliffordGate---
         # = unitary(CliffordGate)@unitary(ZI)@unitary(CliffordGate).conj().T
         # = -ZI.
-        # (Note the real clifford tableau has to satify the Symplectic property.
+        # (Note the real Clifford tableau has to satisfy the Symplectic property.
         # here is just for illustration)
         object.__setattr__(self, '_clifford_tableau', _clifford_tableau.copy())
 
@@ -646,7 +649,7 @@ class SingleQubitCliffordGate(CliffordGate):
     def pauli_tuple(self, pauli: Pauli) -> tuple[Pauli, bool]:
         """Returns a tuple of a Pauli operator and a boolean.
 
-        The pauli is the operator of the transform and the boolean
+        The Pauli is the operator of the transform and the Boolean
         determines whether the operator should be flipped.  For instance,
         it is True if the coefficient is -1, and False if the coefficient
         is 1.
@@ -799,11 +802,11 @@ class SingleQubitCliffordGate(CliffordGate):
         return mat
 
     def decompose_gate(self) -> Sequence[cirq.Gate]:
-        """Decomposes this clifford into a series of H and pauli rotation gates.
+        """Decomposes this Clifford into a series of H and Pauli rotation gates.
 
         Returns:
-            A sequence of H and pauli rotation gates which are equivalent to this
-            clifford gate if applied in order. This decomposition agrees with
+            A sequence of H and Pauli rotation gates which are equivalent to this
+            Clifford gate if applied in order. This decomposition agrees with
             cirq.unitary(self), including global phase.
         """
         return self._decompose_gate
@@ -816,7 +819,7 @@ class SingleQubitCliffordGate(CliffordGate):
         return [r ** (qt / 2) for r, qt in rotations]
 
     def decompose_rotation(self) -> Sequence[tuple[Pauli, int]]:
-        """Decomposes this clifford into a series of pauli rotations.
+        """Decomposes this Clifford into a series of Pauli rotations.
 
         Each rotation is given as a tuple of (axis, quarter_turns),
         where axis is a Pauli giving the axis to rotate about. The
@@ -932,7 +935,7 @@ class SingleQubitCliffordGate(CliffordGate):
         return self._clifford_tableau.matrix().tobytes() + self._clifford_tableau.rs.tobytes()
 
     def _value_equality_values_cls_(self):
-        """To make it with compatible to compare with clifford gate."""
+        """To make it with compatible to compare with Clifford gate."""
         return CliffordGate
 
 

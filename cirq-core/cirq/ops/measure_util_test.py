@@ -64,7 +64,7 @@ def test_measure_qubits() -> None:
         _ = cirq.measure([a, [b]])  # type: ignore[list-item]
 
     with pytest.raises(ValueError, match='Qid'):
-        _ = cirq.measure([a], [b])  # type: ignore
+        _ = cirq.measure([a], [b])  # type: ignore[call-overload]
 
 
 def test_measure_each() -> None:
@@ -97,6 +97,12 @@ def test_measure_single_paulistring() -> None:
     assert cirq.measure_single_paulistring(ps, key='a') == cirq.PauliMeasurementGate(
         ps.values(), key='a'
     ).on(*ps.keys())
+
+    # Test with confusion matrix
+    cmat = np.array([[0.8, 0.2], [0.1, 0.9]])
+    assert cirq.measure_single_paulistring(
+        ps, key='a', confusion_matrix=cmat
+    ) == cirq.PauliMeasurementGate(ps.values(), key='a', confusion_matrix=cmat).on(*ps.keys())
 
     # Test with negative coefficient
     ps_neg = -cirq.Y(cirq.LineQubit(0)) * cirq.Y(cirq.LineQubit(1))

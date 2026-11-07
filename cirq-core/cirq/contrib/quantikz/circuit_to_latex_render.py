@@ -124,7 +124,7 @@ def render_circuit(
             output. If `None`, the circuit is not folded. Passed to `CircuitToQuantikz`.
         wire_labels: A string specifying how qubit wire labels should be
             rendered. Passed to `CircuitToQuantikz`.
-        show_parameters: A boolean indicating whether gate parameters (e.g.,
+        show_parameters: A Boolean indicating whether gate parameters (e.g.,
             exponents for `XPowGate`, angles for `Rx`) should be displayed
             in the gate labels. Passed to `CircuitToQuantikz`.
         gate_name_map: An optional dictionary mapping Cirq gate names (strings)
@@ -160,10 +160,10 @@ def render_circuit(
         ...     cirq.rx(0.25*np.pi).on(q1),
         ...     cirq.measure(q0, q1, key='result')
         ... )
-        >>> # Render and display in Jupyter (if available), also save to a file
+        >>> # Render and display in Jupyter (if available), optionally saving to a file.
         >>> img_or_path = render_circuit(
         ...     circuit,
-        ...     output_png_path="my_circuit.png",
+        ...     # output_png_path="my_circuit.png",
         ...     fold_at=2,
         ...     wire_labels="qid",
         ...     quantikz_options="column sep=0.7em",
@@ -257,6 +257,7 @@ def render_circuit(
             # Run pdflatex twice for correct cross-references and layout
             cmd_latex = [
                 pdflatex_exec,
+                "-no-shell-escape",  # Refuse \write18 etc. from gate labels / measurement keys
                 "-interaction=nonstopmode",  # Don't prompt for input
                 "-halt-on-error",  # Exit on first error
                 "-output-directory",
@@ -290,7 +291,7 @@ def render_circuit(
                         if proc.stderr:
                             print(f"--- pdflatex stderr ---\n{proc.stderr}")
                     break  # Exit loop if pdflatex failed
-                elif not tmp_pdf_path.is_file() and i == 1:  # pragma: no cover
+                if not tmp_pdf_path.is_file() and i == 1:  # pragma: no cover
                     latex_failed = True
                     print("!!! pdflatex completed, but PDF file not found. Check logs. !!!")
                     log_file = tmp_tex_path.with_suffix(".log")
@@ -300,7 +301,7 @@ def render_circuit(
                             f"{log_file.read_text(errors='ignore')[-2000:]}"
                         )
                     break
-                elif tmp_pdf_path.is_file():
+                if tmp_pdf_path.is_file():
                     _debug_print(f"  pdflatex run {i+1}/2 successful (PDF exists).")
 
             if not latex_failed and tmp_pdf_path.is_file():

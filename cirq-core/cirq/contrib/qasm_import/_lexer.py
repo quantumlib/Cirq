@@ -37,6 +37,9 @@ class QasmLexer:
         'gate': 'GATE',
         'if': 'IF',
         'pi': 'PI',
+        'input': 'INPUT',
+        'float': 'FLOAT',
+        'angle': 'ANGLE',
     }
 
     tokens = [
@@ -49,7 +52,8 @@ class QasmLexer:
         'ARROW',
         'EQ',
         'AND',
-    ] + list(reserved.values())
+        *reserved.values(),
+    ]
 
     def t_newline(self, t):
         r"""\n+"""

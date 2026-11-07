@@ -123,8 +123,10 @@ def test_kron_bases_consistency(basis1, basis2) -> None:
         assert np.all(basis1[name] == basis2[name])
 
 
-@pytest.mark.parametrize('basis,repeat', itertools.product((PAULI_BASIS, STANDARD_BASIS), range(5)))
-def test_kron_bases_repeat_sanity_checks(basis, repeat) -> None:
+@pytest.mark.parametrize(
+    'basis,repeat', list(itertools.product((PAULI_BASIS, STANDARD_BASIS), range(5)))
+)
+def test_kron_bases_repeat_validation_checks(basis, repeat) -> None:
     product_basis = cirq.kron_bases(basis, repeat=repeat)
     assert len(product_basis) == 4**repeat
     for name1, matrix1 in product_basis.items():
@@ -195,7 +197,7 @@ def test_hilbert_schmidt_inner_product_values(m1, m2, expected_value) -> None:
 
 @pytest.mark.parametrize(
     'm,basis',
-    itertools.product((I, X, Y, Z, H, SQRT_X, SQRT_Y, SQRT_Z), (PAULI_BASIS, STANDARD_BASIS)),
+    list(itertools.product((I, X, Y, Z, H, SQRT_X, SQRT_Y, SQRT_Z), (PAULI_BASIS, STANDARD_BASIS))),
 )
 def test_expand_matrix_in_orthogonal_basis(m, basis) -> None:
     expansion = cirq.expand_matrix_in_orthogonal_basis(m, basis)
@@ -231,7 +233,7 @@ def test_matrix_from_basis_coefficients(expansion) -> None:
 
 @pytest.mark.parametrize(
     'm1,basis',
-    (
+    list(
         itertools.product(
             (I, X, Y, Z, H, SQRT_X, SQRT_Y, SQRT_Z, E00, E01, E10, E11),
             (PAULI_BASIS, STANDARD_BASIS),
@@ -248,57 +250,59 @@ def test_expand_is_inverse_of_reconstruct(m1, basis) -> None:
 
 @pytest.mark.parametrize(
     'coefficients,exponent',
-    itertools.product(
-        (
-            (0, 0, 0, 0),
-            (-1, 0, 0, 0),
-            (0.5, 0, 0, 0),
-            (0.5j, 0, 0, 0),
-            (1, 0, 0, 0),
-            (2, 0, 0, 0),
-            (0, -1, 0, 0),
-            (0, 0.5, 0, 0),
-            (0, 0.5j, 0, 0),
-            (0, 1, 0, 0),
-            (0, 2, 0, 0),
-            (0, 0, -1, 0),
-            (0, 0, 0.5, 0),
-            (0, 0, 0.5j, 0),
-            (0, 0, 1, 0),
-            (0, 0, 2, 0),
-            (0, 0, 0, -1),
-            (0, 0, 0, 0.5),
-            (0, 0, 0, 0.5j),
-            (0, 0, 0, 1),
-            (0, 0, 0, 2),
-            (0, -1, 0, -1),
-            (0, 1, 0, 1j),
-            (0, 0.5, 0, 0.5),
-            (0, 0.5j, 0, 0.5j),
-            (0, 0.5, 0, 0.5j),
-            (0, 1, 0, 1),
-            (0, 2, 0, 2),
-            (0, 0.5, 0.5, 0.5),
-            (0, 1, 1, 1),
-            (0, 1.1j, 0.5 - 0.4j, 0.9),
-            (0.7j, 1.1j, 0.5 - 0.4j, 0.9),
-            (0.25, 0.25, 0.25, 0.25),
-            (0.25j, 0.25j, 0.25j, 0.25j),
-            (0.4, 0, 0.5, 0),
-            (1, 2, 3, 4),
-            (-1, -2, -3, -4),
-            (-1, -2, 3, 4),
-            (1j, 2j, 3j, 4j),
-            (1j, 2j, 3, 4),
-            (sympy.Symbol('i'), sympy.Symbol('x'), sympy.Symbol('y'), sympy.Symbol('z')),
+    list(
+        itertools.product(
             (
-                sympy.Symbol('i') * 1j,
-                -sympy.Symbol('x'),
-                -sympy.Symbol('y') * 1j,
-                sympy.Symbol('z'),
+                (0, 0, 0, 0),
+                (-1, 0, 0, 0),
+                (0.5, 0, 0, 0),
+                (0.5j, 0, 0, 0),
+                (1, 0, 0, 0),
+                (2, 0, 0, 0),
+                (0, -1, 0, 0),
+                (0, 0.5, 0, 0),
+                (0, 0.5j, 0, 0),
+                (0, 1, 0, 0),
+                (0, 2, 0, 0),
+                (0, 0, -1, 0),
+                (0, 0, 0.5, 0),
+                (0, 0, 0.5j, 0),
+                (0, 0, 1, 0),
+                (0, 0, 2, 0),
+                (0, 0, 0, -1),
+                (0, 0, 0, 0.5),
+                (0, 0, 0, 0.5j),
+                (0, 0, 0, 1),
+                (0, 0, 0, 2),
+                (0, -1, 0, -1),
+                (0, 1, 0, 1j),
+                (0, 0.5, 0, 0.5),
+                (0, 0.5j, 0, 0.5j),
+                (0, 0.5, 0, 0.5j),
+                (0, 1, 0, 1),
+                (0, 2, 0, 2),
+                (0, 0.5, 0.5, 0.5),
+                (0, 1, 1, 1),
+                (0, 1.1j, 0.5 - 0.4j, 0.9),
+                (0.7j, 1.1j, 0.5 - 0.4j, 0.9),
+                (0.25, 0.25, 0.25, 0.25),
+                (0.25j, 0.25j, 0.25j, 0.25j),
+                (0.4, 0, 0.5, 0),
+                (1, 2, 3, 4),
+                (-1, -2, -3, -4),
+                (-1, -2, 3, 4),
+                (1j, 2j, 3j, 4j),
+                (1j, 2j, 3, 4),
+                (sympy.Symbol('i'), sympy.Symbol('x'), sympy.Symbol('y'), sympy.Symbol('z')),
+                (
+                    sympy.Symbol('i') * 1j,
+                    -sympy.Symbol('x'),
+                    -sympy.Symbol('y') * 1j,
+                    sympy.Symbol('z'),
+                ),
             ),
-        ),
-        (0, 1, 2, 3, 4, 5, 100, 101),
+            (0, 1, 2, 3, 4, 5, 100, 101),
+        )
     ),
 )
 def test_pow_pauli_combination(coefficients, exponent) -> None:

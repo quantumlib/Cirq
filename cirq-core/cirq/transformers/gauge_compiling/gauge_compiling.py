@@ -41,9 +41,10 @@ if TYPE_CHECKING:
 
 class Gauge(abc.ABC):
     """A gauge replaces a two qubit gate with an equivalent subcircuit.
-    0: pre_q0───────two_qubit_gate───────post_q0
-                        |
-    1: pre_q1───────two_qubit_gate───────post_q1
+
+        0: pre_q0───────two_qubit_gate───────post_q0
+                            |
+        1: pre_q1───────two_qubit_gate───────post_q1
 
     The Gauge class in general represents a family of closely related gauges
     (e.g. random z-rotations); Use `sample` method to get a specific gauge.
@@ -59,7 +60,7 @@ class Gauge(abc.ABC):
 
         Args:
             gate: The two qubit gate to replace.
-            prng: A numpy random number generator.
+            prng: A NumPy random number generator.
 
         Returns:
             A ConstantGauge.
@@ -155,7 +156,7 @@ class TwoQubitGateSymbolizer:
 
         Args:
             two_qubit_gate: The 2 qubit gate to be symbolized.
-            symbols: A sequence of sympy symbols to use for parameterization.
+            symbols: A sequence of SymPy symbols to use for parameterization.
 
         Returns:
             A tuple containing the parameterized gate and a dictionary mapping
@@ -171,8 +172,10 @@ class TwoQubitGateSymbolizer:
         return self.symbolizer_fn(two_qubit_gate, symbols)
 
 
-def _select(choices: Sequence[Gauge], probabilites: np.ndarray, prng: np.random.Generator) -> Gauge:
-    return choices[prng.choice(len(choices), p=probabilites)]
+def _select(
+    choices: Sequence[Gauge], probabilities: np.ndarray, prng: np.random.Generator
+) -> Gauge:
+    return choices[prng.choice(len(choices), p=probabilities)]
 
 
 @dataclass(frozen=True)
@@ -206,7 +209,7 @@ class GaugeTransformer:
 
         Args:
             target: Target two-qubit gate, a gate-family or a gate-set of two-qubit gates.
-            gauge_selector: A callable that takes a numpy random number generator
+            gauge_selector: A callable that takes a NumPy random number generator
                 as an argument and returns a Gauge.
             two_qubit_gate_symbolizer: A symbolizer to symbolize 2 qubit gates.
         """
@@ -224,6 +227,7 @@ class GaugeTransformer:
         rng = np.random.default_rng() if prng is None else prng
         if context is None:
             context = transformer_api.TransformerContext(deep=False)
+        tags_to_ignore_set = frozenset(context.tags_to_ignore)
         if context.deep:
             raise ValueError('GaugeTransformer cannot be used with deep=True')
         new_moments = []
@@ -234,9 +238,7 @@ class GaugeTransformer:
             right.clear()
             center: list[ops.Operation] = []
             for op in moment:
-                if isinstance(op, ops.TaggedOperation) and set(op.tags).intersection(
-                    context.tags_to_ignore
-                ):
+                if not tags_to_ignore_set.isdisjoint(op.tags):
                     center.append(op)
                     continue
                 if op.gate is not None and len(op.qubits) == 2 and op in self.target:
@@ -277,6 +279,7 @@ class GaugeTransformer:
             context = transformer_api.TransformerContext(deep=False)
         if context.deep:
             raise ValueError('GaugeTransformer cannot be used with deep=True')
+        tags_to_ignore_set = frozenset(context.tags_to_ignore)
         new_moments: list[list[ops.Operation]] = []  # Store parameterized circuits.
         phxz_sid = itertools.count()
         two_qubit_gate_sid = itertools.count()
@@ -303,9 +306,7 @@ class GaugeTransformer:
             left_moment: list[ops.Operation] = []
             right_moment: list[ops.Operation] = []
             for op in moment:
-                if isinstance(op, ops.TaggedOperation) and set(op.tags).intersection(
-                    context.tags_to_ignore
-                ):
+                if not tags_to_ignore_set.isdisjoint(op.tags):
                     center_moment.append(op)
                     continue
                 if op.gate is not None and op in self.target:
@@ -360,9 +361,7 @@ class GaugeTransformer:
         for _ in range(N):
             for moment_id, moment in enumerate(circuit):
                 for op in moment:
-                    if isinstance(op, ops.TaggedOperation) and set(op.tags).intersection(
-                        context.tags_to_ignore
-                    ):
+                    if not tags_to_ignore_set.isdisjoint(op.tags):
                         continue
                     if op.gate is not None and len(op.qubits) == 2 and op in self.target:
                         gauge = self.gauge_selector(rng).sample(op.gate, rng)
@@ -435,7 +434,7 @@ def _gate_sequence_to_phxz_params(
         if not has_unitary(gate) or gate.num_qubits() != 1:
             raise ValueError(
                 "Invalid gate sequence to be converted to PhasedXZGate."
-                f"Found incompatiable gate {gate} in sequence."
+                f"Found incompatible gate {gate} in sequence."
             )
     phxz = (
         single_qubit_decompositions.single_qubit_matrix_to_phxz(

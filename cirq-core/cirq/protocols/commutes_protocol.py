@@ -55,7 +55,7 @@ class SupportsCommutes(Protocol):
                 error is being tolerated is not specified. It could be the
                 maximum angle between rotation axes in the Bloch sphere, or the
                 maximum trace of the absolute value of the commutator, or
-                some other value convenient to the implementor of the method.
+                some other value convenient to the implementer of the method.
 
         Returns:
             Whether or not the values commute.
@@ -107,9 +107,9 @@ def commutes(
 
     Args:
         v1: One of the values to check for commutativity. Can be a cirq object
-            such as an operation, or a numpy matrix.
+            such as an operation, or a NumPy matrix.
         v2: The other value to check for commutativity. Can be a cirq object
-            such as an operation, or a numpy matrix.
+            such as an operation, or a NumPy matrix.
         default: A fallback value to return, instead of raising a ValueError, if
             it is indeterminate whether or not the two values commute.
         atol: Absolute error tolerance. If all entries in v1@v2 - v2@v1 have a
@@ -124,7 +124,7 @@ def commutes(
 
     Raises:
         TypeError: The commutativity of `v1` and `v2` is indeterminate, or could
-        not be determined, and the `default` argument was not specified.
+            not be determined, and the `default` argument was not specified.
     """
     atol = float(atol)
 
@@ -160,7 +160,7 @@ def definitely_commutes(v1: Any, v2: Any, *, atol: float = 1e-8) -> bool:
 def _strat_commutes_from_commutes(
     v1: Any, v2: Any, *, atol: float = 1e-8
 ) -> bool | NotImplementedType | None:
-    """Attempts to determine commutativity via the objects' _commutes_
+    """Attempts to determine commutativity via the objects' `_commutes_`
     method."""
 
     for a, b in [(v1, v2), (v2, v1)]:

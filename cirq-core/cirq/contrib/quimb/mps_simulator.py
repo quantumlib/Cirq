@@ -272,7 +272,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
 
         # TODO(tonybruguier): Instead of relying on sortable indices could you keep a parallel
         # mapping of e.g. qubit to string-index and do all "logic" on the qubits themselves and
-        # only translate to string-indices when calling a quimb API.
+        # only translate to string-indices when calling a Quimb API.
 
         # TODO(tonybruguier): Refactor out so that the code below can also be used by
         # circuit_to_tensors in cirq.contrib.quimb.state_vector.
@@ -382,7 +382,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         """An alias for the state vector."""
         return self.state_vector()
 
-    def apply_op(self, op: Any, axes: Sequence[int], prng: np.random.RandomState):
+    def apply_op(self, op: Any, axes: Sequence[int], prng: np.random.Generator):
         """Applies a unitary operation, mutating the object to represent the new state.
 
         op:
@@ -391,7 +391,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         """
 
         old_inds = tuple(map(self.i_str, axes))
-        new_inds = tuple(['new_' + old_ind for old_ind in old_inds])
+        new_inds = tuple('new_' + old_ind for old_ind in old_inds)
 
         if protocols.has_unitary(op):
             U = protocols.unitary(op)
@@ -427,7 +427,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
 
                 T = U @ self._M[n] @ self._M[p]
 
-                left_inds = tuple(set(T.inds) & set(self._M[n].inds)) + (new_inds[0],)
+                left_inds = (*set(T.inds).intersection(self._M[n].inds), new_inds[0])
                 X, Y = T.split(
                     left_inds,
                     method=self._simulation_options.method,
@@ -466,8 +466,8 @@ class _MPSHandler(qis.QuantumStateRepresentation):
     def estimation_stats(self):  # pragma: no cover
         """Returns some statistics about the memory usage and quality of the approximation."""
 
-        num_coefs_used = sum([Mi.data.size for Mi in self._M])
-        memory_bytes = sum([Mi.data.nbytes for Mi in self._M])
+        num_coefs_used = sum(Mi.data.size for Mi in self._M)
+        memory_bytes = sum(Mi.data.nbytes for Mi in self._M)
 
         # The computation below is done for numerical stability, instead of directly using the
         # formula:
@@ -484,7 +484,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         }
 
     def _measure(
-        self, axes: Sequence[int], prng: np.random.RandomState, collapse_state_vector=True
+        self, axes: Sequence[int], prng: np.random.Generator, collapse_state_vector=True
     ) -> list[int]:
         results: list[int] = []
 
@@ -533,7 +533,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         Returns:
             The measurements in axis order.
         """
-        return self._measure(axes, value.parse_random_state(seed))
+        return self._measure(axes, value.parse_random_generator(seed))
 
     def sample(
         self, axes: Sequence[int], repetitions: int = 1, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
@@ -549,7 +549,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
         """
 
         measurements: list[list[int]] = []
-        prng = value.parse_random_state(seed)
+        prng = value.parse_random_generator(seed)
 
         for _ in range(repetitions):
             measurements.append(self._measure(axes, prng, collapse_state_vector=False))
@@ -565,7 +565,7 @@ class MPSState(SimulationState[_MPSHandler]):
         self,
         *,
         qubits: Sequence[cirq.Qid],
-        prng: np.random.RandomState,
+        prng: cirq.RANDOM_STATE_OR_SEED_LIKE,
         simulation_options: MPSOptions = MPSOptions(),
         grouping: dict[cirq.Qid, int] | None = None,
         initial_state: int = 0,
@@ -577,7 +577,7 @@ class MPSState(SimulationState[_MPSHandler]):
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            prng: A random number generator, used to simulate measurements.
+            prng: A random number generator (or seed), used to simulate measurements.
             simulation_options: Numerical options for the simulation.
             grouping: How to group qubits together, if None all are individual.
             initial_state: An integer representing the initial state.

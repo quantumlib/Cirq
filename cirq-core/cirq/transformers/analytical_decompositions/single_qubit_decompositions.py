@@ -126,7 +126,7 @@ def single_qubit_op_to_framed_phase_form(mat: np.ndarray) -> tuple[np.ndarray, c
     rotations into controlled-Z operations bordered by single-qubit operations.
 
     Args:
-      mat:  The qubit operation as a 2x2 unitary matrix.
+        mat: The qubit operation as a 2x2 unitary matrix.
 
     Returns:
         A 2x2 unitary U, the complex relative phase factor r, and the complex

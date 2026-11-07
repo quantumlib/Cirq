@@ -23,7 +23,16 @@ import sympy
 import cirq
 import cirq_google
 
-ALL_POSSIBLE_FSIM_GATES = [
+ALL_POSSIBLE_FSIM_GATES: list[
+    type[
+        cirq.CZPowGate
+        | cirq.FSimGate
+        | cirq.PhasedFSimGate
+        | cirq.ISwapPowGate
+        | cirq.PhasedISwapPowGate
+        | cirq.IdentityGate
+    ]
+] = [
     cirq.CZPowGate,
     cirq.FSimGate,
     cirq.PhasedFSimGate,
@@ -186,7 +195,7 @@ def test_fsim_gate_family_eq():
                 cirq.PhasedISwapPowGate,
                 cirq.PhasedISwapPowGate,
             ],
-            gate_types_to_check=ALL_POSSIBLE_FSIM_GATES + [cirq.FSimGate],
+            gate_types_to_check=[*ALL_POSSIBLE_FSIM_GATES, cirq.FSimGate],
             allow_symbols=True,
         ),
         cirq_google.FSimGateFamily(
@@ -196,7 +205,7 @@ def test_fsim_gate_family_eq():
                 cirq.CZPowGate,
                 cirq.PhasedISwapPowGate,
             ],
-            gate_types_to_check=ALL_POSSIBLE_FSIM_GATES[::-1] + [cirq.FSimGate],
+            gate_types_to_check=[*ALL_POSSIBLE_FSIM_GATES[::-1], cirq.FSimGate],
             allow_symbols=True,
         ),
     )
@@ -214,7 +223,7 @@ def test_fsim_gate_family_eq():
                 cirq.CZPowGate,
                 cirq.PhasedISwapPowGate,
             ],
-            gate_types_to_check=ALL_POSSIBLE_FSIM_GATES[::-1] + [cirq.FSimGate],  # type:ignore
+            gate_types_to_check=[*ALL_POSSIBLE_FSIM_GATES[::-1], cirq.FSimGate],
             allow_symbols=True,
             atol=1e-8,
         ),
@@ -239,12 +248,12 @@ def test_fsim_gate_family_convert_rejects():
     for gate in [cirq.rx(np.pi / 2), cirq.CNOT, cirq.CCNOT]:
         assert cirq_google.FSimGateFamily().convert(gate, cirq.PhasedFSimGate) is None
         assert gate not in cirq_google.FSimGateFamily(gates_to_accept=[cirq.PhasedFSimGate])
-    # Custom gate with an overriden `_value_equality_values_cls_`.
+    # Custom gate with an overridden `_value_equality_values_cls_`.
     assert UnequalSycGate() not in cirq_google.FSimGateFamily(gates_to_accept=[cirq_google.SYC])
     assert UnequalSycGate(is_parameterized=True) not in cirq_google.FSimGateFamily(
         gates_to_accept=[cirq_google.SYC], allow_symbols=True
     )
-    # Partially paramaterized incompatible gate.
+    # Partially parameterized incompatible gate.
     assert cirq.FSimGate(THETA, np.pi / 2) not in cirq_google.FSimGateFamily(
         gates_to_accept=[cirq.PhasedISwapPowGate(exponent=0.5, phase_exponent=0.1), cirq.CZPowGate]
     )

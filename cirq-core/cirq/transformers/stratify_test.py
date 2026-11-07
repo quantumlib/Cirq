@@ -277,13 +277,13 @@ def test_stratify_respects_no_compile_operations():
 
 def test_does_not_move_ccos_behind_measurement():
     q = cirq.LineQubit.range(3)
-    c_orig = cirq.Circuit(
+    c_orig_1 = cirq.Circuit(
         cirq.measure(q[0], key='m'),
         cirq.X(q[1]).with_classical_controls('m'),
         cirq.Moment(cirq.X.on_each(q[1], q[2])),
     )
     cirq.testing.assert_has_diagram(
-        c_orig,
+        c_orig_1,
         '''
 0: ───M───────────
       ║
@@ -294,11 +294,11 @@ def test_does_not_move_ccos_behind_measurement():
 m: ═══@═══^═══════
 ''',
     )
-    c_out = cirq.stratified_circuit(
-        c_orig, categories=[cirq.GateOperation, cirq.ClassicallyControlledOperation]
+    c_out_1 = cirq.stratified_circuit(
+        c_orig_1, categories=[cirq.GateOperation, cirq.ClassicallyControlledOperation]
     )
     cirq.testing.assert_has_diagram(
-        c_out,
+        c_out_1,
         '''
       ┌──┐
 0: ────M─────────────
@@ -309,6 +309,37 @@ m: ═══@═══^═══════
        ║     ║
 m: ════@═════^═══════
       └──┘
+''',
+    )
+    c_orig_2 = cirq.Circuit(
+        cirq.measure(q[0], key='m'),
+        cirq.X(q[1]).with_classical_controls("m"),
+        cirq.X(q[0]).with_classical_controls("m"),
+        cirq.X(q[1]),
+    )
+    cirq.testing.assert_has_diagram(
+        c_orig_2,
+        '''
+          ┌──┐
+0: ───M─────X────────
+      ║     ║
+1: ───╫────X╫────X───
+      ║    ║║
+m: ═══@════^^════════
+          └──┘
+''',
+    )
+    c_out_2 = cirq.stratified_circuit(c_orig_2)
+    cirq.testing.assert_has_diagram(
+        c_out_2,
+        '''
+          ┌──┐
+0: ───M─────X────────
+      ║     ║
+1: ───╫────X╫────X───
+      ║    ║║
+m: ═══@════^^════════
+          └──┘
 ''',
     )
 

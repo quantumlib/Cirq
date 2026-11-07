@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import gzip
 import numbers
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Sequence
 from typing import Any, cast, TYPE_CHECKING
 
 import sympy
@@ -109,7 +109,7 @@ def sweep_to_proto(
     sweep_transformer: Callable[[sweeps.SingleSweep], sweeps.SingleSweep] = lambda x: x,
     use_float64: bool = False,
 ) -> run_context_pb2.Sweep:
-    """Converts a Sweep to v2 protobuf message.
+    """Converts a Sweep to v2 Protobuf message.
 
     Args:
         sweep: The sweep to convert.
@@ -120,7 +120,7 @@ def sweep_to_proto(
             float32 is used instead. Default: False.
 
     Returns:
-        Populated sweep protobuf message.
+        Populated sweep Protobuf message.
 
     Raises:
         ValueError: If the conversion cannot be completed successfully.
@@ -243,7 +243,7 @@ def sweep_from_proto(
     msg: run_context_pb2.Sweep,
     sweep_transformer: Callable[[sweeps.SingleSweep], sweeps.SingleSweep] = lambda x: x,
 ) -> cirq.Sweep:
-    """Creates a Sweep from a v2 protobuf message.
+    """Creates a Sweep from a v2 Protobuf message.
 
     Args:
         msg: Serialized sweep message.
@@ -418,17 +418,18 @@ def sweepable_to_proto(
 
 def run_context_to_proto(
     sweepable: cirq.Sweepable,
-    repetitions: int,
+    repetitions: int | Sequence[int],
     *,
     out: run_context_pb2.RunContext | None = None,
     compress_proto: bool = False,
     use_float64: bool = False,
 ) -> run_context_pb2.RunContext:
-    """Populates a RunContext protobuf message.
+    """Populates a RunContext Protobuf message.
 
     Args:
         sweepable: The sweepable to include in the run context.
-        repetitions: The number of repetitions for the run context.
+        repetitions: The number of repetitions for the run context. Can be a single
+            integer or a sequence of integers (for non-uniform repetitions in batch).
         out: Optional message to be populated. If not given, a new message will
             be created.
         compress_proto: If set to `True` the function will gzip the proto and
@@ -437,14 +438,33 @@ def run_context_to_proto(
             float32 is used instead. Default: False.
 
     Returns:
-        Populated RunContext protobuf message.
+        Populated RunContext Protobuf message.
     """
     if out is None:
         out = run_context_pb2.RunContext()
     if compress_proto:
         uncompressed_wrapper = out
         out = run_context_pb2.RunContext()
-    sweepable_to_proto(sweepable, repetitions, out=out, use_float64=use_float64)
+
+    sweeps_list = cirq.to_sweeps(sweepable)
+    if isinstance(repetitions, Sequence) and not isinstance(repetitions, str):
+        if len(sweeps_list) == 1 and len(repetitions) > 1:
+            sweeps_list = sweeps_list * len(repetitions)
+        if len(sweeps_list) != len(repetitions):
+            raise ValueError(
+                f"Length of sweeps ({len(sweeps_list)}) and "
+                f"repetitions ({len(repetitions)}) must match."
+            )
+        for s, r in zip(sweeps_list, repetitions):
+            sweep_proto = out.parameter_sweeps.add()
+            sweep_proto.repetitions = r
+            sweep_to_proto(s, out=sweep_proto.sweep, use_float64=use_float64)
+    else:
+        for s in sweeps_list:
+            sweep_proto = out.parameter_sweeps.add()
+            sweep_proto.repetitions = repetitions
+            sweep_to_proto(s, out=sweep_proto.sweep, use_float64=use_float64)
+
     if compress_proto:
         raw_bytes = out.SerializeToString()
         uncompressed_wrapper.compressed_run_context = gzip.compress(raw_bytes)

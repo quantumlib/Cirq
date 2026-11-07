@@ -205,9 +205,7 @@ def test_qasm_sympy_condition() -> None:
         cirq.X(q1).with_classical_controls(sympy.Eq(sympy.Symbol('a'), 0)),
     )
     qasm = cirq.qasm(circuit)
-    assert (
-        qasm
-        == f"""// Generated from Cirq v{cirq.__version__}
+    assert qasm == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -221,16 +219,13 @@ creg m_a[1];
 measure q[0] -> m_a[0];
 if (m_a==0) x q[1];
 """
-    )
 
 
 def test_qasm_key_condition() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.measure(q0, key='a'), cirq.X(q1).with_classical_controls('a'))
     qasm = cirq.qasm(circuit)
-    assert (
-        qasm
-        == f"""// Generated from Cirq v{cirq.__version__}
+    assert qasm == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -244,7 +239,6 @@ creg m_a[1];
 measure q[0] -> m_a[0];
 if (m_a==1) x q[1];
 """
-    )
 
 
 def test_qasm_no_conditions() -> None:
@@ -253,9 +247,7 @@ def test_qasm_no_conditions() -> None:
         cirq.measure(q0, key='a'), cirq.ClassicallyControlledOperation(cirq.X(q1), [])
     )
     qasm = cirq.qasm(circuit)
-    assert (
-        qasm
-        == f"""// Generated from Cirq v{cirq.__version__}
+    assert qasm == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -269,7 +261,6 @@ creg m_a[1];
 measure q[0] -> m_a[0];
 x q[1];
 """
-    )
 
 
 def test_qasm_multiple_conditions() -> None:
@@ -288,9 +279,7 @@ def test_qasm_multiple_conditions() -> None:
         _ = cirq.qasm(circuit, args=cirq.QasmArgs(version='2.0'))
 
     qasm = cirq.qasm(circuit, args=cirq.QasmArgs(version='3.0'))
-    assert (
-        qasm
-        == f"""// Generated from Cirq v{cirq.__version__}
+    assert qasm == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 3.0;
 include "stdgates.inc";
@@ -306,7 +295,127 @@ m_a[0] = measure q[0];
 m_b[0] = measure q[0];
 if (m_a==0 && m_b==0) x q[1];
 """
+
+
+def test_qasm_multiline_classically_controlled_operation_qasm2() -> None:
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        cirq.measure(q2, key='c'), cirq.CCZ(q0, q1, q2).with_classical_controls('c')
     )
+    qasm2 = cirq.qasm(circuit, args=cirq.QasmArgs(version='2.0'))
+    assert qasm2 == f"""// Generated from Cirq v{cirq.__version__}
+
+OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [q(0), q(1), q(2)]
+qreg q[3];
+creg m_c[1];
+
+
+measure q[2] -> m_c[0];
+
+// Operation: CCZ(q(0), q(1), q(2)).with_classical_controls(c)
+if (m_c==1) h q[2];
+if (m_c==1) ccx q[0],q[1],q[2];
+if (m_c==1) h q[2];
+"""
+
+
+def test_qasm_multiline_gate_classical_control_qasm2() -> None:
+    class SameLineQasmGate(cirq.Gate):
+        def _num_qubits_(self) -> int:
+            return 1
+
+        def _qasm_(self, qubits, args):
+            return "x q[0]; y q[0];\n"
+
+        def __str__(self) -> str:
+            return "SameLineQasmGate"
+
+    q0 = cirq.LineQubit(0)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='c'), SameLineQasmGate().on(q0).with_classical_controls('c')
+    )
+
+    qasm2 = cirq.qasm(circuit, args=cirq.QasmArgs(version='2.0'))
+
+    assert qasm2 == f"""// Generated from Cirq v{cirq.__version__}
+
+OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [q(0)]
+qreg q[1];
+creg m_c[1];
+
+
+measure q[0] -> m_c[0];
+
+// Operation: SameLineQasmGate(q(0)).with_classical_controls(c)
+if (m_c==1) x q[0];
+if (m_c==1) y q[0];
+"""
+
+
+def test_qasm_classically_controlled_whitespace_gate_qasm2() -> None:
+    class WhitespaceQasmGate(cirq.Gate):
+        def _num_qubits_(self) -> int:
+            return 1
+
+        def _qasm_(self, qubits, args):
+            return "   \n"
+
+    q0 = cirq.LineQubit(0)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='c'), WhitespaceQasmGate().on(q0).with_classical_controls('c')
+    )
+
+    qasm2 = cirq.qasm(circuit, args=cirq.QasmArgs(version='2.0'))
+
+    assert qasm2 == (f"""// Generated from Cirq v{cirq.__version__}
+
+OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [q(0)]
+qreg q[1];
+creg m_c[1];
+
+
+measure q[0] -> m_c[0];
+""" + "   \n")
+
+
+def test_qasm_multiline_classically_controlled_operation_qasm3() -> None:
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        cirq.measure(q2, key='c'), cirq.CCZ(q0, q1, q2).with_classical_controls('c')
+    )
+    qasm3 = cirq.qasm(circuit, args=cirq.QasmArgs(version='3.0'))
+    assert qasm3 == f"""// Generated from Cirq v{cirq.__version__}
+
+OPENQASM 3.0;
+include "stdgates.inc";
+
+
+// Qubits: [q(0), q(1), q(2)]
+qubit[3] q;
+bit[1] m_c;
+
+
+m_c[0] = measure q[2];
+
+// Operation: CCZ(q(0), q(1), q(2)).with_classical_controls(c)
+if (m_c!=0) {{
+    h q[2];
+    ccx q[0],q[1],q[2];
+    h q[2];
+}}
+"""
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)
@@ -1073,9 +1182,7 @@ def test_commutes() -> None:
 def test_moment_diagram() -> None:
     a, _, c, d = cirq.GridQubit.rect(2, 2)
     m = cirq.Moment(cirq.CZ(a, d), cirq.X(c).with_classical_controls('m'))
-    assert (
-        str(m).strip()
-        == """
+    assert str(m).strip() == """
   ╷ 0                 1
 ╶─┼─────────────────────
 0 │ @─────────────────┐
@@ -1083,7 +1190,6 @@ def test_moment_diagram() -> None:
 1 │ X(conditions=[m]) @
   │
     """.strip()
-    )
 
 
 def test_diagram_exponents() -> None:

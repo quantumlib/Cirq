@@ -112,7 +112,7 @@ message Circuit {
 
   // Deprecated field, do not use.
   reserved 4;
-  
+
   // Indices in the constant table for tags associated with the circuit
   repeated int32 tag_indices = 5;
 }
@@ -138,7 +138,7 @@ message Moment {
 
   // Deprecated field id, do not use.
   reserved 3;
-  
+
   // Indices in the constant table for tags associated with the circuit
   repeated int32 tag_indices = 5;
 }
@@ -215,10 +215,18 @@ message FSimGate {
   FloatArg theta = 1;
   FloatArg phi = 2;
 
-  // If true, this is equivalent to:
-  // cirq.FSimGate(...).with_tags(cirq_google.FSimViaModelTag()).
+
   // This field controls how we translate the gate implementation.
-  bool translate_via_model = 3;
+  oneof translate_tag {
+    // If true, this is equivalent to:
+    // cirq.FSimGate(...).with_tags(cirq_google.FSimViaModelTag()).
+    bool translate_via_model = 3;
+
+    // If true, this is equivalent to:
+    // cirq.FSimGate(...).with_tags(cirq_google.TwoPulseFSimTag()).
+    bool translate_to_two_pulse = 4;
+  }
+
 }
 
 // Representation of cirq.ISwapPowGate
@@ -280,7 +288,7 @@ message NoiseChannel {
 // Representation of cirq_google.ops.AnalogDetuneCouplerOnly
 // All the following fields should be specified as the tunit.Value.
 message AnalogDetuneCouplerOnly{
-  Arg length= 1;  // The duration of gate 
+  Arg length= 1;  // The duration of gate
   Arg w = 2;  // Width of the step envelope raising edge
   // Coupler strength specified with the equation g(t) = g_0+A*t^g_exp.
   // See AnalogDetuneCouplerOnly for details.
@@ -289,7 +297,7 @@ message AnalogDetuneCouplerOnly{
   Arg g_ramp_exponent = 5;
   // Two frequencies of the neighbor qubits at the moment.
   repeated Arg neighbor_qubits_freq = 6;
-  // Two frequencies of the neighbor qubits at preivous moment.
+  // Two frequencies of the neighbor qubits at previous moment.
   repeated Arg prev_neighbor_qubits_freq =7;
   bool interpolate_coupling_cal = 8;
   bool analog_cal_for_pulseshaping = 9;
@@ -298,7 +306,7 @@ message AnalogDetuneCouplerOnly{
 // Representation of cirq_google.ops.AnalogDetuneQubit
 // All the following fields should be specified as the tunit.Value.
 message AnalogDetuneQubit{
-  Arg length= 1; // The duration of gate 
+  Arg length= 1; // The duration of gate
   Arg w = 2;   // Width of the step envelope raising edge
   Arg target_freq = 3;  // The target frequency for the qubit at end of detune gate.
   Arg prev_freq = 4; // Previous detuning frequency to compensate beginning of detune gate.
@@ -374,7 +382,7 @@ message Operation {
   repeated int32 tag_indices = 23;
 
   // Classical conditions
-  // Note that this condition is not a sympy expression
+  // Note that this condition is not a SymPy expression
   // as it has a relation such as "==", "<" etc
   repeated Arg conditioned_on = 25;
 }
@@ -416,9 +424,12 @@ message Tag {
     // Uses parameter model to interpolate FSim gate.
     FSimViaModelTag fsim_via_model = 7;
 
+    // Use two-pulse FSim gate implementation.
+    TwoPulseFSimTag two_pulse_fsim = 12;
+
     // Calibration Tag
     CalibrationTag calibration_tag = 9;
-    
+
     // Compress duration to zero, if possible.
     CompressDurationTag compress_duration = 10;
 
@@ -442,6 +453,9 @@ message PhysicalZTag {}
 message ClassicalStateTag {}
 
 message FSimViaModelTag {}
+
+message TwoPulseFSimTag {}
+
 
 // Tag to remove moment-based synchronization
 // The reverse and forward arguments control the
@@ -561,7 +575,7 @@ message RepeatedDouble {
 message RepeatedString {
   repeated string values = 1;
 }
-// A repeated boolean value.
+// A repeated Boolean value.
 message RepeatedBoolean {
   repeated bool values = 1;
 }
@@ -569,7 +583,7 @@ message RepeatedBoolean {
 // Representation of a mixed tuple of values
 message Tuple {
 
-  // Original (python) type of the data
+  // Original (Python) type of the data
   enum SequenceType {
     UNSPECIFIED = 0;
     LIST = 1;

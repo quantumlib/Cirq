@@ -97,10 +97,9 @@ class _GreedyRouter:
         max_search_radius: int = 1,
         max_num_empty_steps: int = 5,
         initial_mapping: dict[ops.Qid, ops.Qid] | None = None,
-        can_reorder: Callable[[ops.Operation, ops.Operation], bool] = lambda op1, op2: not set(
+        can_reorder: Callable[[ops.Operation, ops.Operation], bool] = lambda op1, op2: set(
             op1.qubits
-        )
-        & set(op2.qubits),
+        ).isdisjoint(op2.qubits),
         random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ):
 
@@ -274,9 +273,9 @@ class _GreedyRouter:
             candidate_swap_sets = list(self.get_edge_sets(k))
             for time_slice in time_slices:
                 edges = sorted(time_slice.edges)
-                distance_vectors = list(
+                distance_vectors = [
                     self.get_distance_vector(edges, swap_set) for swap_set in candidate_swap_sets
-                )
+                ]
                 dominated_indices = _get_dominated_indices(distance_vectors)
                 candidate_swap_sets = [
                     S for i, S in enumerate(candidate_swap_sets) if i not in dominated_indices

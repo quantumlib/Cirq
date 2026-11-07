@@ -87,7 +87,7 @@ def to_sweep(
         A sweep equal to or containing the argument.
 
     Raises:
-        TypeError: If an unsupport type was supplied.
+        TypeError: If an unsupported type was supplied.
     """
     if isinstance(sweep_or_resolver_list, Sweep):
         return sweep_or_resolver_list

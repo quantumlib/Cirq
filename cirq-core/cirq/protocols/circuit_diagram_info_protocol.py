@@ -134,7 +134,7 @@ class CircuitDiagramInfo:
             if args.precision is not None:
                 # funky behavior of fraction, cast to str in constructor helps.
                 approx_frac = Fraction(self.exponent).limit_denominator(16)
-                if approx_frac.denominator not in [2, 4, 5, 10]:
+                if approx_frac.denominator not in [1, 2, 4, 5, 10]:
                     if abs(float(approx_frac) - self.exponent) < 10**-args.precision:
                         return f'({approx_frac})'
 
@@ -173,11 +173,11 @@ class CircuitDiagramInfoArgs:
         known_qubit_count: The number of qubits the gate is being applied to
             None means this information is not known by the caller.
         use_unicode_characters: If true, the wire symbols are permitted to
-            include unicode characters (as long as they work well in fixed
-            width fonts). If false, use only ascii characters. ASCII is
+            include Unicode characters (as long as they work well in fixed
+            width fonts). If false, use only ASCII characters. ASCII is
             preferred in cases where UTF8 support is done poorly, or where
             the fixed-width font being used to show the diagrams does not
-            properly handle unicode characters.
+            properly handle Unicode characters.
         precision: The number of digits after the decimal to show for numbers in
             the text diagram. None means use full precision.
         label_map: The map from label entities to diagram positions.
@@ -260,6 +260,28 @@ class CircuitDiagramInfoArgs:
         if isinstance(self.include_tags, bool):
             return list(tags) if self.include_tags else []
         return [t for t in tags if any(isinstance(t, cls) for cls in self.include_tags)]
+
+    def _tag_diagram_str(self, tag: Any) -> str:
+        """Text used for a single tag in a circuit diagram.
+
+        If the tag implements the `_circuit_diagram_info_` protocol, the first
+        wire symbol from that info is used. Otherwise falls back to `str(tag)`.
+        """
+        info = circuit_diagram_info(tag, self, default=None)
+        if info is not None and info.wire_symbols:
+            return info.wire_symbols[0]
+        return str(tag)
+
+    def format_tags(self, tags: Iterable[Any]) -> str:
+        """Formats tags for inclusion in a circuit diagram label.
+
+        Returns a string like `'[tag1, tag2]'`, or `''` if no tags are visible
+        under `include_tags`.
+        """
+        visible_tags = self.tags_to_include(tags)
+        if not visible_tags:
+            return ''
+        return f"[{', '.join(self._tag_diagram_str(tag) for tag in visible_tags)}]"
 
     def format_real(self, val: sympy.Basic | int | float) -> str:
         if isinstance(val, sympy.Basic):
@@ -344,7 +366,7 @@ class SupportsCircuitDiagramInfo(Protocol):
         Args:
             args: A DiagramInfoArgs instance encapsulating various pieces of
                 information (e.g. how many qubits are we being applied to) as
-                well as user options (e.g. whether to avoid unicode characters).
+                well as user options (e.g. whether to avoid Unicode characters).
 
         Returns:
             A DiagramInfo instance describing what to show.
@@ -377,11 +399,10 @@ def _op_info_with_fallback(
         name = name[: -len(redundant_tail)]
 
     # Add tags onto the representation, if they exist
-    if op.tags:
-        name += f"[{', '.join(map(str, op.tags))}]"
+    name += args.format_tags(op.tags)
 
     # Include ordering in the qubit labels.
-    symbols = (name,) + tuple(f'#{i + 1}' for i in range(1, len(op.qubits)))
+    symbols = (name, *(f'#{i + 1}' for i in range(1, len(op.qubits))))
 
     return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
@@ -410,8 +431,8 @@ def circuit_diagram_info(
 ):
     """Requests information on drawing an operation in a circuit diagram.
 
-    Calls _circuit_diagram_info_ on `val`. If `val` doesn't have
-    _circuit_diagram_info_, or it returns NotImplemented, that indicates that
+    Calls `_circuit_diagram_info_` on `val`. If `val` doesn't have
+    `_circuit_diagram_info_`, or it returns NotImplemented, that indicates that
     diagram information is not available.
 
     Args:
@@ -422,11 +443,11 @@ def circuit_diagram_info(
             instead.
 
     Returns:
-        If `val` has no _circuit_diagram_info_ method or it returns
+        If `val` has no `_circuit_diagram_info_` method or it returns
         NotImplemented, then `default` is returned (or a TypeError is
         raised if no `default` is specified).
 
-        Otherwise, the value returned by _circuit_diagram_info_ is returned.
+        Otherwise, the value returned by `_circuit_diagram_info_` is returned.
 
     Raises:
         TypeError:

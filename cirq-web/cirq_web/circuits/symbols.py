@@ -19,12 +19,17 @@ from __future__ import annotations
 
 import abc
 import dataclasses
+import os
+import warnings
 from collections.abc import Iterable
 
 import cirq
+from cirq._compat import ALLOW_DEPRECATION_IN_TEST
 from cirq.protocols.circuit_diagram_info_protocol import CircuitDiagramInfoArgs
+from cirq_web.deprecation import deprecated_cirq_web_class, deprecated_cirq_web_function
 
 
+@deprecated_cirq_web_class
 @dataclasses.dataclass
 class SymbolInfo:
     """Organizes information about a symbol."""
@@ -59,9 +64,10 @@ class SymbolResolver(metaclass=abc.ABCMeta):
         """Converts cirq.Operation objects into SymbolInfo objects for serialization."""
 
 
+@deprecated_cirq_web_class
 class DefaultResolver(SymbolResolver):
     """Default symbol resolver implementation. Takes information
-    from circuit_diagram_info, if unavailable, returns information representing
+    from `_circuit_diagram_info_`; if unavailable, returns information representing
     an unknown symbol.
     """
 
@@ -77,7 +83,7 @@ class DefaultResolver(SymbolResolver):
     }
 
     def resolve(self, operation: cirq.Operation) -> SymbolInfo | None:
-        """Checks for the _circuit_diagram_info attribute of the operation,
+        """Checks for the `_circuit_diagram_info_` attribute of the operation,
         and if it exists, build the symbol information from it. Otherwise,
         builds symbol info for an unknown operation.
 
@@ -100,12 +106,30 @@ class DefaultResolver(SymbolResolver):
         return symbol_info
 
 
-DEFAULT_SYMBOL_RESOLVERS: Iterable[SymbolResolver] = tuple([DefaultResolver()])
+# This module may be imported during test discovery.
+# Allow call to the deprecated DefaultResolver below.
+_SAVE_ENVIRON = {k: os.environ[k] for k in [ALLOW_DEPRECATION_IN_TEST] if k in os.environ}
+os.environ[ALLOW_DEPRECATION_IN_TEST] = "True"
+
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        message="(.|\n)*cirq-web is deprecated.",
+        category=DeprecationWarning,
+        module=__name__,
+    )
+    DEFAULT_SYMBOL_RESOLVERS: Iterable[SymbolResolver] = (DefaultResolver(),)
+
+# restore os.environ as before and clean up extra variable
+del os.environ[ALLOW_DEPRECATION_IN_TEST]
+os.environ.update(_SAVE_ENVIRON)
+del _SAVE_ENVIRON
 
 
+@deprecated_cirq_web_function
 def resolve_operation(operation: cirq.Operation, resolvers: Iterable[SymbolResolver]) -> SymbolInfo:
     """Builds a SymbolInfo object based off of a designated operation
-    and list of resolvers. The latest resolver takes precendent.
+    and list of resolvers. The latest resolver takes precedent.
 
     Args:
         operation: the cirq.Operation object to resolve
@@ -126,6 +150,7 @@ def resolve_operation(operation: cirq.Operation, resolvers: Iterable[SymbolResol
     return symbol_info
 
 
+@deprecated_cirq_web_class
 class Operation3DSymbol:
     def __init__(self, wire_symbols, location_info, color_info, moment):
         """Gathers symbol information from an operation and builds an
@@ -133,15 +158,15 @@ class Operation3DSymbol:
 
         Args:
             wire_symbols: a list of symbols taken from circuit_diagram_info()
-            that will be used to represent the operation in the 3D circuit.
+                that will be used to represent the operation in the 3D circuit.
 
             location_info: A list of coordinates for each wire_symbol. The
-            index of the coordinate tuple in the location_info list must
-            correspond with the index of the symbol in the wire_symbols list.
+                index of the coordinate tuple in the location_info list must
+                correspond with the index of the symbol in the wire_symbols list.
 
             color_info: a list representing the desired color of the symbol(s).
-            These will also correspond to index of the symbol in the
-            wire_symbols list.
+                These will also correspond to index of the symbol in the
+                wire_symbols list.
 
             moment: the moment where the symbol should be.
         """

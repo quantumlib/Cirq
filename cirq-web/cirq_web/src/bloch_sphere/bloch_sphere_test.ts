@@ -59,7 +59,7 @@ describe('BlochSphere (with empty constructor)', () => {
     const children = scene.children;
     expect(children.length).toBe(1);
     expect(children[0].type).toBe('Group');
-    // Sanity check to make sure it works as BlochSphere
+    // Check that the child is a BlochSphere instance
     expect(children[0] instanceof BlochSphere).toBe(true);
   });
 

@@ -182,7 +182,7 @@ def test_force_edge_active_move_calls_force_edge_active():
         assert edge[0] in chip_as_adjacency_list(device)[edge[1]]
 
 
-def test_force_edge_active_creates_valid_solution_different_sequnces():
+def test_force_edge_active_creates_valid_solution_different_sequences():
     q00, q10, q20, q30 = [cirq.GridQubit(x, 0) for x in range(4)]
     q01, q11, q21, q31 = [cirq.GridQubit(x, 1) for x in range(4)]
     qubits = [q00, q10, q20, q30, q01, q11, q21, q31]

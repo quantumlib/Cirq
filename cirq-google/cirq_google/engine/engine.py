@@ -29,6 +29,8 @@ import datetime
 import enum
 import random
 import string
+from collections.abc import Mapping, Sequence
+from http import HTTPStatus
 from typing import TYPE_CHECKING, TypeVar
 
 import duet
@@ -46,9 +48,11 @@ from cirq_google.engine import (
     processor_config,
     util,
 )
-from cirq_google.serialization import CIRCUIT_SERIALIZER, Serializer
+from cirq_google.engine.processor_config import Run
+from cirq_google.serialization import CIRCUIT_SERIALIZER, CircuitSerializer
 
 if TYPE_CHECKING:
+    import stim
     from google.protobuf import any_pb2
 
     import cirq_google
@@ -87,7 +91,7 @@ class EngineContext:
         verbose: bool | None = None,
         client: engine_client.EngineClient | None = None,
         timeout: int | None = None,
-        serializer: Serializer = CIRCUIT_SERIALIZER,
+        serializer: CircuitSerializer = CIRCUIT_SERIALIZER,
         # TODO(#5996) Remove enable_streaming once the feature is stable.
         enable_streaming: bool = True,
         compress_run_context: bool = False,
@@ -145,6 +149,22 @@ class EngineContext:
             raise ValueError(f'invalid program proto version: {self.proto_version}')
         return util.pack_any(self.serializer.serialize(program))
 
+    def _serialize_multi_program(
+        self, programs: Sequence[cirq.AbstractCircuit] | Mapping[str, cirq.AbstractCircuit]
+    ) -> any_pb2.Any:
+        if isinstance(programs, Mapping):
+            if any(not isinstance(value, cirq.AbstractCircuit) for value in programs.values()):
+                raise TypeError(f'Unrecognized program type: {type(programs)}')
+        elif isinstance(programs, Sequence):
+            if any(not isinstance(value, cirq.AbstractCircuit) for value in programs):
+                raise TypeError(f'Unrecognized program type: {type(programs)}')
+        else:
+            raise TypeError(f'Unrecognized program type: {type(programs)}')
+
+        if self.proto_version != ProtoVersion.V2:
+            raise ValueError(f'invalid program proto version: {self.proto_version}')
+        return util.pack_any(self.serializer.serialize_multi_program(programs))
+
     def _serialize_run_context(self, sweeps: cirq.Sweepable, repetitions: int) -> any_pb2.Any:
         if self.proto_version != ProtoVersion.V2:
             raise ValueError(f'invalid run context proto version: {self.proto_version}')
@@ -170,6 +190,8 @@ class Engine(abstract_engine.AbstractEngine):
     *   get_program
     *   list_processors
     *   get_processor
+    *   list_jobs
+    *   get_job
 
     """
 
@@ -283,7 +305,7 @@ class Engine(abstract_engine.AbstractEngine):
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
         """
-        return list(
+        results = list(
             self.run_sweep(
                 program=program,
                 program_id=program_id,
@@ -299,11 +321,16 @@ class Engine(abstract_engine.AbstractEngine):
                 snapshot_id=snapshot_id,
                 device_config_name=device_config_name,
             )
-        )[0]
+        )
+        return results[0]
 
     async def run_sweep_async(
         self,
-        program: cirq.AbstractCircuit,
+        program: (
+            cirq.AbstractCircuit
+            | Sequence[cirq.AbstractCircuit]
+            | Mapping[str, cirq.AbstractCircuit]
+        ),
         processor_id: str,
         program_id: str | None = None,
         job_id: str | None = None,
@@ -326,6 +353,8 @@ class Engine(abstract_engine.AbstractEngine):
         Args:
             program: The Circuit to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
+                A list or mapping of programs can also be provided.
+                These will be executed as KeyedCircuits.
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
@@ -365,6 +394,33 @@ class Engine(abstract_engine.AbstractEngine):
                 `processor_id` is empty.
         """
 
+        async def create_program_and_job() -> engine_job.EngineJob:
+            try:
+                engine_program = await self.create_program_async(
+                    program, program_id, description=program_description, labels=program_labels
+                )
+            except engine_client.EngineException as ee:
+                if ee.code == HTTPStatus.CONFLICT:
+                    if not program_id:
+                        # Randomly-assigned ID collided with existing
+                        raise
+                    # If the program was already created, move on to job creation.
+                    engine_program = self.get_program(program_id)
+                else:
+                    raise
+
+            return await engine_program.run_sweep_async(
+                job_id=job_id,
+                params=params,
+                repetitions=repetitions,
+                processor_id=processor_id,
+                description=job_description,
+                labels=job_labels,
+                run_name=run_name,
+                snapshot_id=snapshot_id,
+                device_config_name=device_config_name,
+            )
+
         if self.context.enable_streaming:
             if not program_id:
                 program_id = _make_random_id('prog-')
@@ -372,12 +428,17 @@ class Engine(abstract_engine.AbstractEngine):
                 job_id = _make_random_id('job-')
             run_context = self.context._serialize_run_context(params, repetitions)
 
+            if isinstance(program, cirq.AbstractCircuit):
+                code = self.context._serialize_program(program)
+            else:
+                code = self.context._serialize_multi_program(program)
+
             job_result_future = self.context.client.run_job_over_stream(
                 project_id=self.project_id,
                 program_id=str(program_id),
                 program_description=program_description,
                 program_labels=program_labels,
-                code=self.context._serialize_program(program),
+                code=code,
                 job_id=str(job_id),
                 run_context=run_context,
                 job_description=job_description,
@@ -393,36 +454,29 @@ class Engine(abstract_engine.AbstractEngine):
                 str(job_id),
                 self.context,
                 job_result_future=job_result_future,
+                recreate_job=create_program_and_job,
             )
 
-        engine_program = await self.create_program_async(
-            program, program_id, description=program_description, labels=program_labels
-        )
-        return await engine_program.run_sweep_async(
-            job_id=job_id,
-            params=params,
-            repetitions=repetitions,
-            processor_id=processor_id,
-            description=job_description,
-            labels=job_labels,
-            run_name=run_name,
-            snapshot_id=snapshot_id,
-            device_config_name=device_config_name,
-        )
+        return await create_program_and_job()
 
     run_sweep = duet.sync(run_sweep_async)
 
     async def create_program_async(
         self,
-        program: cirq.AbstractCircuit,
+        program: (
+            cirq.AbstractCircuit
+            | Sequence[cirq.AbstractCircuit]
+            | Mapping[str, cirq.AbstractCircuit]
+        ),
         program_id: str | None = None,
         description: str | None = None,
         labels: dict[str, str] | None = None,
     ) -> engine_program.EngineProgram:
-        """Wraps a Circuit for use with the Quantum Engine.
+        """Wraps a circuit or batch of circuits for use with the Quantum Engine.
 
         Args:
-            program: The Circuit to execute.
+            program: The circuit or circuits to execute. Can either be a single
+                circuit, a sequence of circuits, or a mapping from string keys to circuits.
             program_id: A user-provided identifier for the program. This must be
                 unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
@@ -440,12 +494,13 @@ class Engine(abstract_engine.AbstractEngine):
         if not program_id:
             program_id = _make_random_id('prog-')
 
+        if isinstance(program, cirq.AbstractCircuit):
+            code = self.context._serialize_program(program)
+        else:
+            code = self.context._serialize_multi_program(program)
+
         new_program_id, new_program = await self.context.client.create_program_async(
-            self.project_id,
-            program_id,
-            code=self.context._serialize_program(program),
-            description=description,
-            labels=labels,
+            self.project_id, program_id, code=code, description=description, labels=labels
         )
 
         return engine_program.EngineProgram(
@@ -461,9 +516,29 @@ class Engine(abstract_engine.AbstractEngine):
             program_id: Unique ID of the program within the parent project.
 
         Returns:
-            A EngineProgram for the program.
+            The EngineProgram for the program.
         """
         return engine_program.EngineProgram(self.project_id, program_id, self.context)
+
+    async def get_job_async(self, job_id: str) -> engine_job.EngineJob:
+        """Returns an EngineJob for an existing Quantum Engine job.
+
+        Args:
+            job_id: Unique ID of the job within the parent project.
+
+        Returns:
+            The EngineJob if the job_id mapped to a real job.
+
+        Raises:
+            ValueError: If the job_id does not map to a real job.
+        """
+        all_jobs = await self.list_jobs_async()
+        for job in all_jobs:
+            if job.job_id == job_id:
+                return job
+        raise ValueError(f'No job with id {job_id} found in list of jobs')
+
+    get_job = duet.sync(get_job_async)
 
     async def list_programs_async(
         self,
@@ -515,7 +590,7 @@ class Engine(abstract_engine.AbstractEngine):
         """Returns the list of jobs in the project.
 
         All historical jobs can be retrieved using this method and filtering
-        options are available too, to narrow down the search baesd on:
+        options are available too, to narrow down the search based on:
           * creation time
           * job labels
           * execution states
@@ -595,6 +670,7 @@ class Engine(abstract_engine.AbstractEngine):
         device_config_name: str | None = None,
         device_config_revision: processor_config.DeviceConfigRevision | None = None,
         max_concurrent_jobs: int = 100,
+        circuits_per_job: int = 1,
     ) -> cirq_google.ProcessorSampler:
         """Returns a sampler backed by the engine.
 
@@ -608,6 +684,12 @@ class Engine(abstract_engine.AbstractEngine):
                 concurrently to the Engine. This client-side throttle can be
                 used to proactively reduce load to the backends and avoid quota
                 violations when pipelining circuit executions.
+            circuits_per_job:  If set to greater than 1, this will batch multiple
+                circuits within the same API call when calling run_batch() or
+                run_batch_async() up to a maximum of `circuits_per_job`.
+                Note that actual hardware execution order is not guaranteed
+                if circuits_per_job > 1. (For instance, the hardware may run
+                all circuits for the first sweep point, then the second point, etc.).
 
         Returns:
             A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
@@ -628,19 +710,18 @@ class Engine(abstract_engine.AbstractEngine):
             device_config_name=device_config_name,
             device_config_revision=device_config_revision,
             max_concurrent_jobs=max_concurrent_jobs,
+            circuits_per_job=circuits_per_job,
         )
 
     async def get_processor_config_async(
         self,
         processor_id: str,
-        device_config_revision: processor_config.DeviceConfigRevision = processor_config.Run(
-            id='current'
-        ),
+        device_config_revision: processor_config.DeviceConfigRevision = Run(id='default'),
         config_name: str = 'default',
     ) -> processor_config.ProcessorConfig | None:
         """Returns a ProcessorConfig from this project and the given processor id.
 
-        If no `run_name` and `config_name` are specified, the inernally configured default config
+        If no `run_name` and `config_name` are specified, the internally configured default config
         is returned.
 
         Args:
@@ -670,9 +751,7 @@ class Engine(abstract_engine.AbstractEngine):
     async def list_processor_configs_async(
         self,
         processor_id: str,
-        device_config_revision: processor_config.DeviceConfigRevision = processor_config.Run(
-            id='current'
-        ),
+        device_config_revision: processor_config.DeviceConfigRevision = Run(id='default'),
     ) -> list[processor_config.ProcessorConfig]:
         """Returns list of ProcessorConfigs from an automation run.
 
@@ -699,6 +778,80 @@ class Engine(abstract_engine.AbstractEngine):
         ]
 
     list_processor_configs = duet.sync(list_processor_configs_async)
+
+    async def compile_circuit_async(
+        self,
+        stim_circuit: str | stim.Circuit,
+        qec_recipe: list[str],
+        processor_id: str,
+        device_config_revision: processor_config.DeviceConfigRevision = Run(id='default'),
+        config_name: str = 'default',
+    ) -> cirq.Circuit:
+        """Takes the given Stim circuit and compiles it to a cirq Circuit.
+
+        Args:
+            stim_circuit: The Stim circuit to compile.
+            qec_recipe: A list of the recipes to apply to the given circuit.
+            processor_id: The processor unique identifier.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
+            config_name: The identifier for the config.
+
+        Returns:
+            A cirq.Circuit.
+        """
+        return await self.context.client.compile_circuit_async(
+            project_id=self.project_id,
+            stim_circuit=stim_circuit,
+            qec_recipe=qec_recipe,
+            processor_id=processor_id,
+            device_config_revision=device_config_revision,
+            config_name=config_name,
+        )
+
+    compile_circuit = duet.sync(compile_circuit_async)
+
+    async def calibrate_for_circuit_async(
+        self,
+        qec_circuit: cirq.Circuit,
+        processor_id: str,
+        device_config_revision: processor_config.DeviceConfigRevision = processor_config.Run(
+            id='default'
+        ),
+        config_name: str = 'default',
+    ) -> cirq.ParamResolver:
+        """Calibrates the given QEC circuit.
+
+        Args:
+            qec_circuit: The QEC circuit to calibrate.
+            processor_id: The processor unique identifier.
+            device_config_revision: Specifies either the snapshot_id or the run_name.
+            config_name: The identifier for the config.
+
+        Returns:
+            A cirq.ParamResolver containing the calibrated parameters.
+        """
+        quantum_job = await self.context.client.calibrate_for_circuit_async(
+            project_id=self.project_id,
+            qec_circuit=qec_circuit,
+            processor_id=processor_id,
+            device_config_revision=device_config_revision,
+            config_name=config_name,
+        )
+        _, program_id, job_id = engine_client._ids_from_job_name(quantum_job.name)
+        job = engine_job.EngineJob(
+            project_id=self.project_id,
+            program_id=program_id,
+            job_id=job_id,
+            context=self.context,
+            _job=quantum_job,
+        )
+        results = await job.results_async()
+        try:
+            return results[0].params
+        except IndexError:
+            raise ValueError(f"No calibration results returned for job {job_id}.")
+
+    calibrate_for_circuit = duet.sync(calibrate_for_circuit_async)
 
 
 def get_engine(project_id: str | None = None) -> Engine:
@@ -742,18 +895,6 @@ def get_engine_device(processor_id: str, project_id: str | None = None) -> cirq.
     processor object, and retrieving the device.
     """
     return get_engine(project_id).get_processor(processor_id).get_device()
-
-
-def get_engine_calibration(
-    processor_id: str, project_id: str | None = None
-) -> cirq_google.Calibration | None:
-    """Returns calibration metrics for a given processor.
-
-    This is a short-cut for creating an engine object, getting the
-    processor object, and retrieving the current calibration.
-    May return None if no calibration metrics exist for the device.
-    """
-    return get_engine(project_id).get_processor(processor_id).get_current_calibration()
 
 
 def get_engine_sampler(

@@ -20,7 +20,6 @@ from typing import TYPE_CHECKING
 import pytest
 
 import cirq
-import cirq_google.engine.calibration as calibration
 from cirq_google.engine.abstract_local_engine import AbstractLocalEngine
 from cirq_google.engine.abstract_local_job_test import NothingJob
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
@@ -37,15 +36,6 @@ class ProgramDictProcessor(AbstractLocalProcessor):
         super().__init__(**kwargs)
         self._programs = programs
 
-    def get_calibration(self, *args, **kwargs):
-        pass
-
-    def get_latest_calibration(self, timestamp: int) -> calibration.Calibration | None:
-        return calibration.Calibration()
-
-    def get_current_calibration(self, *args, **kwargs):
-        pass
-
     def get_device(self, *args, **kwargs):
         pass
 
@@ -53,9 +43,6 @@ class ProgramDictProcessor(AbstractLocalProcessor):
         pass
 
     def health(self, *args, **kwargs):
-        pass
-
-    def list_calibrations(self, *args, **kwargs):
         pass
 
     async def run_sweep_async(self, *args, **kwargs):
@@ -148,7 +135,6 @@ def test_get_programs():
     assert job3.program() == program3
     assert job3.engine() == engine
     assert job3.get_processor() == processor2
-    assert job3.get_calibration() == calibration.Calibration()
 
 
 def test_get_sampler():

@@ -87,7 +87,10 @@ def test_construct_from_repeated_measurements() -> None:
             'b': np.array([[[0, 0, 0]], [[1, 1, 1]]]),
         },
     )
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Cannot extract 2D measurements"):
+        _ = r.measurements
+    # Check that a second access raises ValueError again.
+    with pytest.raises(ValueError, match="Cannot extract 2D measurements"):
         _ = r.measurements
     assert np.all(r.records['a'] == np.array([[[0, 0], [0, 1]], [[1, 0], [1, 1]]]))
     assert np.all(r.records['b'] == np.array([[[0, 0, 0]], [[1, 1, 1]]]))
@@ -177,6 +180,9 @@ def test_histogram() -> None:
         measurements={
             'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=bool),
             'c': np.array([[0], [0], [1], [0], [1]], dtype=bool),
+            'd': np.zeros((0, 2), dtype=bool),
+            'e': np.zeros((5, 0), dtype=bool),
+            'f': np.array([[1] + [0] * 64], dtype=object),
         },
     )
 
@@ -186,6 +192,27 @@ def test_histogram() -> None:
     )
     assert result.histogram(key='ab', fold_func=lambda e: None) == collections.Counter({None: 5})
     assert result.histogram(key='c') == collections.Counter({0: 3, 1: 2})
+
+    # edge cases
+    assert result.histogram(key='d') == collections.Counter()
+    assert result.histogram(key='e') == collections.Counter({0: 5})
+    assert result.histogram(key='f') == collections.Counter({2**64: 1})
+    assert result.histogram(key='f', fold_base=(2,) * 65) == collections.Counter({2**64: 1})
+
+
+def test_histogram_fold_base() -> None:
+    # assume some result from qudits
+    result = cirq.ResultDict(
+        params=cirq.ParamResolver({}), measurements={'a': np.array([[2, 2, 2]], dtype=np.int8)}
+    )
+    assert result.histogram(key='a', fold_base=3) == collections.Counter({26: 1})
+    assert result.histogram(key='a', fold_base=(3, 3, 3)) == collections.Counter({26: 1})
+    assert result.histogram(key='a', fold_base=(5, 4, 3)) == collections.Counter({32: 1})
+
+    with pytest.raises(ValueError, match=r'len\(digits\) != len\(base\)'):
+        result.histogram(key='a', fold_base=(3, 3))
+    with pytest.raises(ValueError, match='Cannot specify both fold_func and fold_base'):
+        result.histogram(key='a', fold_func=tuple, fold_base=3)
 
 
 def test_multi_measurement_histogram() -> None:
@@ -419,7 +446,7 @@ def test_json_bit_packing_force() -> None:
 
 
 def test_json_unpack_compat() -> None:
-    """Test reading old json with serialized measurements array."""
+    """Test reading old JSON with serialized measurements array."""
     old_json = """
         {
             "cirq_type": "ResultDict",

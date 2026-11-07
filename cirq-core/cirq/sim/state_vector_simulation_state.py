@@ -210,7 +210,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
             axes: The axes on which to apply the channel.
             prng: The pseudo random number generator to use.
         Returns:
-            The kraus index if the operation succeeded, otherwise None.
+            The Kraus index if the operation succeeded, otherwise None.
         """
         kraus_operators = protocols.kraus(action, default=None)
         if kraus_operators is None:
@@ -313,7 +313,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
     There are two common ways to act on this object:
 
     1. Directly edit the `target_tensor` property, which is storing the state
-        vector of the quantum system as a numpy array with one axis per qudit.
+        vector of the quantum system as a NumPy array with one axis per qudit.
     2. Overwrite the `available_buffer` property with the new state vector, and
         then pass `available_buffer` into `swap_target_tensor_for`.
     """
@@ -322,11 +322,12 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         self,
         *,
         available_buffer: np.ndarray | None = None,
-        prng: np.random.RandomState | None = None,
+        prng: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         qubits: Sequence[cirq.Qid] | None = None,
         initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
         dtype: type[np.complexfloating] | np.dtype[np.complexfloating] = np.complex64,
         classical_data: cirq.ClassicalDataStore | None = None,
+        param_resolver: cirq.ParamResolver | None = None,
     ):
         """Inits StateVectorSimulationState.
 
@@ -339,8 +340,8 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            prng: The pseudo random number generator to use for probabilistic
-                effects.
+            prng: The pseudo random number generator (or seed) to use for
+                probabilistic effects.
             initial_state: The initial state for the simulation in the
                 computational basis.
             dtype: The `numpy.dtype` of the inferred state vector. One of
@@ -348,6 +349,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
                 `target_tenson` is None.
             classical_data: The shared classical data container for this
                 simulation.
+            param_resolver: The parameter resolver for the simulation.
         """
         state = _BufferedStateVector.create(
             initial_state=initial_state,
@@ -355,7 +357,13 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
             dtype=dtype,
             buffer=available_buffer,
         )
-        super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
+        super().__init__(
+            state=state,
+            prng=prng,
+            qubits=qubits,
+            classical_data=classical_data,
+            param_resolver=param_resolver,
+        )
 
     def add_qubits(self, qubits: Sequence[cirq.Qid]) -> Self:
         ret = super().add_qubits(qubits)
@@ -372,6 +380,15 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         extracted, remainder = self.factor(qubits, inplace=True)
         remainder._state._state_vector *= extracted._state._state_vector.reshape((-1,))[0]
         return remainder
+
+    def create_empty_state(self, qubits: Sequence[cirq.Qid]) -> StateVectorSimulationState:
+        return StateVectorSimulationState(
+            prng=self._prng,
+            qubits=qubits,
+            dtype=self._state._state_vector.dtype,
+            classical_data=self._classical_data,
+            param_resolver=self._param_resolver,
+        )
 
     def _act_on_fallback_(
         self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True

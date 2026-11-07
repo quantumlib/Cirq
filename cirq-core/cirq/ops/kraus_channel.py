@@ -20,7 +20,7 @@ class KrausChannel(raw_types.Gate):
     """A generic channel that can record the index of its selected operator.
 
     Args:
-        kraus_ops: a list of Kraus operators, formatted as numpy array.
+        kraus_ops: a list of Kraus operators, formatted as NumPy array.
             Currently, only square-matrix operators on qubits (not qudits) are
             supported by this type.
         key: an optional measurement key string for this channel. Simulations

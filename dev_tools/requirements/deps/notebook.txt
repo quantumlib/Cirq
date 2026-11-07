@@ -7,8 +7,5 @@ ipykernel~=7.1
 # for executing notebooks in tests
 papermill~=2.6
 
-# for notebooks that do `pip install cirq-core[contrib]`
--r ../../../cirq-core/cirq/contrib/requirements.txt
-
 # assumed to be part of colab
 seaborn~=0.12

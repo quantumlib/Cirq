@@ -18,6 +18,7 @@ from collections.abc import Collection
 from typing import cast
 
 import cirq
+import cirq_google.engine as engine
 from cirq_google.api import v2
 from cirq_google.api.v2 import device_pb2
 from cirq_google.devices import grid_device
@@ -67,7 +68,7 @@ def _create_grid_device_from_diagram(
     for two-qubit gates.
 
     Args:
-        ascii_grid: ASCII version of the grid (see _parse_device for details).
+        ascii_grid: ASCII version of the grid (see `_parse_device` for details).
         gateset: The device's gate set.
         gate_durations: A map of durations for each gate in the gate set.
         out: If given, populate this proto, otherwise create a new proto.
@@ -195,3 +196,5 @@ ABCDE-----
 Sycamore23 = _create_grid_device_from_diagram(
     _SYCAMORE23_GRID, _SYCAMORE_GATESET, _SYCAMORE_DURATIONS
 )
+
+Willow105 = engine.create_device_from_processor_id('willow_pink')

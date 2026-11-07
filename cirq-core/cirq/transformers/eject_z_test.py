@@ -64,7 +64,7 @@ def assert_optimizes(
         context = cirq.TransformerContext(tags_to_ignore=("ignore",), deep=True)
     else:
         context = dataclasses.replace(
-            context, tags_to_ignore=context.tags_to_ignore + ("ignore",), deep=True
+            context, tags_to_ignore=(*context.tags_to_ignore, "ignore"), deep=True
         )
     c_nested = cirq.eject_z(c_nested, context=context, eject_parameterized=eject_parameterized)
     cirq.testing.assert_same_circuits(c_nested, c_expected)

@@ -255,13 +255,13 @@ def test_phase_by() -> None:
 
 
 @pytest.mark.parametrize(
-    'exponent,phase_exponent', itertools.product(np.arange(-2.5, 2.75, 0.25), repeat=2)
+    'exponent,phase_exponent', list(itertools.product(np.arange(-2.5, 2.75, 0.25), repeat=2))
 )
 def test_exponent_consistency(exponent, phase_exponent) -> None:
     """Verifies that instances of PhasedX gate expose consistent exponents."""
     g = cirq.PhasedXPowGate(exponent=exponent, phase_exponent=phase_exponent)
     assert g.exponent in [exponent, -exponent]
-    assert g.phase_exponent in [cirq.value.canonicalize_half_turns(g.phase_exponent)]
+    assert g.phase_exponent == cirq.value.canonicalize_half_turns(g.phase_exponent)
 
     g2 = cirq.PhasedXPowGate(exponent=g.exponent, phase_exponent=g.phase_exponent)
     assert g == g2

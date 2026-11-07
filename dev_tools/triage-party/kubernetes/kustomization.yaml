@@ -1,0 +1,41 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Summary: configures Kustomize to bundle resources and dynamically generate
+# ConfigMaps for the application config, custom CSS, and favicon.
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+
+kind: Kustomization
+
+resources:
+  - 01_ns/namespace.yaml
+  - 02_deployment/deployment.yaml
+  - 03_svc/service.yaml
+
+configMapGenerator:
+  - name: triage-party-config
+    namespace: triage-party
+    files:
+      - 02_deployment/config.yaml
+
+  - name: triage-party-favicon
+    namespace: triage-party
+    files:
+      - favicon-32x32.png=02_deployment/cirq-icon-very-small.png
+
+  - name: cirq-triage-party-css
+    namespace: triage-party
+    files:
+      - custom.css=02_deployment/custom.css

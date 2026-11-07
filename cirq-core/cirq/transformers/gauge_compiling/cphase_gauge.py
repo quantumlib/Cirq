@@ -34,7 +34,7 @@ class CPhasePauliGauge(Gauge):
 
     We identify 16 distinct gauges, corresponding to the 16 two-qubit Pauli operators that can be
     inserted before the cphase gate. When an anticommuting gate is inserted, the cphase angle is
-    negated (or equivalently, the exponent of the CZPowGate is negated), so both postive and
+    negated (or equivalently, the exponent of the CZPowGate is negated), so both positive and
     negative angles should be calibrated to use this.
     """
 

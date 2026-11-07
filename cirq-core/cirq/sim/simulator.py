@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import abc
 import collections
+import functools
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from typing import Any, cast, Generic, TYPE_CHECKING, TypeVar
 
@@ -51,7 +52,7 @@ TSimulatorState = TypeVar('TSimulatorState', bound=Any)
 class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
     """Simulator that mimics running on quantum hardware.
 
-    Implementors of this interface should implement the _run method.
+    Implementers of this interface should implement the `_run` method.
     """
 
     def run_sweep(
@@ -82,11 +83,19 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         if not program.has_measurements():
             raise ValueError("Circuit has no measurements to sample.")
 
+        @functools.cache
+        def _zero_repetition_records() -> dict[str, np.ndarray]:
+            """Returns records dictionary for a zero-repetition simulation."""
+            shapes = self._get_measurement_shapes(program)
+            return {
+                k: np.empty((0, num_instances, len(qid_shape)), dtype=np.uint8)
+                for k, (num_instances, qid_shape) in shapes.items()
+            }
+
         for param_resolver in study.to_resolvers(params):
             records = {}
             if repetitions == 0:
-                for _, op, _ in program.findall_operations_with_gate_type(ops.MeasurementGate):
-                    records[protocols.measurement_key_name(op)] = np.empty([0, 1, 1])
+                records = _zero_repetition_records()
             else:
                 records = self._run(
                     circuit=program, param_resolver=param_resolver, repetitions=repetitions
@@ -108,9 +117,9 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         Returns:
             A dictionary from measurement gate key to measurement
             results. Measurement results are stored in a 3-dimensional
-            numpy array, the first dimension corresponding to the repetition.
+            NumPy array, the first dimension corresponding to the repetition.
             the second to the instance of that key in the circuit, and the
-            third to the actual boolean measurement results (ordered by the
+            third to the actual Boolean measurement results (ordered by the
             qubits being measured.)
         """
         raise NotImplementedError()
@@ -121,7 +130,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
 
     Given a circuit and a list of bitstrings, computes the amplitudes
     of the given bitstrings in the state obtained by applying the circuit
-    to the all zeros state. Implementors of this interface should implement
+    to the all zeros state. Implementers of this interface should implement
     the compute_amplitudes_sweep_iter method.
     """
 
@@ -252,7 +261,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
             ValueError: if 'circuit' has non-unitary elements, as differences
                 in behavior between sampling steps break this algorithm.
         """
-        prng = value.parse_random_state(seed)
+        prng = value.parse_random_generator(seed)
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         base_circuit = circuits.Circuit(ops.I(q) for q in qubits) + circuit.unfreeze()
         qmap = {q: i for i, q in enumerate(qubits)}
@@ -272,7 +281,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
                     sample_set = [current_sample]
                     for idx in qubit_indices:
                         sample_set = [
-                            target[:idx] + (result,) + target[idx + 1 :]
+                            (*target[:idx], result, *target[idx + 1 :])
                             for target in sample_set
                             for result in [0, 1]
                         ]
@@ -294,7 +303,7 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
     Given a circuit and an observable map, computes exact (to float precision)
     expectation values for each observable at the end of the circuit.
 
-    Implementors of this interface should implement the
+    Implementers of this interface should implement the
     simulate_expectation_values_sweep_iter method.
     """
 
@@ -445,7 +454,7 @@ class SimulatesFinalState(
 ):
     """Simulator that allows access to the simulator's final state.
 
-    Implementors of this interface should implement the simulate_sweep_iter
+    Implementers of this interface should implement the simulate_sweep_iter
     method. This simulator only returns the state of the quantum system
     for the final step of a simulation. This simulator state may be a state
     vector, the density matrix, or another representation, depending on the
@@ -548,7 +557,7 @@ class SimulatesIntermediateState(
     state at the end of a circuit, a SimulatesIntermediateState can
     simulate stepping through the moments of a circuit.
 
-    Implementors of this interface should implement the _core_iterator
+    Implementers of this interface should implement the `_core_iterator`
     method.
 
     Note that state here refers to simulator state, which is not necessarily
@@ -632,15 +641,21 @@ class SimulatesIntermediateState(
             moment and returning a StepResult for each moment.
         """
         param_resolver = study.ParamResolver(param_resolver)
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        check_all_resolved(resolved_circuit)
         actual_initial_state = 0 if initial_state is None else initial_state
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-        return self._base_iterator(resolved_circuit, qubits, actual_initial_state)
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            q for q in circuit.all_qubits() if not isinstance(q, ops.VariableQid)
+        )
+        return self._base_iterator(
+            circuit, qubits, actual_initial_state, param_resolver=param_resolver
+        )
 
     @abc.abstractmethod
     def _base_iterator(
-        self, circuit: cirq.AbstractCircuit, qubits: tuple[cirq.Qid, ...], initial_state: Any
+        self,
+        circuit: cirq.AbstractCircuit,
+        qubits: tuple[cirq.Qid, ...],
+        initial_state: Any,
+        param_resolver: cirq.ParamResolver | None = None,
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
@@ -726,7 +741,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
             Measurement results with True corresponding to the ``|1⟩`` state.
             The outer list is for repetitions, and the inner corresponds to
             measurements ordered by the supplied qubits. These lists
-            are wrapped as a numpy ndarray.
+            are wrapped as a NumPy ndarray.
         """
         raise NotImplementedError()
 
@@ -758,8 +773,8 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
 
         Returns: A dictionary from measurement gate key to measurement
             results. Measurement results are stored in a 2-dimensional
-            numpy array, the first dimension corresponding to the repetition
-            and the second to the actual boolean measurement results (ordered
+            NumPy array, the first dimension corresponding to the repetition
+            and the second to the actual Boolean measurement results (ordered
             by the qubits being measured.)
 
         Raises:
@@ -768,7 +783,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
                 operations from `measurement_ops`.
         """
 
-        # Sanity checks.
+        # Validate measurement operations.
         for op in measurement_ops:
             gate = op.gate
             if not isinstance(gate, ops.MeasurementGate):
@@ -828,9 +843,9 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
     ) -> None:
         """Mutates `bits` using the confusion_map.
 
-        Compare with _confuse_result in cirq-core/cirq/sim/simulation_state.py.
+        Compare with `_confuse_result` in cirq-core/cirq/sim/simulation_state.py.
         """
-        prng = value.parse_random_state(seed)
+        prng = value.parse_random_generator(seed)
         for rep in bits:
             dims = [q.dimension for q in qubits]
             for indices, confuser in confusion_map.items():
@@ -854,7 +869,7 @@ class SimulationTrialResult(Generic[TSimulatorState]):
     Attributes:
         params: A ParamResolver of settings used for this result.
         measurements: A dictionary from measurement gate key to measurement
-            results. Measurement results are a numpy ndarray of actual boolean
+            results. Measurement results are a NumPy ndarray of actual Boolean
             measurement results (ordered by the qubits acted on by the
             measurement gate.)
     """
@@ -870,8 +885,8 @@ class SimulationTrialResult(Generic[TSimulatorState]):
         Args:
             params: A ParamResolver of settings used for this result.
             measurements: A mapping from measurement gate key to measurement
-                results. Measurement results are a numpy ndarray of actual
-                boolean measurement results (ordered by the qubits acted on by
+                results. Measurement results are a NumPy ndarray of actual
+                Boolean measurement results (ordered by the qubits acted on by
                 the measurement gate.)
             final_simulator_state: The final simulator state.
         """
@@ -968,12 +983,15 @@ def split_into_matching_protocol_then_general(
         matching_part = []
         general_part = []
         for op in moment:
-            qs = set(op.qubits)
             keys = protocols.measurement_keys_touched(op)
-            if predicate(op) and qs.isdisjoint(blocked_qubits) and keys.isdisjoint(blocked_keys):
+            if (
+                predicate(op)
+                and blocked_qubits.isdisjoint(op.qubits)
+                and keys.isdisjoint(blocked_keys)
+            ):
                 matching_part.append(op)
             else:
-                blocked_qubits |= qs
+                blocked_qubits.update(op.qubits)
                 blocked_keys |= keys
                 general_part.append(op)
         if matching_part:

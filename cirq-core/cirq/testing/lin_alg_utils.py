@@ -41,9 +41,7 @@ def random_superposition(
         The sampled unit-length vector.
     """
     random_state = value.parse_random_state(random_state)
-
-    state_vector = random_state.randn(dim).astype(complex)
-    state_vector += 1j * random_state.randn(dim)
+    state_vector = random_state.randn(2 * dim).view(np.complex128)
     state_vector /= np.linalg.norm(state_vector)
     return state_vector
 
@@ -173,8 +171,8 @@ def assert_allclose_up_to_global_phase(
     """Checks if a ~= b * exp(i t) for some t.
 
     Args:
-        actual: A numpy array.
-        desired: Another numpy array.
+        actual: A NumPy array.
+        desired: Another NumPy array.
         rtol: Relative error tolerance.
         atol: Absolute error tolerance.
         equal_nan: Whether or not NaN entries should be considered equal to

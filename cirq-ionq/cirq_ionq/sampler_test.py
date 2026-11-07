@@ -145,7 +145,7 @@ def test_sampler_run_sweep():
 
     results = sampler.run_sweep(program=circuit, params=sweep, repetitions=4)
     assert len(results) == 5  # Confirm that 5 result objects were created
-    assert all([result.repetitions == 4 for result in results])  # Confirm all repetitions were 4
+    assert all(result.repetitions == 4 for result in results)  # Confirm all repetitions were 4
 
     # Assert that create_job was called 5 times
     assert mock_service.create_job.call_count == 5
@@ -169,7 +169,7 @@ def test_sampler_run_sweep_batched_job_results():
     job = ionq.Job(client=mock_service, job_dict=job_dict)
     mock_service.create_job.return_value = job
 
-    # Create dummy results
+    # Create mock results
     result1 = ionq.QPUResult(counts={0: 4}, num_qubits=1, measurement_dict={'a': [0]})
     result2 = ionq.QPUResult(counts={1: 4}, num_qubits=1, measurement_dict={'a': [0]})
 

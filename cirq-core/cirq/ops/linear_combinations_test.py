@@ -224,7 +224,7 @@ def test_parameterized_linear_combination_of_gates(
     gate = cirq.LinearCombinationOfGates(terms)
     assert cirq.is_parameterized(gate) == is_parameterized
     assert cirq.parameter_names(gate) == parameter_names
-    resolved = resolve_fn(gate, {p: 1 for p in parameter_names})
+    resolved = resolve_fn(gate, dict.fromkeys(parameter_names, 1))
     assert not cirq.is_parameterized(resolved)
 
 
@@ -745,7 +745,7 @@ def test_parameterized_linear_combination_of_ops(
     op = cirq.LinearCombinationOfOperations(terms)
     assert cirq.is_parameterized(op) == is_parameterized
     assert cirq.parameter_names(op) == parameter_names
-    resolved = resolve_fn(op, {p: 1 for p in parameter_names})
+    resolved = resolve_fn(op, dict.fromkeys(parameter_names, 1))
     assert not cirq.is_parameterized(resolved)
 
 
@@ -1078,6 +1078,38 @@ def test_pauli_sum_matrix() -> None:
     assert np.allclose(H3, paulisum.matrix([q[1], q[2], q[0]]))
 
 
+@pytest.mark.parametrize(
+    'paulisum, qubits',
+    (
+        # Single term.
+        (cirq.X(q0), None),
+        # Two terms, default ordering.
+        (cirq.X(q0) * cirq.X(q1) + cirq.Z(q0), None),
+        # Three terms.
+        (cirq.X(q0) + cirq.Y(q1) + cirq.Z(q2), None),
+        # Reversed qubit ordering.
+        (cirq.X(q0) * cirq.X(q1) + cirq.Z(q0), [q1, q0]),
+        # Shuffled ordering with an idle qubit.
+        (cirq.X(q0) * cirq.X(q1) + cirq.Z(q0), [q1, q2, q0]),
+        # Complex coefficients.
+        ((1 + 2j) * cirq.X(q0) * cirq.Y(q1) - 0.5 * cirq.Z(q0), None),
+        # Identity factors included.
+        (cirq.X(q0) * cirq.I(q1) + cirq.Z(q1), None),
+    ),
+)
+def test_pauli_sum_sparse_matrix(paulisum: cirq.PauliSum, qubits: list[cirq.Qid] | None) -> None:
+    actual = paulisum.sparse_matrix(qubits).toarray()
+    expected = paulisum.matrix(qubits)
+    assert np.array_equal(actual, expected)
+
+
+def test_pauli_sum_sparse_matrix_empty() -> None:
+    q = cirq.LineQubit.range(2)
+    empty = cirq.PauliSum.from_pauli_strings([])
+    assert np.array_equal(empty.sparse_matrix().toarray(), np.zeros((1, 1)))
+    assert np.array_equal(empty.sparse_matrix(q).toarray(), np.zeros((4, 4)))
+
+
 def test_pauli_sum_repr() -> None:
     q = cirq.LineQubit.range(2)
     pstr1 = cirq.X(q[0]) * cirq.X(q[1])
@@ -1247,10 +1279,11 @@ def test_from_boolean_expression(boolean_expr, expected_pauli_sum) -> None:
     boolean = sympy_parser.parse_expr(boolean_expr)
     qubit_map = {name: cirq.NamedQubit(name) for name in sorted(cirq.parameter_names(boolean))}
     actual = cirq.PauliSum.from_boolean_expression(boolean, qubit_map)
-    # Instead of calling str() directly, first make sure that the items are sorted. This is to make
-    # the unit test more robut in case Sympy would result in a different parsing order. By sorting
-    # the individual items, we would have a canonical representation.
-    actual_items = list(sorted(str(pauli_string) for pauli_string in actual))
+    # Instead of calling str() directly, first make sure that the items are sorted and their
+    # coefficients normalized to have "+0j" imaginary component (instead of "-0j") as in the
+    # expected_pauli_sum.  This is to make the unit test more robust should SymPy change its
+    # parsing order.
+    actual_items = sorted(str(pauli_string).replace('-0j', '+0j') for pauli_string in actual)
     assert expected_pauli_sum == actual_items
 
 
@@ -1274,7 +1307,7 @@ def test_expectation_from_state_vector_invalid_input() -> None:
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     psum = cirq.X(q0) + 2 * cirq.Y(q1) + 3 * cirq.Z(q3)
     q_map = {q0: 0, q1: 1, q3: 2}
-    wf = np.array([1, 0, 0, 0, 0, 0, 0], dtype=np.complex64)
+    wf: np.ndarray = np.array([1, 0, 0, 0, 0, 0, 0], dtype=np.complex64)
 
     im_psum = (1j + 1) * psum
     with pytest.raises(NotImplementedError, match='non-Hermitian'):
@@ -1430,7 +1463,7 @@ def test_expectation_from_density_matrix_invalid_input() -> None:
     with pytest.raises(ValueError, match='indices'):
         psum.expectation_from_density_matrix(rho, {q0: 0, q1: 0, q3: 2})
 
-    with pytest.raises(ValueError, match='hermitian'):
+    with pytest.raises(ValueError, match='Hermitian'):
         psum.expectation_from_density_matrix(1j * np.eye(8), q_map)
     with pytest.raises(ValueError, match='trace'):
         psum.expectation_from_density_matrix(np.eye(8, dtype=np.complex64), q_map)

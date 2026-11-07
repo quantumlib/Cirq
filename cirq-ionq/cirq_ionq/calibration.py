@@ -34,7 +34,7 @@ class Calibration:
         return self._calibration_dict['target']
 
     def calibration_time(self, tz: datetime.tzinfo | None = None) -> datetime.datetime:
-        """Return a python datetime object for the calibration time.
+        """Return a Python datetime object for the calibration time.
 
         Args:
             tz: The timezone for the string. If None, the method uses the platform's local timezone.
@@ -66,6 +66,6 @@ class Calibration:
         """
         connections = self._calibration_dict['connectivity']
         to_qubit = lambda x: cirq.LineQubit(int(x))
-        return set((to_qubit(x), to_qubit(y)) for x, y in connections).union(
-            set((to_qubit(y), to_qubit(x)) for x, y in connections)
+        return {(to_qubit(x), to_qubit(y)) for x, y in connections}.union(
+            (to_qubit(y), to_qubit(x)) for x, y in connections
         )

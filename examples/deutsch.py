@@ -19,9 +19,11 @@ quantum computer." Proc. R. Soc. Lond. A, 400:97, 1985.
 Secret function:
 f(x) = <0, 1>
 Circuit:
-0: ───────H───@───H───M('result')───
-              │
-1: ───X───H───X─────────────────────
+
+    0: ───────H───@───H───M('result')───
+                  │
+    1: ───X───H───X─────────────────────
+
 Result f(0)⊕f(1):
 result=1
 """

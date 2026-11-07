@@ -79,7 +79,7 @@ class GlobalPhaseGate(raw_types.Gate):
         return protocols.obj_to_dict_helper(self, ['coefficient'])
 
     def _qid_shape_(self) -> tuple[int, ...]:
-        return tuple()
+        return ()
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.coefficient)

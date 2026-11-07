@@ -60,7 +60,7 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
         *,
         initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
         qid_shape: tuple[int, ...] | None = None,
-        dtype: type[np.complexfloating] | None = None,
+        dtype: type[np.complexfloating] | np.dtype[np.complexfloating] | None = None,
         buffer: list[np.ndarray] | None = None,
     ):
         """Creates a buffered density matrix with the requested state.
@@ -247,10 +247,10 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         self,
         *,
         available_buffer: list[np.ndarray] | None = None,
-        prng: np.random.RandomState | None = None,
+        prng: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         qubits: Sequence[cirq.Qid] | None = None,
         initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
-        dtype: type[np.complexfloating] = np.complex64,
+        dtype: type[np.complexfloating] | np.dtype[np.complexfloating] = np.complex64,
         classical_data: cirq.ClassicalDataStore | None = None,
     ):
         """Inits DensityMatrixSimulationState.
@@ -263,8 +263,8 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            prng: The pseudo random number generator to use for probabilistic
-                effects.
+            prng: The pseudo random number generator (or seed) to use for
+                probabilistic effects.
             initial_state: The initial state for the simulation in the
                 computational basis.
             dtype: The `numpy.dtype` of the inferred state vector. One of
@@ -300,6 +300,14 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         extracted, remainder = self.factor(qubits, inplace=True)
         remainder._state._density_matrix *= extracted._state._density_matrix.reshape(-1)[0]
         return remainder
+
+    def create_empty_state(self, qubits: Sequence[cirq.Qid]) -> DensityMatrixSimulationState:
+        return DensityMatrixSimulationState(
+            prng=self._prng,
+            qubits=qubits,
+            dtype=self._state._density_matrix.dtype,
+            classical_data=self._classical_data,
+        )
 
     def _act_on_fallback_(
         self, action: Any, qubits: Sequence[cirq.Qid], allow_decompose: bool = True

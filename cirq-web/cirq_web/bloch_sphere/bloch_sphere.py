@@ -16,8 +16,10 @@ from __future__ import annotations
 
 import cirq
 from cirq_web import widget
+from cirq_web.deprecation import deprecated_cirq_web_class
 
 
+@deprecated_cirq_web_class
 class BlochSphere(widget.Widget):
     def __init__(self, sphere_radius: int = 5, state_vector: cirq.STATE_VECTOR_LIKE | None = None):
         """Initializes a BlochSphere.
@@ -25,7 +27,7 @@ class BlochSphere(widget.Widget):
         Also initializes it's parent class Widget with the bundle file provided.
 
         Args:
-            sphere_radius: the radius of the bloch sphere in the three.js diagram.
+            sphere_radius: the radius of the Bloch sphere in the three.js diagram.
                 The default value is 5.
             state_vector: a state vector to pass in to be represented.
 

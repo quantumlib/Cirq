@@ -79,16 +79,16 @@ prepended to this list:
 def _register_resolver(dict_factory: Callable[[], dict[str, ObjectFactory]]) -> None:
     """Register a resolver based on a dict factory for lazy initialization.
 
-    Cirq modules are the ones referred in cirq/__init__.py. If a Cirq module
+    Cirq modules are the ones referred in `cirq/__init__.py`. If a Cirq module
     wants to expose JSON serializable objects, it should register itself using
     this method to be supported by the protocol. See for example
-    cirq/__init__.py or cirq/google/__init__.py.
+    `cirq/__init__.py` or `cirq/google/__init__.py`.
 
-    As Cirq modules are imported by cirq/__init__.py, they are different from
+    As Cirq modules are imported by `cirq/__init__.py`, they are different from
     3rd party packages, and as such SHOULD NEVER rely on storing a
-    separate resolver based on DEAFULT_RESOLVERS because that will cause a
+    separate resolver based on DEFAULT_RESOLVERS because that will cause a
     partial DEFAULT_RESOLVER to be used by that module. What it contains will
-    depend on where in cirq/__init__.py the module is imported first, as some
+    depend on where in `cirq/__init__.py` the module is imported first, as some
     modules might not had the chance to register themselves yet.
 
     Args:
@@ -113,7 +113,7 @@ class SupportsJSON(Protocol):
     """
 
     @doc_private
-    def _json_dict_(self) -> None | NotImplementedType | dict[Any, Any]:
+    def _json_dict_(self) -> None | NotImplementedType | dict[str, Any]:
         pass
 
 
@@ -145,7 +145,7 @@ def obj_to_dict_helper(obj: Any, attribute_names: Iterable[str]) -> dict[str, An
     is the string name of the type of `obj`.
 
     Args:
-        obj: A python object with attributes to be placed in the dictionary.
+        obj: A Python object with attributes to be placed in the dictionary.
         attribute_names: The names of attributes to serve as keys in the
             resultant dictionary. The values will be the attribute values.
     """
@@ -177,7 +177,7 @@ def attrs_json_dict(obj: Any) -> dict[str, Any]:
     return obj_to_dict_helper(obj, attribute_names)
 
 
-def _json_dict_with_cirq_type(obj: Any):
+def _json_dict_with_cirq_type(obj: Any) -> dict[str, Any]:
     base_dict = obj._json_dict_()
     if 'cirq_type' in base_dict:
         raise ValueError(
@@ -208,32 +208,37 @@ class CirqEncoder(json.JSONEncoder):
 
      - Python complex numbers get saved as a dictionary keyed by 'real'
        and 'imag'.
-     - Numpy ndarrays are converted to lists to use the json module's
+     - NumPy ndarrays are converted to lists to use the JSON module's
        built-in support for lists.
-     - Preliminary support for Sympy objects. Currently only sympy.Symbol.
+     - Preliminary support for SymPy objects. Currently only sympy.Symbol.
        See https://github.com/quantumlib/Cirq/issues/2014
     """
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._memo: dict[Any, dict] = {}
+        self._cache: dict[int, Any] = {}
 
     def default(self, o) -> dict[str, Any] | list[Any] | float | bool:
+        oid = id(o)
+        if (val := self._cache.get(oid)) is not None:
+            return val
         # Object with custom method?
         if hasattr(o, '_json_dict_'):
-            json_dict = _json_dict_with_cirq_type(o)
             if isinstance(o, SerializableByKey):
                 if ref := self._memo.get(o):
                     return ref
                 key = len(self._memo)
                 ref = {"cirq_type": "REF", "key": key}
                 self._memo[o] = ref
-                return {"cirq_type": "VAL", "key": key, "val": json_dict}
-            return json_dict
+                self._cache[oid] = ref
+                return {"cirq_type": "VAL", "key": key, "val": _json_dict_with_cirq_type(o)}
+            val = self._cache[oid] = _json_dict_with_cirq_type(o)
+            return val
 
-        # Sympy object? (Must come before general number checks.)
-        # TODO: More support for sympy
-        # Github issue: https://github.com/quantumlib/Cirq/issues/2014
+        # SymPy object? (Must come before general number checks.)
+        # TODO: More support for SymPy
+        # GitHub issue: https://github.com/quantumlib/Cirq/issues/2014
 
         if isinstance(o, sympy.Symbol):
             return {'cirq_type': 'sympy.Symbol', 'name': o.name}
@@ -289,7 +294,7 @@ class CirqEncoder(json.JSONEncoder):
         if isinstance(o, numbers.Complex):
             return {'cirq_type': 'complex', 'real': o.real, 'imag': o.imag}
 
-        # Numpy object?
+        # NumPy object?
         if isinstance(o, np.bool_):
             return bool(o)
         if isinstance(o, np.ndarray):
@@ -383,7 +388,7 @@ def json_namespace(type_obj: type) -> str:
 
     Raises:
         ValueError: if `type_obj` is not a Cirq type and does not explicitly
-            define its namespace with _json_namespace_.
+            define its namespace with `_json_namespace_`.
     """
     if hasattr(type_obj, '_json_namespace_'):
         return type_obj._json_namespace_()
@@ -461,14 +466,24 @@ def cirq_type_from_json(type_str: str, resolvers: Sequence[JsonResolver] | None 
 
 @overload
 def to_json(
-    obj: Any, file_or_fn: IO | pathlib.Path | str, *, indent=2, separators=None, cls=CirqEncoder
+    obj: Any,
+    file_or_fn: IO | pathlib.Path | str,
+    *,
+    indent: int | None = None,
+    separators: tuple[str, str] | None = None,
+    cls: type[json.JSONEncoder] = CirqEncoder,
 ) -> None:
     pass
 
 
 @overload
 def to_json(
-    obj: Any, file_or_fn: None = None, *, indent=2, separators=None, cls=CirqEncoder
+    obj: Any,
+    file_or_fn: None = None,
+    *,
+    indent: int | None = None,
+    separators: tuple[str, str] | None = None,
+    cls: type[json.JSONEncoder] = CirqEncoder,
 ) -> str:
     pass
 
@@ -477,7 +492,7 @@ def to_json(
     obj: Any,
     file_or_fn: None | IO | pathlib.Path | str = None,
     *,
-    indent: int | None = 2,
+    indent: int | None = None,
     separators: tuple[str, str] | None = None,
     cls: type[json.JSONEncoder] = CirqEncoder,
 ) -> str | None:
@@ -493,9 +508,10 @@ def to_json(
             indicate that the method should return the JSON text as its result.
             Defaults to `None`.
         indent: Pretty-print the resulting file with this indent level.
+            When `None` produce a compact JSON without a newline character.
             Passed to json.dump.
         separators: Passed to json.dump; key-value pairs delimiters defined as
-            `(item_separator, key_separators)` tuple. Note that any non-standard
+            `(item_separator, key_separator)` tuple. Note that any non-standard
             operators (':', ',') will cause `read_json` to fail.
         cls: Passed to json.dump; the default value of CirqEncoder
             enables the serialization of Cirq objects which implement
@@ -535,7 +551,7 @@ def read_json(
             the serialized `cirq_type` string into a constructable class.
             By default, top-level cirq objects that implement the SupportsJSON
             protocol are supported. You can extend the list of supported types
-            by pre-pending custom resolvers. Each resolver should return `None`
+            by prepending custom resolvers. Each resolver should return `None`
             to indicate that it cannot resolve the given cirq_type and that
             the next resolver should be tried.
 
@@ -544,7 +560,7 @@ def read_json(
             or both are specified.
     """
     if (file_or_fn is None) == (json_text is None):
-        raise ValueError('Must specify ONE of "file_or_fn" or "json".')
+        raise ValueError('Must specify ONE of "file_or_fn" or "json_text".')
 
     if resolvers is None:
         resolvers = DEFAULT_RESOLVERS
@@ -561,17 +577,43 @@ def read_json(
     return json.load(cast(IO, file_or_fn), object_hook=obj_hook)
 
 
+@overload
 def to_json_gzip(
     obj: Any,
-    file_or_fn: None | IO | pathlib.Path | str = None,
+    file_or_fn: IO | pathlib.Path | str,
     *,
-    indent: int = 2,
+    compresslevel: int = 1,
+    indent: int | None = None,
+    cls: type[json.JSONEncoder] = CirqEncoder,
+) -> None:
+    pass
+
+
+@overload
+def to_json_gzip(
+    obj: Any,
+    file_or_fn: None = None,
+    *,
+    compresslevel: int = 1,
+    indent: int | None = None,
+    cls: type[json.JSONEncoder] = CirqEncoder,
+) -> bytes:
+    pass
+
+
+def to_json_gzip(
+    obj: Any,
+    file_or_fn: IO | pathlib.Path | str | None = None,
+    *,
+    compresslevel: int = 1,
+    indent: int | None = None,
     cls: type[json.JSONEncoder] = CirqEncoder,
 ) -> bytes | None:
     """Write a gzipped JSON file containing a representation of obj.
 
     The object may be a cirq object or have data members that are cirq
-    objects which implement the SupportsJSON protocol.
+    objects which implement the SupportsJSON protocol.  The gzip output
+    is reproducible assuming the same Python version and OS platform.
 
     Args:
         obj: An object which can be serialized to a JSON representation.
@@ -579,21 +621,25 @@ def to_json_gzip(
             an IO object (such as a file or buffer) to write to, or `None` to
             indicate that the method should return the JSON text as its result.
             Defaults to `None`.
+        compresslevel: Passed to gzip.compress; an integer from 0 to 9 specifying
+            the level of gzip compression.  The default value 1 results in the
+            fastest performance with a compression rate of plain JSON increased
+            to about 3.4% compared to 2.3% at level 9.
         indent: Pretty-print the resulting file with this indent level.
-            Passed to json.dump.
+            Produce a compact JSON when `None`.  Passed to json.dump.
         cls: Passed to json.dump; the default value of CirqEncoder
             enables the serialization of Cirq objects which implement
             the SupportsJSON protocol. To support serialization of 3rd
-            party classes, prefer adding the _json_dict_ magic method
+            party classes, prefer adding the `_json_dict_` magic method
             to your classes rather than overriding this default.
     """
-    json_str = to_json(obj, indent=indent, cls=cls)
+    json_bytes = to_json(obj, indent=indent, cls=cls).encode()
+    gzip_data = gzip.compress(json_bytes, compresslevel=compresslevel, mtime=0)
     if isinstance(file_or_fn, (str, pathlib.Path)):
-        with gzip.open(file_or_fn, 'wt', encoding='utf-8') as actually_a_file:
-            actually_a_file.write(json_str)
-            return None
+        actually_a_path = pathlib.Path(file_or_fn)
+        actually_a_path.write_bytes(gzip_data)
+        return None
 
-    gzip_data = gzip.compress(bytes(json_str, encoding='utf-8'))
     if file_or_fn is None:
         return gzip_data
 
@@ -621,7 +667,7 @@ def read_json_gzip(
             the serialized `cirq_type` string into a constructable class.
             By default, top-level cirq objects that implement the SupportsJSON
             protocol are supported. You can extend the list of supported types
-            by pre-pending custom resolvers. Each resolver should return `None`
+            by prepending custom resolvers. Each resolver should return `None`
             to indicate that it cannot resolve the given cirq_type and that
             the next resolver should be tried.
 
@@ -636,5 +682,5 @@ def read_json_gzip(
         json_str = gzip.decompress(gzip_raw).decode(encoding='utf-8')
         return read_json(json_text=json_str, resolvers=resolvers)
 
-    with gzip.open(file_or_fn, 'rt') as json_file:  # type: ignore
+    with gzip.open(file_or_fn, 'rt') as json_file:  # type: ignore[arg-type]
         return read_json(cast(IO, json_file), resolvers=resolvers)

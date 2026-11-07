@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import itertools
 import os
+import pathlib
 import time
 from collections import defaultdict
 from collections.abc import Iterator, Sequence
@@ -343,6 +344,7 @@ def test_add_op_tree(circuit_cls) -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
+    # ruff: disable[RUF005]
     c = circuit_cls()
     assert c + [cirq.X(a), cirq.Y(b)] == circuit_cls([cirq.Moment([cirq.X(a), cirq.Y(b)])])
 
@@ -361,6 +363,7 @@ def test_radd_op_tree(circuit_cls, gate) -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
+    # ruff: disable[RUF005]
     c = circuit_cls()
     assert [gate(a), cirq.Y(b)] + c == circuit_cls([cirq.Moment([gate(a), cirq.Y(b)])])
 
@@ -412,9 +415,7 @@ def test_repr(circuit_cls) -> None:
         [cirq.Moment([cirq.H(a), cirq.H(b)]), cirq.Moment(), cirq.Moment([cirq.CZ(a, b)])]
     )
     cirq.testing.assert_equivalent_repr(c)
-    assert (
-        repr(c)
-        == f"""cirq.{circuit_cls.__name__}([
+    assert repr(c) == f"""cirq.{circuit_cls.__name__}([
     cirq.Moment(
         cirq.H(cirq.NamedQubit('a')),
         cirq.H(cirq.NamedQubit('b')),
@@ -424,7 +425,6 @@ def test_repr(circuit_cls) -> None:
         cirq.CZ(cirq.NamedQubit('a'), cirq.NamedQubit('b')),
     ),
 ])"""
-    )
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -2368,9 +2368,9 @@ def test_text_diagram_jupyter(circuit_cls) -> None:
     circuit._repr_pretty_(p, True)
     assert p.text_pretty == f'{circuit_cls.__name__}(...)'
 
-    # Test Jupyter notebook html output
+    # Test Jupyter notebook HTML output
     text_html = circuit._repr_html_()
-    # Don't enforce specific html surrounding the diagram content
+    # Don't enforce specific HTML surrounding the diagram content
     assert text_expected in text_html
 
 
@@ -2684,8 +2684,8 @@ def density_operator_basis(n_qubits: int) -> Iterator[np.ndarray]:
 
 @pytest.mark.parametrize(
     'circuit, initial_state',
-    itertools.chain(
-        itertools.product(
+    [
+        *itertools.product(
             [
                 cirq.Circuit(cirq.I(q0)),
                 cirq.Circuit(cirq.X(q0)),
@@ -2696,7 +2696,7 @@ def density_operator_basis(n_qubits: int) -> Iterator[np.ndarray]:
             ],
             density_operator_basis(n_qubits=1),
         ),
-        itertools.product(
+        *itertools.product(
             [
                 cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1)),
                 cirq.Circuit(cirq.depolarize(0.2).on(q0), cirq.CNOT(q0, q1)),
@@ -2709,7 +2709,7 @@ def density_operator_basis(n_qubits: int) -> Iterator[np.ndarray]:
             ],
             density_operator_basis(n_qubits=2),
         ),
-        itertools.product(
+        *itertools.product(
             [
                 cirq.Circuit(
                     cirq.depolarize(0.1, n_qubits=2).on(q0, q1),
@@ -2721,7 +2721,7 @@ def density_operator_basis(n_qubits: int) -> Iterator[np.ndarray]:
             ],
             density_operator_basis(n_qubits=3),
         ),
-    ),
+    ],
 )
 def test_compare_circuits_superoperator_to_simulation(circuit, initial_state) -> None:
     """Compares action of circuit superoperator and circuit simulation."""
@@ -3130,7 +3130,7 @@ def test_items() -> None:
     cirq.testing.assert_same_circuits(c, cirq.Circuit([m1]))
 
     with pytest.raises(TypeError):
-        c[:] = [m1, 1]  # type: ignore
+        c[:] = [m1, 1]  # type: ignore[list-item]
     with pytest.raises(TypeError):
         c[0] = 1  # type: ignore[call-overload]
 
@@ -3525,8 +3525,8 @@ def test_push_frontier_random_circuit() -> None:
         late_frontier = {q: randint(0, n_moments) for q in sample(qubits, randint(0, len(qubits)))}
         update_qubits = sample(qubits, randint(0, len(qubits)))
 
-        orig_early_frontier = {q: f for q, f in early_frontier.items()}
-        orig_moments = [m for m in circuit._moments]
+        orig_early_frontier = dict(early_frontier)
+        orig_moments = list(circuit._moments)
         insert_index, n_new_moments = circuit._push_frontier(
             early_frontier, late_frontier, update_qubits
         )
@@ -3535,7 +3535,7 @@ def test_push_frontier_random_circuit() -> None:
         for q in set(early_frontier).difference(update_qubits):
             assert early_frontier[q] == orig_early_frontier[q]
         for q, f in late_frontier.items():
-            assert orig_early_frontier.get(q, 0) <= late_frontier[q] + n_new_moments
+            assert orig_early_frontier.get(q, 0) <= f + n_new_moments
             if f != len(orig_moments):
                 assert orig_moments[f] == circuit[f + n_new_moments]
         for q in set(update_qubits).intersection(early_frontier):
@@ -3635,9 +3635,7 @@ def test_to_qasm(circuit_cls) -> None:
     q0 = cirq.NamedQubit('q0')
     circuit = circuit_cls(cirq.X(q0), cirq.measure(q0, key='mmm'))
     assert circuit.to_qasm() == cirq.qasm(circuit)
-    assert (
-        circuit.to_qasm()
-        == f"""// Generated from Cirq v{cirq.__version__}
+    assert circuit.to_qasm() == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -3651,11 +3649,8 @@ creg m_mmm[1];
 x q[0];
 measure q[0] -> m_mmm[0];
 """
-    )
     assert circuit.to_qasm(version="3.0") == cirq.qasm(circuit, args=cirq.QasmArgs(version="3.0"))
-    assert (
-        circuit.to_qasm(version="3.0")
-        == f"""// Generated from Cirq v{cirq.__version__}
+    assert circuit.to_qasm(version="3.0") == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 3.0;
 include "stdgates.inc";
@@ -3669,7 +3664,6 @@ bit[1] m_mmm;
 x q[0];
 m_mmm[0] = measure q[0];
 """
-    )
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -3679,11 +3673,8 @@ def test_save_qasm(tmpdir, circuit_cls) -> None:
     circuit = circuit_cls(cirq.X(q0))
 
     circuit.save_qasm(file_path)
-    with open(file_path, 'r') as f:
-        file_content = f.read()
-    assert (
-        file_content
-        == f"""// Generated from Cirq v{cirq.__version__}
+    file_content = pathlib.Path(file_path).read_text()
+    assert file_content == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -3695,7 +3686,6 @@ qreg q[1];
 
 x q[0];
 """
-    )
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -5064,3 +5054,118 @@ def test_insert_moments_and_ops_latest() -> None:
             cirq.Moment([cirq.H(q[1])]),
         )
         assert c.insert(insert_index, moments_and_ops, cirq.InsertStrategy.LATEST) == index_after
+
+
+def test_insert_earliest_batch_with_measurement_key_dependency() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.X(q0), cirq.X(q1))
+    ops_to_insert = [cirq.measure(q0, key="k"), cirq.X(q1).with_classical_controls("k")]
+    c.insert(0, ops_to_insert, strategy=cirq.InsertStrategy.EARLIEST)
+
+    assert c == cirq.Circuit(
+        cirq.Moment(cirq.measure(q0, key="k")),
+        cirq.Moment(cirq.X(q1).with_classical_controls("k")),
+        cirq.Moment(cirq.X(q0), cirq.X(q1)),
+    )
+
+
+def test_insert_earliest_op_with_control_key_unions_with_existing_moment() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.X(q0))
+    ops_to_insert = [cirq.measure(q0, key="k"), cirq.X(q1).with_classical_controls("k")]
+    c.insert(0, ops_to_insert, strategy=cirq.InsertStrategy.EARLIEST)
+    assert c == cirq.Circuit(
+        cirq.Moment(cirq.measure(q0, key="k")),
+        cirq.Moment(cirq.X(q0), cirq.X(q1).with_classical_controls("k")),
+    )
+
+
+def test_insert_earliest_op_with_control_key() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.measure(q0, key="k"))
+    ops_to_insert = [cirq.X(q1).with_classical_controls("k")]
+    c.insert(0, ops_to_insert, strategy=cirq.InsertStrategy.EARLIEST)
+
+    assert c == cirq.Circuit(
+        cirq.Moment(cirq.X(q1).with_classical_controls("k")), cirq.Moment(cirq.measure(q0, key="k"))
+    )
+
+
+def test_insert_earliest_batch_same_measurement_key() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.X(q0), cirq.X(q1))
+    ops_to_insert = [cirq.measure(q0, key="k"), cirq.measure(q1, key="k")]
+    c.insert(0, ops_to_insert, strategy=cirq.InsertStrategy.EARLIEST)
+
+    assert c == cirq.Circuit(
+        cirq.Moment(cirq.measure(q0, key="k")),
+        cirq.Moment(cirq.measure(q1, key="k")),
+        cirq.Moment(cirq.X(q0), cirq.X(q1)),
+    )
+
+
+def test_insert_earliest_batch_with_measurement_key_dependency_reversed() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.X(q0), cirq.X(q1))
+    ops_to_insert = [cirq.X(q1).with_classical_controls("k"), cirq.measure(q0, key="k")]
+    c.insert(0, ops_to_insert, strategy=cirq.InsertStrategy.EARLIEST)
+
+    assert c == cirq.Circuit(
+        cirq.Moment(cirq.X(q1).with_classical_controls("k")),
+        cirq.Moment(cirq.measure(q0, key="k")),
+        cirq.Moment(cirq.X(q0), cirq.X(q1)),
+    )
+
+
+def test_insert_earliest_batch() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    # Create a circuit with every operation in a separate moment
+    c = cirq.Circuit(
+        cirq.X(q0), cirq.measure(q0, key="k"), cirq.X(q1), strategy=cirq.InsertStrategy.NEW
+    )
+    ops_to_insert = [cirq.X(q0).with_classical_controls("k"), cirq.measure(q0, key="k")]
+    c.insert(2, ops_to_insert, strategy=cirq.InsertStrategy.EARLIEST)
+
+    assert c == cirq.Circuit(
+        cirq.Moment(cirq.X(q0)),
+        cirq.Moment(cirq.measure(q0, key="k")),
+        cirq.Moment(cirq.X(q0).with_classical_controls("k"), cirq.X(q1)),
+        cirq.Moment(cirq.measure(q0, key="k")),
+    )
+
+
+def test_insert_in_existing_moment_same_measurement_key_different_qubits() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.measure(q0, key="k"))
+
+    op_to_add = cirq.measure(q1, key="k")
+
+    c.insert(0, [op_to_add], strategy=cirq.InsertStrategy.EARLIEST)
+
+    assert c == cirq.Circuit(
+        cirq.Moment(cirq.measure(q1, key="k")), cirq.Moment(cirq.measure(q0, key="k"))
+    )
+
+
+def test_insert_in_existing_moment_measurement_control_key_conflict() -> None:
+    c = cirq.Circuit(cirq.measure(q0, key="k"))
+
+    op_to_add = cirq.X(q1).with_classical_controls("k")
+
+    c.insert(0, [op_to_add], strategy=cirq.InsertStrategy.EARLIEST)
+
+    assert c == cirq.Circuit(
+        cirq.Moment(cirq.X(q1).with_classical_controls("k")), cirq.Moment(cirq.measure(q0, key="k"))
+    )
+
+
+def test_insert_moment_with_same_measurement_control_keys() -> None:
+    c1 = cirq.Circuit()
+    c1.insert(0, cirq.Moment(cirq.measure(q0, key="k"), cirq.measure(q1, key="k")))
+    assert c1 == cirq.Circuit(cirq.Moment(cirq.measure(q0, key="k"), cirq.measure(q1, key="k")))
+
+    c2 = cirq.Circuit()
+    c2.insert(0, cirq.Moment(cirq.measure(q0, key="k"), cirq.X(q1).with_classical_controls("k")))
+    assert c2 == cirq.Circuit(
+        cirq.Moment(cirq.measure(q0, key="k"), cirq.X(q1).with_classical_controls("k"))
+    )

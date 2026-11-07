@@ -258,12 +258,12 @@ def assert_specific_sqrt_iswap_count(operations, count) -> None:
 def test_two_qubit_gates_with_symbols(gate: cirq.Gate) -> None:
     op = gate(*cirq.LineQubit.range(2))
     c_new_sqrt_iswap = cirq.Circuit(
-        cirq.parameterized_2q_op_to_sqrt_iswap_operations(op)  # type: ignore
+        cirq.parameterized_2q_op_to_sqrt_iswap_operations(op)  # type: ignore[arg-type]
     )
     c_new_sqrt_iswap_inv = cirq.Circuit(
         cirq.parameterized_2q_op_to_sqrt_iswap_operations(
             op, use_sqrt_iswap_inv=True
-        )  # type: ignore
+        )  # type: ignore[arg-type]
     )
     # Check if unitaries are the same
     for val in np.linspace(0, 2 * np.pi, 6):

@@ -6,9 +6,14 @@ IonQ simulator.
 In this section we assume a `cirq_ionq.Service` object has been instantiated and is
 called `service` and `cirq` and `cirq_ionq` have been imported:
 
+<!---test_substitution
+service = ionq.Service\(\)
+service = mock.create_autospec(ionq.Service, instance=True)
+--->
 ```python
 import cirq
 import cirq_ionq as ionq
+
 service = ionq.Service()
 ```
 
@@ -35,8 +40,8 @@ The first method for running is to do so via the `run` method on `cirq_ionq.Serv
 ```python
 qubit = cirq.LineQubit(0)
 circuit = cirq.Circuit(
-    cirq.X(qubit)**0.5,            # Square root of NOT.
-    cirq.measure(qubit, key='x')   # Measurement store in key 'x'
+    cirq.X(qubit) ** 0.5,  # Square root of NOT.
+    cirq.measure(qubit, key='x'),  # Measurement store in key 'x'
 )
 
 result = service.run(circuit=circuit, repetitions=100, target='qpu')
@@ -68,10 +73,16 @@ are `qpu` and `simulator`.
 
 Another method to get results from the IonQ API is to use a sampler. A sampler
 is specifically design to be a lightweight interface for obtaining results
-in a [pandas](https://pandas.pydata.org/) dataframe and is the interface
+in a [pandas](https://pandas.pydata.org/) DataFrame and is the interface
 used by other classes in Cirq for objects that process data. Here is a
 simple example showing how to get a sampler and use it.
 
+<!---test_substitution
+sampler = service.sampler\(target=.*\)
+mock_sampler = mock.create_autospec(ionq.Sampler, instance=True)
+service.configure_mock(**{"sampler.return_value": mock_sampler})
+\g<0>
+--->
 ```python
 qubit = cirq.LineQubit(0)
 circuit = cirq.Circuit(
@@ -87,12 +98,18 @@ print(result)
 
 The above two methods, using run and the sampler, both block waiting for
 results. This can be problematic when the queueing time for the service
-is long. Instead, it is recommended that you use the job api directly.
+is long. Instead, it is recommended that you use the job API directly.
 In this pattern, you can first create the job with the quantum circuit you
 wish to run, and the service immediately returns an object that has
 the id of the job. This job id can be recorded, and at any time in
 the future you can query for the results of this job.
 
+<!---test_substitution
+job = service.create_job\(circuit=.*\)
+mock_job = mock.create_autospec(ionq.Job, instance=True)
+service.configure_mock(**{"create_job.return_value": mock_job})
+\g<0>
+--->
 ```python
 qubit = cirq.LineQubit(0)
 circuit = cirq.Circuit(

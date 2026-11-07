@@ -19,6 +19,7 @@ from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
+from cirq import value
 from cirq.ops import raw_types
 from cirq.ops.common_gates import H, ry
 from cirq.ops.pauli_gates import X
@@ -27,10 +28,13 @@ if TYPE_CHECKING:
     import cirq
 
 
+@value.value_equality
 class UniformSuperpositionGate(raw_types.Gate):
-    r"""Creates a uniform superposition state on the states $[0, M)$
-    The gate creates the state $\frac{1}{\sqrt{M}}\sum_{j=0}^{M-1}\ket{j}$
+    r"""Creates a uniform superposition state on the states $[0, M)$.
+
+    The gate creates the state $\frac{1}{\sqrt{M}}\sum_{j=0}^{M-1}|j\rangle$
     (where $1\leq M \leq 2^n$), using n qubits, according to the Shukla-Vedula algorithm [SV24].
+
     References:
         [SV24]
         [An efficient quantum algorithm for preparation of uniform quantum superposition
@@ -108,10 +112,8 @@ class UniformSuperpositionGate(raw_types.Gate):
     def m_value(self) -> int:
         return self._m_value
 
-    def __eq__(self, other):
-        if isinstance(other, UniformSuperpositionGate):
-            return (self._m_value == other._m_value) and (self._num_qubits == other._num_qubits)
-        return False
+    def _value_equality_values_(self):
+        return self._m_value, self._num_qubits
 
     def __repr__(self) -> str:
         return f'UniformSuperpositionGate(m_value={self._m_value}, num_qubits={self._num_qubits})'

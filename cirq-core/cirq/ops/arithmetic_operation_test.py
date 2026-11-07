@@ -23,10 +23,7 @@ import cirq
 
 
 def shift_matrix(width: int, shift: int) -> np.ndarray:
-    result = np.zeros((width, width))
-    for i in range(width):
-        result[(i + shift) % width, i] = 1
-    return result
+    return np.roll(np.eye(width), shift, axis=0)
 
 
 def adder_matrix(target_width: int, source_width: int) -> np.ndarray:

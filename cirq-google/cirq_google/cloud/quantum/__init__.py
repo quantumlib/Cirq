@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2025 Google LLC
+# Copyright 2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+
 from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service.client import (
     QuantumEngineServiceClient,
 )
@@ -22,6 +24,8 @@ from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service.async_cl
 
 from cirq_google.cloud.quantum_v1alpha1.types.engine import CancelQuantumJobRequest
 from cirq_google.cloud.quantum_v1alpha1.types.engine import CancelQuantumReservationRequest
+from cirq_google.cloud.quantum_v1alpha1.types.engine import CompileQecProgramRequest
+from cirq_google.cloud.quantum_v1alpha1.types.engine import CompileQecProgramResponse
 from cirq_google.cloud.quantum_v1alpha1.types.engine import CreateQuantumJobRequest
 from cirq_google.cloud.quantum_v1alpha1.types.engine import CreateQuantumProgramAndJobRequest
 from cirq_google.cloud.quantum_v1alpha1.types.engine import CreateQuantumProgramRequest
@@ -42,6 +46,12 @@ from cirq_google.cloud.quantum_v1alpha1.types.engine import ListQuantumJobEvents
 from cirq_google.cloud.quantum_v1alpha1.types.engine import ListQuantumJobEventsResponse
 from cirq_google.cloud.quantum_v1alpha1.types.engine import ListQuantumJobsRequest
 from cirq_google.cloud.quantum_v1alpha1.types.engine import ListQuantumJobsResponse
+from cirq_google.cloud.quantum_v1alpha1.types.engine import (
+    ListQuantumProcessorAutomationRunHistoryRequest,
+)
+from cirq_google.cloud.quantum_v1alpha1.types.engine import (
+    ListQuantumProcessorAutomationRunHistoryResponse,
+)
 from cirq_google.cloud.quantum_v1alpha1.types.engine import ListQuantumProcessorConfigsRequest
 from cirq_google.cloud.quantum_v1alpha1.types.engine import ListQuantumProcessorConfigsResponse
 from cirq_google.cloud.quantum_v1alpha1.types.engine import ListQuantumProcessorsRequest
@@ -69,10 +79,12 @@ from cirq_google.cloud.quantum_v1alpha1.types.quantum import ExecutionStatus
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import GcsLocation
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import InlineData
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import OutputConfig
+from cirq_google.cloud.quantum_v1alpha1.types.quantum import QecRecipe
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumCalibration
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumJob
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumJobEvent
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumProcessor
+from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumProcessorAutomationRunHistory
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumProcessorConfig
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumProgram
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumReservation
@@ -87,6 +99,8 @@ __all__ = (
     'QuantumEngineServiceAsyncClient',
     'CancelQuantumJobRequest',
     'CancelQuantumReservationRequest',
+    'CompileQecProgramRequest',
+    'CompileQecProgramResponse',
     'CreateQuantumJobRequest',
     'CreateQuantumProgramAndJobRequest',
     'CreateQuantumProgramRequest',
@@ -107,6 +121,8 @@ __all__ = (
     'ListQuantumJobEventsResponse',
     'ListQuantumJobsRequest',
     'ListQuantumJobsResponse',
+    'ListQuantumProcessorAutomationRunHistoryRequest',
+    'ListQuantumProcessorAutomationRunHistoryResponse',
     'ListQuantumProcessorConfigsRequest',
     'ListQuantumProcessorConfigsResponse',
     'ListQuantumProcessorsRequest',
@@ -134,10 +150,12 @@ __all__ = (
     'GcsLocation',
     'InlineData',
     'OutputConfig',
+    'QecRecipe',
     'QuantumCalibration',
     'QuantumJob',
     'QuantumJobEvent',
     'QuantumProcessor',
+    'QuantumProcessorAutomationRunHistory',
     'QuantumProcessorConfig',
     'QuantumProgram',
     'QuantumReservation',

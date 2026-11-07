@@ -33,18 +33,22 @@ def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
 
 
 def measure_single_paulistring(
-    pauli_observable: pauli_string.PauliString, key: str | cirq.MeasurementKey | None = None
+    pauli_observable: pauli_string.PauliString,
+    key: str | cirq.MeasurementKey | None = None,
+    confusion_matrix: np.ndarray | None = None,
 ) -> raw_types.Operation:
-    """Returns a single PauliMeasurementGate which measures the pauli observable
+    """Returns a single PauliMeasurementGate which measures the Pauli observable
 
     Args:
         pauli_observable: The `cirq.PauliString` observable to measure.
         key: Optional `str` or `cirq.MeasurementKey` that gate should use.
             If none provided, it defaults to a comma-separated list of
             `str(qubit)` for each of the target qubits.
+        confusion_matrix: A 2x2 NumPy array representing the confusion matrix
+            for the measured observable.
 
     Returns:
-        An operation measuring the pauli observable.
+        An operation measuring the Pauli observable.
 
     Raises:
         ValueError: if the observable is not an instance of PauliString or if the coefficient
@@ -61,15 +65,17 @@ def measure_single_paulistring(
 
     if key is None:
         key = _default_measurement_key(pauli_observable)
-    return PauliMeasurementGate(pauli_observable.dense(list(pauli_observable.keys())), key).on(
-        *pauli_observable.keys()
-    )
+    return PauliMeasurementGate(
+        pauli_observable.dense(list(pauli_observable.keys())),
+        key,
+        confusion_matrix=confusion_matrix,
+    ).on(*pauli_observable.keys())
 
 
 def measure_paulistring_terms(
     pauli_basis: pauli_string.PauliString, key_func: Callable[[raw_types.Qid], str] = str
 ) -> list[raw_types.Operation]:
-    """Returns a list of operations individually measuring qubits in the pauli basis.
+    """Returns a list of operations individually measuring qubits in the Pauli basis.
 
     Args:
         pauli_basis: The `cirq.PauliString` basis in which each qubit should
@@ -79,7 +85,7 @@ def measure_paulistring_terms(
 
     Returns:
         A list of operations individually measuring the given qubits in the
-        specified pauli basis.
+        specified Pauli basis.
 
     Raises:
         ValueError: if `pauli_basis` is not an instance of `cirq.PauliString`.

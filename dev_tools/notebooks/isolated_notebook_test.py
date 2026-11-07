@@ -20,16 +20,18 @@
 # to provide earlier feedback.
 #
 # In case the dev environment changes or this particular file changes, all notebooks are executed!
-# This can take a long time and even lead to timeout on Github Actions, hence partitioning of the
+# This can take a long time and even lead to timeout on GitHub Actions, hence partitioning of the
 # tests is possible, via setting the NOTEBOOK_PARTITIONS env var to e.g. 5, and then passing to
 # pytest the `-k partition-0` or `-k partition-1`, etc. argument to limit to the given partition.
 
 from __future__ import annotations
 
 import os
+import pathlib
 import re
 import shutil
 import subprocess
+import time
 import warnings
 
 import pytest
@@ -45,19 +47,20 @@ from dev_tools.notebooks import filter_notebooks, list_all_notebooks, REPO_ROOT,
 # by the notebooks in question when adding notebooks to this list.
 # For more information, please see the section "Lifecycle" in docs/dev/notebooks.md.
 
-NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = []
+NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: list[str] = [
+    'docs/simulate/virtual_engine_interface.ipynb'
+]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
 SKIP_NOTEBOOKS = [
-    # skipping vendor notebooks as we don't have auth sorted out
+    # skipping vendor notebooks where we need to have auth sorted out
     '**/aqt/*.ipynb',
     '**/azure-quantum/*.ipynb',
     '**/ionq/*.ipynb',
-    '**/pasqal/*.ipynb',
     # skipping quantum utility simulation (too large)
     'examples/advanced/*quantum_utility*',
-    # tutorials that use QCS and arent skipped due to one or more cleared output cells
+    # tutorials that use QCS and aren't skipped due to one or more cleared output cells
     'docs/tutorials/google/identifying_hardware_changes.ipynb',
     'docs/tutorials/google/echoes.ipynb',
     # temporary: need to fix QVM metrics and device spec
@@ -73,14 +76,14 @@ SKIP_NOTEBOOKS += [
 SKIP_NOTEBOOKS += NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES
 
 # As these notebooks run in an isolated env, we want to minimize dependencies that are
-# installed. We assume colab packages (feel free to add dependencies here that appear in colab, as
+# installed. We assume Colab packages (feel free to add dependencies here that appear in Colab, as
 # needed by the notebooks) exist. These packages are installed into a base environment as a starting
 # point, that is then cloned to a separate folder for each test.
 PACKAGES = [
     # for running the notebooks
     "papermill",
     "jupyter",
-    # assumed to be part of colab
+    # assumed to be part of Colab
     "seaborn~=0.12",
 ]
 
@@ -133,21 +136,34 @@ def _partitioned_test_cases(notebooks):
     return [(f"partition-{i%n_partitions}", notebook) for i, notebook in enumerate(notebooks)]
 
 
-def _rewrite_and_run_notebook(notebook_path, cloned_env):
+def _rewrite_and_run_notebook(notebook_path, cloned_env, papermill_scheduler):
     notebook_file = os.path.basename(notebook_path)
     notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, REPO_ROOT))
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
-    notebook_env = cloned_env("isolated_notebook_tests", *PACKAGES)
+    # ensure papermill will have CLOUDSDK_CONFIG set per dev_tools/conftest.py
+    env = {'CLOUDSDK_CONFIG': os.environ['CLOUDSDK_CONFIG'], 'PIP_CONFIG_FILE': '/dev/null'}
+    assert os.path.isdir(env["CLOUDSDK_CONFIG"])
 
-    notebook_file = os.path.basename(notebook_path)
+    # allow testing of notebooks that import deprecated cirq_web
+    notebooks_that_use_cirq_web = (
+        "circuit_example.ipynb",
+        "qvm_stabilizer_example.ipynb",
+        "bloch_sphere_example.ipynb",
+    )
+    if notebook_file in notebooks_that_use_cirq_web:
+        env["ALLOW_DEPRECATION_IN_TEST"] = "True"
 
     rewritten_notebook_path = rewrite_notebook(notebook_path)
+    notebook_env = cloned_env("isolated_notebook_tests", *PACKAGES)
 
     REPO_ROOT.joinpath("out", notebook_rel_dir).mkdir(parents=True, exist_ok=True)
     cmd = f"""
-. ./bin/activate
-pip list
-papermill {rewritten_notebook_path} {REPO_ROOT/out_path}"""
+        . ./bin/activate
+        pip list
+        papermill "{rewritten_notebook_path}" "{REPO_ROOT/out_path}"
+    """
+    wait_time = papermill_scheduler()[1]
+    time.sleep(wait_time)
     result = shell_tools.run(
         cmd,
         log_run_to_stderr=False,
@@ -155,9 +171,10 @@ papermill {rewritten_notebook_path} {REPO_ROOT/out_path}"""
         check=False,
         cwd=notebook_env,
         capture_output=True,
-        # important to get rid of PYTHONPATH specifically, which contains
-        # the Cirq repo path due to check/pytest
-        env={},
+        # Important to get rid of PYTHONPATH specifically, which contains
+        # the Cirq repo path due to check/pytest.  Also isolate the execution
+        # from pip settings in local configuration files or environment.
+        env=env,
     )
 
     if result.returncode != 0:
@@ -182,7 +199,9 @@ papermill {rewritten_notebook_path} {REPO_ROOT/out_path}"""
     "partition, notebook_path",
     _partitioned_test_cases(filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS)),
 )
-def test_changed_notebooks_against_released_cirq(partition, notebook_path, cloned_env) -> None:
+def test_changed_notebooks_against_released_cirq(
+    partition, notebook_path, cloned_env, papermill_scheduler
+) -> None:
     """Tests changed notebooks in isolated virtual environments.
 
     In order to speed up the execution of these tests an auxiliary file may be supplied which
@@ -194,7 +213,7 @@ def test_changed_notebooks_against_released_cirq(partition, notebook_path, clone
     regular expression, it is considered best practice to not use complicated regular expressions.
     Lines in this file that do not have `->` are ignored.
     """
-    _rewrite_and_run_notebook(notebook_path, cloned_env)
+    _rewrite_and_run_notebook(notebook_path, cloned_env, papermill_scheduler)
 
 
 @pytest.mark.weekly
@@ -202,32 +221,35 @@ def test_changed_notebooks_against_released_cirq(partition, notebook_path, clone
     "partition, notebook_path",
     _partitioned_test_cases(filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS)),
 )
-def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_env) -> None:
+def test_all_notebooks_against_released_cirq(
+    partition, notebook_path, cloned_env, papermill_scheduler
+) -> None:
     """Tests all notebooks in isolated virtual environments.
 
     See `test_changed_notebooks_against_released_cirq` for more details on
     notebooks execution.
     """
-    _rewrite_and_run_notebook(notebook_path, cloned_env)
+    _rewrite_and_run_notebook(notebook_path, cloned_env, papermill_scheduler)
 
 
 @pytest.mark.parametrize("notebook_path", NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES)
 def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path) -> None:
     # utf-8 is important for Windows testing, otherwise characters like ┌──┐ fail on cp1252
-    with open(notebook_path, encoding="utf-8") as notebook:
-        content = notebook.read()
-        mandatory_matches = [
-            r"!pip install --upgrade --quiet cirq(-google)?~=1.0.dev",
+    content = pathlib.Path(notebook_path).read_text(encoding="utf-8")
+    mandatory_matches = [
+        r"!pip install --upgrade cirq(-google)?~=1.0.dev",
+        (
             r"Note: this notebook relies on unreleased Cirq features\. "
             r"If you want to try these features, make sure you install cirq(-google)? via "
-            r"`pip install --upgrade cirq(-google)?~=1.0.dev`\.",
-        ]
+            r"`pip install --upgrade cirq(-google)?~=1.0.dev`\."
+        ),
+    ]
 
-        for m in mandatory_matches:
-            assert re.search(m, content), (
-                f"{notebook_path} is marked as NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES, "
-                f"however it contains no line matching:\n{m}"
-            )
+    for m in mandatory_matches:
+        assert re.search(m, content), (
+            f"{notebook_path} is marked as NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES, "
+            f"however it contains no line matching:\n{m}"
+        )
 
 
 def test_skip_notebooks_has_valid_patterns() -> None:

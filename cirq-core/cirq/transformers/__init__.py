@@ -44,6 +44,9 @@ from cirq.transformers.analytical_decompositions import (
 from cirq.transformers.heuristic_decompositions import (
     TwoQubitGateTabulation as TwoQubitGateTabulation,
     TwoQubitGateTabulationResult as TwoQubitGateTabulationResult,
+    TwoQubitNumericalCompilationResult as TwoQubitNumericalCompilationResult,
+    TwoQubitNumericalCompiler as TwoQubitNumericalCompiler,
+    two_qubit_gate_numerical_compilation as two_qubit_gate_numerical_compilation,
     two_qubit_gate_product_tabulation as two_qubit_gate_product_tabulation,
 )
 
@@ -74,6 +77,10 @@ from cirq.transformers.eject_phased_paulis import eject_phased_paulis as eject_p
 
 from cirq.transformers.optimize_for_target_gateset import (
     optimize_for_target_gateset as optimize_for_target_gateset,
+)
+
+from cirq.transformers.diagonal_optimization import (
+    drop_diagonal_before_measurement as drop_diagonal_before_measurement,
 )
 
 from cirq.transformers.drop_empty_moments import drop_empty_moments as drop_empty_moments
@@ -127,6 +134,7 @@ from cirq.transformers.transformer_primitives import (
     map_operations_and_unroll as map_operations_and_unroll,
     merge_k_qubit_unitaries_to_circuit_op as merge_k_qubit_unitaries_to_circuit_op,
     merge_moments as merge_moments,
+    merge_moments_batch as merge_moments_batch,
     merge_operations as merge_operations,
     merge_operations_to_circuit_op as merge_operations_to_circuit_op,
     toggle_tags as toggle_tags,
@@ -160,4 +168,10 @@ from cirq.transformers.randomized_measurements import (
 
 from cirq.transformers.insertion_sort import (
     insertion_sort_transformer as insertion_sort_transformer,
+)
+
+from cirq.transformers.lightcone_filter import lightcone_filter as lightcone_filter
+
+from cirq.transformers.circuit_operations import (
+    apply_lazy_args_on_circuit_operation as apply_lazy_args_on_circuit_operation,
 )

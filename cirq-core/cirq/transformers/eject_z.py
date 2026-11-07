@@ -74,7 +74,7 @@ def eject_z(
     """
     # Tracks qubit phases (in half turns; multiply by pi to get radians).
     qubit_phase: dict[ops.Qid, float] = defaultdict(lambda: 0)
-    tags_to_ignore = set(context.tags_to_ignore) if context else set()
+    tags_to_ignore = frozenset(context.tags_to_ignore) if context else frozenset()
     phased_xz_replacements: dict[tuple[int, ops.Operation], ops.PhasedXZGate] = {}
     last_phased_xz_op: dict[ops.Qid, tuple[int, ops.Operation] | None] = defaultdict(lambda: None)
 
@@ -89,9 +89,9 @@ def eject_z(
                 phased_xz_replacements[key] = phased_xz_replacements[key].with_z_exponent(p * 2)
 
     def map_func(op: cirq.Operation, moment_index: int) -> cirq.OP_TREE:
-        last_phased_xz_op.update({q: None for q in op.qubits})
+        last_phased_xz_op.update(dict.fromkeys(op.qubits))
 
-        if tags_to_ignore & set(op.tags):
+        if not tags_to_ignore.isdisjoint(op.tags):
             # Op marked with no-compile, dump phases and do not cross.
             return [dump_tracked_phase(op.qubits), op]
 

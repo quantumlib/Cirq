@@ -16,11 +16,13 @@ https://arxiv.org/abs/1804.03719
 === EXAMPLE OUTPUT ===
 Secret bit sequence: [1, 0]
 Circuit:
-(0, 0): ───────H───────@───────H───X───────@───────X───H───M───
-                       │                   │               │
-(1, 0): ───────H───X───@───X───H───X───H───X───H───X───H───M───
-                       │
-(2, 0): ───X───H───────X───────────────────────────────────────
+
+    (0, 0): ───────H───────@───────H───X───────@───────X───H───M───
+                           │                   │               │
+    (1, 0): ───────H───X───@───X───H───X───H───X───H───X───H───M───
+                           │
+    (2, 0): ───X───H───────X───────────────────────────────────────
+
 Sampled results:
 Counter({'10': 10})
 Most common bitstring: 10
@@ -87,7 +89,7 @@ def main():
     circuit_sample_count = 10
 
     # Set up input and output qubits.
-    (input_qubits, output_qubit) = set_io_qubits(qubit_count)
+    input_qubits, output_qubit = set_io_qubits(qubit_count)
 
     # Choose the x' and make an oracle which can recognize it.
     x_bits = [random.randint(0, 1) for _ in range(qubit_count)]

@@ -30,10 +30,12 @@ class ExecutableSpec(metaclass=abc.ABCMeta):
     """Specification metadata about an executable.
 
     Subclasses should add problem-specific fields.
+
+    Attributes:
+        executable_family: A unique name to group executables.
     """
 
     executable_family: str = NotImplemented
-    """A unique name to group executables."""
 
 
 @dataclass(frozen=True)
@@ -110,7 +112,7 @@ class BitstringsMeasurement:
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.dataclass_json_dict(self)
 
     def __repr__(self):
@@ -162,7 +164,7 @@ class QuantumExecutable:
         """Initialize the quantum executable.
 
         The actual fields in this class are immutable, but we allow more liberal input types
-        which will be frozen in this __init__ method.
+        which will be frozen in this `__init__` method.
 
         Args:
             circuit: The circuit. This will be frozen before being set as an attribute.
@@ -219,9 +221,9 @@ class QuantumExecutable:
         return _compat.dataclass_repr(self, namespace='cirq_google')
 
     def __hash__(self) -> int:
-        if self._hash is None:  # type: ignore
+        if self._hash is None:  # type: ignore[attr-defined]
             object.__setattr__(self, '_hash', hash(dataclasses.astuple(self)))
-        return self._hash  # type: ignore
+        return self._hash  # type: ignore[attr-defined]
 
     def __getstate__(self) -> dict[str, Any]:
         # clear cached hash value when pickling, see #6674
@@ -235,7 +237,7 @@ class QuantumExecutable:
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.dataclass_json_dict(self)
 
 
@@ -282,9 +284,9 @@ class QuantumExecutableGroup:
         return _compat.dataclass_repr(self, namespace='cirq_google')
 
     def __hash__(self) -> int:
-        if self._hash is None:  # type: ignore
+        if self._hash is None:  # type: ignore[attr-defined]
             object.__setattr__(self, '_hash', hash(dataclasses.astuple(self)))
-        return self._hash  # type: ignore
+        return self._hash  # type: ignore[attr-defined]
 
     def __getstate__(self) -> dict[str, Any]:
         # clear cached hash value when pickling, see #6674

@@ -2,7 +2,7 @@
 <img width="190px" alt="Cirq logo"
 src="https://raw.githubusercontent.com/quantumlib/Cirq/refs/heads/main/docs/images/Cirq_logo_color.svg"
 ><img width="50px" height="0" alt=""><img width="200px" alt="IonQ logo"
-src="https://ionq.com/images/ionq-logo-dark.svg">
+src="https://upload.wikimedia.org/wikipedia/commons/d/d4/IonQ_corp_logo.svg">
 </div>
 
 # cirq-ionq
@@ -20,7 +20,7 @@ computers, where the details of quantum hardware are vital to achieving
 state-of-the-art results. For more information about Cirq, please visit the
 [Cirq documentation site].
 
-[Cirq]: https://github.com/quantumlib/cirq
+[Cirq]: https://github.com/quantumlib/Cirq
 [Cirq documentation site]: https://quantumai.google/cirq
 
 ## Installation

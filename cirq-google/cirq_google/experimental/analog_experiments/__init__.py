@@ -21,4 +21,5 @@ from cirq_google.experimental.analog_experiments.analog_trajectory_util import (
 
 from cirq_google.experimental.analog_experiments.generic_analog_circuit import (
     GenericAnalogCircuitBuilder as GenericAnalogCircuitBuilder,
+    AnalogSimulationCircuitBuilder as AnalogSimulationCircuitBuilder,
 )

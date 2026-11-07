@@ -28,7 +28,6 @@ from cirq.sim.simulation_product_state import SimulationProductState
 from cirq.sim.simulation_state import TSimulationState
 from cirq.sim.simulation_state_base import SimulationStateBase
 from cirq.sim.simulator import (
-    check_all_resolved,
     SimulatesIntermediateState,
     SimulatesSamples,
     SimulationTrialResult,
@@ -53,7 +52,7 @@ class SimulatorBase(
 ):
     """A base class for the built-in simulators.
 
-    Most implementors of this interface should implement the
+    Most implementers of this interface should implement the
     `_create_partial_simulation_state` and `_create_step_result` methods. The
     first one creates the simulator's quantum state representation at the
     beginning of the simulation. The second creates the step result emitted
@@ -97,7 +96,7 @@ class SimulatorBase(
                 at the end.
         """
         self._dtype = dtype
-        self._prng = value.parse_random_state(seed)
+        self._prng = value.parse_random_generator(seed)
         self._noise = devices.NoiseModel.from_noise_model_like(noise)
         self._split_untangled_states = split_untangled_states
 
@@ -146,7 +145,7 @@ class SimulatorBase(
         state representation, and only executing that once per sample set. For
         state vectors, any unitary operation is pure, and we make this the
         default here. For density matrices, any non-measurement operation can
-        be represented wholely in the matrix, and thus this method is
+        be represented wholly in the matrix, and thus this method is
         overridden there to enable greater optimization there.
 
         Custom simulators can override this method appropriately.
@@ -156,14 +155,20 @@ class SimulatorBase(
                 state representation.
 
         Returns:
-            A boolean representing whether the value can be added to the
+            A Boolean representing whether the value can be added to the
             `_run` prefix."""
         return protocols.has_unitary(val)
 
     def _base_iterator(
-        self, circuit: cirq.AbstractCircuit, qubits: tuple[cirq.Qid, ...], initial_state: Any
+        self,
+        circuit: cirq.AbstractCircuit,
+        qubits: tuple[cirq.Qid, ...],
+        initial_state: Any,
+        param_resolver: cirq.ParamResolver | None = None,
     ) -> Iterator[TStepResultBase]:
-        sim_state = self._create_simulation_state(initial_state, qubits)
+        sim_state = self._create_simulation_state(
+            initial_state, qubits, param_resolver=param_resolver
+        )
         return self._core_iterator(circuit, sim_state)
 
     def _core_iterator(
@@ -193,20 +198,38 @@ class SimulatorBase(
             yield self._create_step_result(sim_state)
             return
 
-        noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
+        system_qubits = sorted(sim_state.qubits)
         measured: dict[tuple[cirq.Qid, ...], bool] = collections.defaultdict(bool)
-        for moment in noisy_moments:
-            for op in ops.flatten_to_ops(moment):
-                try:
-                    # Preprocess measurements
-                    if all_measurements_are_terminal and measured[op.qubits]:
+        for moment in circuit:
+            resolved_moment = protocols.resolve_parameters(moment, sim_state.param_resolver)
+            new_qubits = sorted(
+                q
+                for q in resolved_moment.qubits
+                if q not in sim_state.qubit_map and not isinstance(q, ops.VariableQid)
+            )
+            if new_qubits:
+                sim_state = sim_state.add_qubits(new_qubits)
+                system_qubits = sorted(sim_state.qubits)
+            noisy_moment = self.noise.noisy_moment(resolved_moment, system_qubits)
+            for op in ops.flatten_to_ops(noisy_moment):
+                # Preprocess measurements
+                if all_measurements_are_terminal and measured[op.qubits]:
+                    continue
+                if isinstance(op.gate, ops.MeasurementGate):
+                    measured[op.qubits] = True
+                    if all_measurements_are_terminal:
                         continue
-                    if isinstance(op.gate, ops.MeasurementGate):
-                        measured[op.qubits] = True
-                        if all_measurements_are_terminal:
-                            continue
 
-                    # Simulate the operation
+                # Resolve parameters on the fly
+                raw_op = getattr(op, 'untagged', op)
+                if protocols.is_parameterized(op) and not isinstance(raw_op, ops.SetVariable):
+                    raise ValueError(
+                        'Circuit contains ops whose symbols were not specified in the '
+                        f'parameter sweep. Ops: [{op!r}]'
+                    )
+
+                # Simulate the operation
+                try:
                     protocols.act_on(op, sim_state)
                 except TypeError:
                     raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
@@ -217,23 +240,30 @@ class SimulatorBase(
         self, circuit: cirq.AbstractCircuit, param_resolver: cirq.ParamResolver, repetitions: int
     ) -> dict[str, np.ndarray]:
         """See definition in `cirq.SimulatesSamples`."""
-        param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        check_all_resolved(resolved_circuit)
-        qubits = tuple(sorted(resolved_circuit.all_qubits()))
-        sim_state = self._create_simulation_state(0, qubits)
+        param_resolver = study.ParamResolver({}) if param_resolver is None else param_resolver
+        qubits = tuple(
+            sorted(q for q in circuit.all_qubits() if not isinstance(q, ops.VariableQid))
+        )
+        sim_state = self._create_simulation_state(0, qubits, param_resolver=param_resolver)
+
+        def can_run_prefix(op: cirq.Operation) -> bool:
+            resolved_op = protocols.resolve_parameters(op, param_resolver)
+            return self._can_be_in_run_prefix(resolved_op)
 
         prefix, general_suffix = (
-            split_into_matching_protocol_then_general(resolved_circuit, self._can_be_in_run_prefix)
+            split_into_matching_protocol_then_general(circuit, can_run_prefix)
             if self._can_be_in_run_prefix(self.noise)
-            else (resolved_circuit[0:0], resolved_circuit)
+            else (circuit[0:0], circuit)
         )
         step_result: TStepResultBase | None = None
         for step_result in self._core_iterator(circuit=prefix, sim_state=sim_state):
             pass
         assert step_result is not None
 
-        general_ops = list(general_suffix.all_operations())
+        general_ops = [
+            protocols.resolve_parameters(op, sim_state.param_resolver)
+            for op in general_suffix.all_operations()
+        ]
         if all(isinstance(op.gate, ops.MeasurementGate) for op in general_ops):
             for step_result in self._core_iterator(
                 circuit=general_suffix, sim_state=sim_state, all_measurements_are_terminal=True
@@ -304,7 +334,9 @@ class SimulatorBase(
         def sweep_prefixable(op: cirq.Operation):
             return self._can_be_in_run_prefix(op) and not protocols.is_parameterized(op)
 
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(program.all_qubits())
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            q for q in program.all_qubits() if not isinstance(q, ops.VariableQid)
+        )
         initial_state = 0 if initial_state is None else initial_state
         sim_state = self._create_simulation_state(initial_state, qubits)
         prefix, suffix = (
@@ -320,9 +352,14 @@ class SimulatorBase(
         yield from super().simulate_sweep_iter(suffix, params, qubit_order, sim_state)
 
     def _create_simulation_state(
-        self, initial_state: Any, qubits: Sequence[cirq.Qid]
+        self,
+        initial_state: Any,
+        qubits: Sequence[cirq.Qid],
+        param_resolver: cirq.ParamResolver | None = None,
     ) -> SimulationStateBase[TSimulationState]:
         if isinstance(initial_state, SimulationStateBase):
+            if param_resolver is not None:
+                initial_state.param_resolver = param_resolver
             return initial_state
 
         classical_data = value.ClassicalDataDictionaryStore()
@@ -344,12 +381,20 @@ class SimulatorBase(
                     args_map[q] = args
             args_map[None] = self._create_partial_simulation_state(0, (), classical_data)
             return SimulationProductState(
-                args_map, qubits, self._split_untangled_states, classical_data=classical_data
+                args_map,
+                qubits,
+                self._split_untangled_states,
+                classical_data=classical_data,
+                param_resolver=param_resolver,
             )
         else:
-            return self._create_partial_simulation_state(
+            state = self._create_partial_simulation_state(
                 initial_state=initial_state, qubits=qubits, classical_data=classical_data
             )
+            state.param_resolver = (
+                study.ParamResolver({}) if param_resolver is None else param_resolver
+            )
+            return state
 
 
 class StepResultBase(
@@ -405,8 +450,8 @@ class SimulationTrialResultBase(
         Args:
             params: A ParamResolver of settings used for this result.
             measurements: A dictionary from measurement gate key to measurement
-                results. Measurement results are a numpy ndarray of actual
-                boolean measurement results (ordered by the qubits acted on by
+                results. Measurement results are a NumPy ndarray of actual
+                Boolean measurement results (ordered by the qubits acted on by
                 the measurement gate.)
             final_simulator_state: The final simulator state of the system after the
                 trial finishes.

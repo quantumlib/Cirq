@@ -74,4 +74,4 @@ def _sparse_computational_basis_map(
 def _bin_dec(x: int | None, num_bits: int) -> str:
     if x is None:
         return 'None'
-    return f'0b{bin(x)[2:].zfill(num_bits)} ({x})'
+    return f"0b{f'{x:b}'.zfill(num_bits)} ({x})"

@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import itertools
 import math
-from collections.abc import Iterator
 
 import numpy as np
 import pytest
@@ -30,33 +29,36 @@ def _make_qubits(n) -> list[cirq.NamedQubit]:
     return [cirq.NamedQubit(f'q{i}') for i in range(n)]
 
 
-def _sample_qubit_pauli_maps() -> Iterator[dict[cirq.NamedQubit, cirq.Pauli]]:
+def _sample_qubit_pauli_maps() -> list[dict[cirq.NamedQubit, cirq.Pauli]]:
     """All combinations of having a Pauli or nothing on 3 qubits.
-    Yields 64 qubit pauli maps
+    Yields 64 qubit Pauli maps
     """
     qubits = _make_qubits(3)
     paulis_or_none = (None, cirq.X, cirq.Y, cirq.Z)
-    for paulis in itertools.product(paulis_or_none, repeat=len(qubits)):
-        yield {qubit: pauli for qubit, pauli in zip(qubits, paulis) if pauli is not None}
+    return [
+        {qubit: pauli for qubit, pauli in zip(qubits, paulis) if pauli is not None}
+        for paulis in itertools.product(paulis_or_none, repeat=len(qubits))
+    ]
 
 
-def _small_sample_qubit_pauli_maps() -> Iterator[dict[cirq.NamedQubit, cirq.Pauli]]:
+def _small_sample_qubit_pauli_maps() -> list[dict[cirq.NamedQubit, cirq.Pauli]]:
     """A few representative samples of qubit maps.
 
     Only tests 10 combinations of Paulis to speed up testing.
     """
     qubits = _make_qubits(3)
-    yield {}
-    yield {qubits[0]: cirq.X}
-    yield {qubits[1]: cirq.X}
-    yield {qubits[2]: cirq.X}
-    yield {qubits[1]: cirq.Z}
-
-    yield {qubits[0]: cirq.Y, qubits[1]: cirq.Z}
-    yield {qubits[1]: cirq.Z, qubits[2]: cirq.X}
-    yield {qubits[0]: cirq.X, qubits[1]: cirq.X, qubits[2]: cirq.X}
-    yield {qubits[0]: cirq.X, qubits[1]: cirq.Y, qubits[2]: cirq.Z}
-    yield {qubits[0]: cirq.Z, qubits[1]: cirq.X, qubits[2]: cirq.Y}
+    return [
+        {},
+        {qubits[0]: cirq.X},
+        {qubits[1]: cirq.X},
+        {qubits[2]: cirq.X},
+        {qubits[1]: cirq.Z},
+        {qubits[0]: cirq.Y, qubits[1]: cirq.Z},
+        {qubits[1]: cirq.Z, qubits[2]: cirq.X},
+        {qubits[0]: cirq.X, qubits[1]: cirq.X, qubits[2]: cirq.X},
+        {qubits[0]: cirq.X, qubits[1]: cirq.Y, qubits[2]: cirq.Z},
+        {qubits[0]: cirq.Z, qubits[1]: cirq.X, qubits[2]: cirq.Y},
+    ]
 
 
 def assert_conjugation(
@@ -75,10 +77,7 @@ def assert_conjugation(
         """Extracts a sub-PauliString from a given PauliString, restricted to
         a specified subset of qubits.
         """
-        pauli_map = {}
-        for q, pauli in ps.items():
-            if q in qubits:
-                pauli_map[q] = pauli
+        pauli_map = {q: pauli for q, pauli in ps.items() if q in qubits}
         return cirq.PauliString(qubit_pauli_map=pauli_map, coefficient=ps.coefficient)
 
     conjugation = input_ps.conjugated_by(op)
@@ -376,7 +375,7 @@ def test_basic_functionality(qubit_pauli_map) -> None:
 
     # Test iteration
     assert len(tuple(qubit_pauli_map)) == len(tuple(pauli_string))
-    assert set(tuple(qubit_pauli_map)) == set(tuple(pauli_string))
+    assert set(qubit_pauli_map) == set(pauli_string)
 
 
 def test_repr() -> None:
@@ -853,8 +852,17 @@ def _pauli_string_matrix_cases():
 
 
 @pytest.mark.parametrize('pauli_string, qubits, expected_matrix', _pauli_string_matrix_cases())
-def test_matrix(pauli_string, qubits, expected_matrix) -> None:
+def test_matrix(
+    pauli_string: cirq.PauliString, qubits: tuple[cirq.Qid, ...] | None, expected_matrix: np.ndarray
+) -> None:
     assert np.allclose(pauli_string.matrix(qubits), expected_matrix)
+
+
+@pytest.mark.parametrize('pauli_string, qubits, expected_matrix', _pauli_string_matrix_cases())
+def test_sparse_matrix(
+    pauli_string: cirq.PauliString, qubits: tuple[cirq.Qid, ...] | None, expected_matrix: np.ndarray
+) -> None:
+    assert np.allclose(pauli_string.sparse_matrix(qubits).toarray(), expected_matrix)
 
 
 def test_unitary_matrix() -> None:
@@ -923,7 +931,7 @@ def test_expectation_from_state_vector_invalid_input() -> None:
     q0, q1, q2, q3 = _make_qubits(4)
     ps: cirq.PauliString[cirq.NamedQubit]
     ps = cirq.PauliString({q0: cirq.X, q1: cirq.Y})
-    wf = np.array([1, 0, 0, 0], dtype=np.complex64)
+    wf: np.ndarray = np.array([1, 0, 0, 0], dtype=np.complex64)
     q_map = {q0: 0, q1: 1}
 
     im_ps = (1j + 1) * ps
@@ -1172,7 +1180,7 @@ def test_expectation_from_density_matrix_invalid_input() -> None:
     # Excess keys are ignored.
     _ = ps.expectation_from_density_matrix(rho, {q0: 0, q1: 1, q2: 0})
 
-    with pytest.raises(ValueError, match='hermitian'):
+    with pytest.raises(ValueError, match='Hermitian'):
         ps.expectation_from_density_matrix(1j * np.eye(4), q_map)
     with pytest.raises(ValueError, match='trace'):
         ps.expectation_from_density_matrix(np.eye(4, dtype=np.complex64), q_map)
@@ -1539,9 +1547,9 @@ def test_conjugated_by_common_single_qubit_gates() -> None:
     single_qubit_gates = [g**i for i in range(4) for g in base_single_qubit_gates]
     for p in [cirq.X, cirq.Y, cirq.Z]:
         for g in single_qubit_gates:
-            # pauli gate on a, clifford on b: pauli gate preserves.
+            # Pauli gate on a, Clifford on b: Pauli gate preserves.
             assert_conjugation(p(a), g(b), p(a))
-            # pauli gate on a, clifford on a: check conjugation in matrices.
+            # Pauli gate on a, Clifford on a: check conjugation in matrices.
             assert_conjugation(p(a), g(a))
 
 
@@ -1569,9 +1577,9 @@ def test_conjugated_by_common_two_qubit_gates() -> None:
             pd: cirq.DensePauliString = cirq.DensePauliString([p1, p2])  # type: ignore[list-item]
             p = pd.sparse([a, b])
             for g in two_qubit_gates:
-                # pauli_string on (a,b), clifford on (c,d): pauli_string preserves.
+                # pauli_string on (a,b), Clifford on (c,d): pauli_string preserves.
                 assert_conjugation(p, g(c, d), p)
-                # pauli_string on (a,b), clifford on (a,b): compare unitaries of
+                # pauli_string on (a,b), Clifford on (a,b): compare unitaries of
                 # the conjugated_by and actual matrix conjugation.
                 assert_conjugation(p, g.on(a, b))
 
@@ -1766,20 +1774,25 @@ def test_mutable_pauli_string_inplace_conjugate_by() -> None:
 
     class NoOp(cirq.Operation):
         def __init__(self, *qubits):
+            self._gate = cirq.IdentityGate(len(qubits))
             self._qubits = qubits
 
         @property
-        def qubits(self):  # pragma: no cover
+        def gate(self) -> cirq.Gate:
+            return self._gate
+
+        @property
+        def qubits(self) -> tuple[cirq.Qid, ...]:
             return self._qubits
 
-        def with_qubits(self, *new_qubits):
+        def with_qubits(self, *new_qubits) -> cirq.Operation:
             raise NotImplementedError()
 
-        def _decompose_(self):
+        def _decompose_(self) -> cirq.OP_TREE:
             return []
 
-        def __pow__(self, power):
-            return []
+        def __pow__(self, power) -> cirq.Operation:
+            return self
 
     # No-ops
     p2 = p.inplace_after(cirq.global_phase_operation(1j))
@@ -1963,7 +1976,7 @@ def test_mutable_pauli_string_dict_pauli_like_not_pauli_like() -> None:
     p = cirq.MutablePauliString()
     # Check error string includes terms like "X" in error message.
     with pytest.raises(TypeError, match="PAULI_GATE_LIKE.*X"):
-        p[0] = 1.2  # type: ignore
+        p[0] = 1.2  # type: ignore[assignment, index]
 
 
 def test_mutable_pauli_string_text() -> None:
@@ -2003,8 +2016,8 @@ def test_coefficient_precision() -> None:
     qs = cirq.LineQubit.range(4 * 10**3)
     r: cirq.MutablePauliString[cirq.LineQubit]
     r2: cirq.MutablePauliString[cirq.LineQubit]
-    r = cirq.MutablePauliString({q: cirq.X for q in qs})
-    r2 = cirq.MutablePauliString({q: cirq.Y for q in qs})
+    r = cirq.MutablePauliString(dict.fromkeys(qs, cirq.X))
+    r2 = cirq.MutablePauliString(dict.fromkeys(qs, cirq.Y))
     r2 *= r
     assert r2.coefficient == 1
 
@@ -2046,8 +2059,14 @@ def test_parameterization() -> None:
         pst.expectation_from_state_vector(np.array([]), {})
     with pytest.raises(NotImplementedError, match='parameterized'):
         pst.expectation_from_density_matrix(np.array([]), {})
-    with pytest.raises(NotImplementedError, match='as matrix when parameterized'):
+    with pytest.raises(
+        NotImplementedError, match='Cannot express a parameterized PauliString as a matrix'
+    ):
         pst.matrix()
+    with pytest.raises(
+        NotImplementedError, match='Cannot express a parameterized PauliString as a matrix'
+    ):
+        pst.sparse_matrix()
     assert pst**1 == pst
     assert pst**-1 == pst.with_coefficient(1.0 / t)
     assert (-pst) ** 1 == -pst
@@ -2140,3 +2159,22 @@ def test_try_interpret_as_pauli_string() -> None:
     # non-Pauli operation
     h_gate = cirq.H(q)
     assert _try_interpret_as_pauli_string(h_gate) is None
+
+
+def test_variable_qid_resolution():
+    x = sympy.Symbol('x')
+    y = sympy.Symbol('y')
+    q0 = cirq.LineQubit(0)
+    q1 = cirq.LineQubit(1)
+    qx = cirq.VariableLineQid(x)
+    qy = cirq.VariableLineQid(y)
+
+    qxqy_xy = cirq.PauliString({qx: cirq.X, qy: cirq.Y})
+    assert cirq.is_parameterized(qxqy_xy)
+    assert cirq.parameter_names(qxqy_xy) == {'x', 'y'}
+
+    resolved = cirq.resolve_parameters(qxqy_xy, cirq.ParamResolver({x: 0, y: 1}))
+    assert resolved == cirq.PauliString({q0: cirq.X, q1: cirq.Y})
+
+    with pytest.raises(ValueError, match="Duplicate qubits"):
+        cirq.resolve_parameters(qxqy_xy, cirq.ParamResolver({x: 0, y: 0}))

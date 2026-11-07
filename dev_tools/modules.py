@@ -15,7 +15,7 @@
 
 """Utility tool for cirq modules.
 
-It can be used as a python library for python scripts as well as a CLI tool for
+It can be used as a Python library for Python scripts as well as a CLI tool for
 bash scripts and interactive use.
 
 Features:
@@ -78,24 +78,24 @@ class Module:
             self.top_level_packages = []
         self.top_level_package_paths = [self.root / p for p in self.top_level_packages]
         self.version = self.raw_setup['version']
-        self.install_requires = (
-            [] if 'install_requires' not in self.raw_setup else self.raw_setup['install_requires']
-        )
+        self.install_requires = self.raw_setup.get('install_requires', [])
 
 
 def list_modules(
     search_dir: Path = _DEFAULT_SEARCH_DIR, include_parent: bool = False
 ) -> list[Module]:
-    """Returns a list of python modules based defined by setup.py files.
+    """Returns a list of Python modules based defined by setup.py files.
 
     Args:
         include_parent: if true, a setup.py is expected in `search_dir`, and the corresponding
-        module will be included.
+            module will be included.
         search_dir: the search directory for modules, by default the repo root.
+
     Returns:
-          a list of `Module`s that were found, where each module `m` is initialized with `m.root`
-           relative to `search_dir`, `m.raw_setup` contains the dictionary equivalent to the
-           keyword args passed to the `setuptools.setup` method in setup.py
+        a list of `Module`s that were found, where each module `m` is initialized with `m.root`
+        relative to `search_dir`, `m.raw_setup` contains the dictionary equivalent to the
+        keyword args passed to the `setuptools.setup` method in setup.py
+
     Raises:
         ValueError: if include_parent=True but there is no setup.py in `search_dir`.
     """
@@ -140,7 +140,7 @@ def get_version(search_dir: Path = _DEFAULT_SEARCH_DIR) -> str | None:
     versions = {m.name: m.version for m in mods}
     if len(set(versions.values())) > 1:
         raise ValueError(f"Versions should be the same, instead: \n{versions}")
-    return list(set(versions.values()))[0]
+    return next(iter(versions.values()))
 
 
 def replace_version(search_dir: Path = _DEFAULT_SEARCH_DIR, *, old: str, new: str):
@@ -203,7 +203,7 @@ def _parse_module(folder: Path) -> dict[str, Any]:
     try:
         setuptools.setup = setup
         os.chdir(str(folder))
-        setup_py = open("setup.py", encoding="utf8").read()
+        setup_py = Path("setup.py").read_text(encoding="utf8")
         exec(setup_py, globals(), {})
         assert setup_args, f"Invalid setup.py - setup() was not called in {folder}/setup.py!"
         return setup_args

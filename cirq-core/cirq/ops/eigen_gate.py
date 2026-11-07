@@ -58,13 +58,13 @@ class EigenGate(raw_types.Gate):
     has a 2-dimensional eigenspace with eigenvalue -1, but one wishes for the
     square root of the gate to split this eigenspace into a part with
     eigenvalue i and a part with eigenvalue -i, then EigenGate allows this
-    functionality to be unambiguously specified via the _eigen_components
+    functionality to be unambiguously specified via the `_eigen_components`
     method.
 
     The eigenvalue of each eigenspace of a gate is computed by:
 
     1. Starting with an angle in half turns as returned by the gate's
-        ``_eigen_components`` method:
+        `_eigen_components` method:
 
                 θ
 
@@ -132,66 +132,31 @@ class EigenGate(raw_types.Gate):
     def _with_exponent(self, exponent: value.TParamVal) -> EigenGate:
         """Return the same kind of gate, but with a different exponent.
 
-        Child classes should override this method if they have an __init__
+        Child classes should override this method if they have an `__init__`
         method with a differing signature.
         """
         if self._global_shift == 0:
             return type(self)(exponent=exponent)
         return type(self)(exponent=exponent, global_shift=self._global_shift)
 
-    def _diagram_exponent(
-        self, args: protocols.CircuitDiagramInfoArgs, *, ignore_global_phase: bool = True
-    ):
+    def _diagram_exponent(self, args: protocols.CircuitDiagramInfoArgs):
         """The exponent to use in circuit diagrams.
 
-        Basically, this just canonicalizes the exponent in a way that is
-        insensitive to global phase. Only relative phases affect the "true"
-        exponent period, and since we omit global phase detail in diagrams this
-        is the appropriate canonicalization to use. To use the absolute period
-        instead of the relative period (e.g. for when printing Rx(rads) style
-        symbols, where rads=pi and rads=-pi are equivalent but should produce
-        different text) set 'ignore_global_phase' to False.
-
-        Note that the exponent is canonicalized into the range
-            (-period/2, period/2]
-        and that this canonicalization happens after rounding, so that e.g.
-        X^-0.999999 shows as X instead of X^-1 when using a digit precision of
-        3.
+        The current implementation simply rounds numeric type exponents
+        to the specified precision.
 
         Args:
             args: The diagram args being used to produce the diagram.
-            ignore_global_phase: Determines whether the global phase of the
-                operation is considered when computing the period of the
-                exponent.
 
         Returns:
-            A rounded canonicalized exponent.
+            The exponent rounded to the precision specified by `args`.
         """
         if not isinstance(self._exponent, (int, float)):
             return self._exponent
+
         result = float(self._exponent)
-
-        if ignore_global_phase:
-            # Compute global-phase-independent period of the gate.
-            shifts = list(self._eigen_shifts())
-            relative_shifts = {e - shifts[0] for e in shifts[1:]}
-            relative_periods = [abs(2 / e) for e in relative_shifts if e != 0]
-            diagram_period = _approximate_common_period(relative_periods)
-        else:
-            # Use normal period of the gate.
-            diagram_period = self._period()
-        if diagram_period is None:
-            return result
-
-        # Canonicalize the rounded exponent into (-period/2, period/2].
         if args.precision is not None:
             result = np.around(result, args.precision).item()
-        h = diagram_period / 2
-        if not (-h < result <= h):
-            result = h - result
-            result %= diagram_period
-            result = h - result
-
         return result
 
     def _format_exponent_as_angle(
@@ -207,7 +172,7 @@ class EigenGate(raw_types.Gate):
             Angle in radians corresponding to the exponent of self and
             formatted according to style described by args.
         """
-        exponent = self._diagram_exponent(args, ignore_global_phase=False)
+        exponent = self._diagram_exponent(args)
         pi = sympy.pi if protocols.is_parameterized(exponent) else np.pi
         return args.format_radians(radians=2 * pi * exponent / order)
 
@@ -216,7 +181,7 @@ class EigenGate(raw_types.Gate):
         """Describes the eigenvalues of the gate's matrix.
 
         By default, this just extracts the shifts by calling
-        self._eigen_components(). However, because that method generates
+        `self._eigen_components()`. However, because that method generates
         matrices it may be extremely expensive.
 
         Returns:

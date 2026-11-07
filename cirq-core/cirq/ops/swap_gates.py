@@ -197,7 +197,7 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
     is an instance of this gate at exponent=1.
 
     References:
-        "What is the matrix of the iSwap gate?"
+        "What is the matrix of the iSWAP gate?"
         https://quantumcomputing.stackexchange.com/questions/2594/
     """
 

@@ -382,14 +382,11 @@ def test_kak_str() -> None:
         single_qubit_operations_after=(cirq.unitary(cirq.Y), cirq.unitary(cirq.Z)),
         global_phase=1j,
     )
-    assert (
-        str(v)
-        == """KAK {
+    assert str(v) == """KAK {
     xyz*(4/π): 0.3, 0.2, 0.1
     before: (0*π around X) ⊗ (1*π around X)
     after: (1*π around Y) ⊗ (1*π around Z)
 }"""
-    )
 
 
 def test_axis_angle_decomposition_eq() -> None:
@@ -592,7 +589,7 @@ def _random_two_qubit_unitaries(num_samples: int, random_state: cirq.RANDOM_STAT
     kr = _local_two_qubit_unitaries(num_samples, random_state)
 
     prng = value.parse_random_state(random_state)
-    # Generate the non-local part by explict matrix exponentiation.
+    # Generate the non-local part by explicit matrix exponentiation.
     kak_vecs = prng.rand(num_samples, 3) * np.pi
     gens = np.einsum('...a,abc->...bc', kak_vecs, _kak_gens)
     evals, evecs = np.linalg.eigh(gens)
@@ -736,7 +733,7 @@ def test_kak_decompose(unitary: np.ndarray) -> None:
     circuit = cirq.Circuit(kak._decompose_(cirq.LineQubit.range(2)))
     np.testing.assert_allclose(cirq.unitary(circuit), unitary, atol=1e-6)
     assert len(circuit) == 5
-    assert len(list(circuit.all_operations())) == 8
+    assert sum(1 for _ in circuit.all_operations()) == 8
 
 
 @cirq.testing.retry_once_with_later_random_values

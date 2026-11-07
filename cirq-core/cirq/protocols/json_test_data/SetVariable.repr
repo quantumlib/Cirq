@@ -1,0 +1,3 @@
+[
+cirq.SetVariable(sympy.Symbol('a'), sympy.Symbol('b') + 1)
+]

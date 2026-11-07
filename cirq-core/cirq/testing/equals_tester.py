@@ -102,7 +102,7 @@ class EqualsTester:
         or will be added.
 
         Args:
-          *group_items: The items making up the equivalence group.
+            *group_items: The items making up the equivalence group.
 
         Raises:
             AssertionError: Items within the group are not equal to each other,

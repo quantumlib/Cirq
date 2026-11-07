@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 import IPython.display
 import numpy as np
 import pytest
@@ -24,9 +26,16 @@ def test_svg() -> None:
             cirq.MatrixGate(np.eye(2)).on(a),
         )
     )
-    assert '?' in svg_text
     assert '<svg' in svg_text
     assert '</svg>' in svg_text
+    # check text rendering fontsize
+    # single letter X gate rendered at 18px
+    assert re.search(r'<text[^>]*\bfont-size="18px[^>]*>X</text>', svg_text)
+    # multi-letter PhasedXPowGate rendered at 14px
+    phx_literal = re.escape("PhX(0.456)^0.123")
+    assert re.search(rf'<text[^>]*\bfont-size="14px[^>]*>{phx_literal}</text>', svg_text)
+    # MatrixGate replaced with "?" rendered at 18px
+    assert re.search(r'<text[^>]*\bfont-size="18px[^>]*>[?]</text>', svg_text)
 
 
 def test_svg_noise() -> None:
@@ -90,3 +99,10 @@ def test_gate_with_less_greater_str(symbol, svg_symbol) -> None:
 
     _ = IPython.display.SVG(svg)
     assert svg_symbol in svg
+
+
+def test_named_qubit_name_is_quoted():
+    q = cirq.NamedQubit("<a, &b, >c, some name")
+    svg_circuit = SVGCircuit(cirq.Circuit(cirq.I(q)))
+    svg = svg_circuit._repr_svg_()
+    assert "&lt;a, &amp;b, &gt;c, some name" in svg

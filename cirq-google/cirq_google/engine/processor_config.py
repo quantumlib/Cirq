@@ -39,6 +39,22 @@ class Run:
 DeviceConfigRevision: TypeAlias = Snapshot | Run
 
 
+def validate_device_config_revision(device_config_revision: DeviceConfigRevision | None) -> None:
+    """Validates that the given revision is a Snapshot, Run, or None.
+
+    Raises:
+        TypeError: If the revision is not a Snapshot, Run, or None.
+    """
+    if device_config_revision is not None and not isinstance(
+        device_config_revision, (Snapshot, Run)
+    ):
+        raise TypeError(
+            "device_config_revision must be an instance of "
+            "cirq_google.Snapshot or cirq_google.Run. "
+            f"Got {device_config_revision!r}"
+        )
+
+
 class ProcessorConfig:
     """Representation of a quantum processor configuration.
 
@@ -53,7 +69,7 @@ class ProcessorConfig:
         processor: cg.engine.AbstractProcessor,
         device_config_revision: DeviceConfigRevision | None = None,
     ) -> None:
-        """Contructs a Processor Config.
+        """Constructs a Processor Config.
 
         Args:
             quantum_processor_config: The quantum processor config.
@@ -72,25 +88,25 @@ class ProcessorConfig:
                 self._quantum_processor_config.characterization, v2.metrics_pb2.MetricsSnapshot()
             )
         )
-        self._device_vesion = device_config_revision
+        self._device_version = device_config_revision
         self._processor = processor
 
     @property
     def effective_device(self) -> cirq.Device:
-        """The GridDevice generated from thisc configuration's device specification"""
+        """The GridDevice generated from this configuration's device specification."""
         return self._grid_device
 
     @property
     def calibration(self) -> cg.Calibration:
-        """Charicterization metrics captured for this configuration"""
+        """Characterization metrics captured for this configuration."""
         return self._calibration
 
     @property
     def snapshot_id(self) -> str:
-        """The snapshot that contains this processor config"""
+        """The snapshot that contains this processor config."""
         if 'configSnapshots' not in self._quantum_processor_config.name:
             # We assume the calling `get_quantume_processor_config` always
-            # returns a config with the snapshot resouce nanme.  This check
+            # returns a config with the snapshot resource name.  This check
             # is added in case this behavior changes in the future.
             return ''
         parts = self._quantum_processor_config.name.split('/')
@@ -98,8 +114,8 @@ class ProcessorConfig:
 
     @property
     def run_name(self) -> str:
-        """The run that generated this config if avaiable."""
-        return self._device_vesion.id if isinstance(self._device_vesion, Run) else ''
+        """The run that generated this config (if available)."""
+        return self._device_version.id if isinstance(self._device_version, Run) else ''
 
     @property
     def processor_id(self) -> str:
@@ -113,7 +129,9 @@ class ProcessorConfig:
         parts = self._quantum_processor_config.name.split('/')
         return parts[-1]
 
-    def sampler(self, max_concurrent_jobs: int = 100) -> processor_sampler.ProcessorSampler:
+    def sampler(
+        self, max_concurrent_jobs: int = 100, circuits_per_job: int = 1
+    ) -> processor_sampler.ProcessorSampler:
         """Returns the sampler backed by this config.
 
         Args:
@@ -121,9 +139,15 @@ class ProcessorConfig:
                 simultaneously to the Engine. This client-side throttle can be
                 used to proactively reduce load to the backends and avoid quota
                 violations when pipelining circuit executions.
+            circuits_per_job:  If set to greater than 1, this will batch multiple
+                circuits within the same API call when calling run_batch() or
+                run_batch_async() up to a maximum of `circuits_per_job`.
+                Note that actual hardware execution order is not guaranteed
+                if circuits_per_job > 1. (For instance, the hardware may run
+                all circuits for the first sweep point, then the second point, etc.).
 
         Returns:
-            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
+            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`)
             that will send circuits to the Quantum Computing Service
             when sampled.
         """
@@ -133,6 +157,7 @@ class ProcessorConfig:
             snapshot_id=self.snapshot_id,
             device_config_name=self.config_name,
             max_concurrent_jobs=max_concurrent_jobs,
+            circuits_per_job=circuits_per_job,
         )
 
     def __repr__(self) -> str:

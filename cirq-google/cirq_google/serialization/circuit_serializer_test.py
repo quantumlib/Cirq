@@ -62,7 +62,7 @@ Q1 = cirq.GridQubit(2, 5)
 
 X_PROTO = op_proto({'xpowgate': {'exponent': {'float_value': 1.0}}, 'qubit_constant_index': [0]})
 
-# TODO(#5758): Add support for numpy types to `TParamVal`.
+# TODO(#5758): Add support for NumPy types to `TParamVal`.
 OPERATIONS = [
     (cirq.X(Q0), X_PROTO),
     (
@@ -265,6 +265,20 @@ OPERATIONS = [
                     'theta': {'float_value': 2.0},
                     'phi': {'float_value': 1.0},
                     'translate_via_model': True,
+                },
+                'qubit_constant_index': [0, 1],
+                'tag_indices': [2],
+            }
+        ),
+    ),
+    (
+        cirq.FSimGate(theta=2, phi=1)(Q0, Q1).with_tags(cg.TwoPulseFSimTag()),
+        op_proto(
+            {
+                'fsimgate': {
+                    'theta': {'float_value': 2.0},
+                    'phi': {'float_value': 1.0},
+                    'translate_to_two_pulse': True,
                 },
                 'qubit_constant_index': [0, 1],
                 'tag_indices': [2],
@@ -619,7 +633,7 @@ def test_serialize_deserialize_circuit_with_constants_table():
     assert serializer.deserialize(proto) == circuit
 
 
-def test_deserialize_circuit_with_mixed_moments_and_indicies_not_allowed():
+def test_deserialize_circuit_with_mixed_moments_and_indices_not_allowed():
     serializer = cg.CircuitSerializer()
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='exp', gate_set=_SERIALIZER_NAME),
@@ -962,7 +976,7 @@ def test_serialize_op_bad_operation():
     class NullOperation(cirq.Operation):
         @property
         def qubits(self):
-            return tuple()  # pragma: no cover
+            return ()  # pragma: no cover
 
         def with_qubits(self, *qubits):
             return self  # pragma: no cover
@@ -980,6 +994,13 @@ def test_deserialize_fsim_missing_parameters():
     )
     with pytest.raises(ValueError, match='theta and phi must be specified'):
         serializer.deserialize(proto)
+
+
+def test_fsim_with_both_tags_raises_error():
+    serializer = cg.CircuitSerializer()
+    op = cirq.FSimGate(theta=2, phi=1)(Q0, Q1).with_tags(cg.FSimViaModelTag(), cg.TwoPulseFSimTag())
+    with pytest.raises(ValueError, match='FSimViaModelTag and TwoPulseFSimTag'):
+        serializer.serialize(cirq.Circuit(op))
 
 
 def test_deserialize_wrong_types():
@@ -1054,8 +1075,11 @@ def test_circuit_with_analog_detune_coupler_only():
     [
         cg.ops.DynamicalDecouplingTag('X'),
         cg.FSimViaModelTag(),
+        cg.TwoPulseFSimTag(),
         cg.PhysicalZTag(),
         cg.InternalTag(name='abc', package='xyz'),
+        cg.NoSyncTag(),
+        cg.NoSyncTag(reverse=0, forward=1),
     ],
 )
 def test_circuit_with_tag(tag):
@@ -1502,4 +1526,4 @@ def test_multi_programs_bad_function() -> None:
 
     sweep = cirq.Points('num_x', [1, 2])
     with pytest.raises(ValueError, match="Function returned unrecognized type"):
-        _ = serializer.serialize_circuit_function(_bad_function, sweep)  # type: ignore
+        _ = serializer.serialize_circuit_function(_bad_function, sweep)  # type: ignore[arg-type]

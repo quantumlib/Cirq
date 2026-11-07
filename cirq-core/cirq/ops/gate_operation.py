@@ -23,7 +23,7 @@ from collections.abc import Collection, Mapping, Sequence, Set
 from types import NotImplementedType
 from typing import Any, cast, Self, TYPE_CHECKING, TypeVar
 
-from cirq import ops, protocols, value
+from cirq import _compat, ops, protocols, value
 from cirq.ops import control_values as cv, gate_features, raw_types
 
 if TYPE_CHECKING:
@@ -255,30 +255,21 @@ class GateOperation(raw_types.Operation):
             return getter(sim_state, self.qubits)
         return NotImplemented
 
+    @_compat.cached_method
     def _is_parameterized_(self) -> bool:
-        getter = getattr(self.gate, '_is_parameterized_', None)
-        if getter is not None:
-            return getter()
-        return NotImplemented
+        return protocols.is_parameterized(self.gate) or self._are_qubits_parameterized()
 
+    @_compat.cached_method
     def _parameter_names_(self) -> Set[str]:
-        getter = getattr(self.gate, '_parameter_names_', None)
-        if getter is not None:
-            return getter()
-        return NotImplemented
+        return frozenset(protocols.parameter_names(self.gate) | self._qubit_parameter_names())
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> cirq.Operation:
         resolved_gate = protocols.resolve_parameters(self.gate, resolver, recursive)
-        return self.with_gate(resolved_gate)
+        resolved_qubits = protocols.resolve_parameters(self.qubits, resolver, recursive)
+        return resolved_gate.on(*resolved_qubits)
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.circuit_diagram_info(self.gate, args, NotImplemented)
-
-    def _decompose_into_clifford_(self):
-        sub = getattr(self.gate, '_decompose_into_clifford_with_qubits_', None)
-        if sub is None:
-            return NotImplemented  # pragma: no cover
-        return sub(self.qubits)
 
     def _trace_distance_bound_(self) -> float:
         getter = getattr(self.gate, '_trace_distance_bound_', None)
@@ -314,7 +305,7 @@ class GateOperation(raw_types.Operation):
     def __mul__(self, other: Any) -> Any:
         result = self.gate._mul_with_qubits(self._qubits, other)
 
-        # python will not auto-attempt the reverse order for same type.
+        # Python will not auto-attempt the reverse order for same type.
         if result is NotImplemented and isinstance(other, GateOperation):
             return other.__rmul__(self)
 

@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Iterable
 
 import cirq
@@ -24,8 +25,10 @@ from cirq_web.circuits.symbols import (
     resolve_operation,
     SymbolResolver,
 )
+from cirq_web.deprecation import deprecated_cirq_web_class
 
 
+@deprecated_cirq_web_class
 class Circuit3D(widget.Widget):
     """Takes cirq.Circuit objects and displays them in 3D."""
 
@@ -58,8 +61,14 @@ class Circuit3D(widget.Widget):
         self.serialized_circuit = self._serialize_circuit()
 
         return f"""
-            <button id="camera-reset">Reset Camera</button>
-            <button id="camera-toggle">Toggle Camera Type</button>
+            <div>
+                <button id="camera-reset">Reset Camera</button>
+                <button id="camera-toggle">Toggle Camera Type</button>
+            </div>
+            <div id="foreign-symbols-wrapper-{stripped_id}" style="display: none;">
+                <h4>Foreign symbols:</h4>
+                <ul id="foreign-symbols-list-{stripped_id}"></ul>
+            </div>
             <script>
             let viz_{stripped_id} = createGridCircuit(
                 {self.serialized_circuit}, {moments}, "{self.id}", {self.padding_factor}
@@ -72,6 +81,17 @@ class Circuit3D(widget.Widget):
             document.getElementById("camera-toggle").addEventListener('click', ()  => {{
             viz_{stripped_id}.scene.toggleCamera(viz_{stripped_id}.circuit);
             }});
+
+            if (viz_{stripped_id}.circuit.foreign_symbols.length > 0) {{
+                const wrapper = document.getElementById("foreign-symbols-wrapper-{stripped_id}");
+                const list = document.getElementById("foreign-symbols-list-{stripped_id}");
+                wrapper.style.display = 'block';
+                viz_{stripped_id}.circuit.foreign_symbols.forEach(op => {{
+                    const listItem = document.createElement('li');
+                    listItem.innerText = `Moment ${{op.moment}}: ${{op.wire_symbols.join(', ')}}`;
+                    list.appendChild(listItem);
+                }});
+            }}
             </script>
         """
 
@@ -86,8 +106,7 @@ class Circuit3D(widget.Widget):
                 symbol = self._build_3D_symbol(item, moment_id)
                 args.append(symbol.to_typescript())
 
-        argument_str = ','.join(str(item) for item in args)
-        return f'[{argument_str}]'
+        return _to_script_literal(args)
 
     def _build_3D_symbol(self, operation, moment) -> Operation3DSymbol:
         symbol_info = resolve_operation(operation, self._resolvers)
@@ -100,3 +119,15 @@ class Circuit3D(widget.Widget):
             else:
                 raise ValueError('Unsupported qubit type')
         return Operation3DSymbol(symbol_info.labels, location_info, symbol_info.colors, moment)
+
+
+def _to_script_literal(value) -> str:
+    """Encodes a value as a JS literal that is safe to inline in an HTML script element.
+
+    Wire symbols come from the circuit itself (a measurement key, for example), so a circuit
+    read with `cirq.read_json` can carry `</script>` or a quote into the widget markup and take
+    over the page it is rendered in. JSON is a subset of JS, and escaping the characters that
+    are meaningful to the HTML parser keeps the literal inside the script element.
+    """
+    # ensure_ascii in json.dumps also covers the U+2028/U+2029 line terminators.
+    return json.dumps(value).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')

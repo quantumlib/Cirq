@@ -41,21 +41,21 @@ class GridInteractionLayer(Container[GridQubitPairT]):
     Layers of this type have two different basic structures,
     aligned:
 
-    *-* *-* *-*
-    *-* *-* *-*
-    *-* *-* *-*
-    *-* *-* *-*
-    *-* *-* *-*
-    *-* *-* *-*
+        *-* *-* *-*
+        *-* *-* *-*
+        *-* *-* *-*
+        *-* *-* *-*
+        *-* *-* *-*
+        *-* *-* *-*
 
     and staggered:
 
-    *-* *-* *-*
-    * *-* *-* *
-    *-* *-* *-*
-    * *-* *-* *
-    *-* *-* *-*
-    * *-* *-* *
+        *-* *-* *-*
+        * *-* *-* *
+        *-* *-* *-*
+        * *-* *-* *
+        *-* *-* *-*
+        * *-* *-* *
 
     Other variants are obtained by offsetting these lattices to the right by
     some number of columns, and/or transposing into the vertical orientation.
@@ -64,13 +64,13 @@ class GridInteractionLayer(Container[GridQubitPairT]):
     The 2x2 unit cells for the aligned and staggered versions of this layer
     are, respectively:
 
-    *-*
-    *-*
+        *-*
+        *-*
 
     and
 
-    *-*
-    * *-
+        *-*
+        * *-
 
     with left/top qubits at (0, 0) and (1, 0) in the aligned case, or
     (0, 0) and (1, 1) in the staggered case. Other variants have the same unit
@@ -292,7 +292,7 @@ class CircuitLibraryCombination:
 
     `layer` is used for record-keeping. This is the GridInteractionLayer if using
     `get_random_combinations_for_device`, the Moment if using
-    `get_random_combinations_for_layer_circuit` and ommitted if using
+    `get_random_combinations_for_layer_circuit` and omitted if using
     `get_random_combinations_for_pairs`.
     """
 
@@ -539,6 +539,7 @@ def random_rotations_between_grid_interaction_layers_circuit(
     qubits: Iterable[cirq.GridQubit],
     depth: int,
     *,  # forces keyword arguments
+    device_graph: nx.Graph | None = None,
     two_qubit_op_factory: Callable[
         [cirq.GridQubit, cirq.GridQubit, np.random.RandomState], cirq.OP_TREE
     ] = lambda a, b, _: ops.CZPowGate()(a, b),
@@ -566,6 +567,9 @@ def random_rotations_between_grid_interaction_layers_circuit(
     Args:
         qubits: The qubits to use.
         depth: The number of cycles.
+        device_graph: A graph whose edges specify the available two-qubit interactions. Only edges
+            between qubits in `qubits` are considered. If omitted, all pairs of adjacent grid
+            qubits are used.
         two_qubit_op_factory: A callable that returns a two-qubit operation.
             These operations will be generated with calls of the form
             `two_qubit_op_factory(q0, q1, prng)`, where `prng` is the
@@ -584,7 +588,17 @@ def random_rotations_between_grid_interaction_layers_circuit(
     """
     prng = value.parse_random_state(seed)
     qubits = list(qubits)
-    coupled_qubit_pairs = _coupled_qubit_pairs(qubits)
+    if device_graph is None:
+        coupled_qubit_pairs = _coupled_qubit_pairs(qubits)
+    else:
+        qubit_set = set(qubits)
+        coupled_qubit_pairs = sorted(
+            {
+                tuple(sorted((a, b)))
+                for a, b in device_graph.edges
+                if a in qubit_set and b in qubit_set and a != b
+            }
+        )
 
     circuit = circuits.Circuit()
     previous_single_qubit_layer = circuits.Moment()
@@ -667,7 +681,7 @@ def _single_qubit_gates_arg_to_factory(
     in the previous layer. This check is done by gate identity, not equality.
     """
     if len(set(single_qubit_gates)) == 1:
-        return _FixedSingleQubitLayerFactory({q: single_qubit_gates[0] for q in qubits})
+        return _FixedSingleQubitLayerFactory(dict.fromkeys(qubits, single_qubit_gates[0]))
 
     return _RandomSingleQubitLayerFactory(qubits, single_qubit_gates, prng)
 

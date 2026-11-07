@@ -124,7 +124,7 @@ def fidelity(
             prod *= np.abs(np.vdot(s1.state_vector(), s2.state_vector()))
         return prod**2
 
-    # Two numpy arrays that are either state vector, state tensor, or
+    # Two NumPy arrays that are either state vector, state tensor, or
     # density matrix
     if (
         isinstance(state1, np.ndarray)
@@ -242,11 +242,10 @@ def _fidelity_state_vectors_or_density_matrices(state1: np.ndarray, state2: np.n
         # state1 is a density matrix and state2 is a state vector
         return np.real(np.conjugate(state2) @ state1 @ state2)
     elif state1.ndim == 2 and state2.ndim == 2:
-        # Both density matrices
-        state1_sqrt = _sqrt_positive_semidefinite_matrix(state1)
-        eigs = linalg.eigvalsh(state1_sqrt @ state2 @ state1_sqrt)
-        trace = np.sum(np.sqrt(np.abs(eigs)))
-        return trace**2
+        # Both density matrices: use SVD-based fidelity for numerical stability
+        rho1_sqrt = linalg.sqrtm(state1)
+        rho2_sqrt = linalg.sqrtm(state2)
+        return (np.sum(linalg.svdvals(rho1_sqrt @ rho2_sqrt))) ** 2
     # matrix is reshaped before this point
     raise ValueError(  # pragma: no cover
         'The given arrays must be one- or two-dimensional. '
@@ -305,9 +304,9 @@ def entanglement_fidelity(operation: cirq.SupportsKraus) -> float:
     the maximally entangled state $|\phi\rangle = \frac{1}{\sqrt{dim H}} \sum_i|i\rangle|i\rangle$
     and the state obtained by sending one half of $|\phi\rangle$ through the channel $E$, i.e.
 
-        $$
-        F_e = \langle\phi|(E \otimes I)(|\phi\rangle\langle\phi|)|\phi\rangle
-        $$
+    $$
+    F_e = \langle\phi|(E \otimes I)(|\phi\rangle\langle\phi|)|\phi\rangle
+    $$
 
     where $I: L(H) \to L(H)$ is the identity map.
 

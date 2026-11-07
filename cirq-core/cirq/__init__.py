@@ -68,6 +68,7 @@ from cirq.circuits import (
     AbstractCircuit as AbstractCircuit,
     Alignment as Alignment,
     Circuit as Circuit,
+    CircuitFunction as CircuitFunction,
     CircuitOperation as CircuitOperation,
     FrozenCircuit as FrozenCircuit,
     InsertStrategy as InsertStrategy,
@@ -191,6 +192,8 @@ from cirq.ops import (
     BooleanHamiltonianGate as BooleanHamiltonianGate,
     CCX as CCX,
     CCXPowGate as CCXPowGate,
+    CCY as CCY,
+    CCYPowGate as CCYPowGate,
     CCZ as CCZ,
     CCZPowGate as CCZPowGate,
     CCNOT as CCNOT,
@@ -206,6 +209,8 @@ from cirq.ops import (
     CSwapGate as CSwapGate,
     CX as CX,
     CXPowGate as CXPowGate,
+    CY as CY,
+    CYPowGate as CYPowGate,
     CXSWAP as CXSWAP,
     CZ as CZ,
     CZSWAP as CZSWAP,
@@ -236,6 +241,7 @@ from cirq.ops import (
     I as I,
     identity_each as identity_each,
     IdentityGate as IdentityGate,
+    If as If,
     InterchangeableQubitsGate as InterchangeableQubitsGate,
     ISWAP as ISWAP,
     ISwapPowGate as ISwapPowGate,
@@ -309,6 +315,7 @@ from cirq.ops import (
     ry as ry,
     rz as rz,
     S as S,
+    SetVariable as SetVariable,
     SimpleQubitManager as SimpleQubitManager,
     SingleQubitCliffordGate as SingleQubitCliffordGate,
     SingleQubitPauliStringGateOperation as SingleQubitPauliStringGateOperation,
@@ -323,9 +330,13 @@ from cirq.ops import (
     TOFFOLI as TOFFOLI,
     transform_op_tree as transform_op_tree,
     TwoQubitDiagonalGate as TwoQubitDiagonalGate,
+    VariableGridQid as VariableGridQid,
+    VariableLineQid as VariableLineQid,
+    VariableQid as VariableQid,
     VirtualTag as VirtualTag,
     wait as wait,
     WaitGate as WaitGate,
+    While as While,
     X as X,
     XPowGate as XPowGate,
     XX as XX,
@@ -358,6 +369,7 @@ from cirq.transformers import (
     decompose_two_qubit_interaction_into_four_fsim_gates as decompose_two_qubit_interaction_into_four_fsim_gates,  # noqa: E501
     defer_measurements as defer_measurements,
     dephase_measurements as dephase_measurements,
+    drop_diagonal_before_measurement as drop_diagonal_before_measurement,
     drop_empty_moments as drop_empty_moments,
     drop_negligible_operations as drop_negligible_operations,
     drop_terminal_measurements as drop_terminal_measurements,
@@ -376,6 +388,7 @@ from cirq.transformers import (
     merge_k_qubit_unitaries as merge_k_qubit_unitaries,
     merge_k_qubit_unitaries_to_circuit_op as merge_k_qubit_unitaries_to_circuit_op,
     merge_moments as merge_moments,
+    merge_moments_batch as merge_moments_batch,
     merge_operations as merge_operations,
     merge_operations_to_circuit_op as merge_operations_to_circuit_op,
     merge_single_qubit_gates_to_phased_x_and_z as merge_single_qubit_gates_to_phased_x_and_z,
@@ -410,10 +423,13 @@ from cirq.transformers import (
     two_qubit_matrix_to_diagonal_and_cz_operations as two_qubit_matrix_to_diagonal_and_cz_operations,  # noqa: E501
     two_qubit_matrix_to_ion_operations as two_qubit_matrix_to_ion_operations,
     two_qubit_matrix_to_sqrt_iswap_operations as two_qubit_matrix_to_sqrt_iswap_operations,
+    two_qubit_gate_numerical_compilation as two_qubit_gate_numerical_compilation,
     two_qubit_gate_product_tabulation as two_qubit_gate_product_tabulation,
     TwoQubitCompilationTargetGateset as TwoQubitCompilationTargetGateset,
     TwoQubitGateTabulation as TwoQubitGateTabulation,
     TwoQubitGateTabulationResult as TwoQubitGateTabulationResult,
+    TwoQubitNumericalCompilationResult as TwoQubitNumericalCompilationResult,
+    TwoQubitNumericalCompiler as TwoQubitNumericalCompiler,
     toggle_tags as toggle_tags,
     unroll_circuit_op as unroll_circuit_op,
     unroll_circuit_op_greedy_earliest as unroll_circuit_op_greedy_earliest,
@@ -519,6 +535,7 @@ from cirq.study import (
     Product as Product,
     Sweep as Sweep,
     Sweepable as Sweepable,
+    symbol as symbol,
     to_resolvers as to_resolvers,
     to_sweep as to_sweep,
     to_sweeps as to_sweeps,
@@ -693,16 +710,14 @@ from cirq.work import (
     ZerosSampler as ZerosSampler,
 )
 
-
 # Unflattened sub-modules.
 
 # Registers cirq-core's public classes for JSON serialization.
 from cirq.protocols.json_serialization import _register_resolver
 from cirq.json_resolver_cache import _class_resolver_dictionary
 
-
 _register_resolver(_class_resolver_dictionary)
 
-# contrib's json resolver cache depends on cirq.DEFAULT_RESOLVER
+# contrib's JSON resolver cache depends on cirq.DEFAULT_RESOLVER
 
 from cirq import contrib  # noqa: E402

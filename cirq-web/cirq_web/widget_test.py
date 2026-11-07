@@ -19,6 +19,7 @@ from pathlib import Path
 from unittest import mock
 
 import cirq_web
+from cirq_web.deprecation import assert_deprecated_cirq_web_warning
 
 
 class FakeWidget(cirq_web.Widget):
@@ -36,6 +37,7 @@ def remove_whitespace(string: str) -> str:
     return "".join(string.split())
 
 
+@assert_deprecated_cirq_web_warning
 def test_repr_html(tmpdir) -> None:
     # # Reset the path so the files are accessible
     cirq_web.widget._DIST_PATH = Path(tmpdir) / "dir"
@@ -55,6 +57,7 @@ def test_repr_html(tmpdir) -> None:
     assert remove_whitespace(expected) == remove_whitespace(actual)
 
 
+@assert_deprecated_cirq_web_warning
 @mock.patch.dict(os.environ, {"BROWSER": "true"})
 def test_generate_html_file_with_browser(tmpdir) -> None:
     # # Reset the path so the files are accessible
@@ -66,7 +69,7 @@ def test_generate_html_file_with_browser(tmpdir) -> None:
 
     test_widget = FakeWidget()
     test_html_path = test_widget.generate_html_file(str(path), 'test.html', open_in_browser=True)
-    actual = open(test_html_path, 'r', encoding='utf-8').read()
+    actual = Path(test_html_path).read_text(encoding='utf-8')
 
     expected = f"""
         <meta charset="UTF-8">

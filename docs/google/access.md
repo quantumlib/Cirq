@@ -22,7 +22,7 @@ activity.
 
 You will need to use a Google Cloud Project to access Google Hardware though
 the Quantum Computing Service.   If you have an existing project used for
-Google Compute Engine, Cloud Storage, or other functionality, you can re-use
+Google Compute Engine, Cloud Storage, or other functionality, you can reuse
 that project.  Alternatively, you can create a new project.
 
 [Learn more about creating a project](https://cloud.google.com/docs/overview/)

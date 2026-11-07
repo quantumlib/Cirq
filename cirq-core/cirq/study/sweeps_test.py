@@ -191,6 +191,23 @@ def test_zip_addition() -> None:
     assert _values(zip_sweep2, 'b') == [3, 4]
     assert _values(zip_sweep2, 'c') == [5, 6]
 
+    a = cirq.Points('a', [1, 2, 3, 4, 5])
+    b = cirq.Points('b', [1, 2, 3])
+    c = cirq.Points('c', [1, 2, 3, 4, 5])
+    ab = cirq.ZipLongest(a, b)
+    zip_sweep3 = ab + c
+    assert len(zip_sweep3) == 5
+    assert _values(zip_sweep3, 'a') == [1, 2, 3, 4, 5]
+    assert _values(zip_sweep3, 'b') == [1, 2, 3, 3, 3]
+    assert _values(zip_sweep3, 'c') == [1, 2, 3, 4, 5]
+    assert zip_sweep3 == cirq.Zip(ab, c)
+
+    zip_sweep4 = c + ab
+    assert len(zip_sweep4) == 5
+    assert _values(zip_sweep4, 'a') == [1, 2, 3, 4, 5]
+    assert _values(zip_sweep4, 'b') == [1, 2, 3, 3, 3]
+    assert _values(zip_sweep4, 'c') == [1, 2, 3, 4, 5]
+
 
 def test_empty_product() -> None:
     sweep = cirq.Product()
@@ -215,27 +232,30 @@ def test_slice_sweep() -> None:
     sweep = cirq.Points('a', [1, 2, 3]) * cirq.Points('b', [4, 5, 6, 7])
 
     first_two = sweep[:2]
-    assert list(first_two.param_tuples())[0] == (('a', 1), ('b', 4))
-    assert list(first_two.param_tuples())[1] == (('a', 1), ('b', 5))
+    first_two_iter = first_two.param_tuples()
+    assert next(first_two_iter) == (('a', 1), ('b', 4))
+    assert next(first_two_iter) == (('a', 1), ('b', 5))
     assert len(list(first_two)) == 2
 
     middle_three = sweep[5:8]
-    assert list(middle_three.param_tuples())[0] == (('a', 2), ('b', 5))
-    assert list(middle_three.param_tuples())[1] == (('a', 2), ('b', 6))
-    assert list(middle_three.param_tuples())[2] == (('a', 2), ('b', 7))
+    middle_three_iter = middle_three.param_tuples()
+    assert next(middle_three_iter) == (('a', 2), ('b', 5))
+    assert next(middle_three_iter) == (('a', 2), ('b', 6))
+    assert next(middle_three_iter) == (('a', 2), ('b', 7))
     assert len(list(middle_three.param_tuples())) == 3
 
     odd_elems = sweep[6:1:-2]
-    assert list(odd_elems.param_tuples())[2] == (('a', 1), ('b', 6))
-    assert list(odd_elems.param_tuples())[1] == (('a', 2), ('b', 4))
-    assert list(odd_elems.param_tuples())[0] == (('a', 2), ('b', 6))
+    odd_elems_iter = odd_elems.param_tuples()
+    assert next(odd_elems_iter) == (('a', 2), ('b', 6))
+    assert next(odd_elems_iter) == (('a', 2), ('b', 4))
+    assert next(odd_elems_iter) == (('a', 1), ('b', 6))
     assert len(list(odd_elems.param_tuples())) == 3
 
     sweep_reversed = sweep[::-1]
     assert list(sweep) == list(reversed(list(sweep_reversed)))
 
     single_sweep = sweep[5:6]
-    assert list(single_sweep.param_tuples())[0] == (('a', 2), ('b', 5))
+    assert next(single_sweep.param_tuples()) == (('a', 2), ('b', 5))
     assert len(list(single_sweep.param_tuples())) == 1
 
 
@@ -321,17 +341,10 @@ def test_equality() -> None:
 
 
 def test_repr() -> None:
+    cirq.testing.assert_equivalent_repr(cirq.study.sweeps.Product(cirq.UnitSweep))
+    cirq.testing.assert_equivalent_repr(cirq.study.sweeps.Zip(cirq.UnitSweep))
     cirq.testing.assert_equivalent_repr(
-        cirq.study.sweeps.Product(cirq.UnitSweep),
-        setup_code='import cirq\nfrom collections import OrderedDict',
-    )
-    cirq.testing.assert_equivalent_repr(
-        cirq.study.sweeps.Zip(cirq.UnitSweep),
-        setup_code='import cirq\nfrom collections import OrderedDict',
-    )
-    cirq.testing.assert_equivalent_repr(
-        cirq.ListSweep(cirq.Linspace('a', start=0, stop=3, length=4)),
-        setup_code='import cirq\nfrom collections import OrderedDict',
+        cirq.ListSweep(cirq.Linspace('a', start=0, stop=3, length=4))
     )
     cirq.testing.assert_equivalent_repr(cirq.Points('zero&pi', [0, 3.14159]))
     cirq.testing.assert_equivalent_repr(cirq.Linspace('I/10', 0, 1, 10))
@@ -363,22 +376,14 @@ def test_zip_product_str() -> None:
 
 
 def test_list_sweep_str() -> None:
-    assert (
-        str(cirq.UnitSweep)
-        == '''Sweep:
+    assert str(cirq.UnitSweep) == '''Sweep:
 {}'''
-    )
-    assert (
-        str(cirq.Linspace('a', start=0, stop=3, length=4))
-        == '''Sweep:
+    assert str(cirq.Linspace('a', start=0, stop=3, length=4)) == '''Sweep:
 {'a': 0.0}
 {'a': 1.0}
 {'a': 2.0}
 {'a': 3.0}'''
-    )
-    assert (
-        str(cirq.Linspace('a', start=0, stop=15.75, length=64))
-        == '''Sweep:
+    assert str(cirq.Linspace('a', start=0, stop=15.75, length=64)) == '''Sweep:
 {'a': 0.0}
 {'a': 0.25}
 {'a': 0.5}
@@ -390,16 +395,13 @@ def test_list_sweep_str() -> None:
 {'a': 15.25}
 {'a': 15.5}
 {'a': 15.75}'''
-    )
     assert (
-        str(cirq.ListSweep(cirq.Linspace('a', 0, 3, 4) + cirq.Linspace('b', 1, 2, 2)))
-        == '''Sweep:
+        str(cirq.ListSweep(cirq.Linspace('a', 0, 3, 4) + cirq.Linspace('b', 1, 2, 2))) == '''Sweep:
 {'a': 0.0, 'b': 1.0}
 {'a': 1.0, 'b': 2.0}'''
     )
     assert (
-        str(cirq.ListSweep(cirq.Linspace('a', 0, 3, 4) * cirq.Linspace('b', 1, 2, 2)))
-        == '''Sweep:
+        str(cirq.ListSweep(cirq.Linspace('a', 0, 3, 4) * cirq.Linspace('b', 1, 2, 2))) == '''Sweep:
 {'a': 0.0, 'b': 1.0}
 {'a': 0.0, 'b': 2.0}
 {'a': 1.0, 'b': 1.0}

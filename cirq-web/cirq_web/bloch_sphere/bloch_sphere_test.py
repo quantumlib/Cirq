@@ -21,25 +21,30 @@ import pytest
 
 import cirq
 import cirq_web
+from cirq_web.deprecation import assert_deprecated_cirq_web_warning
 
 
+@assert_deprecated_cirq_web_warning
 def test_init_bloch_sphere_type() -> None:
     bloch_sphere = cirq_web.BlochSphere(state_vector=[1 / math.sqrt(2), 1 / math.sqrt(2)])
     assert isinstance(bloch_sphere, cirq_web.BlochSphere)
 
 
+@assert_deprecated_cirq_web_warning
 @pytest.mark.parametrize('sphere_radius', [5, 0.2, 100])
 def test_valid_bloch_sphere_radius(sphere_radius) -> None:
     bloch_sphere = cirq_web.BlochSphere(sphere_radius, [1 / math.sqrt(2), 1 / math.sqrt(2)])
     assert sphere_radius == bloch_sphere.sphere_radius
 
 
+@assert_deprecated_cirq_web_warning
 @pytest.mark.parametrize('sphere_radius', [0, -1])
 def test_invalid_bloch_sphere_radius(sphere_radius) -> None:
     with pytest.raises(ValueError):
         cirq_web.BlochSphere(sphere_radius=sphere_radius)
 
 
+@assert_deprecated_cirq_web_warning
 def test_valid_bloch_sphere_vector() -> None:
     state_vector = np.array([1 / math.sqrt(2), 1 / math.sqrt(2)])
     bloch_sphere = cirq_web.BlochSphere(state_vector=state_vector)
@@ -47,11 +52,13 @@ def test_valid_bloch_sphere_vector() -> None:
     assert np.array_equal(bloch_vector, bloch_sphere.bloch_vector)
 
 
+@assert_deprecated_cirq_web_warning
 def test_no_state_vector_given() -> None:
     with pytest.raises(ValueError):
         cirq_web.BlochSphere()
 
 
+@assert_deprecated_cirq_web_warning
 def test_bloch_sphere_default_client_code() -> None:
     bloch_sphere = cirq_web.BlochSphere(state_vector=[1 / math.sqrt(2), 1 / math.sqrt(2)])
 
@@ -65,6 +72,7 @@ def test_bloch_sphere_default_client_code() -> None:
     assert expected_client_code == bloch_sphere.get_client_code()
 
 
+@assert_deprecated_cirq_web_warning
 def test_bloch_sphere_default_client_code_comp_basis() -> None:
     bloch_sphere = cirq_web.BlochSphere(state_vector=1)
 
@@ -78,6 +86,7 @@ def test_bloch_sphere_default_client_code_comp_basis() -> None:
     assert expected_client_code == bloch_sphere.get_client_code()
 
 
+@assert_deprecated_cirq_web_warning
 def test_bloch_sphere_default_bundle_name() -> None:
     state_vector = cirq.to_valid_state_vector([math.sqrt(2) / 2, math.sqrt(2) / 2])
     bloch_sphere = cirq_web.BlochSphere(state_vector=state_vector)

@@ -11,11 +11,10 @@ and simulators.
 license](https://img.shields.io/badge/License-Apache%202.0-3c60b1.svg?logo=opensourceinitiative&logoColor=white&style=flat-square)](https://github.com/quantumlib/Cirq/blob/main/LICENSE)
 [![Compatible with Python versions 3.11 and
 higher](https://img.shields.io/badge/Python-3.11+-fcbc2c.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/downloads/)
-[![OpenSSF Best Practices](https://img.shields.io/badge/dynamic/json?label=OpenSSF&logo=springsecurity&logoColor=white&style=flat-square&colorA=gray&colorB=d56420&suffix=%25&query=$.badge_percentage_0&uri=https://bestpractices.coreinfrastructure.org/projects/10063.json)](https://www.bestpractices.dev/projects/10063)
 [![Cirq project on
 PyPI](https://img.shields.io/pypi/v/cirq.svg?logo=python&logoColor=white&label=PyPI&style=flat-square&color=fcbc2c)](https://pypi.org/project/cirq)
 [![Archived in
-Zenodo](https://img.shields.io/badge/10.5281%2Fzenodo.4062499-gray.svg?label=DOI&logo=doi&logoColor=white&style=flat-square&colorA=gray&colorB=3c60b1)](https://doi.org/10.5281/zenodo.4062499)
+Zenodo](https://img.shields.io/badge/10.5281%2Fzenodo.4062499-gray.svg?label=DOI&logo=doi&logoColor=white&style=flat-square&colorA=gray&colorB=b55410)](https://doi.org/10.5281/zenodo.4062499)
 
 [Features](#features) &ndash;
 [Installation](#installation) &ndash;
@@ -37,7 +36,7 @@ results. Some of its features include:
 
 *   Flexible gate definitions and custom gates
 *   Parameterized circuits with symbolic variables
-*   Circuit transformation, compilation and optimization
+*   Circuit transformation, compilation, and optimization
 *   Hardware device modeling
 *   Noise modeling
 *   Multiple built-in quantum circuit simulators
@@ -49,7 +48,7 @@ results. Some of its features include:
 
 ## Installation
 
-Cirq supports Python version 3.11 and later, and can be used on Linux, MacOS,
+Cirq supports Python version 3.11 and later, and can be used on Linux, macOS,
 and Windows, as well as [Google Colab](https://colab.google). For complete
 installation instructions, please refer to the
 [Install](https://quantumai.google/cirq/start/install) section of the online
@@ -117,7 +116,7 @@ documentation for Cirq is available.
 [installation]: https://quantumai.google/cirq/start/install
 [basics]: https://quantumai.google/cirq/start/basics
 [Build]: https://quantumai.google/cirq/build
-[Simulate]: https://quantumai.google/cirq/simula
+[Simulate]: https://quantumai.google/cirq/simulate
 
 ### Reference Documentation
 
@@ -131,15 +130,17 @@ documentation for Cirq is available.
 
 ### Examples
 
-*   The [examples subdirectory](./examples/) of the Cirq GitHub repo has many
+*   The [examples subdirectory] of the Cirq GitHub repo has many
     programs illustrating the application of Cirq to everything from common
     textbook algorithms to more advanced methods.
 *   The [Experiments page](https://quantumai.google/cirq/experiments/) on the
     Cirq documentation site has yet more examples, from simple to advanced.
 
+[examples subdirectory]: https://github.com/quantumlib/Cirq/tree/main/examples/
+
 ### Change log
 
-*   The [Cirq releases](https://github.com/quantumlib/cirq/releases) page on
+*   The [Cirq releases](https://github.com/quantumlib/Cirq/releases) page on
     GitHub lists the changes in each release.
 
 ## Integrations
@@ -153,38 +154,43 @@ develop quantum programs for a variety of applications.
 
 | Your interests                                  | Software to explore  |
 |-------------------------------------------------|----------------------|
+| Programming NISQ quantum computers? | [Cirq] |
 | Quantum algorithms?<br>Fault-tolerant quantum computing (FTQC)? | [Qualtran] |
-| Large circuits and/or a lot of simulations?     | [qsim] |
+| Large circuits and/or a lot of simulations? | [qsim] |
 | Circuits with thousands of qubits and millions of Clifford operations? | [Stim] |
-| Quantum error correction (QEC)?                 | [Stim] |
-| Chemistry and/or material science?              | [OpenFermion]<br>[OpenFermion-FQE]<br>[OpenFermion-PySCF]<br>[OpenFermion-Psi4] |
-| Quantum machine learning (QML)?                 | [TensorFlow Quantum] |
+| Quantum error correction (QEC)? | [Stim]<br>[Chromobius]<br>[Tesseract Decoder] |
+| Chemistry and/or material science? | [OpenFermion]<br>[OpenFermion-FQE]<br>[OpenFermion-PySCF]<br>[OpenFermion-Psi4] |
+| Quantum machine learning (QML)? | [TensorFlow Quantum] |
+| Optimizing tensor network contractions? | [TNCO] |
 | Real experiments using Cirq?                    | [ReCirq] |
 
 </div>
 
-[Qualtran]: https://github.com/quantumlib/qualtran
-[qsim]: https://github.com/quantumlib/qsim
-[Stim]: https://github.com/quantumlib/stim
-[OpenFermion]: https://github.com/quantumlib/openfermion
+[Chromobius]: https://github.com/quantumlib/chromobius
 [OpenFermion-FQE]: https://github.com/quantumlib/OpenFermion-FQE
-[OpenFermion-PySCF]: https://github.com/quantumlib/OpenFermion-PySCF
 [OpenFermion-Psi4]: https://github.com/quantumlib/OpenFermion-Psi4
-[TensorFlow Quantum]: https://github.com/tensorflow/quantum
+[OpenFermion-PySCF]: https://github.com/quantumlib/OpenFermion-PySCF
+[OpenFermion]: https://github.com/quantumlib/openfermion
+[qsim]: https://github.com/quantumlib/qsim
+[Qualtran]: https://github.com/quantumlib/qualtran
 [ReCirq]: https://github.com/quantumlib/ReCirq
+[Stim]: https://github.com/quantumlib/stim
+[TensorFlow Quantum]: https://github.com/tensorflow/quantum
+[Tesseract Decoder]: https://github.com/quantumlib/Tesseract-decoder
+[TNCO]: https://github.com/google-research/tnco
 
 ## Community
 
 <a href="https://github.com/quantumlib/Cirq/graphs/contributors"><img
-width="150em" alt="Total number of contributors to Cirq"
+width="150" alt="Total number of contributors to Cirq"
 src="https://img.shields.io/github/contributors/quantumlib/cirq?label=Contributors&logo=github&color=ccc&style=flat-square"/></a>
 
-Cirq has benefited from [contributions] by over 200 people and
+Cirq has benefited from [contributions] by over 250 people and
 counting. We are dedicated to cultivating an open and inclusive community to
 build software for quantum computers, and have a community [code of conduct].
 
 [contributions]: https://github.com/quantumlib/Cirq/graphs/contributors
-[code of conduct]: https://github.com/quantumlib/cirq/blob/main/CODE_OF_CONDUCT.md
+[code of conduct]: https://github.com/quantumlib/Cirq/blob/main/CODE_OF_CONDUCT.md
 
 ### Announcements
 
@@ -199,8 +205,9 @@ Stay on top of Cirq developments using the approach that best suits your needs:
 
 Cirq releases take place approximately every quarter.
 
-[`cirq-announce`]: https://groups.google.com/forum/#!forum/cirq-announce
+[`cirq-announce`]: https://groups.google.com/g/cirq-announce
 [repository notifications]: https://docs.github.com/github/managing-subscriptions-and-notifications-on-github/configuring-notifications
+[Cirq]: https://github.com/quantumlib/Cirq
 [Cirq releases Atom feed]: https://github.com/quantumlib/Cirq/releases.atom
 [PyPI releases RSS feed]: https://pypi.org/rss/project/cirq/releases.xml
 
@@ -209,13 +216,13 @@ Cirq releases take place approximately every quarter.
 *   Have questions about Cirq? Post them to the [Quantum Computing
     Stack Exchange] and tag them with [`cirq`]. You can also search past
     questions using that tag – it's a great way to learn!
-*   Want meet other Cirq developers and participate in discussions? Join
+*   Want to meet other Cirq developers and participate in discussions? Join
     _Cirq Cynq_, our biweekly virtual meeting of contributors. Sign up
     to [_cirq-dev_] to get an automatic meeting invitation!
 
 [Quantum Computing Stack Exchange]: https://quantumcomputing.stackexchange.com
 [`cirq`]: https://quantumcomputing.stackexchange.com/questions/tagged/cirq
-[_cirq-dev_]: https://groups.google.com/forum/#!forum/cirq-dev
+[_cirq-dev_]: https://groups.google.com/g/cirq-dev
 
 ### Contributions
 
@@ -226,10 +233,11 @@ Cirq releases take place approximately every quarter.
 
 [Open an issue on GitHub]: https://github.com/quantumlib/Cirq/issues/new/choose
 [list of good first issues]: https://github.com/quantumlib/Cirq/contribute
-[contribution guidelines]: https://github.com/quantumlib/cirq/blob/main/CONTRIBUTING.md
-[pull requests]: https://help.github.com/articles/about-pull-requests
+[contribution guidelines]: https://github.com/quantumlib/Cirq/blob/main/CONTRIBUTING.md
+[pull requests]: https://docs.github.com/en/pull-requests/reference/pull-requests
 
-## Citing Cirq<a name="how-to-cite-cirq"></a><a name="how-to-cite"></a>
+<a id="how-to-cite-cirq"></a><a id="how-to-cite"></a>
+## Citing Cirq
 
 When publishing articles or otherwise writing about Cirq, please cite the Cirq
 version you use – it will help others reproduce your results. We use Zenodo to
@@ -260,7 +268,7 @@ This is not an officially supported Google product. This project is not
 eligible for the [Google Open Source Software Vulnerability Rewards
 Program](https://bughunters.google.com/open-source-security).
 
-Copyright 2019 The Cirq Developers.
+Copyright 2018 The Cirq Developers.
 
 <div align="center">
   <a href="https://quantumai.google">

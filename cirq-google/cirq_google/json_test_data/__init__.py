@@ -15,6 +15,6 @@
 # For the cirq_google module, this file specifies test data for JSON
 # serialization of public objects. It is used by
 # cirq/protocols/json_serialization_test.py which checks for coverage of
-# public classes and tests the correctness of repr and json results
+# public classes and tests the correctness of repr and JSON results
 
 from cirq_google.json_test_data.spec import TestSpec as TestSpec

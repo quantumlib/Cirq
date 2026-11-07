@@ -45,7 +45,7 @@ def purity_from_probabilities(
 
     The mean of this distribution is 1 / D and its variance is
     (D - 1) / [D**2 (D + 1)]. In general, the variance of the distribution
-    is multipled by p**2. Therefore, the purity can be computed by dividing
+    is multiplied by p**2. Therefore, the purity can be computed by dividing
     the variance of the empirical probabilities by the Porter-Thomas
     variance (D - 1) / [D**2 (D + 1)].
 

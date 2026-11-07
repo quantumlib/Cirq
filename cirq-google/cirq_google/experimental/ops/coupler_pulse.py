@@ -159,7 +159,7 @@ class CouplerPulse(cirq.ops.Gate):
         s = f'/‾‾({self.hold_time}@{self.coupling_mhz}MHz)‾‾\\'
         return (s, s)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(
             self,
             [

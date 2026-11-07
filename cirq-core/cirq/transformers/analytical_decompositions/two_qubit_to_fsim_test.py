@@ -97,7 +97,9 @@ def test_decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops_fail() -> None
         )
 
 
-@pytest.mark.parametrize('obj,fsim_gate', itertools.product(UNITARY_OBJS, FEASIBLE_FSIM_GATES))
+@pytest.mark.parametrize(
+    'obj,fsim_gate', list(itertools.product(UNITARY_OBJS, FEASIBLE_FSIM_GATES))
+)
 def test_decompose_two_qubit_interaction_into_four_fsim_gates_equivalence(
     obj: Any, fsim_gate: cirq.FSimGate
 ) -> None:

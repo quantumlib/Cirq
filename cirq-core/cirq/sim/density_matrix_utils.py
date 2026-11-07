@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import math
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
@@ -58,7 +59,7 @@ def sample_density_matrix(
         Measurement results with True corresponding to the ``|1⟩`` state.
         The outer list is for repetitions, and the inner corresponds to
         measurements ordered by the supplied qubits. These lists
-        are wrapped as a numpy ndarray.
+        are wrapped as a NumPy ndarray.
 
     Raises:
         ValueError: ``repetitions`` is less than one or size of ``matrix`` is
@@ -78,7 +79,7 @@ def sample_density_matrix(
     if repetitions == 0 or len(indices) == 0:
         return np.zeros(shape=(repetitions, len(indices)), dtype=np.int8)
 
-    prng = value.parse_random_state(seed)
+    prng = value.parse_random_generator(seed)
 
     # Calculate the measurement probabilities.
     probs = _probs(density_matrix, indices, qid_shape)
@@ -127,9 +128,9 @@ def measure_density_matrix(
         seed: A seed for the pseudorandom number generator.
 
     Returns:
-        A tuple of a list and a numpy array. The list is an array of booleans
+        A tuple of a list and a NumPy array. The list is an array of Booleans
         corresponding to the measurement values (ordered by the indices). The
-        numpy array is the post measurement matrix. This matrix has the same
+        NumPy array is the post measurement matrix. This matrix has the same
         shape and dtype as the input matrix.
 
     Raises:
@@ -157,10 +158,7 @@ def measure_density_matrix(
     if len(indices) == 0:
         return ([], arrout)
 
-    prng = value.parse_random_state(seed)
-
-    # Cache initial shape.
-    initial_shape = density_matrix.shape
+    prng = value.parse_random_generator(seed)
 
     # Calculate the measurement probabilities and then make the measurement.
     probs = _probs(density_matrix, indices, qid_shape)
@@ -176,12 +174,10 @@ def measure_density_matrix(
     # Remove ellipses from last element of
     mask[result_slice * 2] = False
 
-    # Potentially reshape to tensor, and then set masked values to 0.
-    arrout.shape = qid_shape * 2
-    arrout[mask] = 0
+    # Reshape to a tensor inplace to set the masked values to 0.
+    arrout.reshape(qid_shape * 2, copy=False)[mask] = 0
 
-    # Restore original shape (if necessary) and renormalize.
-    arrout.shape = initial_shape
+    # Renormalize.
     arrout /= probs[result]
 
     return measurement_bits, arrout
@@ -228,8 +224,8 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
     """
     shape = density_matrix.shape
     half_index = len(shape) // 2
-    row_size = np.prod(shape[:half_index]).item() if shape else 0
-    col_size = np.prod(shape[half_index:]).item() if shape else 0
+    row_size = math.prod(shape[:half_index]) if shape else 0
+    col_size = math.prod(shape[half_index:]) if shape else 0
     if row_size != col_size:
         raise ValueError(f'Matrix was not square. Shape was {shape}')
     if row_size & (row_size - 1):

@@ -17,12 +17,14 @@ from __future__ import annotations
 import contextlib
 import dataclasses
 import datetime
+import gzip
 import importlib
 import io
 import json
 import os
 import pathlib
 import warnings
+from typing import Any
 from unittest import mock
 
 import attrs
@@ -80,7 +82,7 @@ def test_deprecated_cirq_type_in_json_dict() -> None:
         def __eq__(self, other):
             return isinstance(other, HasOldJsonDict)  # pragma: no cover
 
-        def _json_dict_(self):
+        def _json_dict_(self) -> dict[str, Any]:
             return {'cirq_type': 'test.noncirq.namespace.HasOldJsonDict'}
 
         @classmethod
@@ -94,7 +96,7 @@ def test_deprecated_cirq_type_in_json_dict() -> None:
         if name == 'test.noncirq.namespace.HasOldJsonDict':  # pragma: no cover
             return HasOldJsonDict
 
-    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+    test_resolvers = [custom_resolver, *cirq.DEFAULT_RESOLVERS]
     with pytest.raises(ValueError, match="Found 'cirq_type'"):
         assert_json_roundtrip_works(HasOldJsonDict(), resolvers=test_resolvers)
 
@@ -181,14 +183,12 @@ def test_op_roundtrip_file_obj(tmpdir) -> None:
 
 def test_fail_to_resolve() -> None:
     buffer = io.StringIO()
-    buffer.write(
-        """
+    buffer.write("""
     {
       "cirq_type": "MyCustomClass",
       "data": [1, 2, 3]
     }
-    """
-    )
+    """)
     buffer.seek(0)
 
     with pytest.raises(ValueError) as e:
@@ -206,13 +206,13 @@ Q0, Q1, Q2, Q3, Q4 = QUBITS
 # during test setup deprecated submodules are inspected and trigger the
 # deprecation error in testing. It is cleaner to just turn it off than to assert
 # deprecation for each submodule.
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.dict(os.environ, {'CIRQ_TESTING': 'false'})
 def test_shouldnt_be_serialized_no_superfluous(mod_spec: ModuleJsonTestSpec) -> None:
     # everything in the list should be ignored for a reason
     names = set(mod_spec.get_all_names())
     missing_names = set(mod_spec.should_not_be_serialized).difference(names)
     assert len(missing_names) == 0, (
-        f"Defined as \"should't be serialized\", "
+        f"Defined as \"shouldn't be serialized\", "
         f"but missing from {mod_spec}: \n"
         f"{missing_names}"
     )
@@ -222,7 +222,7 @@ def test_shouldnt_be_serialized_no_superfluous(mod_spec: ModuleJsonTestSpec) -> 
 # during test setup deprecated submodules are inspected and trigger the
 # deprecation error in testing. It is cleaner to just turn it off than to assert
 # deprecation for each submodule.
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.dict(os.environ, {'CIRQ_TESTING': 'false'})
 def test_not_yet_serializable_no_superfluous(mod_spec: ModuleJsonTestSpec) -> None:
     # everything in the list should be ignored for a reason
     names = set(mod_spec.get_all_names())
@@ -243,7 +243,7 @@ def test_mutually_exclusive_not_serialize_lists(mod_spec: ModuleJsonTestSpec) ->
 
 @pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
 def test_resolver_cache_vs_should_not_serialize(mod_spec: ModuleJsonTestSpec) -> None:
-    resolver_cache_types = set([n for (n, _) in mod_spec.get_resolver_cache_types()])
+    resolver_cache_types = {n for (n, _) in mod_spec.get_resolver_cache_types()}
     common = set(mod_spec.should_not_be_serialized) & resolver_cache_types
 
     assert len(common) == 0, (
@@ -255,7 +255,7 @@ def test_resolver_cache_vs_should_not_serialize(mod_spec: ModuleJsonTestSpec) ->
 
 @pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS, ids=repr)
 def test_resolver_cache_vs_not_yet_serializable(mod_spec: ModuleJsonTestSpec) -> None:
-    resolver_cache_types = set([n for (n, _) in mod_spec.get_resolver_cache_types()])
+    resolver_cache_types = {n for (n, _) in mod_spec.get_resolver_cache_types()}
     common = set(mod_spec.not_yet_serializable) & resolver_cache_types
 
     assert len(common) == 0, (
@@ -375,7 +375,7 @@ class SBKImpl(cirq.SerializableByKey):
             (self.name, tuple(self.data_list), self.data_tuple, frozenset(self.data_dict.items()))
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "data_list": self.data_list,
@@ -427,7 +427,7 @@ def test_serializable_by_key() -> None:
 # during test setup deprecated submodules are inspected and trigger the
 # deprecation error in testing. It is cleaner to just turn it off than to assert
 # deprecation for each submodule.
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+@mock.patch.dict(os.environ, {'CIRQ_TESTING': 'false'})
 def _list_public_classes_for_tested_modules():
     # to remove DeprecationWarning noise during test collection
     with warnings.catch_warnings():
@@ -520,7 +520,7 @@ def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: st
 class SerializableTypeObject:
     test_type: type
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return {'test_type': json_serialization.json_cirq_type(self.test_type)}
 
     @classmethod
@@ -549,9 +549,9 @@ def test_type_serialization(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cl
             return SerializableTypeObject
 
     sto = SerializableTypeObject(cls)
-    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+    test_resolvers = [custom_resolver, *cirq.DEFAULT_RESOLVERS]
     expected_json = f'{{\n  "cirq_type": "SerializableTypeObject",\n  "test_type": "{typename}"\n}}'
-    assert cirq.to_json(sto) == expected_json
+    assert cirq.to_json(sto, indent=2) == expected_json
     assert cirq.read_json(json_text=expected_json, resolvers=test_resolvers) == sto
     assert_json_roundtrip_works(sto, resolvers=test_resolvers)
 
@@ -561,7 +561,7 @@ def test_invalid_type_deserialize() -> None:
         if name == 'SerializableTypeObject':
             return SerializableTypeObject
 
-    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+    test_resolvers = [custom_resolver, *cirq.DEFAULT_RESOLVERS]
     invalid_json = '{\n  "cirq_type": "SerializableTypeObject",\n  "test_type": "bad_type"\n}'
     with pytest.raises(ValueError, match='Could not resolve type'):
         _ = cirq.read_json(json_text=invalid_json, resolvers=test_resolvers)
@@ -572,11 +572,7 @@ def test_invalid_type_deserialize() -> None:
 
 
 def test_to_from_strings() -> None:
-    x_json_text = """{
-  "cirq_type": "_PauliX",
-  "exponent": 1.0,
-  "global_shift": 0.0
-}"""
+    x_json_text = '{"cirq_type": "_PauliX", "exponent": 1.0, "global_shift": 0.0}'
     assert cirq.to_json(cirq.X) == x_json_text
     assert cirq.read_json(json_text=x_json_text) == cirq.X
 
@@ -595,6 +591,33 @@ def test_to_from_json_gzip() -> None:
         _ = cirq.read_json_gzip(io.StringIO(), gzip_raw=gzip_data)
     with pytest.raises(ValueError):
         _ = cirq.read_json_gzip()
+
+
+def test_json_gzip_compresslevel() -> None:
+    qubits = cirq.LineQubit.range(100)
+    test_circuit = cirq.Circuit(
+        10 * [cirq.X.on_each(*qubits), cirq.Y.on_each(*qubits), cirq.Z.on_each(*qubits)]
+    )
+    gzip_data_level_0 = cirq.to_json_gzip(test_circuit, compresslevel=0)
+    gzip_data_level_9 = cirq.to_json_gzip(test_circuit, compresslevel=9)
+    assert len(gzip_data_level_9) < 0.1 * len(gzip_data_level_0)
+    json_bytes = cirq.to_json(test_circuit).encode()
+    assert gzip.decompress(gzip_data_level_0) == json_bytes
+    assert gzip.decompress(gzip_data_level_9) == json_bytes
+
+
+def test_json_gzip_is_reproducible(tmp_path: pathlib.Path) -> None:
+    expected_bytes = (
+        # gzip.compress(b'1', compresslevel=1, mtime=0) using Python 3.13
+        b'\x1f\x8b\x08\x00\x00\x00\x00\x00\x04\xff3\x04\x00\xb7\xef\xdc\x83\x01\x00\x00\x00'
+    )
+    actual_bytes = cirq.to_json_gzip(1)
+    gzip_file_path = tmp_path.joinpath("one.json.gz")
+    cirq.to_json_gzip(1, gzip_file_path)
+    assert gzip_file_path.read_bytes() == actual_bytes
+    # compare without the gzip header OS byte which may vary over Python versions
+    assert actual_bytes.startswith(expected_bytes[:9])
+    assert actual_bytes.endswith(expected_bytes[10:])
 
 
 def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: str | None):
@@ -734,7 +757,7 @@ def test_dataclass_json_dict() -> None:
         q: cirq.LineQubit
         desc: str
 
-        def _json_dict_(self):
+        def _json_dict_(self) -> dict[str, Any]:
             return cirq.dataclass_json_dict(self)
 
     def custom_resolver(name):
@@ -747,12 +770,9 @@ def test_dataclass_json_dict() -> None:
 
 
 def test_numpy_values() -> None:
-    assert (
-        cirq.to_json({'value': np.array(1)})
-        == """{
-  "value": 1
-}"""
-    )
+    assert cirq.to_json({'value': np.array(1)}) == '{"value": 1}'
+    # Verify support for special floating point values.
+    assert_json_roundtrip_works(np.array([np.nan, -np.inf, np.inf]))
 
 
 def test_basic_time_assertions() -> None:

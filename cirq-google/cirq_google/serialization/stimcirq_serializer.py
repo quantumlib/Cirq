@@ -83,9 +83,9 @@ class StimCirqSerializer(OpSerializer):
             if value is not None:
                 arg_to_proto(value, out=gate_args[arg_name])
 
-        # Special handling for the pauli gate of SweepPauli
+        # Special handling for the Pauli gate of SweepPauli
         if cls_name == "SweepPauli":
-            gate_args["pauli"].arg_value.string_value = str(stimcirq_obj.pauli)  # type: ignore
+            gate_args["pauli"].arg_value.string_value = str(stimcirq_obj.pauli)  # type: ignore[union-attr]
 
         # If this is a gate (and not an Operation), add its qubits
         if is_gate:

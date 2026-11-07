@@ -161,7 +161,7 @@ def test_unitary() -> None:
         _ = cirq.unitary(ReturnsNotImplemented())
     assert cirq.unitary(ReturnsMatrix()) is m1
 
-    # Test that numpy arrays are handled directly
+    # Test that NumPy arrays are handled directly
     test_matrix = np.array([[1, 0], [0, 1]])
     assert cirq.unitary(test_matrix) is test_matrix
     non_unitary_matrix = np.array([[1, 1], [0, 1]])

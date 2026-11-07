@@ -27,6 +27,7 @@ from attrs import frozen
 from cirq import ops, protocols
 from cirq.circuits import Circuit, FrozenCircuit, Moment
 from cirq.protocols import unitary_protocol
+from cirq.protocols.control_key_protocol import control_keys
 from cirq.protocols.has_stabilizer_effect_protocol import has_stabilizer_effect
 from cirq.protocols.has_unitary_protocol import has_unitary
 from cirq.transformers import transformer_api
@@ -92,7 +93,7 @@ def _validate_dd_sequence(dd_sequence: tuple[ops.Gate, ...]) -> None:
 def _parse_dd_sequence(
     schema: str | tuple[ops.Gate, ...],
 ) -> tuple[tuple[ops.Gate, ...], dict[ops.Gate, ops.Pauli]]:
-    """Parses and returns dynamical decoupling sequence and its associated pauli map from schema."""
+    """Parses and returns dynamical decoupling sequence and its associated Pauli map from schema."""
     dd_sequence = None
     if isinstance(schema, str):
         dd_sequence = _get_dd_sequence_from_schema_name(schema)
@@ -106,8 +107,7 @@ def _parse_dd_sequence(
         pauli_gate = _pauli_up_to_global_phase(gate)
         if pauli_gate is not None:
             pauli_map[gate] = pauli_gate
-    for gate in [ops.X, ops.Y, ops.Z]:
-        pauli_map[gate] = gate
+    pauli_map.update({gate: gate for gate in [ops.X, ops.Y, ops.Z]})
 
     return (dd_sequence, pauli_map)
 
@@ -121,7 +121,7 @@ def _is_single_qubit_gate_moment(moment: Moment) -> bool:
 
 
 def _is_clifford_op(op: ops.Operation) -> bool:
-    return has_unitary(op) and has_stabilizer_effect(op)
+    return has_unitary(op) and has_stabilizer_effect(op) and not control_keys(op)
 
 
 def _calc_busy_moment_range_of_each_qubit(circuit: FrozenCircuit) -> dict[ops.Qid, list[int]]:
@@ -150,7 +150,7 @@ def _merge_single_qubit_ops_to_phxz(
 def _backward_set_stopping_slots(
     q: ops.Qid,
     from_mid: int,
-    mergable: dict[ops.Qid, dict[int, bool]],
+    mergeable: dict[ops.Qid, dict[int, bool]],
     need_to_stop: dict[ops.Qid, dict[int, bool]],
     gate_types: dict[ops.Qid, dict[int, _CellType]],
     circuit: FrozenCircuit,
@@ -163,7 +163,7 @@ def _backward_set_stopping_slots(
     Args:
         q: The qubit for which to set stopping slots.
         from_mid: The moment ID to start the backward traversal from.
-        mergable: A dictionary indicating if a single-qubit Clifford gate at (qubit, moment_id)
+        mergeable: A dictionary indicating if a single-qubit Clifford gate at (qubit, moment_id)
             can be merged with a Pauli gate.
         need_to_stop: A dictionary to mark moments where a DD sequence must be stopped.
         gate_types: A dictionary indicating the type of gate at each (qubit, moment_id).
@@ -175,7 +175,7 @@ def _backward_set_stopping_slots(
             if gate_types[back_q][back_mid] == _CellType.WALL:
                 affected_qubits.remove(back_q)
                 continue
-            if mergable[back_q][back_mid]:
+            if mergeable[back_q][back_mid]:
                 need_to_stop[back_q][back_mid] = True
                 affected_qubits.remove(back_q)
                 continue
@@ -210,11 +210,13 @@ class _Grid:
     backtracking.
 
     An example labeled circuit is shown below:
-         |  0  |  1  |  2  |  3  |  4  |
-    -----+-----+-----+-----+-----+-----+
-    q(0) |  d  |  i  | i,s |  d  |  w  |
-    q(1) |  d  |  i  | d,s |  w  |  w  |
-    q(2) |  d  |  d  | d,s |  w  |  w  |
+
+             |  0  |  1  |  2  |  3  |  4  |
+        -----+-----+-----+-----+-----+-----+
+        q(0) |  d  |  i  | i,s |  d  |  w  |
+        q(1) |  d  |  i  | d,s |  w  |  w  |
+        q(2) |  d  |  d  | d,s |  w  |  w  |
+
     where `w`=WALL, `d`=DOOR, `i`=INSERTABLE. `s` represents a stop gate,
     meaning that any unfinished DD sequences must be merged at this gate.
     """
@@ -228,10 +230,10 @@ class _Grid:
         cls, circuit: cirq.FrozenCircuit, single_qubit_gate_moments_only: bool
     ) -> _Grid:
         gate_types: dict[ops.Qid, dict[int, _CellType]] = {
-            q: {mid: _CellType.UNKNOWN for mid in range(len(circuit))} for q in circuit.all_qubits()
+            q: dict.fromkeys(range(len(circuit)), _CellType.UNKNOWN) for q in circuit.all_qubits()
         }
-        mergable: dict[ops.Qid, dict[int, bool]] = {
-            q: {mid: False for mid in range(len(circuit))} for q in circuit.all_qubits()
+        mergeable: dict[ops.Qid, dict[int, bool]] = {
+            q: dict.fromkeys(range(len(circuit)), False) for q in circuit.all_qubits()
         }
         busy_moment_range_by_qubit = _calc_busy_moment_range_of_each_qubit(circuit)
 
@@ -248,30 +250,30 @@ class _Grid:
                 if op_at_q is None:
                     if is_insertable_moment:
                         gate_types[q][mid] = _CellType.INSERTABLE
-                        mergable[q][mid] = True
+                        mergeable[q][mid] = True
                     else:
                         gate_types[q][mid] = _CellType.DOOR
                 else:
                     if _is_clifford_op(op_at_q):
                         gate_types[q][mid] = _CellType.DOOR
-                        mergable[q][mid] = _is_single_qubit_operation(op_at_q)
+                        mergeable[q][mid] = _is_single_qubit_operation(op_at_q)
                     else:
                         gate_types[q][mid] = _CellType.WALL
 
         need_to_stop: dict[ops.Qid, dict[int, bool]] = {
-            q: {mid: False for mid in range(len(circuit))} for q in circuit.all_qubits()
+            q: dict.fromkeys(range(len(circuit)), False) for q in circuit.all_qubits()
         }
         # Reversely find the last mergeable gate of each qubit, set them as need_to_stop.
         for q in circuit.all_qubits():
             _backward_set_stopping_slots(
-                q, len(circuit) - 1, mergable, need_to_stop, gate_types, circuit
+                q, len(circuit) - 1, mergeable, need_to_stop, gate_types, circuit
             )
         # Reversely check for each wall gate, mark the closest mergeable gate as need_to_stop.
         for mid in range(len(circuit)):
             for q in circuit.all_qubits():
                 if gate_types[q][mid] == _CellType.WALL:
                     _backward_set_stopping_slots(
-                        q, mid - 1, mergable, need_to_stop, gate_types, circuit
+                        q, mid - 1, mergeable, need_to_stop, gate_types, circuit
                     )
         return cls(circuit=circuit, gate_types=gate_types, need_to_stop=need_to_stop)
 
@@ -279,7 +281,7 @@ class _Grid:
         if not self.gate_types:
             return "Grid(empty)"
 
-        qubits = sorted(list(self.gate_types.keys()))
+        qubits = sorted(self.gate_types.keys())
         num_moments = len(self.gate_types[qubits[0]])
 
         max_qubit_len = max(len(str(q)) for q in qubits) if qubits else 0
@@ -367,11 +369,21 @@ def add_dynamical_decoupling(
                 updated_moment_ops.add(new_op_at_q)
 
         updated_moment = Moment(updated_moment_ops)
-        clifford_ops = [op for op in updated_moment if _is_clifford_op(op)]
-        pulled_through = pulled_through.after(clifford_ops)
+        pulled_through = pulled_through.after(
+            [_as_clifford(op) for op in updated_moment if _is_clifford_op(op)]
+        )
         transformed_moments.append(updated_moment)
 
     if len(pulled_through) > 0:
         raise RuntimeError("Expect empty remaining Paulis after the dd insertion.")
 
     return Circuit.from_moments(*transformed_moments)
+
+
+def _as_clifford(op: ops.Operation) -> ops.Operation:
+    if isinstance(op.gate, ops.PhasedXZGate):
+        gate_clifford = op.gate.canonical_clifford()
+        assert gate_clifford is not None
+        if gate_clifford is not op.gate:
+            return gate_clifford(*op.qubits)
+    return op

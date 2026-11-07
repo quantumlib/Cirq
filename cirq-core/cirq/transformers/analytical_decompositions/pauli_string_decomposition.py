@@ -63,12 +63,12 @@ def _conjugate_with_hadamard(U: npt.NDArray) -> npt.NDArray:
 
 
 def unitary_to_pauli_string(U: npt.NDArray, eps: float = 1e-15) -> DensePauliString | None:
-    """Attempts to find a pauli string (with possible phase) equivalent to U up to eps.
+    """Attempts to find a Pauli string (with possible phase) equivalent to U up to eps.
 
         Based on this answer https://shorturl.at/aA079.
         Let x_mask be the index of the maximum number of the first column of U
         and z_mask be the index of the maximum number of the first column of H†UH
-        each of these indicies is n-bits long where U is 2^n x 2^n.
+        each of these indices is n-bits long where U is 2^n x 2^n.
 
         These two indices/masks encode in binary the indices of the qubits that
         have I, X, Y, Z acting on them as follows:

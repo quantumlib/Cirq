@@ -3,6 +3,7 @@
 See cirq/_compat_test.py for the tests.
 This module contains example deprecations for modules.
 """
+
 import logging
 
 from cirq import _compat

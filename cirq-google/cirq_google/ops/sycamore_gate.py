@@ -16,6 +16,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 
 import cirq
@@ -56,7 +58,7 @@ class SycamoreGate(cirq.FSimGate):
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs):
         return 'SYC', 'SYC'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.obj_to_dict_helper(self, [])
 
 

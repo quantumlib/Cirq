@@ -70,7 +70,7 @@ class MeasurementKey:
     def __str__(self):
         if self._str is None:
             object.__setattr__(
-                self, '_str', MEASUREMENT_KEY_SEPARATOR.join(self.path + (self.name,))
+                self, '_str', MEASUREMENT_KEY_SEPARATOR.join((*self.path, self.name))
             )
         return self._str
 
@@ -97,7 +97,7 @@ class MeasurementKey:
     def __le__(self, other):
         return self == other or self < other
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return {'name': self.name, 'path': self.path}
 
     @classmethod

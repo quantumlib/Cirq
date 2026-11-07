@@ -40,7 +40,7 @@ three_qubit_decomposition = _import.LazyLoader(
 
 
 class MatrixGate(raw_types.Gate):
-    r"""A unitary qubit or qudit gate defined entirely by its numpy matrix.
+    r"""A unitary qubit or qudit gate defined entirely by its NumPy matrix.
 
     For example `cirq.MatrixGate(np.array([[0, 1j], [1, 0]]))` has the unitary matrix:
 
@@ -80,7 +80,7 @@ class MatrixGate(raw_types.Gate):
                 is unitary. See `cirq.is_unitary`.
 
         Raises:
-            ValueError: If the matrix is not a square numpy array, if the matrix does not match
+            ValueError: If the matrix is not a square NumPy array, if the matrix does not match
                 the `qid_shape`, if `qid_shape` is not supplied and the matrix dimension is
                 not a power of 2, or if the matrix not unitary (to the supplied precisions).
         """

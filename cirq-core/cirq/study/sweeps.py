@@ -80,11 +80,11 @@ class Sweep(metaclass=abc.ABCMeta):
 
     def __add__(self, other: Sweep) -> Sweep:
         sweeps: list[Sweep] = []
-        if isinstance(self, Zip):
+        if type(self) is Zip:
             sweeps.extend(self.sweeps)
         else:
             sweeps.append(self)
-        if isinstance(other, Zip):
+        if type(other) is Zip:
             sweeps.extend(other.sweeps)
         elif isinstance(other, Sweep):
             sweeps.append(other)
@@ -233,9 +233,9 @@ class Product(Sweep):
         return length
 
     def param_tuples(self) -> Iterator[Params]:
-        yield from map(
-            lambda values: tuple(itertools.chain.from_iterable(values)),
-            itertools.product(*(factor.param_tuples() for factor in self.factors)),
+        yield from (
+            tuple(itertools.chain.from_iterable(values))
+            for values in itertools.product(*(factor.param_tuples() for factor in self.factors))
         )
 
     def __repr__(self) -> str:
@@ -650,7 +650,7 @@ def dict_to_zip_sweep(factor_dict: ProductOrZipSweepLike) -> Zip:
     """
     return Zip(
         *(
-            Points(k, cast(float, v) if isinstance(v, Sequence) else [v])  # type: ignore
+            Points(k, cast(float, v) if isinstance(v, Sequence) else [v])  # type: ignore[arg-type]
             for k, v in factor_dict.items()
         )
     )

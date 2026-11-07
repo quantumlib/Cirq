@@ -35,8 +35,14 @@ from cirq_google.ops import (
     FSimViaModelTag,
     InternalGate,
     InternalTag,
+    LeakageISWAP,
+    LZSResetViaResonator,
+    MultilevelResetViaResonator,
+    MultiStepMultiLevelReset,
+    NoSyncTag,
     PhysicalZTag,
     SycamoreGate,
+    TwoPulseFSimTag,
     WaitGateWithUnit,
     WillowGate,
 )
@@ -208,9 +214,7 @@ class CircuitSerializer(serializer.Serializer):
             if names is None:
                 circuit_or_map = circuit_function(**dict(param_tuple))
             else:
-                circuit_or_map = circuit_function(
-                    **dict({k: v for k, v in param_tuple if k in names})
-                )
+                circuit_or_map = circuit_function(**{k: v for k, v in param_tuple if k in names})
             if isinstance(circuit_or_map, cirq.AbstractCircuit):
                 circuit_tuples: Sequence[tuple[str, cirq.AbstractCircuit]] = [("", circuit_or_map)]
             elif isinstance(circuit_or_map, Mapping):
@@ -244,10 +248,9 @@ class CircuitSerializer(serializer.Serializer):
                 # Moment is already in the constants table
                 msg.moment_indices.append(moment_index)
                 continue
-            else:
-                # Moment is not yet in the constants table
-                # Create it and we will add it to the table at the end
-                moment_proto = v2.program_pb2.Moment()
+            # Moment is not yet in the constants table
+            # Create it, and we will add it to the table at the end
+            moment_proto = v2.program_pb2.Moment()
 
             for op in moment:
                 if isinstance(op.untagged, cirq.CircuitOperation) or (
@@ -256,7 +259,7 @@ class CircuitSerializer(serializer.Serializer):
                 ):
                     op_pb = moment_proto.circuit_operations.add()
                     self._serialize_circuit_op(
-                        op.untagged.without_classical_controls(),  # type: ignore
+                        op.untagged.without_classical_controls(),  # type: ignore[arg-type]
                         op_pb,
                         constants=constants,
                         raw_constants=raw_constants,
@@ -370,8 +373,16 @@ class CircuitSerializer(serializer.Serializer):
         elif isinstance(gate, cirq.FSimGate):
             arg_func_langs.float_arg_to_proto(gate.theta, out=msg.fsimgate.theta)
             arg_func_langs.float_arg_to_proto(gate.phi, out=msg.fsimgate.phi)
-            if any(isinstance(tag, FSimViaModelTag) for tag in op.tags):
+            has_model_tag = any(isinstance(tag, FSimViaModelTag) for tag in op.tags)
+            has_two_pulse_tag = any(isinstance(tag, TwoPulseFSimTag) for tag in op.tags)
+            if has_model_tag and has_two_pulse_tag:
+                raise ValueError(
+                    'FSimViaModelTag and TwoPulseFSimTag cannot be added to the same FSim gate'
+                )
+            if has_model_tag:
                 msg.fsimgate.translate_via_model = True
+            if has_two_pulse_tag:
+                msg.fsimgate.translate_to_two_pulse = True
         elif isinstance(gate, cirq.MeasurementGate):
             arg_func_langs.arg_to_proto(gate.key, out=msg.measurementgate.key)
             if len(gate.invert_mask):
@@ -386,6 +397,10 @@ class CircuitSerializer(serializer.Serializer):
             )
         elif isinstance(gate, cirq.ResetChannel):
             arg_func_langs.arg_to_proto(gate.dimension, out=msg.resetgate.arguments['dimension'])
+        elif isinstance(
+            gate, (MultilevelResetViaResonator, LZSResetViaResonator, MultiStepMultiLevelReset)
+        ):
+            msg.resetgate.reset_type = type(gate).__name__
         elif isinstance(gate, CouplerPulse):
             arg_func_langs.float_arg_to_proto(
                 gate.hold_time.total_picos(), out=msg.couplerpulsegate.hold_time_ps
@@ -484,7 +499,7 @@ class CircuitSerializer(serializer.Serializer):
                     tag, msg=constant.tag_value, constants=constants, raw_constants=raw_constants
                 )
             elif getattr(tag, 'to_proto', None) is not None:
-                tag.to_proto(constant.tag_value)  # type: ignore
+                tag.to_proto(constant.tag_value)  # type: ignore[attr-defined]
             else:
                 # Try to serialize raw values like strings
                 try:
@@ -873,6 +888,8 @@ class CircuitSerializer(serializer.Serializer):
                 raise ValueError('theta and phi must be specified for FSimGate')
             if operation_proto.fsimgate.translate_via_model:
                 op = op.with_tags(FSimViaModelTag())
+            if operation_proto.fsimgate.translate_to_two_pulse:
+                op = op.with_tags(TwoPulseFSimTag())
         elif which_gate_type == 'measurementgate':
             key = arg_func_langs.arg_from_proto(
                 operation_proto.measurementgate.key, required_arg_name=None
@@ -908,10 +925,32 @@ class CircuitSerializer(serializer.Serializer):
             if not isinstance(dimensions, int):
                 # This should always be int, if serialized from cirq.
                 raise ValueError(f"dimensions {dimensions} for ResetChannel must be an integer!")
-            op = cirq.ResetChannel(dimension=dimensions)(*qubits)
+            match operation_proto.resetgate.reset_type:
+                case "LZSResetViaResonator":
+                    op = LZSResetViaResonator()(*qubits)
+                case "MultilevelResetViaResonator":
+                    op = MultilevelResetViaResonator()(*qubits)
+                case "MultiStepMultiLevelReset":
+                    op = MultiStepMultiLevelReset()(*qubits)
+                case _:
+                    op = cirq.ResetChannel(dimension=dimensions)(*qubits)
         elif which_gate_type == 'internalgate':
             msg = operation_proto.internalgate
-            op = arg_func_langs.internal_gate_from_proto(msg)(*qubits)
+            match str(msg.name):
+                # Add new custom cirq_google gates here:
+                case "LZSResetViaResonator":
+                    # Can be removed once resetgate deployed (about 9/2026)
+                    gate: cirq.Gate = LZSResetViaResonator()
+                case "MultilevelResetViaResonator":
+                    # Can be removed once resetgate deployed (about 9/2026)
+                    gate = MultilevelResetViaResonator()
+                case "LeakageISWAPPhaseMatched":
+                    gate = LeakageISWAP(phase_matched=True)
+                case "LeakageISWAPUnmatched":
+                    gate = LeakageISWAP(phase_matched=False)
+                case _:
+                    gate = arg_func_langs.internal_gate_from_proto(msg)
+            op = gate(*qubits)
         elif which_gate_type == 'couplerpulsegate':
             gate = CouplerPulse(
                 hold_time=cirq.Duration(
@@ -1120,12 +1159,16 @@ class CircuitSerializer(serializer.Serializer):
             return PhysicalZTag()
         elif which == 'fsim_via_model':
             return FSimViaModelTag()
+        elif which == 'two_pulse_fsim':
+            return TwoPulseFSimTag()
         elif which == 'calibration_tag':
             return CalibrationTag.from_proto(msg)
         elif which == 'internal_tag':
             return InternalTag.from_proto(msg)
         elif which == 'compress_duration':
             return CompressDurationTag()
+        elif which == 'no_sync':
+            return NoSyncTag.from_proto(msg)
         elif which == 'raw_value':
             return arg_func_langs.arg_from_proto(msg.raw_value)
         else:

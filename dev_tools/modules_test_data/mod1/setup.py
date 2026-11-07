@@ -10,18 +10,18 @@ name = 'module1'
 
 
 # Read in requirements
-requirements = open('requirements.txt').readlines()
-requirements = [r.strip() for r in requirements]
+with open('requirements.txt', encoding='utf-8') as file:
+    requirements = [r.strip() for r in file]
 
 pack1_packages = ['pack1'] + ['pack1.' + package for package in find_packages(where='pack1')]
 
-# Sanity check
+# Verify version is set
 assert __version__, 'Version string cannot be empty'
 
 setup(
     name=name,
     version=__version__,
-    url='http://github.com/quantumlib/cirq',
+    url='https://github.com/quantumlib/Cirq',
     author='The Cirq Developers',
     author_email='cirq-dev@googlegroups.com',
     maintainer="The Quantum AI open-source software maintainers",

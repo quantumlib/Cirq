@@ -152,7 +152,7 @@ class _ZippedCircuit:
             "unzip" the results of the `wide_circuit`.
         layer_i: Metadata indicating how the `pairs` were generated. This 0-based index is
             which `GridInteractionLayer` or `Moment` was used for these pairs when calibrating
-            several spacial layouts in one request. This field does not modify any behavior.
+            several spatial layouts in one request. This field does not modify any behavior.
             It is propagated to the output result object.
         combination_i: Metadata indicating how the `wide_circuit` was zipped. This is
             the row index of the combinations matrix that identifies this
@@ -300,7 +300,7 @@ def sample_2q_xeb_circuits(
         sampler: A Cirq sampler for executing circuits.
         circuits: A library of two-qubit circuits generated from
             `random_rotations_between_two_qubit_circuit` of sufficient length for `cycle_depths`.
-        cycle_depths: A sequence of cylce depths at which we will truncate each of the `circuits`
+        cycle_depths: A sequence of cycle depths at which we will truncate each of the `circuits`
             to execute.
         repetitions: Each (circuit, cycle_depth) will be sampled for this many repetitions.
         batch_size: We call `run_batch` on the sampler, which can speed up execution in certain
@@ -320,7 +320,7 @@ def sample_2q_xeb_circuits(
             used to incrementally save results to be analyzed later.
 
     Returns:
-        A pandas dataframe with index given by ['circuit_i', 'cycle_depth'].
+        A Pandas DataFrame with index given by ['circuit_i', 'cycle_depth'].
         Columns always include "sampled_probs". If `combinations_by_layer` is
         not `None` and you are doing parallel XEB, additional metadata columns
         will be attached to the returned DataFrame.

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -260,7 +260,7 @@ def compile_circuit(
         # TODO: The routing algorithm sometimes does a poor job with the parity
         # qubits, adding SWAP gates that are unnecessary. This should be fixed,
         # or we can add the parity qubits manually after routing.
-        # Github issue: https://github.com/quantumlib/Cirq/issues/2967
+        # GitHub issue: https://github.com/quantumlib/Cirq/issues/2967
         routing_algo_name = 'greedy'
 
     swap_networks: list[ccr.SwapNetwork] = []
@@ -321,7 +321,7 @@ class QuantumVolumeResult:
     # set.
     sampler_result: float
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return cirq.protocols.obj_to_dict_helper(
             self, ['model_circuit', 'heavy_set', 'compiled_circuit', 'sampler_result']
         )

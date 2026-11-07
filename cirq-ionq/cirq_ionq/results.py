@@ -31,7 +31,7 @@ class QPUResult:
         self, counts: dict[int, int], num_qubits: int, measurement_dict: dict[str, Sequence[int]]
     ):
         # We require a consistent ordering, and here we use bitvector as such.
-        # OrderedDict can be removed in python 3.7, where it is part of the contract.
+        # OrderedDict can be removed in Python 3.7, where it is part of the contract.
         self._counts = collections.OrderedDict(sorted(counts.items()))
         self._num_qubits = num_qubits
         self._measurement_dict = measurement_dict
@@ -103,7 +103,7 @@ class QPUResult:
                 'circuit that produced these results.'
             )
         result: Counter[int] = collections.Counter()
-        result.update([bit_value for bit_value in self.ordered_results(key)])
+        result.update(self.ordered_results(key))
         return result
 
     def measurement_dict(self) -> dict[str, Sequence[int]]:
@@ -139,7 +139,7 @@ class QPUResult:
         for key, targets in self.measurement_dict().items():
             qpu_results = self.ordered_results(key)
             measurements[key] = np.array(
-                list(cirq.big_endian_int_to_bits(x, bit_count=len(targets)) for x in qpu_results)
+                [cirq.big_endian_int_to_bits(x, bit_count=len(targets)) for x in qpu_results]
             )
         return cirq.ResultDict(params=params or cirq.ParamResolver({}), measurements=measurements)
 
@@ -216,7 +216,7 @@ class SimulatorResult:
                 'circuit that produced these results.'
             )
         targets = self._measurement_dict[key]
-        result: dict[int, float] = dict()
+        result: dict[int, float] = {}
         for value, probability in self._probabilities.items():
             bits = [(value >> (self.num_qubits() - target - 1)) & 1 for target in targets]
             bit_value = sum(bit * (1 << i) for i, bit in enumerate(bits[::-1]))
@@ -267,7 +267,7 @@ class SimulatorResult:
             )
         rand = cirq.value.parse_random_state(seed)
         measurements = {}
-        values, weights = zip(*list(self.probabilities().items()))
+        values, weights = zip(*self.probabilities().items())
 
         # normalize weights to sum to 1 if within tolerance because
         # IonQ's pauliexp gates results are not extremely precise

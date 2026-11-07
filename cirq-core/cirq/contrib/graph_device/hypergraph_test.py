@@ -73,7 +73,7 @@ def test_random_hypergraph() -> None:
     n_vertices = 4
     graph = ccgd.UndirectedHypergraph.random(n_vertices, {1: 1.0})
     assert sorted(graph.vertices) == sorted(range(n_vertices))  # type: ignore[type-var]
-    assert set(graph.labelled_edges.values()) == set((None,))
+    assert set(graph.labelled_edges.values()) == {None}
     assert tuple(len(edge) for edge in graph.edges) == (1,) * n_vertices
 
 
@@ -89,7 +89,7 @@ def test_iadd() -> None:
     graph = ccgd.UndirectedHypergraph(labelled_edges={(0, 1): None})
     addend = ccgd.UndirectedHypergraph(labelled_edges={(1, 2): None})
     graph += addend
-    assert set(graph.edges) == set(frozenset(e) for e in ((0, 1), (1, 2)))
+    assert set(graph.edges) == {frozenset(e) for e in ((0, 1), (1, 2))}
     assert sorted(graph.vertices) == [0, 1, 2]  # type: ignore[type-var]
 
 
@@ -102,4 +102,4 @@ def test_add() -> None:
     assert sorted(graph_sum.vertices) == list('abc')
     assert sorted(first_addend.edges) == [frozenset('ab')]
     assert sorted(second_addend.edges) == [frozenset('bc')]
-    assert set(graph_sum.edges) == set(frozenset(e) for e in ('ab', 'bc'))
+    assert set(graph_sum.edges) == {frozenset(e) for e in ('ab', 'bc')}

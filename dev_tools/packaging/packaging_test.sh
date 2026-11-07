@@ -17,7 +17,7 @@
 ################################################################################
 # This script tests packaging. It creates the packages for all the cirq modules
 # `pip install`s them in a clean virtual environment and then runs some simple
-# verificiations on each of the modules, ensuring that they can be imported.
+# verifications on each of the modules, ensuring that they can be imported.
 ################################################################################
 
 set -e

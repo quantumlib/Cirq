@@ -30,7 +30,7 @@ def test_raises_for_non_commuting_paulis() -> None:
 
 
 def test_raises_for_non_hermitian_pauli() -> None:
-    with pytest.raises(ValueError, match='hermitian'):
+    with pytest.raises(ValueError, match='Hermitian'):
         cirq.PauliSumExponential(cirq.X(q0) + 1j * cirq.Z(q1), np.pi / 2)
 
 

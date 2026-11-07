@@ -56,7 +56,7 @@ def two_qubit_matrix_to_cz_isometry(
     d, cz_ops = two_qubit_to_cz.two_qubit_matrix_to_diagonal_and_cz_operations(
         q0, q1, mat, allow_partial_czs, atol, clean_operations
     )
-    decomposed_ops = [ops.PhasedXZGate.from_matrix(np.diag([d[0][0], d[1][1]])).on(q1)] + cz_ops
+    decomposed_ops = [ops.PhasedXZGate.from_matrix(np.diag([d[0][0], d[1][1]])).on(q1), *cz_ops]
     return (
         two_qubit_to_cz.cleanup_operations(decomposed_ops) if clean_operations else decomposed_ops
     )

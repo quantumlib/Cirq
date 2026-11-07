@@ -133,7 +133,7 @@ def acquaint_insides(
 
     # update mapping
     reached_qubits = qubits[: max_reach + 1]
-    positions = list(mapping[q] for q in reached_qubits)
+    positions = [mapping[q] for q in reached_qubits]
     mapping.update(zip(reached_qubits, reversed(positions)))
 
 
@@ -285,11 +285,14 @@ class SwapNetworkGate(PermutationGate):
             parts.append(list(qubits[n_qubits : n_qubits + part_len]))
             n_qubits += part_len
         n_parts = len(parts)
-        op_sort_key = (
-            None
-            if self.acquaintance_size is None
-            else (lambda op: min(qubit_to_position[q] for q in op.qubits) % self.acquaintance_size)
-        )
+
+        # acquaintance_size for the modulo operation in op_sort_key.
+        # Produce constant key (no sorting) when None or 0.
+        mod_acquaintance_size: int = self.acquaintance_size or 1
+
+        def op_sort_key(op: cirq.Operation) -> int:
+            return min(qubit_to_position[q] for q in op.qubits) % mod_acquaintance_size
+
         layers = new_layers()
         for layer_num in range(n_parts):
             layers = new_layers(prior_interstitial=layers.posterior_interstitial)
@@ -306,11 +309,11 @@ class SwapNetworkGate(PermutationGate):
                 parts_qubits = list(left_part + right_part)
                 parts[i] = parts_qubits[: len(right_part)]
                 parts[i + 1] = parts_qubits[len(right_part) :]
-            if op_sort_key is not None:
+            if self.acquaintance_size is not None:
                 layers.prior_interstitial.sort(key=op_sort_key)
             for l in ('prior_interstitial', 'pre', 'intra', 'post'):
                 yield getattr(layers, l)
-        if op_sort_key is not None:
+        if self.acquaintance_size is not None:
             layers.posterior_interstitial.sort(key=op_sort_key)
         yield layers.posterior_interstitial
 
@@ -344,7 +347,7 @@ class SwapNetworkGate(PermutationGate):
         return SwapNetworkGate(part_sizes, acquaintance_size, swap_gate)
 
     def permutation(self) -> dict[int, int]:
-        return {i: j for i, j in enumerate(reversed(range(sum(self.part_lens))))}
+        return dict(enumerate(reversed(range(sum(self.part_lens)))))
 
     def __repr__(self) -> str:
         return (

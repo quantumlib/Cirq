@@ -19,6 +19,7 @@ from __future__ import annotations
 import abc
 import collections
 import io
+import math
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import Any, cast, TYPE_CHECKING, TypeVar, Union
 
@@ -98,7 +99,7 @@ class Result(abc.ABC):
     def measurements(self) -> Mapping[str, np.ndarray]:
         """A mapping from measurement gate key to measurement results.
 
-        The value for each key is a 2-D array of booleans, with the first index
+        The value for each key is a 2-D array of Booleans, with the first index
         running over the repetitions, and the second index running over the
         qubits for the corresponding measurements.
         """
@@ -108,7 +109,7 @@ class Result(abc.ABC):
     def records(self) -> Mapping[str, np.ndarray]:
         """A mapping from measurement key to measurement records.
 
-        The value for each key is a 3-D array of booleans, with the first index
+        The value for each key is a 3-D array of Booleans, with the first index
         running over circuit repetitions, the second index running over instances
         of the measurement key in the circuit, and the third index running over
         the qubits for the corresponding measurements.
@@ -117,7 +118,7 @@ class Result(abc.ABC):
     @property
     @abc.abstractmethod
     def data(self) -> pd.DataFrame:
-        """Measurements converted to a pandas dataframe.
+        """Measurements converted to a Pandas dataframe.
 
         The rows in the returned data frame correspond to repetitions of the
         circuit, and the columns correspond to measurement keys, where each
@@ -128,7 +129,7 @@ class Result(abc.ABC):
 
     @staticmethod
     def dataframe_from_measurements(measurements: Mapping[str, np.ndarray]) -> pd.DataFrame:
-        """Converts the given measurements to a pandas dataframe.
+        """Converts the given measurements to a Pandas dataframe.
 
         This can be used by subclasses as a default implementation for the data
         property. Note that subclasses should typically memoize the result to
@@ -144,7 +145,7 @@ class Result(abc.ABC):
             converted_dict[key] = np.sum(basis * bitstrings, axis=1)
 
         # Use objects to accommodate more than 64 qubits if needed.
-        dtype = object if any(bs.shape[1] > 63 for _, bs in measurements.items()) else np.int64
+        dtype = object if any(bs.shape[1] > 63 for bs in measurements.values()) else np.int64
         return pd.DataFrame(converted_dict, dtype=dtype)
 
     @property
@@ -213,11 +214,78 @@ class Result(abc.ABC):
             c[fold_func(sample)] += 1
         return c
 
+    def _vectorized_histogram(
+        self,
+        key: TMeasurementKey,
+        fold_base: int | Iterable[int] | None = None,
+        batch_size: int = 50000,
+    ) -> collections.Counter | None:
+        """Counts the number of times a measurement result occurred quickly using NumPy.
+
+        This is a fast version of the histogram method that only supports
+        the default folding function; i.e., treating qubit/qudit measurements
+        as binary/base-n digits. If the output measurements will not fit in
+        an int64, returns None. To keep memory (and sorting time) overhead
+        low for large repetition counts, measurement results are counted in
+        batches of size `batch_size`.
+
+        Args:
+            key: Measurement key to include in the histogram.
+            fold_base: A convenience argument for interpreting qudit
+                measurement results. Specifies the base (or per-digit bases)
+                used to convert measurement digits to an integer. Defaults to
+                2 if not specified.
+            batch_size: Number of measurements to process per batch. Defaults to
+                50000.
+
+        Returns:
+            A counter indicating how often a measurement has sampled various
+            results.
+
+        Raises:
+            ValueError: If `fold_base` is specified as a sequence but its length does
+                not match the number of measured qubits/qudits.
+        """
+        key_measurements = self.measurements[_key_to_str(key)]
+        n_repetitions, n_qubits = key_measurements.shape
+
+        # Check if the output measurement indices will fit in an int64.
+        if fold_base is None or isinstance(fold_base, int):
+            base = 2 if fold_base is None else fold_base
+            max_val = int(base) ** n_qubits - 1
+            if max_val > np.iinfo(np.int64).max:
+                return None
+            powers = base ** np.arange(n_qubits - 1, -1, -1)
+        else:
+            base_list = list(fold_base)
+            if len(base_list) != n_qubits:
+                raise ValueError(f'len(digits) != len(base) ({n_qubits} != {len(base_list)})')
+            max_val = math.prod(base_list) - 1
+            if max_val > np.iinfo(np.int64).max:
+                return None
+            powers = np.hstack((np.cumprod(base_list[:0:-1])[::-1], [1]))
+
+        if n_repetitions == 0:
+            return collections.Counter()
+        if n_qubits == 0:
+            return collections.Counter({0: n_repetitions})
+
+        # Batch over repetitions to avoid huge memory cost.
+        # Note: np.unique sorts the array, so we need batches to avoid N log N scaling.
+        c: collections.Counter = collections.Counter()
+        for i in range(0, n_repetitions, batch_size):
+            measurement_batch = key_measurements[i : i + batch_size]
+            unique_measurements, counts = np.unique(measurement_batch @ powers, return_counts=True)
+            batch_dict = dict(zip(unique_measurements.tolist(), counts.tolist()))
+            c.update(batch_dict)
+        return c
+
     def histogram(
         self,
         *,  # Forces keyword args.
         key: TMeasurementKey,
-        fold_func: Callable[[tuple], T] = cast(Callable[[tuple], T], value.big_endian_bits_to_int),
+        fold_func: Callable[[tuple], T] | None = None,
+        fold_base: int | Iterable[int] | None = None,
     ) -> collections.Counter:
         """Counts the number of times a measurement result occurred.
 
@@ -250,11 +318,33 @@ class Result(abc.ABC):
                 together by a measurement. If this argument is not specified,
                 it defaults to interpreting the bits as a big endian
                 integer.
+            fold_base: A convenience argument for interpreting qudit
+                measurement results. Specifies the base (or per-digit bases)
+                used to convert measurement digits to an integer. Cannot be
+                specified together with fold_func.
 
         Returns:
             A counter indicating how often a measurement sampled various
             results.
         """
+        if fold_func is not None and fold_base is not None:
+            raise ValueError(
+                'Cannot specify both fold_func and fold_base. '
+                'fold_base is a convenience shorthand for fold_func.'
+            )
+        if fold_func is None:
+            # Run fast version if indices fit in an int64.
+            histogram = self._vectorized_histogram(key=key, fold_base=fold_base)
+            if histogram is not None:
+                return histogram
+
+            if fold_base is not None:
+                fold_func = cast(
+                    Callable[[tuple], T],
+                    lambda digits: value.big_endian_digits_to_int(digits, base=fold_base),
+                )
+            else:
+                fold_func = cast(Callable[[tuple], T], value.big_endian_bits_to_int)
         return self.multi_measurement_histogram(keys=[key], fold_func=lambda e: fold_func(e[0]))
 
     def __eq__(self, other: Any) -> bool:
@@ -290,7 +380,7 @@ class ResultDict(Result):
 
     Stores results of executing a circuit for multiple repetitions with one
     fixed set of parameters. The values for each measurement key are stored as a
-    2D numpy array. The first (row) index in each array is the repetition
+    2D NumPy array. The first (row) index in each array is the repetition
     number, and the second (column) index is the qubit.
 
     Attributes:
@@ -309,12 +399,12 @@ class ResultDict(Result):
         Args:
             params: A ParamResolver of settings used for this result.
             measurements: A dictionary from measurement gate key to measurement
-                results. The value for each key is a 2-D array of booleans,
+                results. The value for each key is a 2-D array of Booleans,
                 with the first index running over the repetitions, and the
                 second index running over the qubits for the corresponding
                 measurements.
             records: A dictionary from measurement gate key to measurement
-                results. The value for each key is a 3D array of booleans,
+                results. The value for each key is a 3D array of Booleans,
                 with the first index running over the repetitions, the second
                 index running over "instances" of that key in the circuit, and
                 the last index running over the qubits for the corresponding
@@ -339,12 +429,14 @@ class ResultDict(Result):
     def measurements(self) -> Mapping[str, np.ndarray]:
         if self._measurements is None:
             assert self._records is not None
-            self._measurements = {}
+            _measurements = {}
             for key, data in self._records.items():
                 reps, instances, qubits = data.shape
                 if instances != 1:
                     raise ValueError('Cannot extract 2D measurements for repeated keys')
-                self._measurements[key] = data.reshape((reps, qubits))
+                _measurements[key] = data.reshape((reps, qubits))
+            # assign only after the _measurements are successfully resolved
+            self._measurements = _measurements
         return self._measurements
 
     @property
@@ -376,14 +468,14 @@ class ResultDict(Result):
         return self._data
 
     def _record_dict_repr(self):
-        """Helper function for use in __repr__ to display the records field."""
+        """Helper function for use in `__repr__` to display the records field."""
         return '{' + ', '.join(f'{k!r}: {proper_repr(v)}' for k, v in self.records.items()) + '}'
 
     def __repr__(self) -> str:
         return f'cirq.ResultDict(params={self.params!r}, records={self._record_dict_repr()})'
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
-        """Output to show in ipython and Jupyter notebooks."""
+        """Output to show in IPython and Jupyter notebooks."""
         if cycle:
             # There should never be a cycle.  This is just in case.
             p.text('ResultDict(...)')
@@ -395,7 +487,7 @@ class ResultDict(Result):
             return _keyed_repeated_records(self.records)
         return _keyed_repeated_bitstrings(self.measurements)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         packed_records = {}
         for key, digits in self.records.items():
             packed_digits, binary = _pack_digits(digits)
@@ -424,11 +516,11 @@ class ResultDict(Result):
 
 
 def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> tuple[str, bool]:
-    """Returns a string of packed digits and a boolean indicating whether the
+    """Returns a string of packed digits and a Boolean indicating whether the
     digits were packed as binary values.
 
     Args:
-        digits: A numpy array.
+        digits: A NumPy array.
         pack_bits: If 'auto' (the default), automatically pack binary digits
             using `np.packbits` to save space. If 'never', do not pack binary
             digits. If 'force', use `np.packbits` without checking for
@@ -467,7 +559,7 @@ def _unpack_digits(
     """The opposite of `_pack_digits`.
 
     Args:
-        packed_digits: The hex-encoded string representing a numpy array of
+        packed_digits: The hex-encoded string representing a NumPy array of
             digits. This is the first return value of `_pack_digits`.
         binary: Whether the digits have been packed as binary. This is the
             second return value of `_pack_digits`.

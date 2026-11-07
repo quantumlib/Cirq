@@ -480,10 +480,10 @@ def test_handling_of_none_vs_notimplemented_return_values() -> None:
     assert result == [op]
 
     op = TestOp()
-    result = cirq.decompose_once(op, default='dummy')
+    result = cirq.decompose_once(op, default='placeholder')
     assert op.called_decompose_with_context, 'Should always call _decompose_with_context_'
     assert not op.called_decompose, 'Should not fall back to _decompose_'
-    assert result == 'dummy'
+    assert result == 'placeholder'
 
     op = TestOp()
     op.return_value = NotImplemented
@@ -494,7 +494,7 @@ def test_handling_of_none_vs_notimplemented_return_values() -> None:
 
     op = TestOp()
     op.return_value = NotImplemented
-    result = cirq.decompose_once(op, default='dummy')
+    result = cirq.decompose_once(op, default='placeholder')
     assert op.called_decompose_with_context, 'Should always call _decompose_with_context_'
     assert op.called_decompose, 'Should fall back to _decompose_'
-    assert result == 'dummy'
+    assert result == 'placeholder'

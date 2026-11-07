@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import dataclasses
 import datetime
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterator, Mapping
 from typing import Any, TYPE_CHECKING
 
 import numpy as np
@@ -77,7 +77,7 @@ def _stats_from_measurements(
     # standard error of the mean, but squared.
     # Wikipedia uses the term "variance of the sampling distribution
     # of the sample mean"
-    # `ddof` is the delta degrees of freedom. Please read numpy documentation
+    # `ddof` is the delta degrees of freedom. Please read NumPy documentation
     # for details. Note that we use ddof=1 everywhere. This is the default for
     # np.cov, but *not* the default for `np.var. We use 1 for both for
     # consistency.
@@ -113,7 +113,7 @@ class ObservableMeasuredResult:
     circuit_params: Mapping[str | sympy.Expr, value.Scalar | sympy.Expr]
 
     # unhashable because of the mapping-type circuit_params attribute
-    __hash__ = None  # type: ignore
+    __hash__ = None  # type: ignore[assignment]
 
     def __repr__(self):
         # I wish we could use the default dataclass __repr__ but
@@ -155,7 +155,7 @@ class ObservableMeasuredResult:
         record.update(**circuit_param_dict)
         return record
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.dataclass_json_dict(self)
 
 
@@ -163,7 +163,7 @@ def _setting_to_z_observable(setting: InitObsSetting):
     qubits = setting.observable.qubits
     return InitObsSetting(
         init_state=zeros_state(qubits),
-        observable=ops.PauliString(qubit_pauli_map={q: ops.Z for q in qubits}),
+        observable=ops.PauliString(qubit_pauli_map=dict.fromkeys(qubits, ops.Z)),
     )
 
 
@@ -174,7 +174,7 @@ class BitstringAccumulator:
     This object contains all raw results and can be serialized via JSON to
     keep a record of your experiment results. There are also various
     utility methods that can be used to chain a series of BitstringAccumulator
-    results into a form more suitable for analysis like a pandas DataFrame.
+    results into a form more suitable for analysis like a Pandas DataFrame.
 
     By default, this will be initialized empty. This should only be mutated
     by calling `consume_results`. Do not mutate values directly.
@@ -194,7 +194,7 @@ class BitstringAccumulator:
             as an argument (e.g. `means`, `variances`) will report all values
             for the settings in `simul_settings`.
         qubit_to_index: A mapping from qubits to contiguous indices starting
-            from zero. This allows us to store bitstrings as a 2d numpy array.
+            from zero. This allows us to store bitstrings as a 2d NumPy array.
         bitstrings: The bitstrings to record.
         chunksizes: This class accumulates bitstrings from potentially several
             "chunked" processor runs. Each chunk has a certain number of
@@ -298,7 +298,7 @@ class BitstringAccumulator:
         return len(self.bitstrings)
 
     @property
-    def results(self) -> Iterable[ObservableMeasuredResult]:
+    def results(self) -> Iterator[ObservableMeasuredResult]:
         """Yield individual setting results as `ObservableMeasuredResult`
         objects."""
         for setting in self._simul_settings:
@@ -320,7 +320,7 @@ class BitstringAccumulator:
         for result in self.results:
             yield result.as_dict()
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         from cirq.study.result import _pack_digits
 
         def ndarray_to_hex_str(a):
@@ -366,6 +366,7 @@ class BitstringAccumulator:
         if not isinstance(other, BitstringAccumulator):
             return NotImplemented
 
+        # ruff: disable[SIM103]
         if (
             self.max_setting != other.max_setting
             or self.simul_settings != other.simul_settings

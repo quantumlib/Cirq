@@ -17,6 +17,7 @@ from __future__ import annotations
 import unittest.mock as mock
 from dataclasses import dataclass
 
+import numpy as np
 import pytest
 
 import cirq
@@ -79,6 +80,7 @@ def _create_device_spec_with_horizontal_couplings():
         'meas',
         'wait',
         'fsim_via_model',
+        'two_pulse_fsim',
         'cz_pow_gate',
         'internal_gate',
         'reset',
@@ -122,6 +124,7 @@ def _create_device_spec_with_horizontal_couplings():
         cirq.GateFamily(cirq.ops.measurement_gate.MeasurementGate),
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate),
         cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
+        cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.TwoPulseFSimTag()]),
         cirq.GateFamily(cirq.CZPowGate),
         cirq.GateFamily(cirq_google.InternalGate),
         cirq.GateFamily(cirq.ResetChannel),
@@ -166,12 +169,16 @@ def _create_device_spec_with_horizontal_couplings():
             cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]
         ): base_duration
         * 10,
-        cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
-        cirq.GateFamily(cirq_google.InternalGate): base_duration * 12,
-        cirq.GateFamily(cirq.ResetChannel): base_duration * 13,
-        cirq.GateFamily(cirq_google.AnalogDetuneQubit): base_duration * 14,
-        cirq.GateFamily(cirq_google.AnalogDetuneCouplerOnly): base_duration * 15,
-        cirq.GateFamily(cirq_google.WaitGateWithUnit): base_duration * 16,
+        cirq.GateFamily(
+            cirq.ops.FSimGate, tags_to_accept=[cirq_google.TwoPulseFSimTag()]
+        ): base_duration
+        * 11,
+        cirq.GateFamily(cirq.CZPowGate): base_duration * 12,
+        cirq.GateFamily(cirq_google.InternalGate): base_duration * 13,
+        cirq.GateFamily(cirq.ResetChannel): base_duration * 14,
+        cirq.GateFamily(cirq_google.AnalogDetuneQubit): base_duration * 15,
+        cirq.GateFamily(cirq_google.AnalogDetuneCouplerOnly): base_duration * 16,
+        cirq.GateFamily(cirq_google.WaitGateWithUnit): base_duration * 17,
     }
 
     expected_target_gatesets = (
@@ -202,6 +209,7 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
                 cirq.ops.wait_gate.WaitGate,
                 cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
+                cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.TwoPulseFSimTag()]),
                 cirq.GateFamily(cirq_google.InternalGate),
                 cirq.GateFamily(cirq.ResetChannel),
                 cirq.GateFamily(cirq_google.AnalogDetuneQubit),
@@ -237,6 +245,7 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
                 cirq.ops.wait_gate.WaitGate,
                 cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
+                cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.TwoPulseFSimTag()]),
                 cirq.GateFamily(cirq_google.InternalGate),
                 cirq.GateFamily(cirq.ResetChannel),
                 cirq.GateFamily(cirq_google.AnalogDetuneQubit),
@@ -274,6 +283,7 @@ def _create_device_spec_with_horizontal_couplings():
                 cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
                 cirq.ops.wait_gate.WaitGate,
                 cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
+                cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.TwoPulseFSimTag()]),
                 cirq.GateFamily(cirq_google.InternalGate),
                 cirq.GateFamily(cirq.ResetChannel),
                 cirq.GateFamily(cirq_google.AnalogDetuneQubit),
@@ -508,6 +518,97 @@ def test_grid_device_validate_operations_negative():
         )
 
 
+class _CustomNonGateOperation(cirq.Operation):
+    def __init__(self, qubits):
+        self._qubits = tuple(qubits)
+
+    @property
+    def qubits(self):
+        return self._qubits
+
+    def with_qubits(self, *new_qubits):
+        return _CustomNonGateOperation(new_qubits)  # pragma: no cover
+
+    def _unitary_(self):
+        return np.eye(2 ** len(self._qubits))
+
+
+def test_grid_device_validate_operations_non_gate_operation_negative():
+    device_info, spec = _create_device_spec_with_horizontal_couplings()
+    device = cirq_google.GridDevice.from_proto(spec)
+    q0, q1 = device_info.grid_qubits[0], device_info.grid_qubits[1]
+
+    # Operations without a gate are not in the device gateset and must be rejected.
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(_CustomNonGateOperation([q0]))
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(_CustomNonGateOperation([q0, q1]))
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(_CustomNonGateOperation([]))
+
+
+def test_grid_device_validate_operations_circuit_operation():
+    device_info, spec = _create_device_spec_with_horizontal_couplings()
+    device = cirq_google.GridDevice.from_proto(spec)
+    q0, q1 = device_info.grid_qubits[0], device_info.grid_qubits[1]
+
+    # CircuitOperations containing only supported operations are valid.
+    device.validate_operation(
+        cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q0), cirq.CZ(q0, q1), cirq.measure(q0)))
+    )
+
+    # CircuitOperations containing unsupported gates must be rejected.
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(
+            cirq.CircuitOperation(
+                cirq.FrozenCircuit(cirq.X(q0), cirq.testing.DoesNotSupportSerializationGate()(q0))
+            )
+        )
+
+    # CircuitOperations containing non-gate operations must be rejected.
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(
+            cirq.CircuitOperation(cirq.FrozenCircuit(_CustomNonGateOperation([q0])))
+        )
+
+    # Nested CircuitOperations containing unsupported gates must be rejected.
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(
+            cirq.CircuitOperation(
+                cirq.FrozenCircuit(
+                    cirq.CircuitOperation(
+                        cirq.FrozenCircuit(cirq.testing.DoesNotSupportSerializationGate()(q0))
+                    )
+                )
+            )
+        )
+
+
+def test_grid_device_validate_operations_controlled_gates_negative():
+    device_info, spec = _create_device_spec_with_horizontal_couplings()
+    device = cirq_google.GridDevice.from_proto(spec)
+    q0, q1 = device_info.grid_qubits[0], device_info.grid_qubits[1]
+
+    # A unitary gate which is not in the device gateset.
+    unsupported_gate = cirq.MatrixGate(cirq.unitary(cirq.H))
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(unsupported_gate(q1))
+
+    # Controlled versions of unsupported gates must be rejected.
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(unsupported_gate.controlled(1).on(q0, q1))
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(unsupported_gate.on(q1).controlled_by(q0))
+
+    # Controlled non-gate operations must be rejected.
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(_CustomNonGateOperation([q1]).controlled_by(q0))
+
+    # Controlled versions of supported gates are not themselves supported by the device.
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(cirq.ControlledGate(cirq.X).on(q0, q1))
+
+
 def test_grid_device_validate_operation_coupler_for_horizontal_couplings():
     """Tests coupler device on a device spec that only
     has horizontal couplings."""
@@ -588,9 +689,7 @@ def test_grid_device_str_grid_qubits():
     spec = _create_device_spec_with_all_couplings()
     device = cirq_google.GridDevice.from_proto(spec)
 
-    assert (
-        str(device)
-        == """\
+    assert str(device) == """\
 (0, 0)───(0, 1)
 │        │
 │        │
@@ -604,7 +703,6 @@ def test_grid_device_str_grid_qubits():
 │        │
 │        │
 (4, 0)───(4, 1)"""
-    )
 
 
 @pytest.mark.parametrize('cycle,func', [(False, str), (True, repr)])
@@ -638,6 +736,7 @@ def test_device_from_device_information_equals_device_from_proto():
         cirq.ops.measurement_gate.MeasurementGate,
         cirq.ops.wait_gate.WaitGate,
         cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]),
+        cirq.GateFamily(cirq.ops.FSimGate, tags_to_accept=[cirq_google.TwoPulseFSimTag()]),
         cirq.GateFamily(cirq_google.InternalGate),
         cirq.GateFamily(cirq.ResetChannel),
         cirq.GateFamily(cirq_google.AnalogDetuneQubit),
@@ -667,12 +766,16 @@ def test_device_from_device_information_equals_device_from_proto():
             cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]
         ): base_duration
         * 10,
-        cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
-        cirq.GateFamily(cirq_google.InternalGate): base_duration * 12,
-        cirq.GateFamily(cirq.ResetChannel): base_duration * 13,
-        cirq.GateFamily(cirq_google.AnalogDetuneQubit): base_duration * 14,
-        cirq.GateFamily(cirq_google.AnalogDetuneCouplerOnly): base_duration * 15,
-        cirq.GateFamily(cirq_google.WaitGateWithUnit): base_duration * 16,
+        cirq.GateFamily(
+            cirq.ops.FSimGate, tags_to_accept=[cirq_google.TwoPulseFSimTag()]
+        ): base_duration
+        * 11,
+        cirq.GateFamily(cirq.CZPowGate): base_duration * 12,
+        cirq.GateFamily(cirq_google.InternalGate): base_duration * 13,
+        cirq.GateFamily(cirq.ResetChannel): base_duration * 14,
+        cirq.GateFamily(cirq_google.AnalogDetuneQubit): base_duration * 15,
+        cirq.GateFamily(cirq_google.AnalogDetuneCouplerOnly): base_duration * 16,
+        cirq.GateFamily(cirq_google.WaitGateWithUnit): base_duration * 17,
     }
 
     device_from_information = cirq_google.GridDevice._from_device_information(
@@ -692,12 +795,6 @@ def test_device_from_device_information_equals_device_from_proto():
             'Self loop encountered in qubit',
             [(cirq.GridQubit(0, 0), cirq.GridQubit(0, 0))],
             cirq.Gateset(),
-            None,
-        ),
-        (
-            'Unrecognized gate',
-            [(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))],
-            cirq.Gateset(cirq.H),
             None,
         ),
         (
@@ -722,6 +819,18 @@ def test_from_device_information_invalid_input(error_match, qubit_pairs, gateset
         grid_device.GridDevice._from_device_information(
             qubit_pairs=qubit_pairs, gateset=gateset, gate_durations=gate_durations
         )
+
+
+def test_from_device_information_unrecognized_gate():
+    gateset = cirq.Gateset(cirq.H)
+    gate_durations = {cirq.GateFamily(cirq.H): cirq.Duration(picos=1_000)}
+    device = grid_device.GridDevice._from_device_information(
+        qubit_pairs=[(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))],
+        gateset=gateset,
+        gate_durations=gate_durations,
+    )
+    assert cirq.GateFamily(cirq.H) in device.metadata.gateset.gates
+    assert device.metadata.gate_durations == {cirq.GateFamily(cirq.H): cirq.Duration(picos=1_000)}
 
 
 def test_from_device_information_fsim_gate_family():
@@ -779,12 +888,16 @@ def test_to_proto():
             cirq.ops.FSimGate, tags_to_accept=[cirq_google.FSimViaModelTag()]
         ): base_duration
         * 10,
-        cirq.GateFamily(cirq.CZPowGate): base_duration * 11,
-        cirq.GateFamily(cirq_google.InternalGate): base_duration * 12,
-        cirq.GateFamily(cirq.ResetChannel): base_duration * 13,
-        cirq.GateFamily(cirq_google.AnalogDetuneQubit): base_duration * 14,
-        cirq.GateFamily(cirq_google.AnalogDetuneCouplerOnly): base_duration * 15,
-        cirq.GateFamily(cirq_google.WaitGateWithUnit): base_duration * 16,
+        cirq.GateFamily(
+            cirq.ops.FSimGate, tags_to_accept=[cirq_google.TwoPulseFSimTag()]
+        ): base_duration
+        * 11,
+        cirq.GateFamily(cirq.CZPowGate): base_duration * 12,
+        cirq.GateFamily(cirq_google.InternalGate): base_duration * 13,
+        cirq.GateFamily(cirq.ResetChannel): base_duration * 14,
+        cirq.GateFamily(cirq_google.AnalogDetuneQubit): base_duration * 15,
+        cirq.GateFamily(cirq_google.AnalogDetuneCouplerOnly): base_duration * 16,
+        cirq.GateFamily(cirq_google.WaitGateWithUnit): base_duration * 17,
     }
 
     spec = cirq_google.GridDevice._from_device_information(
@@ -796,3 +909,66 @@ def test_to_proto():
     assert cirq_google.GridDevice.from_proto(spec) == cirq_google.GridDevice.from_proto(
         expected_spec
     )
+
+
+def test_qubit_attributes_serialization_deserialization():
+    device_info, spec = _create_device_spec_with_horizontal_couplings()
+
+    # Add qubit attributes to the proto
+    q1_str = v2.qubit_to_proto_id(cirq.GridQubit(0, 0))
+    q2_str = v2.qubit_to_proto_id(cirq.GridQubit(0, 1))
+
+    # Add attributes to q1
+    qa1 = spec.qubit_attributes[q1_str]
+    qa1.attributes["type"].string_value = "transmon"
+    qa1.attributes["frequency"].double_value = 5.123
+
+    # Add attributes to q2
+    qa2 = spec.qubit_attributes[q2_str]
+    qa2.attributes["index"].int_value = 42
+    qa2.attributes["is_active"].bool_value = True
+
+    # Add an unset value (representing None)
+    _ = qa2.attributes["calibration_status"]
+
+    # Deserialize and verify Python object attributes
+    device = cirq_google.GridDevice.from_proto(spec)
+
+    expected_attrs = {
+        cirq.GridQubit(0, 0): {"type": "transmon", "frequency": 5.123},
+        cirq.GridQubit(0, 1): {"index": 42, "is_active": True, "calibration_status": None},
+    }
+    assert device.qubit_attributes == expected_attrs
+
+    # Serialize back and verify it matches the spec with attributes
+    reserialized_spec = device.to_proto()
+
+    # Check that they serialize to identical structures
+    # We can parse it back again to verify
+    device_parsed_again = cirq_google.GridDevice.from_proto(reserialized_spec)
+    assert device_parsed_again.qubit_attributes == expected_attrs
+
+
+def test_qubit_attributes_unlisted_qubit():
+    device_info, spec = _create_device_spec_with_horizontal_couplings()
+
+    # Add attributes for an unlisted qubit
+    qa = spec.qubit_attributes["10_10"]  # Not in valid_qubits
+    qa.attributes["foo"].string_value = "bar"
+
+    with pytest.raises(ValueError, match="is not in valid_qubits"):
+        _ = cirq_google.GridDevice.from_proto(spec)
+
+
+def test_to_proto_invalid_gate_durations():
+    metadata = cirq.GridDeviceMetadata(
+        qubit_pairs=[(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))],
+        gateset=cirq.Gateset(cirq.PhasedXZGate, cirq.XPowGate),
+        gate_durations={
+            cirq.GateFamily(cirq.PhasedXZGate): cirq.Duration(picos=1_000),
+            cirq.GateFamily(cirq.XPowGate): cirq.Duration(picos=2_000),
+        },
+    )
+    device = cirq_google.GridDevice(metadata)
+    with pytest.raises(ValueError, match="Multiple gate families"):
+        device.to_proto()

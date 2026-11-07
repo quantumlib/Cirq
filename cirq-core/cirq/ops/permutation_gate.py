@@ -77,7 +77,7 @@ class QubitPermutationGate(raw_types.Gate):
         return True
 
     def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
-        permutation = [p for p in self.permutation]
+        permutation = list(self.permutation)
 
         for i in range(len(permutation)):
 
@@ -103,7 +103,7 @@ class QubitPermutationGate(raw_types.Gate):
             assert args.target_tensor.shape[ai] == args.target_tensor.shape[aj]
             permuted_axes[aj] = ai
 
-        # Delegate to numpy to do the permuted copy.
+        # Delegate to NumPy to do the permuted copy.
         args.available_buffer[...] = args.target_tensor.transpose(permuted_axes)
         return args.available_buffer
 

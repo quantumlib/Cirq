@@ -126,13 +126,13 @@ def _generate_parameterized_readout_calibration_circuit_with_sweep(
     Args:
         qubits: The list of qubits to include in the calibration circuit.
         num_random_bitstrings: The number of random bitstrings to generate for calibration.
-        rng: A numpy random number generator used to generate the random bitstrings.
+        rng: A NumPy random number generator used to generate the random bitstrings.
 
     Returns:
         A tuple containing:
             - The parameterized readout calibration circuit (cirq.Circuit).
             - A list of parameter sweeps (one for each random bitstring).
-            - The numpy array of generated random bitstrings.
+            - The NumPy array of generated random bitstrings.
     """
     random_bitstrings = rng.integers(0, 2, size=(num_random_bitstrings, len(qubits)))
 
@@ -171,7 +171,7 @@ def _generate_all_readout_calibration_circuits(
             all_random_bitstrings.append(random_bitstrings)
     else:
         for qubit_group in qubits_to_measure:
-            (parameterized_readout_calibration_circuit, readout_sweep_params, random_bitstrings) = (
+            parameterized_readout_calibration_circuit, readout_sweep_params, random_bitstrings = (
                 _generate_parameterized_readout_calibration_circuit_with_sweep(
                     qubit_group, num_random_bitstrings, rng
                 )
@@ -192,13 +192,13 @@ def _determine_qubits_to_measure(
     qubits_to_measure: list[list[ops.Qid]] = []
     if qubits is None:
         qubits_to_measure = [
-            sorted(set(q for circuit in input_circuits for q in circuit.all_qubits()))
+            sorted({q for circuit in input_circuits for q in circuit.all_qubits()})
         ]
 
     elif isinstance(qubits[0], ops.Qid):
-        qubits_to_measure = [qubits]  # type: ignore
+        qubits_to_measure = [qubits]  # type: ignore[list-item]
     else:
-        qubits_to_measure = qubits  # type: ignore
+        qubits_to_measure = qubits  # type: ignore[assignment]
     return qubits_to_measure
 
 
@@ -226,7 +226,7 @@ def _analyze_readout_results(
     Args:
         readout_measurements: A list of dictionaries containing the measurement results
                               for each readout calibration circuit.
-        random_bitstrings: A numpy array of random bitstrings used for measuring readout.
+        random_bitstrings: A NumPy array of random bitstrings used for measuring readout.
         readout_repetitions: The number of repetitions for each readout bitstring.
         qubits: The list of qubits for which the readout error rates are to be calculated.
 
@@ -240,7 +240,7 @@ def _analyze_readout_results(
     zero_state_totals = np.zeros((1, len(qubits)), dtype=np.int64)
     one_state_totals = np.zeros((1, len(qubits)), dtype=np.int64)
     for measurement_result, bitstr in zip(unshuffled_readout_measurements, random_bitstrings):
-        for _, trial_result in measurement_result.measurements.items():
+        for trial_result in measurement_result.measurements.values():
             trial_result = trial_result.astype(np.int64)  # Cast to int64
             sample_counts = np.sum(trial_result, axis=0)
 

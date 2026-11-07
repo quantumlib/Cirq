@@ -28,7 +28,7 @@ from cirq.value import big_endian_int_to_digits, random_state
 class StabilizerStateChForm(qis.StabilizerState):
     r"""A representation of stabilizer states using the CH form,
 
-        $|\psi> = \omega U_C U_H |s>$
+    $$|\psi\rangle = \omega U_C U_H |s\rangle$$
 
     This representation keeps track of overall phase.
 
@@ -106,8 +106,8 @@ class StabilizerStateChForm(qis.StabilizerState):
         return f'StabilizerStateChForm(num_qubits={self.n!r})'
 
     def inner_product_of_state_and_x(self, x: int) -> complex:
-        """Returns the amplitude of x'th element of
-        the state vector, i.e. <x|psi>"""
+        r"""Returns the amplitude of x'th element of
+        the state vector, i.e. $\langle x|\psi\rangle$"""
         if type(x) == int:
             y = cirq.big_endian_int_to_bits(x, bit_count=self.n)
 
@@ -187,7 +187,7 @@ class StabilizerStateChForm(qis.StabilizerState):
             y = t
             z = t ^ e
 
-        (omega, a, b, c) = self._H_decompose(self.v[q], y[q], z[q], delta)
+        omega, a, b, c = self._H_decompose(self.v[q], y[q], z[q], delta)
 
         self.s = y
         self.s[q] = c
@@ -204,8 +204,8 @@ class StabilizerStateChForm(qis.StabilizerState):
 
         where the state represents a single qubit.
 
-        Input: v,y,z are boolean; delta is an integer (mod 4)
-        Outputs: a,b,c are boolean; omega is a complex number
+        Input: v,y,z are Boolean; delta is an integer (mod 4)
+        Outputs: a,b,c are Boolean; omega is a complex number
 
         Precondition: y != z"""
         if y == z:
@@ -240,7 +240,7 @@ class StabilizerStateChForm(qis.StabilizerState):
 
         return arr
 
-    def _measure(self, q, prng: np.random.RandomState) -> int:
+    def _measure(self, q, prng: np.random.Generator) -> int:
         """Measures the q'th qubit.
 
         Reference: Section 4.1 "Simulating measurements"
@@ -250,7 +250,7 @@ class StabilizerStateChForm(qis.StabilizerState):
         w = self.s.copy()
         for i, v_i in enumerate(self.v):
             if v_i == 1:
-                w[i] = bool(prng.randint(2))
+                w[i] = bool(prng.integers(2))
         x_i = sum(w & self.G[q, :]) % 2
         # Project the state to the above measurement outcome.
         self.project_Z(q, x_i)
@@ -392,7 +392,8 @@ class StabilizerStateChForm(qis.StabilizerState):
     def measure(
         self, axes: Sequence[int], seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None
     ) -> list[int]:
-        return [self._measure(axis, random_state.parse_random_state(seed)) for axis in axes]
+        prng = random_state.parse_random_generator(seed)
+        return [self._measure(axis, prng) for axis in axes]
 
 
 def _phase(exponent, global_shift):

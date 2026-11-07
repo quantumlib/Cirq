@@ -33,14 +33,14 @@ if TYPE_CHECKING:
 
 @dataclasses.dataclass
 class QCSObjectsForNotebook:
-    """All the objects you might need to run a notbook with QCS.
+    """All the objects you might need to run a notebook with QCS.
 
     Contains an (Abstract) Engine, Processor, Device, and Sampler,
     as well as associated meta-data signed_in, processor_id, and project_id.
 
     This removes the need for boiler plate in notebooks, and provides a
     central place to handle the various environments (testing vs production),
-    (stand-alone vs colab vs jupyter).
+    (stand-alone vs Colab vs Jupyter).
     """
 
     engine: AbstractEngine
@@ -62,7 +62,7 @@ def get_qcs_objects_for_notebook(
     instantiate an Engine object.  If it does not succeed, it will instead
     return a virtual AbstractEngine that is backed by a noisy simulator.
     This function is designed for maximum versatility and
-    to work in colab notebooks, as a stand-alone, and in tests.
+    to work in Colab notebooks, as a stand-alone, and in tests.
 
     Note that, if you are using this to connect to QCS and do not care about
     the added versatility, you may want to use `cirq_google.get_engine()` or

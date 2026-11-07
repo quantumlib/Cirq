@@ -43,7 +43,7 @@ def test_apply_gate() -> None:
     state.apply_x.assert_called_with(1, 2.0, 1.3)
 
     state.reset_mock()
-    assert args._strat_apply_gate(cirq.X**1.4, [q0]) == NotImplemented
+    assert args._strat_apply_gate(cirq.X**1.4, [q0]) is NotImplemented
     state.apply_x.assert_not_called()
 
     state.reset_mock()
@@ -87,7 +87,7 @@ def test_apply_gate() -> None:
     state.apply_cx.assert_has_calls([mock.call(0, 1), mock.call(1, 0, 2.0, 1.3), mock.call(0, 1)])
 
     state.reset_mock()
-    assert args._strat_apply_gate(cirq.BitFlipChannel(0.5), [q0]) == NotImplemented
+    assert args._strat_apply_gate(cirq.BitFlipChannel(0.5), [q0]) is NotImplemented
     state.apply_x.assert_not_called()
 
 
@@ -100,6 +100,29 @@ def test_apply_mixture() -> None:
         assert args._strat_apply_mixture(cirq.BitFlipChannel(0.5), [q0]) is True
     state.apply_x.assert_called_with(0, 1.0, 0.0)
     assert 10 < state.apply_x.call_count < 90
+
+
+def test_apply_mixture_skips_multi_qubit_operations() -> None:
+    qubits = cirq.LineQubit.range(2)
+    state = mock.Mock()
+    args = cirq.StabilizerSimulationState(state=state, qubits=qubits)
+
+    with mock.patch.object(cirq.protocols, 'mixture', wraps=cirq.protocols.mixture) as mixture:
+        result = args._strat_apply_mixture(cirq.IdentityGate(2), qubits)
+    assert result is NotImplemented
+    mixture.assert_not_called()
+
+
+def test_act_on_multi_qubit_wait_gate_does_not_compute_mixture() -> None:
+    qubits = cirq.LineQubit.range(3)
+    wait = cirq.WaitGate(cirq.Duration(nanos=10), num_qubits=len(qubits)).on(*qubits)
+    pauli_string: cirq.PauliString[cirq.LineQubit] = cirq.PauliString(
+        cirq.Z(qubits[0]), cirq.X(qubits[2])
+    )
+
+    with mock.patch.object(cirq.protocols, 'mixture', wraps=cirq.protocols.mixture) as mixture:
+        assert pauli_string.after(wait) == pauli_string
+    mixture.assert_not_called()
 
 
 def test_act_from_single_qubit_decompose() -> None:

@@ -86,7 +86,7 @@ def test_product_state():
     assert str(ps) == "+X(q(0)) * +X(q(1)) * -Z(q(2))"
 
     with pytest.raises(ValueError) as e:
-        # Re-use q2
+        # Reuse q2
         ps *= cirq.KET_PLUS(q2)
     assert e.match(r'.*both contain factors for these qubits: \[cirq.LineQubit\(2\)\]')
 

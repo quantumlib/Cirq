@@ -64,7 +64,7 @@ def test_AriaNativeGateset_decompose_two_qubit_operation():
     result = gateset._decompose_two_qubit_operation(
         cirq.MeasurementGate(num_qubits=1, key='key'), "blank"
     )
-    assert result == NotImplemented
+    assert result is NotImplemented
 
 
 # test _decompose_two_qubit_operation on non unitary argument
@@ -73,7 +73,7 @@ def test_ForteNativeGateset_decompose_two_qubit_operation():
     result = gateset._decompose_two_qubit_operation(
         cirq.MeasurementGate(num_qubits=1, key='key'), "blank"
     )
-    assert result == NotImplemented
+    assert result is NotImplemented
 
 
 # test CCZ_gate not working with 2 qubits

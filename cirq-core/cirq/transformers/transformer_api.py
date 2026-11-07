@@ -154,7 +154,7 @@ class TransformerLogger:
 
         Args:
             level: The logging level to filter the logs with. The method shows all logs with a
-            `LogLevel` >= `level`.
+                `LogLevel` >= `level`.
         """
 
         def print_log(log: _LoggerNode, pad=''):
@@ -329,7 +329,7 @@ def transformer(cls_or_func: Any = None, *, add_deep_support: bool = False) -> A
         Decorated class / function which includes additional logging boilerplate.
     """
 
-    # If keyword arguments were specified, python invokes the decorator method
+    # If keyword arguments were specified, Python invokes the decorator method
     # without a `cls` argument, then passes `cls` into the result.
     if cls_or_func is None:
         return lambda deferred_cls_or_func: transformer(
@@ -393,12 +393,13 @@ def _run_transformer_on_circuit(
 ) -> cirq.AbstractCircuit:
     mutable_circuit = None
     if extracted_context and extracted_context.deep and add_deep_support:
+        tags_to_ignore_set = frozenset(extracted_context.tags_to_ignore)
         batch_replace = []
         for i, op in circuit.findall_operations(
             lambda o: isinstance(o.untagged, circuits.CircuitOperation)
         ):
             op_untagged = cast(circuits.CircuitOperation, op.untagged)
-            if not set(op.tags).isdisjoint(extracted_context.tags_to_ignore):
+            if not tags_to_ignore_set.isdisjoint(op.tags):
                 continue
             op_untagged = op_untagged.replace(
                 circuit=_run_transformer_on_circuit(

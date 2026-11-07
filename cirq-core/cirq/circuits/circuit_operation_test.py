@@ -242,6 +242,38 @@ def test_with_params() -> None:
     )
 
 
+def test_parameter_names_with_and_without_mapping() -> None:
+    a, b = cirq.LineQubit.range(2)
+    theta, phi = sympy.symbols('theta phi')
+    circuit = cirq.FrozenCircuit(cirq.Z(a) ** theta, cirq.X(b) ** phi, cirq.measure(a, key='m'))
+    op = cirq.CircuitOperation(circuit, repetitions=3)
+
+    assert cirq.parameter_names(op) == {'theta', 'phi'}
+    assert cirq.is_parameterized(op)
+    # Without any mapping the names come from the subcircuit, so the mapped copy is not built.
+    assert '_mapped_any_loop' not in op.__dict__
+
+    op_mapped_keys = op.with_measurement_key_mapping({'m': 'n'})
+    assert cirq.parameter_names(op_mapped_keys) == {'theta', 'phi'}
+    assert '_mapped_any_loop' not in op_mapped_keys.__dict__
+
+    op_mapped_qubits = op.with_qubit_mapping({a: b, b: a})
+    assert cirq.parameter_names(op_mapped_qubits) == {'theta', 'phi'}
+    assert '_mapped_any_loop' not in op_mapped_qubits.__dict__
+
+    var_q = cirq.ops.VariableLineQid(sympy.Symbol('v'))
+    op_var_qubits = op.with_qubit_mapping({a: var_q})
+    assert cirq.parameter_names(op_var_qubits) == {'theta', 'phi', 'v'}
+    assert cirq.parameter_names(op.with_params({theta: sympy.Symbol('x')})) == {'x', 'phi'}
+    assert cirq.parameter_names(op.with_params({theta: 0.5})) == {'phi'}
+    resolved = op.with_params({theta: 0.5, phi: 0.25})
+    assert cirq.parameter_names(resolved) == set()
+    assert not cirq.is_parameterized(resolved)
+
+    unitary_op = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.Z(a) ** theta))
+    assert cirq.parameter_names(unitary_op**-1) == {'theta'}
+
+
 def test_recursive_params() -> None:
     q = cirq.LineQubit(0)
     a, a2, b, b2 = sympy.symbols('a a2 b b2')
@@ -576,28 +608,20 @@ def test_string_format() -> None:
         op0_global_phase_inner, cirq.global_phase_operation(1j)
     )
     op0_global_phase_outer = cirq.CircuitOperation(fc0_global_phase_outer)
-    assert (
-        str(op0_global_phase_outer)
-        == """\
+    assert str(op0_global_phase_outer) == """\
 [                       ]
 [                       ]
 [ global phase:   -0.5π ]"""
-    )
 
     fc1 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, z), cirq.measure(x, y, z, key='m'))
     op1 = cirq.CircuitOperation(fc1)
-    assert (
-        str(op1)
-        == """\
+    assert str(op1) == """\
 [ 0: ───X───────M('m')─── ]
 [               │         ]
 [ 1: ───H───@───M──────── ]
 [           │   │         ]
 [ 2: ───────X───M──────── ]"""
-    )
-    assert (
-        repr(op1)
-        == """\
+    assert repr(op1) == """\
 cirq.CircuitOperation(
     circuit=cirq.FrozenCircuit([
         cirq.Moment(
@@ -612,7 +636,6 @@ cirq.CircuitOperation(
         ),
     ]),
 )"""  # noqa: E501
-    )
 
     fc2 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, x))
     op2 = cirq.CircuitOperation(
@@ -622,17 +645,12 @@ cirq.CircuitOperation(
         parent_path=('outer', 'inner'),
         repetition_ids=['a', 'b', 'c'],
     )
-    assert (
-        str(op2)
-        == """\
+    assert str(op2) == """\
 [ 0: ───X───X─── ]
 [           │    ]
 [ 1: ───H───@─── ](qubit_map={q(1): q(2)}, parent_path=('outer', 'inner'),\
  repetition_ids=['a', 'b', 'c'])"""
-    )
-    assert (
-        repr(op2)
-        == """\
+    assert repr(op2) == """\
 cirq.CircuitOperation(
     circuit=cirq.FrozenCircuit([
         cirq.Moment(
@@ -648,7 +666,6 @@ cirq.CircuitOperation(
     parent_path=('outer', 'inner'),
     repetition_ids=['a', 'b', 'c'],
 )"""
-    )
 
     fc3 = cirq.FrozenCircuit(cirq.X(x) ** sympy.Symbol('b'), cirq.measure(x, key='m'))
     op3 = cirq.CircuitOperation(
@@ -658,30 +675,22 @@ cirq.CircuitOperation(
         param_resolver={sympy.Symbol('b'): 2},
     )
     indented_fc3_repr = repr(fc3).replace('\n', '\n    ')
-    assert (
-        str(op3)
-        == """\
+    assert str(op3) == """\
 [ 0: ───X^b───M('m')─── ](qubit_map={q(0): q(1)}, \
 key_map={m: p}, params={b: 2})"""
-    )
-    assert (
-        repr(op3)
-        == f"""\
+    assert repr(op3) == f"""\
 cirq.CircuitOperation(
     circuit={indented_fc3_repr},
     qubit_map={{cirq.LineQubit(0): cirq.LineQubit(1)}},
     measurement_key_map={{'m': 'p'}},
     param_resolver=cirq.ParamResolver({{sympy.Symbol('b'): 2}}),
 )"""
-    )
 
     fc4 = cirq.FrozenCircuit(cirq.X(y))
     op4 = cirq.CircuitOperation(fc4)
     fc5 = cirq.FrozenCircuit(cirq.X(x), op4)
     op5 = cirq.CircuitOperation(fc5)
-    assert (
-        repr(op5)
-        == """\
+    assert repr(op5) == """\
 cirq.CircuitOperation(
     circuit=cirq.FrozenCircuit([
         cirq.Moment(
@@ -696,11 +705,8 @@ cirq.CircuitOperation(
         ),
     ]),
 )"""
-    )
     op6 = cirq.CircuitOperation(fc5, use_repetition_ids=False)
-    assert (
-        repr(op6)
-        == """\
+    assert repr(op6) == """\
 cirq.CircuitOperation(
     circuit=cirq.FrozenCircuit([
         cirq.Moment(
@@ -715,15 +721,12 @@ cirq.CircuitOperation(
         ),
     ]),
 )"""
-    )
     op7 = cirq.CircuitOperation(
         cirq.FrozenCircuit(cirq.measure(x, key='a')),
         use_repetition_ids=False,
         repeat_until=cirq.KeyCondition(cirq.MeasurementKey('a')),
     )
-    assert (
-        repr(op7)
-        == """\
+    assert repr(op7) == """\
 cirq.CircuitOperation(
     circuit=cirq.FrozenCircuit([
         cirq.Moment(
@@ -732,7 +735,6 @@ cirq.CircuitOperation(
     ]),
     repeat_until=cirq.KeyCondition(cirq.MeasurementKey(name='a')),
 )"""
-    )
 
 
 def test_json_dict() -> None:
@@ -1331,6 +1333,19 @@ def test_has_unitary_protocol_returns_true_if_all_params_resolve() -> None:
     assert protocols.has_unitary(op)
 
 
+def test_unitary_of_single_qubit_circuit_op() -> None:
+    q0 = cirq.LineQubit(0)
+
+    c = cirq.FrozenCircuit(cirq.X(q0))
+    op = cirq.CircuitOperation(c, repetitions=2)
+    u = protocols.unitary(op)
+    np.testing.assert_array_equal(u, np.eye(2))
+
+    c1 = cirq.FrozenCircuit(cirq.measure(q0))
+    with pytest.raises(TypeError, match="cirq.unitary failed.*"):
+        protocols.unitary(cirq.CircuitOperation(c1))
+
+
 def test_control_keys_respects_internal_measurement_order() -> None:
     q = cirq.LineQubit(0)
 
@@ -1343,3 +1358,96 @@ def test_control_keys_respects_internal_measurement_order() -> None:
     fc_after = cirq.FrozenCircuit(cirq.measure(q, key='a'), cirq.X(q).with_classical_controls('a'))
     op_after = cirq.CircuitOperation(fc_after)
     assert cirq.control_keys(op_after) == set()
+
+
+def test_qubits_parameterized():
+    qx = cirq.VariableLineQid(sympy.Symbol('x'))
+    cop0 = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(cirq.q(0))))
+    assert not cop0._are_qubits_parameterized()
+
+    copx = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(qx)))
+    assert copx._are_qubits_parameterized()
+
+    cop0_mapx = cirq.CircuitOperation(
+        cirq.FrozenCircuit(cirq.X(cirq.q(0))), qubit_map={cirq.q(0): qx}
+    )
+    assert cop0_mapx._are_qubits_parameterized()
+
+
+def test_variable_qid_resolution():
+    x = sympy.Symbol('x')
+    y = sympy.Symbol('y')
+    z = sympy.Symbol('z')
+
+    q0 = cirq.LineQubit(0)
+    qx = cirq.VariableLineQid(x)
+    qz = cirq.VariableLineQid(z)
+
+    x_qx = cirq.X(qx)
+    x_q0 = cirq.X(q0)
+
+    map_10 = {cirq.q(1): q0}
+    map_0x = {q0: qx}
+    map_x0 = {qx: q0}
+    map_03 = {q0: cirq.q(3)}
+    map_5z = {cirq.q(5): qz}
+
+    resolver_xy = cirq.ParamResolver({x: y})
+    resolver_yz = cirq.ParamResolver({y: z})
+    resolver_xz = cirq.ParamResolver({x: z})
+    resolver_x3 = cirq.ParamResolver({x: 3})
+
+    circuit_qx = cirq.FrozenCircuit(x_qx)
+    circuit_q0 = cirq.FrozenCircuit(x_q0)
+
+    # circuit parameters are resolved via qubit_map
+    cop_qx_mapx0 = cirq.CircuitOperation(circuit_qx, qubit_map=map_x0)
+    assert not cirq.is_parameterized(cop_qx_mapx0)
+    assert cirq.parameter_names(cop_qx_mapx0) == set()
+
+    # circuit is parameterized
+    cop_qx_map00 = cirq.CircuitOperation(circuit_qx, qubit_map=map_10)
+    resolved_cop = cirq.resolve_parameters(cop_qx_map00, resolver_x3)
+    expected_resolved_cop = cirq.CircuitOperation(
+        circuit_qx, qubit_map=map_10, param_resolver=resolver_x3
+    )
+    assert cirq.is_parameterized(cop_qx_map00)
+    assert cirq.parameter_names(cop_qx_map00) == {'x'}
+    assert resolved_cop == expected_resolved_cop
+
+    # circuit is parameterized, no qubit map
+    cop_qx = cirq.CircuitOperation(circuit_qx)
+    resolved_cop = cirq.resolve_parameters(cop_qx, resolver_x3)
+    expected_resolved_cop = cirq.CircuitOperation(circuit_qx, param_resolver=resolver_x3)
+    assert cirq.is_parameterized(cop_qx)
+    assert cirq.parameter_names(cop_qx) == {'x'}
+    assert resolved_cop == expected_resolved_cop
+
+    # the qubit map is parameterized, the circuit is not
+    cop_q0_map0x = cirq.CircuitOperation(circuit_q0, qubit_map=map_0x)
+    resolved_cop = cirq.resolve_parameters(cop_q0_map0x, resolver_x3)
+    expected_resolved_cop = cirq.CircuitOperation(circuit_q0, qubit_map=map_03)
+    assert cirq.is_parameterized(cop_q0_map0x)
+    assert cirq.parameter_names(cop_qx) == {'x'}
+    assert resolved_cop == expected_resolved_cop
+
+    # the circuit and the qubit map are parameterized, and the resolver has existing parameters
+    cop_qx_map5z_rxy = cirq.CircuitOperation(
+        circuit_qx, qubit_map=map_5z, param_resolver=resolver_xy
+    )
+    resolved_cop = cirq.resolve_parameters(cop_qx_map5z_rxy, resolver_yz)
+    expected_resolved_cop = cirq.CircuitOperation(
+        circuit_qx, qubit_map=map_5z, param_resolver=resolver_xz
+    )
+    assert cirq.is_parameterized(cop_qx_map5z_rxy)
+    assert cirq.parameter_names(cop_qx_map5z_rxy) == {'y', 'z'}
+    assert resolved_cop == expected_resolved_cop
+
+    # test duplicate mapping error
+    q1 = cirq.LineQubit(1)
+    x_q1 = cirq.X(q1)
+    circuit_q0q1_map0x = cirq.CircuitOperation(
+        cirq.FrozenCircuit(x_q0, x_q1), qubit_map={q0: q0, q1: qx}
+    )
+    with pytest.raises(ValueError, match="Collision in qubit map"):
+        _ = cirq.resolve_parameters(circuit_q0q1_map0x, cirq.ParamResolver({x: 0}))

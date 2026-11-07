@@ -128,18 +128,18 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
         self, ccz_gate: cirq.CCZPowGate, qubits: tuple[cirq.Qid, ...]
     ) -> cirq.OP_TREE:
         """Decomposition of all-to-all connected qubits are different from line
-         qubits or grid qubits, ckeckout IonQTargetGateset.
+         qubits or grid qubits, checkout IonQTargetGateset.
 
         For example, for qubits in the same ion trap, the decomposition of CCZ
         gate will be:
 
-        0: ──────────────@──────────────────@───@───p──────@───
-                         │                  │   │          │
-        1: ───@──────────┼───────@───p──────┼───X───p^-1───X───
-              │          │       │          │
-        2: ───X───p^-1───X───p───X───p^-1───X───p──────────────
+            0: ──────────────@──────────────────@───@───p──────@───
+                             │                  │   │          │
+            1: ───@──────────┼───────@───p──────┼───X───p^-1───X───
+                  │          │       │          │
+            2: ───X───p^-1───X───p───X───p^-1───X───p──────────────
 
-        where p = T**ccz_gate._exponent
+        where `p = T**ccz_gate._exponent`
         """
         if len(qubits) != 3:
             raise ValueError(f'Expect 3 qubits for CCZ gate, got {len(qubits)} qubits.')
@@ -159,7 +159,8 @@ class IonqNativeGatesetBase(cirq.TwoQubitCompilationTargetGateset):
             else []
         )
 
-        return global_phase_operation + [
+        return [
+            *global_phase_operation,
             self._cnot(*[b, c]),
             p(c) ** -1,
             self._cnot(*[a, c]),

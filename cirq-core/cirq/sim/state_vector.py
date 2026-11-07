@@ -88,10 +88,10 @@ class StateVectorMixin:
 
         Args:
             copy: If True, the returned state vector will be a copy of that
-            stored by the object. This is potentially expensive for large
-            state vectors, but prevents mutation of the object state, e.g. for
-            operating on intermediate states of a circuit.
-            Defaults to False.
+                stored by the object. This is potentially expensive for large
+                state vectors, but prevents mutation of the object state, e.g.,
+                for operating on intermediate states of a circuit.
+                Defaults to False.
         """
         raise NotImplementedError()
 
@@ -132,7 +132,7 @@ class StateVectorMixin:
                 be traced out.
 
         Returns:
-            A numpy array representing the density matrix.
+            A NumPy array representing the density matrix.
 
         Raises:
             ValueError: if the size of the state represents more than 25 qubits.
@@ -145,18 +145,18 @@ class StateVectorMixin:
         )
 
     def bloch_vector_of(self, qubit: cirq.Qid) -> np.ndarray:
-        """Returns the bloch vector of a qubit in the state.
+        """Returns the Bloch vector of a qubit in the state.
 
-        Calculates the bloch vector of the given qubit
+        Calculates the Bloch vector of the given qubit
         in the state given by self.state_vector(), given that
         self.state_vector() follows the standard Kronecker convention of
         numpy.kron.
 
         Args:
-            qubit: qubit who's bloch vector we want to find.
+            qubit: qubit whose Bloch vector we want to find.
 
         Returns:
-            A length 3 numpy array representing the qubit's bloch vector.
+            A length 3 NumPy array representing the qubit's Bloch vector.
 
         Raises:
             ValueError: if the size of the state represents more than 25 qubits.
@@ -197,7 +197,7 @@ def sample_state_vector(
         Measurement results with True corresponding to the ``|1⟩`` state.
         The outer list is for repetitions, and the inner corresponds to
         measurements ordered by the supplied qubits. These lists
-        are wrapped as a numpy ndarray.
+        are wrapped as a NumPy ndarray.
 
     Raises:
         ValueError: ``repetitions`` is less than one or size of `state_vector`
@@ -214,7 +214,7 @@ def sample_state_vector(
     if repetitions == 0 or len(indices) == 0:
         return np.zeros(shape=(repetitions, len(indices)), dtype=np.uint8)
 
-    prng = value.parse_random_state(seed)
+    prng = value.parse_random_generator(seed)
 
     # Calculate the measurement probabilities.
     probs = (state_vector * state_vector.conj()).real
@@ -263,9 +263,9 @@ def measure_state_vector(
         seed: A seed for the pseudorandom number generator.
 
     Returns:
-        A tuple of a list and a numpy array. The list is an array of booleans
+        A tuple of a list and a NumPy array. The list is an array of Booleans
         corresponding to the measurement values (ordered by the indices). The
-        numpy array is the post measurement state vector. This state vector has
+        NumPy array is the post measurement state vector. This state vector has
         the same shape and dtype as the input `state_vector`.
 
     Raises:
@@ -285,10 +285,7 @@ def measure_state_vector(
         # Final else: if out is state then state will be modified in place.
         return ([], out)
 
-    prng = value.parse_random_state(seed)
-
-    # Cache initial shape.
-    initial_shape = state_vector.shape
+    prng = value.parse_random_generator(seed)
 
     # Calculate the measurement probabilities and then make the measurement.
     probs = (state_vector * state_vector.conj()).real
@@ -314,12 +311,10 @@ def measure_state_vector(
         np.copyto(dst=out, src=state_vector)
     # Final else: if out is state then state will be modified in place.
 
-    # Potentially reshape to tensor, and then set masked values to 0.
-    out.shape = shape
-    out[mask] = 0
+    # Reshape to a tensor inplace to set the masked values to 0.
+    out.reshape(shape, copy=False)[mask] = 0
 
-    # Restore original shape (if necessary) and renormalize.
-    out.shape = initial_shape
+    # Renormalize.
     out /= np.sqrt(probs[result])
 
     assert out is not None

@@ -350,10 +350,12 @@ def test_manual_default_decompose() -> None:
 
 @pytest.mark.parametrize(
     'paulis,phase_exponent_negative,sign',
-    itertools.product(
-        itertools.product((cirq.X, cirq.Y, cirq.Z, None), repeat=3),
-        (0, 0.1, 0.5, 1, -0.25),
-        (+1, -1),
+    list(
+        itertools.product(
+            itertools.product((cirq.X, cirq.Y, cirq.Z, None), repeat=3),
+            (0, 0.1, 0.5, 1, -0.25),
+            (+1, -1),
+        )
     ),
 )
 def test_default_decompose(paulis, phase_exponent_negative: float, sign: int) -> None:
@@ -361,9 +363,7 @@ def test_default_decompose(paulis, phase_exponent_negative: float, sign: int) ->
     qubits = _make_qubits(len(paulis))
 
     # Get matrix from decomposition
-    pauli_string = cirq.PauliString(
-        qubit_pauli_map={q: p for q, p in zip(qubits, paulis)}, coefficient=sign
-    )
+    pauli_string = cirq.PauliString(qubit_pauli_map=dict(zip(qubits, paulis)), coefficient=sign)
     actual = cirq.Circuit(
         cirq.PauliStringPhasor(pauli_string, exponent_neg=phase_exponent_negative)
     ).unitary()

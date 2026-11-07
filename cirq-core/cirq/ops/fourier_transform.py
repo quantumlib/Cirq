@@ -92,7 +92,7 @@ class QuantumFourierTransformGate(raw_types.Gate):
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return cirq.CircuitDiagramInfo(
-            wire_symbols=(str(self),) + tuple(f'#{k+1}' for k in range(1, self._num_qubits)),
+            wire_symbols=(str(self), *(f'#{k+1}' for k in range(1, self._num_qubits))),
             exponent_qubit_index=0,
         )
 
@@ -110,7 +110,7 @@ class PhaseGradientGate(raw_types.Gate):
     \omega=e^{2 \pi i/2^n}
     $$
 
-    This gate makes up a portion of the quantum fourier transform.
+    This gate makes up a portion of the quantum Fourier transform.
     """
 
     def __init__(self, *, num_qubits: int, exponent: float | sympy.Basic):
@@ -185,7 +185,7 @@ class PhaseGradientGate(raw_types.Gate):
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return cirq.CircuitDiagramInfo(
-            wire_symbols=('Grad',) + tuple(f'#{k+1}' for k in range(1, self._num_qubits)),
+            wire_symbols=('Grad', *(f'#{k+1}' for k in range(1, self._num_qubits))),
             exponent=self.exponent,
             exponent_qubit_index=0,
         )
@@ -201,16 +201,16 @@ def qft(*qubits: cirq.Qid, without_reverse: bool = False, inverse: bool = False)
     equivalently `cirq.inverse(cirq.qft(*qubits))`.
 
     Args:
-        *qubits: The qubits to apply the qft to.
-        without_reverse: When set, swap gates at the end of the qft are omitted.
-            This reverses the qubit order relative to the standard qft effect,
+        *qubits: The qubits to apply the QFT to.
+        without_reverse: When set, swap gates at the end of the QFT are omitted.
+            This reverses the qubit order relative to the standard QFT effect,
             but makes the gate cheaper to apply.
         inverse: If set, the inverse qft is performed instead of the qft.
             Equivalent to calling `cirq.inverse` on the result, or raising it
             to the -1.
 
     Returns:
-        A `cirq.Operation` applying the qft to the given qubits.
+        A `cirq.Operation` applying the QFT to the given qubits.
     """
     result = QuantumFourierTransformGate(len(qubits), without_reverse=without_reverse).on(*qubits)
     return cirq.inverse(result) if inverse else result

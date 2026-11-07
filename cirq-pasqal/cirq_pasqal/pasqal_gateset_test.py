@@ -114,3 +114,38 @@ def test_decomposition(op: cirq.Operation, gs: cirq.CompilationTargetGateset):
 def test_repr(gs):
     assert gs.num_qubits == 2
     cirq.testing.assert_equivalent_repr(gs, setup_code='import cirq_pasqal')
+
+
+def test_postprocess_transformers_splits_moments():
+    p_qubits = cirq_pasqal.TwoDQubit.square(6)
+    circuit1 = cirq.Circuit()
+    circuit1.append(cirq.CZ(p_qubits[0], p_qubits[1]))
+    circuit1.append(cirq.Z(p_qubits[0]))
+    circuit1.append(cirq.CX(p_qubits[0], p_qubits[2]))
+    circuit1.append(cirq.measure(p_qubits[0], p_qubits[1], p_qubits[2]))
+
+    p_device = cirq_pasqal.PasqalVirtualDevice(control_radius=2.1, qubits=p_qubits)
+    pasqal_gateset = cirq_pasqal.PasqalGateset(include_additional_controlled_ops=False)
+    pasqal_circuit = cirq.optimize_for_target_gateset(circuit1, gateset=pasqal_gateset)
+    p_device.validate_circuit(pasqal_circuit)
+
+    for m in pasqal_circuit:
+        assert m
+        assert len(m) == 1 or all(isinstance(op.gate, cirq.MeasurementGate) for op in m)
+
+    circuit2 = cirq.Circuit(cirq.Z.on_each(p_qubits[0], p_qubits[1]))
+    circuit2.append(cirq.ZPowGate(exponent=1e-12).on(p_qubits[0]))
+    circuit2.append(cirq.Moment(cirq.Z(p_qubits[0]), cirq.measure(p_qubits[1])))
+    circuit2.append(cirq.Moment())
+    assert circuit2[3] == cirq.Moment()
+    pasqal_circuit2 = cirq.optimize_for_target_gateset(circuit2, gateset=pasqal_gateset)
+    cirq.testing.assert_same_circuits(
+        pasqal_circuit2,
+        cirq.Circuit(
+            cirq.Moment(cirq.Z(p_qubits[0])),
+            cirq.Moment(cirq.Z(p_qubits[1])),
+            cirq.Moment(cirq.Z(p_qubits[0])),
+            cirq.Moment(cirq.measure(p_qubits[1])),
+        ),
+    )
+    p_device.validate_circuit(pasqal_circuit2)

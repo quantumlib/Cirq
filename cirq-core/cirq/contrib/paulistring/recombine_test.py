@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 import cirq
 from cirq.contrib.paulistring import (
     convert_and_separate_circuit,
@@ -49,3 +51,12 @@ def test_move_non_clifford_into_clifford() -> None:
     opt_len2 = len(cirq.optimize_for_target_gateset(c_recombined2, gateset=gateset))
     assert opt_len1 <= baseline_len
     assert opt_len2 <= baseline_len
+
+
+def test_move_pauli_strings_into_circuit_raises() -> None:
+    # check that example in #7934 raises exception
+    q0 = cirq.LineQubit(0)
+    with pytest.raises(
+        ValueError, match='Expected only PauliStringPhasor operations in circuit_left.'
+    ):
+        move_pauli_strings_into_circuit(cirq.Circuit(cirq.X(q0)), cirq.Circuit())

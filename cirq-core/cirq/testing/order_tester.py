@@ -88,7 +88,7 @@ class OrderTester:
         which are supposed to be equal to each other within that group.
 
         Args:
-          *items: The sequence of strictly ascending items.
+            *items: The sequence of strictly ascending items.
 
         Raises:
             AssertionError: Items are not ascending either

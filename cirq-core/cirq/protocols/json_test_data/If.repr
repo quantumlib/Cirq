@@ -1,0 +1,1 @@
+cirq.If([cirq.KeyCondition(cirq.MeasurementKey(name='a')), cirq.KeyCondition(cirq.MeasurementKey(name='b'))], cirq.Y(cirq.NamedQubit('target')))

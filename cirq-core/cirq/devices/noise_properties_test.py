@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import cirq
 import cirq.testing
@@ -44,7 +44,7 @@ class SampleNoiseProperties(NoiseProperties):
     def _value_equality_values_(self):
         return (self.qubits, self.qubit_pairs)
 
-    def _json_dict_(self) -> dict[str, object]:
+    def _json_dict_(self) -> dict[str, Any]:
         return {'system_qubits': self.qubits, 'qubit_pairs': self.qubit_pairs}
 
     @classmethod
@@ -83,5 +83,5 @@ def test_noise_model_from_noise_properties_json() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     props = SampleNoiseProperties([q0, q1], [(q0, q1), (q1, q0)])
     model = NoiseModelFromNoiseProperties(props)
-    resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+    resolvers = [custom_resolver, *cirq.DEFAULT_RESOLVERS]
     cirq.testing.assert_json_roundtrip_works(model, resolvers=resolvers)

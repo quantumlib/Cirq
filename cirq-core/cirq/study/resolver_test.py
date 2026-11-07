@@ -25,6 +25,12 @@ import sympy
 import cirq
 
 
+def test_symbol() -> None:
+    x = cirq.symbol("x")
+    assert isinstance(x, sympy.Symbol)
+    assert str(x) == "x"
+
+
 @pytest.mark.parametrize(
     'val',
     [
@@ -37,7 +43,7 @@ import cirq
         np.int32(2),
         np.complex64(1j),
         np.complex128(2j),
-        complex(1j),
+        1j,
         fractions.Fraction(3, 2),
     ],
 )
@@ -61,7 +67,7 @@ def test_value_of_substituted_types(val, resolved) -> None:
 def _assert_consistent_resolution(v, resolved):
     """Asserts that parameter resolution works consistently.
 
-    The ParamResolver.value_of method can resolve any Sympy expression -
+    The ParamResolver.value_of method can resolve any SymPy expression -
     subclasses of sympy.Basic. In the generic case, it calls `sympy.Basic.subs`
     to substitute symbols with values specified in a dict, which is known to be
     very slow. Instead value_of defines a pass-through shortcut for known
@@ -153,7 +159,7 @@ def test_param_dict() -> None:
 
 def test_param_dict_iter() -> None:
     r = cirq.ParamResolver({'a': 0.5, 'b': 0.1})
-    assert [key for key in r] == ['a', 'b']
+    assert list(r) == ['a', 'b']
     assert [r.value_of(key) for key in r] == [0.5, 0.1]
     assert list(r) == ['a', 'b']
 

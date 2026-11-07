@@ -19,9 +19,7 @@ from __future__ import annotations
 import abc
 import copy
 from collections.abc import Iterator, Sequence
-from typing import Any, cast, Generic, Self, TYPE_CHECKING, TypeVar
-
-import numpy as np
+from typing import Any, Generic, Self, TYPE_CHECKING, TypeVar
 
 from cirq import ops, protocols, value
 from cirq.sim.simulation_state_base import SimulationStateBase
@@ -29,6 +27,8 @@ from cirq.sim.simulation_state_base import SimulationStateBase
 TState = TypeVar('TState', bound='cirq.QuantumStateRepresentation')
 
 if TYPE_CHECKING:
+    import numpy as np
+
     import cirq
 
 
@@ -39,33 +39,35 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         self,
         *,
         state: TState,
-        prng: np.random.RandomState | None = None,
+        prng: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         qubits: Sequence[cirq.Qid] | None = None,
         classical_data: cirq.ClassicalDataStore | None = None,
+        param_resolver: cirq.ParamResolver | None = None,
     ):
         """Inits SimulationState.
 
         Args:
-            prng: The pseudo random number generator to use for probabilistic
-                effects.
+            prng: The pseudo random number generator (or seed) to use for
+                probabilistic effects.
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             classical_data: The shared classical data container for this
                 simulation.
+            param_resolver: The parameter resolver for the simulation.
             state: The underlying quantum state of the simulation.
         """
         if qubits is None:
             qubits = ()
         classical_data = classical_data or value.ClassicalDataDictionaryStore()
-        super().__init__(qubits=qubits, classical_data=classical_data)
-        if prng is None:
-            prng = cast(np.random.RandomState, np.random)
-        self._prng = prng
+        super().__init__(
+            qubits=qubits, classical_data=classical_data, param_resolver=param_resolver
+        )
+        self._prng = value.parse_random_generator(prng)
         self._state = state
 
     @property
-    def prng(self) -> np.random.RandomState:
+    def prng(self) -> np.random.Generator:
         return self._prng
 
     def measure(
@@ -114,7 +116,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
     ):
         """Applies confusion matrices to measured results.
 
-        Compare with _confuse_results in cirq-core/cirq/sim/simulator.py.
+        Compare with `_confuse_results` in cirq-core/cirq/sim/simulator.py.
         """
         confused = list(bits)
         dims = [q.dimension for q in qubits]
@@ -142,8 +144,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
 
         Args:
             deep_copy_buffers: If True, buffers will also be deep-copied.
-            Otherwise the copy will share a reference to the original object's
-            buffers.
+                Otherwise the copy will share a reference to the original object's buffers.
 
         Returns:
             A copied instance.
@@ -157,20 +158,9 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         """Creates a final merged state."""
         return self
 
-    def add_qubits(self: Self, qubits: Sequence[cirq.Qid]) -> Self:
-        """Add `qubits` in the `|0>` state to a new state space and take the kron product.
-
-        Args:
-            qubits: Sequence of qubits to be added.
-
-        Returns:
-            NotImplemented: If the subclass does not implement this method.
-            Self: A `cirq.SimulationState` with qubits added or `self` if there are no qubits to
-                add.
-        """
-        if not qubits:
-            return self
-        return NotImplemented
+    def create_empty_state(self, qubits: Sequence[cirq.Qid]) -> Self:
+        """Creates a new state with the given qubits in the |0> state"""
+        raise NotImplementedError("This simulation state does not implement create_empty_state.")
 
     def remove_qubits(self: Self, qubits: Sequence[cirq.Qid]) -> Self:
         """Remove `qubits` from the state space.

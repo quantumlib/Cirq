@@ -130,11 +130,13 @@ class _BaseGridQid(ops.Qid):
         Args:
             qids: optional Iterable of qubits to constrain neighbors to.
         """
-        neighbors = set()
-        for q in [self + (0, 1), self + (1, 0), self + (-1, 0), self + (0, -1)]:
-            if qids is None or q in qids:
-                neighbors.add(q)
-        return neighbors
+        the_neighbors = {
+            self._with_row_col(row=self._row + offset[0], col=self._col + offset[1])
+            for offset in ((0, 1), (1, 0), (-1, 0), (0, -1))
+        }
+        if qids is not None:
+            the_neighbors.intersection_update(qids)
+        return the_neighbors
 
     @abc.abstractmethod
     def _with_row_col(self, row: int, col: int) -> Self:
@@ -199,7 +201,7 @@ class GridQid(_BaseGridQid):
         GridQid(0, 0, dimension=2) < GridQid(0, 1, dimension=2)
         < GridQid(1, 0, dimension=2) < GridQid(1, 1, dimension=2)
 
-    New GridQid can be constructed by adding or subtracting tuples or numpy
+    New GridQid can be constructed by adding or subtracting tuples or NumPy
     arrays
 
     >>> cirq.GridQid(2, 3, dimension=2) + (3, 1)
@@ -237,7 +239,7 @@ class GridQid(_BaseGridQid):
         return inst
 
     def __getnewargs_ex__(self):
-        """Returns a tuple of (args, kwargs) to pass to __new__ when unpickling."""
+        """Returns a tuple of (args, kwargs) to pass to `__new__` when unpickling."""
         return (self._row, self._col), {"dimension": self._dimension}
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs_ex__
@@ -395,7 +397,7 @@ class GridQubit(_BaseGridQid):
         return inst
 
     def __getnewargs__(self):
-        """Returns a tuple of args to pass to __new__ when unpickling."""
+        """Returns a tuple of args to pass to `__new__` when unpickling."""
         return (self._row, self._col)
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs__

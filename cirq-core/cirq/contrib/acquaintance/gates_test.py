@@ -137,7 +137,7 @@ def test_acquaint_part_pairs(part_lens) -> None:
     initial_mapping = {q: i for i, q in enumerate(qubits)}
 
     actual_opps = cca.get_logical_acquaintance_opportunities(swap_network, initial_mapping)
-    expected_opps = set(frozenset(s + t) for s, t in combinations(parts, 2))
+    expected_opps = {frozenset(s + t) for s, t in combinations(parts, 2)}
     assert expected_opps == actual_opps
 
 
@@ -147,12 +147,12 @@ acquaintance_sizes += tuple(range(5))
 
 @pytest.mark.parametrize(
     'part_lens, acquaintance_size',
-    list(
+    [
         ((part_len,) * n_parts, acquaintance_size)
         for part_len, acquaintance_size, n_parts in product(
             range(1, 5), acquaintance_sizes, range(2, 5)
         )
-    ),
+    ],
 )
 def test_swap_network_gate_permutation(part_lens, acquaintance_size) -> None:
     n_qubits = sum(part_lens)
@@ -241,7 +241,7 @@ def test_swap_network_permutation(part_lens, acquaintance_size) -> None:
     n_qubits = sum(part_lens)
     gate = cca.SwapNetworkGate(part_lens, acquaintance_size)
 
-    expected_permutation = {i: j for i, j in zip(range(n_qubits), reversed(range(n_qubits)))}
+    expected_permutation = dict(zip(range(n_qubits), reversed(range(n_qubits))))
     assert gate.permutation() == expected_permutation
 
 
@@ -319,7 +319,7 @@ def test_operations_to_part_lens() -> None:
 
 
 @pytest.mark.parametrize(
-    'part_len_sets', [set(tuple(randint(1, 5) for _ in range(randint(2, 7))) for _ in range(5))]
+    'part_len_sets', [{tuple(randint(1, 5) for _ in range(randint(2, 7))) for _ in range(5)}]
 )
 def test_swap_network_gate_equality(part_len_sets) -> None:
     acquaintance_sizes = [None, 0, 1, 2, 3]

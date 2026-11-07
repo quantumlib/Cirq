@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Provides test devices that can validate circuits."""
+
 from __future__ import annotations
 
 from collections.abc import Set
@@ -44,7 +45,7 @@ class ValidatingTestDevice(devices.Device):
         allowed_gates: tuple[type, ...] = (ops.Gate,),
         allowed_qubit_types: tuple[type, ...] = (devices.GridQubit,),
         validate_locality: bool = False,
-        auto_decompose_gates: tuple[type, ...] = tuple(),
+        auto_decompose_gates: tuple[type, ...] = (),
     ):
         self.allowed_qubit_types = allowed_qubit_types
         self.allowed_gates = allowed_gates

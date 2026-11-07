@@ -1,7 +1,7 @@
 # Access and Authentication
 
 Pasqal's API is not yet open for public access. In case you're interested, contact
-us through our [website](https://pasqal.io/contact/) to request access.
+us through our [website](https://www.pasqal.com/contact-us/) to request access.
 
 ## API Access
 

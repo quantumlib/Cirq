@@ -19,6 +19,7 @@ from __future__ import annotations
 import functools
 import itertools
 from collections.abc import Mapping, Sequence
+from concurrent import futures
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any, cast, TYPE_CHECKING
@@ -151,7 +152,7 @@ class TwoQubitXEBResult:
     def plot_fitted_exponential(
         self, q0: cirq.GridQubit, q1: cirq.GridQubit, ax: plt.Axes | None = None, **plot_kwargs
     ) -> plt.Axes:
-        """plot the fitted model to for xeb error of a qubit pair.
+        """plot the fitted model to for XEB error of a qubit pair.
 
         Args:
             q0: first qubit.
@@ -206,7 +207,7 @@ class TwoQubitXEBResult:
         return {(q0, q1): self.xeb_error(q0, q1) for q0, q1 in self.all_qubit_pairs}
 
     def plot_histogram(self, ax: plt.Axes | None = None, **plot_kwargs) -> plt.Axes:
-        """plot a histogram of all xeb errors.
+        """plot a histogram of all XEB errors.
 
         Args:
             ax: the plt.Axes to plot on. If not given, a new figure is created,
@@ -409,7 +410,7 @@ def parallel_xeb_workflow(
     random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ax: plt.Axes | None = None,
     pairs: Sequence[tuple[cirq.GridQubit, cirq.GridQubit]] | None = None,
-    pool: multiprocessing.pool.Pool | None = None,
+    pool: multiprocessing.pool.Pool | futures.Executor | None = None,
     batch_size: int = 9,
     tags: Sequence[Any] = (),
     **plot_kwargs,
@@ -428,7 +429,7 @@ def parallel_xeb_workflow(
         ax: the plt.Axes to plot the device layout on. If not given,
             no plot is created.
         pairs: Pairs to use. If not specified, use all pairs between adjacent qubits.
-        pool: An optional multiprocessing pool.
+        pool: An optional pool.
         batch_size: We call `run_batch` on the sampler, which can speed up execution in certain
             environments. The number of (circuit, cycle_depth) tasks to be run in each batch
             is given by this number.
@@ -438,7 +439,7 @@ def parallel_xeb_workflow(
     Returns:
         - A DataFrame with columns 'cycle_depth' and 'fidelity'.
         - The circuits used to perform XEB.
-        - A pandas dataframe with index given by ['circuit_i', 'cycle_depth'].
+        - A Pandas DataFrame with index given by ['circuit_i', 'cycle_depth'].
             Columns always include "sampled_probs". If `combinations_by_layer` is
             not `None` and you are doing parallel XEB, additional metadata columns
             will be attached to the returned DataFrame.

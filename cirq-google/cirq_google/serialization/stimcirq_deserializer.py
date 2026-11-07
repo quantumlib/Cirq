@@ -78,7 +78,7 @@ class StimCirqDeserializer(OpDeserializer):
         kwargs: dict[str, Any] = {}
         for k, v in proto.internalgate.gate_args.items():
             if k == "pauli":
-                # Special Handling for pauli gate
+                # Special Handling for Pauli gate
                 pauli = v.arg_value.string_value
                 if pauli == "X":
                     kwargs[k] = cirq.X

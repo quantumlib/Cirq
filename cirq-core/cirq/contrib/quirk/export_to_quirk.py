@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import json
 import urllib.parse
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from typing import Any, cast
 
 from cirq import circuits, devices, ops, protocols
@@ -43,7 +43,7 @@ def _try_convert_to_quirk_gate(op: ops.Operation, prefer_unknown_gate_to_failure
 
 def _to_quirk_cols(
     op: ops.Operation, prefer_unknown_gate_to_failure: bool
-) -> Iterable[tuple[list[Any], bool]]:
+) -> Iterator[tuple[list[Any], bool]]:
     gate = _try_convert_to_quirk_gate(op, prefer_unknown_gate_to_failure)
     qubits = cast(Iterable[devices.LineQubit], op.qubits)
 

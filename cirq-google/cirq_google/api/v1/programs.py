@@ -26,7 +26,7 @@ from cirq_google.api.v1 import operations_pb2
 
 
 def _load_json_bool(b: Any):
-    """Converts a json field to bool.  If already a bool, pass through."""
+    """Converts a JSON field to bool.  If already a bool, pass through."""
     if isinstance(b, bool):
         return b
     return json.loads(b)
@@ -150,16 +150,8 @@ def circuit_as_schedule_to_protos(circuit: cirq.Circuit) -> Iterator[operations_
     Yields:
         An Operation proto.
     """
-    last_picos: int | None = None
-    time_picos = 0
     for op in circuit.all_operations():
-        if last_picos is None:
-            delay = time_picos
-        else:
-            delay = time_picos - last_picos
-        op_proto = gate_to_proto(cast(cirq.Gate, op.gate), op.qubits, delay)
-        time_picos += 1
-        last_picos = time_picos
+        op_proto = gate_to_proto(cast(cirq.Gate, op.gate), op.qubits, delay=0)
         yield op_proto
 
 
@@ -178,7 +170,7 @@ def pack_results(measurements: Sequence[tuple[str, np.ndarray]]) -> bytes:
 
     Args:
         measurements: A sequence of tuples, one for each measurement, consisting
-            of a string key and an array of boolean data. The data should be
+            of a string key and an array of Boolean data. The data should be
             a 2-D array indexed by (repetition, qubit_index). All data for all
             measurements must have the same number of repetitions.
 
@@ -227,7 +219,7 @@ def unpack_results(
         key_sizes: Keys and sizes of the measurements in the data.
 
     Returns:
-        Dict mapping measurement key to a 2D array of boolean results. Each
+        Dict mapping measurement key to a 2D array of Boolean results. Each
         array has shape (repetitions, size) with size for that measurement.
     """
     bits_per_rep = sum(size for _, size in key_sizes)

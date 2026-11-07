@@ -212,7 +212,7 @@ class CliffordState:
             else clifford.StabilizerStateChForm(self.n, initial_state)
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return {'qubit_map': [(k, v) for k, v in self.qubit_map.items()], 'ch_form': self.ch_form}
 
     @classmethod
@@ -246,19 +246,18 @@ class CliffordState:
 
     def apply_unitary(self, op: cirq.Operation) -> None:
         ch_form_args = clifford.StabilizerChFormSimulationState(
-            prng=np.random.RandomState(), qubits=self.qubit_map.keys(), initial_state=self.ch_form
+            prng=np.random.default_rng(), qubits=self.qubit_map.keys(), initial_state=self.ch_form
         )
         try:
             act_on(op, ch_form_args)
         except TypeError:
             raise ValueError(f'{op.gate} cannot be run with Clifford simulator.')
-        return
 
     def apply_measurement(
         self,
         op: cirq.Operation,
         measurements: dict[str, list[int]],
-        prng: np.random.RandomState,
+        prng: cirq.RANDOM_STATE_OR_SEED_LIKE,
         collapse_state_vector=True,
     ) -> None:
         if not isinstance(op.gate, cirq.MeasurementGate):

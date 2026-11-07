@@ -70,7 +70,7 @@ class SharedRuntimeInfo:
 
 
 def _try_tuple(k: Any) -> Any:
-    """If we serialize a dictionary that had tuple keys, they get turned to json lists."""
+    """If we serialize a dictionary that had tuple keys, they get turned to JSON lists."""
     if isinstance(k, list):
         return tuple(k)
     return k  # pragma: no cover
@@ -101,10 +101,13 @@ class RuntimeInfo:
         return 'cirq.google'
 
     def _json_dict_(self) -> dict[str, Any]:
-        d = dataclass_json_dict(self)
-        if d['qubit_placement']:
-            d['qubit_placement'] = list(d['qubit_placement'].items())
-        d['timings_s'] = list(d['timings_s'].items())
+        d = {
+            'execution_index': self.execution_index,
+            'qubit_placement': (
+                list(self.qubit_placement.items()) if self.qubit_placement is not None else None
+            ),
+            'timings_s': list(self.timings_s.items()),
+        }
         return d
 
     @classmethod
@@ -113,7 +116,7 @@ class RuntimeInfo:
         if kwargs.get('qubit_placement', None):
             kwargs['qubit_placement'] = {_try_tuple(k): v for k, v in kwargs['qubit_placement']}
         if 'timings_s' in kwargs:
-            kwargs['timings_s'] = {k: v for k, v in kwargs['timings_s']}
+            kwargs['timings_s'] = dict(kwargs['timings_s'])
         return cls(**kwargs)
 
     def __repr__(self) -> str:
@@ -185,7 +188,7 @@ class QuantumRuntimeConfiguration:
         run_id: A unique `str` identifier for a run. If data already exists for the specified
             `run_id`, an exception will be raised. If not specified, we will generate a UUID4
             run identifier.
-        random_seed: An initial seed to make the run deterministic. Otherwise, the default numpy
+        random_seed: An initial seed to make the run deterministic. Otherwise, the default NumPy
             seed will be used.
         qubit_placer: A `cg.QubitPlacer` implementation to map executable qubits to device qubits.
             The placer is only called if a given `cg.QuantumExecutable` has a `problem_topology`.
@@ -285,7 +288,7 @@ def execute(
     for i, exe in enumerate(executable_group):
         runtime_info = RuntimeInfo(execution_index=i)
 
-        if exe.params != tuple():
+        if exe.params != ():
             raise NotImplementedError("Circuit params are not yet supported.")
         if not hasattr(exe.measurement, 'n_repetitions'):
             raise NotImplementedError("Only `BitstringsMeasurement` are supported.")

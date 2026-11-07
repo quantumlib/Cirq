@@ -169,8 +169,8 @@ message DeviceParametersDiff {
   message GenericValue {
     // Type description of the value representation. Eg. if the following value
     // bytes field is a JSON string, type_descriptor can be its JSON namespace;
-    // or if the following value field is a protobuf serialization,
-    // type_descriptor can be its protobuf definition URL.
+    // or if the following value field is a Protobuf serialization,
+    // type_descriptor can be its Protobuf definition URL.
     string type_descriptor = 1;
 
     // The value in client's encoding.
@@ -266,7 +266,7 @@ message Linspace {
 message ConstValue {
   // The values.
   oneof value {
-    // This value should always be true if set, which represents the python None
+    // This value should always be true if set, which represents the Python None
     // object.
     bool is_none = 1;
     float float_value = 2;

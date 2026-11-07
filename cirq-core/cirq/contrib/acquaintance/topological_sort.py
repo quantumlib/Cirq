@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import operator
 import random
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Iterator
 from typing import Any, cast, TYPE_CHECKING
 
 from cirq import ops
@@ -36,9 +36,9 @@ def is_topologically_sorted(
 
     For example, suppose the (transitive reduction of the) circuit DAG is
 
-         ╭─> Op2 ─╮
-    Op1 ─┤        ├─> Op4
-         ╰─> Op3 ─╯
+             ╭─> Op2 ─╮
+        Op1 ─┤        ├─> Op4
+             ╰─> Op3 ─╯
 
     Then [Op1, Op2, Op3, Op4] and [Op1, Op3, Op2, Op4] (and any operations
     tree that flattens to one of them) are topologically sorted according
@@ -73,9 +73,9 @@ def is_topologically_sorted(
     return not bool(frontier)
 
 
-def random_topological_sort(dag: networkx.DiGraph) -> Iterable[Any]:
+def random_topological_sort(dag: networkx.DiGraph) -> Iterator[Any]:
     remaining_dag = dag.copy()
-    frontier = list(node for node in remaining_dag.nodes() if not remaining_dag.pred[node])
+    frontier = [node for node in remaining_dag.nodes() if not remaining_dag.pred[node]]
     while frontier:
         random.shuffle(frontier)
         node = frontier.pop()

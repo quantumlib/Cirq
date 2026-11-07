@@ -73,16 +73,14 @@ def test_error_not_starting_with_format(qasm: str) -> None:
 def test_comments() -> None:
     parser = QasmParser()
 
-    parsed_qasm = parser.parse(
-        """
+    parsed_qasm = parser.parse("""
     //this is the format
     OPENQASM 2.0;
     // this is some other comment
     include "qelib1.inc";
     // and something at the end of the file
     // multiline
-    """
-    )
+    """)
 
     assert parsed_qasm.supportedFormat
     assert parsed_qasm.qelib1Include
@@ -259,6 +257,51 @@ creg m_a_0[1];
 
 measure q[0] -> m_a_0[0];
 if (m_a_0==1) cx q[0],q[1];
+"""
+    assert cirq.qasm(parsed_qasm.circuit) == expected_generated_qasm
+
+
+def test_classical_control_multi_qubit_register() -> None:
+    qasm = """OPENQASM 2.0;
+        include "qelib1.inc";
+        qreg q[2];
+        creg a[1];
+        measure q[0] -> a[0];
+        if (a==1) x q;
+    """
+    parser = QasmParser()
+
+    q_0 = cirq.NamedQubit('q_0')
+    q_1 = cirq.NamedQubit('q_1')
+
+    expected_circuit = cirq.Circuit(
+        cirq.measure(q_0, key='a_0'),
+        cirq.X(q_0).with_classical_controls(sympy.Eq(sympy.Symbol('a_0'), 1)),
+        cirq.X(q_1).with_classical_controls(sympy.Eq(sympy.Symbol('a_0'), 1)),
+    )
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 2}
+
+    expected_generated_qasm = f"""// Generated from Cirq v{cirq.__version__}
+
+OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [q_0, q_1]
+qreg q[2];
+creg m_a_0[1];
+
+
+measure q[0] -> m_a_0[0];
+if (m_a_0==1) x q[0];
+if (m_a_0==1) x q[1];
 """
     assert cirq.qasm(parsed_qasm.circuit) == expected_generated_qasm
 
@@ -763,8 +806,7 @@ def test_measurement_bounds() -> None:
 
 
 def test_reset() -> None:
-    qasm = textwrap.dedent(
-        """\
+    qasm = textwrap.dedent("""\
         OPENQASM 2.0;
         include "qelib1.inc";
         qreg q[1];
@@ -772,8 +814,7 @@ def test_reset() -> None:
         x q[0];
         reset q[0];
         measure q[0] -> c[0];
-        """
-    )
+        """)
 
     parser = QasmParser()
 
@@ -1079,7 +1120,7 @@ two_qubit_gates = [
     ('cx', cirq.CNOT),
     ('CX', cirq.CNOT),
     ('cz', cirq.CZ),
-    ('cy', cirq.ControlledGate(cirq.Y)),
+    ('cy', cirq.CY),
     ('swap', cirq.SWAP),
     ('ch', cirq.ControlledGate(cirq.H)),
     ('csx', cirq.ControlledGate(cirq.XPowGate(exponent=0.5))),
@@ -1977,14 +2018,14 @@ def test_custom_gate() -> None:
     parsed_qasm = parser.parse(qasm)
     assert parsed_qasm.circuit == expected
 
-    # Sanity check that this unrolls to a valid circuit
+    # Check that this unrolls to a valid circuit
     unrolled_expected = cirq.Circuit(
         cirq.X(q_0), cirq.Y(q_0), cirq.Z(q_1), cirq.X(q_1), cirq.Y(q_1), cirq.Z(q_0)
     )
     unrolled = cirq.align_left(cirq.unroll_circuit_op(parsed_qasm.circuit, tags_to_check=None))
     assert unrolled == unrolled_expected
 
-    # Sanity check that these have the same unitaries as the QASM.
+    # Check that these have the same unitaries as the QASM.
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(parsed_qasm.circuit))
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(unrolled))
 
@@ -2021,7 +2062,7 @@ def test_custom_gate_parameterized() -> None:
     parsed_qasm = parser.parse(qasm)
     assert parsed_qasm.circuit == expected
 
-    # Sanity check that this unrolls to a valid circuit
+    # Check that this unrolls to a valid circuit
     unrolled_expected = cirq.Circuit(
         cirq.Rx(rads=1).on(q_0),
         cirq.Ry(rads=6).on(q_0),
@@ -2033,7 +2074,7 @@ def test_custom_gate_parameterized() -> None:
     unrolled = cirq.align_left(cirq.unroll_circuit_op(parsed_qasm.circuit, tags_to_check=None))
     assert unrolled == unrolled_expected
 
-    # Sanity check that these have the same unitaries as the QASM.
+    # Check that these have the same unitaries as the QASM.
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(parsed_qasm.circuit))
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(unrolled))
 
@@ -2068,7 +2109,7 @@ def test_custom_gate_broadcast() -> None:
     parsed_qasm = parser.parse(qasm)
     assert parsed_qasm.circuit == expected
 
-    # Sanity check that this unrolls to a valid circuit
+    # Check that this unrolls to a valid circuit
     unrolled_expected = cirq.Circuit(
         cirq.X(q_0),
         cirq.Y(q_0),
@@ -2083,7 +2124,7 @@ def test_custom_gate_broadcast() -> None:
     unrolled = cirq.align_left(cirq.unroll_circuit_op(parsed_qasm.circuit, tags_to_check=None))
     assert unrolled == unrolled_expected
 
-    # Sanity check that these have the same unitaries as the QASM.
+    # Check that these have the same unitaries as the QASM.
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(parsed_qasm.circuit))
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq.unitary(unrolled))
 
@@ -2436,8 +2477,119 @@ def test_all_qelib_gates_unitary_equivalence(
         gate = cirq_gate
     expected = Circuit()
     expected.append(gate.on(*qubits))
-    imported = list(parsed_qasm.circuit.all_operations())[0].gate
+    imported = next(parsed_qasm.circuit.all_operations()).gate
     U_native = cirq.unitary(gate)
     U_import = cirq.unitary(imported)
     assert np.allclose(U_import, U_native, atol=1e-8)
     assert parsed_qasm.qregs == {'q': num_args}
+
+
+@pytest.mark.parametrize('input_type', ['angle', 'float'])
+def test_input_basic(input_type: str) -> None:
+    qasm = f"""
+        OPENQASM 3.0;
+        qreg q[1];
+        input {input_type}[64] theta;
+        U(theta, 0, 0) q[0];
+    """
+    parsed_qasm = QasmParser().parse(qasm)
+
+    assert parsed_qasm.input_params == {'theta': f'{input_type}[64]'}
+
+    theta = sympy.Symbol('theta')
+    q_0 = cirq.NamedQubit('q_0')
+    expected_circuit = Circuit(QasmUGate(theta / np.pi, 0, 0).on(q_0))
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+
+
+def test_input_two_params() -> None:
+    qasm = """
+        OPENQASM 3.0;
+        qreg q[1];
+        input angle[64] theta;
+        input float[64] phi;
+        U(theta, phi, 0) q[0];
+    """
+    parsed_qasm = QasmParser().parse(qasm)
+
+    assert parsed_qasm.input_params == {'theta': 'angle[64]', 'phi': 'float[64]'}
+
+    theta = sympy.Symbol('theta')
+    phi = sympy.Symbol('phi')
+    q_0 = cirq.NamedQubit('q_0')
+    expected_circuit = Circuit(QasmUGate(theta / np.pi, phi / np.pi, 0).on(q_0))
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+
+
+def test_input_not_allowed_in_qasm2() -> None:
+    qasm = """
+        OPENQASM 2.0;
+        qreg q[1];
+        input float[64] n;
+    """
+    with pytest.raises(
+        QasmException, match="'input' modifier at line 4 is only supported in OpenQASM 3.0"
+    ):
+        QasmParser().parse(qasm)
+
+
+@pytest.mark.parametrize(
+    'first_decl,second_decl,name',
+    [
+        ('input float[32] theta;', 'input angle[32] theta;', 'theta'),
+        ('qreg q[1];', 'input float[32] q;', 'q'),
+        ('creg c[1];', 'input float[32] c;', 'c'),
+        ('input float[32] q;', 'qreg q[1];', 'q'),
+    ],
+)
+def test_input_duplicate_identifier_error(first_decl: str, second_decl: str, name: str) -> None:
+    qasm = f"""
+        OPENQASM 3.0;
+        {first_decl}
+        {second_decl}
+    """
+    with pytest.raises(QasmException, match=f"{name} is already defined"):
+        QasmParser().parse(qasm)
+
+
+def test_input_zero_bit_width_error() -> None:
+    qasm = """
+        OPENQASM 3.0;
+        qreg q[1];
+        input float[0] theta;
+    """
+    with pytest.raises(QasmException, match="Illegal bit width of zero for input 'theta'"):
+        QasmParser().parse(qasm)
+
+
+def test_input_invalid_type_error() -> None:
+    qasm = """
+        OPENQASM 3.0;
+        qreg q[1];
+        input badtype theta;
+    """
+    with pytest.raises(QasmException, match="Syntax error"):
+        QasmParser().parse(qasm)
+
+
+@pytest.mark.parametrize('expression', ['pi/0', '1/0', 'pi/(1-1)'])
+def test_division_by_zero(expression: str) -> None:
+    qasm = f"""OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     rx({expression}) q[0];
+    """
+    with pytest.raises(QasmException, match="^division by zero at line 4$"):
+        QasmParser().parse(qasm)
+
+
+@pytest.mark.parametrize('expression', ['0^-1', '(1-1)^-1'])
+def test_zero_to_a_negative_power(expression: str) -> None:
+    """`^` raises ZeroDivisionError too, but for a different reason."""
+    qasm = f"""OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     rx({expression}) q[0];
+    """
+    with pytest.raises(QasmException, match="^zero to a negative power at line 4$"):
+        QasmParser().parse(qasm)

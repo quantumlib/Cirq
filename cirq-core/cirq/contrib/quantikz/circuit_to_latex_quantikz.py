@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-r"""Converts Cirq circuits to Quantikz LaTeX (using modern quantikz syntax).
+r"""Converts Cirq circuits to Quantikz LaTeX (using modern Quantikz syntax).
 
 This module provides a class, `CircuitToQuantikz`, to translate `cirq.Circuit`
 objects into LaTeX code using the `quantikz` package. It aims to offer
@@ -89,7 +89,7 @@ DEFAULT_PREAMBLE_TEMPLATE = r"""
 _Pauli_gate_style = r"style={fill=blue!20}"
 _green_gate_style = r"style={fill=green!20}"
 _yellow_gate_style = r"style={fill=yellow!20}"  # For H
-_orange_gate_style = r"style={fill=orange!20}"  # For FSim, iSwap, etc.
+_orange_gate_style = r"style={fill=orange!20}"  # For FSim, iSWAP, etc.
 _gray_gate_style = r"style={fill=gray!20}"  # For Measure
 _noisy_channel_style = r"style={fill=red!20}"
 
@@ -115,7 +115,7 @@ GATE_STYLES_COLORFUL = {
     "iSwap_pow": _orange_gate_style,  # For ISwapPowGate(exponent!=1)
     "CZ_pow": _orange_gate_style,  # For CZPowGate(exponent!=1)
     "CX_pow": _orange_gate_style,  # For CNotPowGate(exponent!=1)
-    "CXideal": "",  # No fill for \ctrl \targ, let quantikz draw default
+    "CXideal": "",  # No fill for \ctrl \targ, let Quantikz draw default
     "CZideal": "",  # No fill for \ctrl \control
     "Swapideal": "",  # No fill for \swap \targX
     "Measure": _gray_gate_style,
@@ -187,7 +187,7 @@ class CircuitToQuantikz:
             - `"index"`: Labels as $0, 1, \dots$
             - `"qid"`: Labels as the string representation of the `cirq.Qid`
             - Any other value defaults to `"qid"`.
-        show_parameters: A boolean indicating whether gate parameters (e.g.,
+        show_parameters: A Boolean indicating whether gate parameters (e.g.,
             exponents for `XPowGate`, angles for `Rx`) should be displayed
             in the gate labels.
         gate_name_map: An optional dictionary mapping Cirq gate names (strings)
@@ -330,12 +330,12 @@ class CircuitToQuantikz:
             is_symbolic_or_special = any(
                 char.isalpha()
                 for char in s_exponent
-                if char.lower() not in ["e"]  # Exclude 'e' for scientific notation
+                if char.lower() != "e"  # Exclude 'e' for scientific notation
             )
             if not is_symbolic_or_special:  # If it looks like a number
                 try:
                     py_float = float(sympy.N(exponent))
-                    # If the sympy evaluated float is an integer value
+                    # If the SymPy evaluated float is an integer value
                     if py_float.is_integer():
                         exp_str = str(int(py_float))
                     else:
@@ -353,7 +353,7 @@ class CircuitToQuantikz:
                     exp_str = s_exponent
             else:  # Symbolic expression
                 exp_str = s_exponent
-        else:  # For other types (int, strings not sympy objects)
+        else:  # For other types (int, strings not SymPy objects)
             exp_str = str(exponent)
 
         return self._escape_string(exp_str)
@@ -412,8 +412,8 @@ class CircuitToQuantikz:
                     return self._format_exponent_for_display(mapped_base)
 
                 if (
-                    hasattr(gate, "exponent")
-                    and not (isinstance(gate.exponent, float) and math.isclose(gate.exponent, 1.0))
+                    (gate_exponent := getattr(gate, "exponent", None)) is not None
+                    and not (isinstance(gate_exponent, float) and math.isclose(gate_exponent, 1.0))
                     and isinstance(gate, tuple(_EXPONENT_GATE_MAP.keys()))
                 ):
                     has_exp_in_cand = ("^" in name_cand) or ("**" in name_cand)
@@ -425,7 +425,7 @@ class CircuitToQuantikz:
                         if needs_recon:
                             name_cand = (
                                 f"{recon_base}^"
-                                f"{{{self._format_exponent_for_display(gate.exponent)}}}"
+                                f"{{{self._format_exponent_for_display(gate_exponent)}}}"
                             )
 
                 fmt_name = self._escape_string(name_cand)
@@ -598,10 +598,8 @@ class CircuitToQuantikz:
                             active_chunk[i].append(moment_out[i])
                         moment_out = ["\\qw"] * self.num_qubits
                         spanned_qubits = set()
-                for i in range(min_qubit, max_qubit + 1):
-                    spanned_qubits.add(i)
-                for q in op.qubits:
-                    spanned_qubits.add(self.qubit_to_index[q])
+                spanned_qubits.update(range(min_qubit, max_qubit + 1))
+                spanned_qubits.update(self.qubit_to_index[q] for q in op.qubits)
                 op_rnd = self._render_operation(op)
                 for idx, tex in op_rnd.items():
                     moment_out[idx] = tex
@@ -635,13 +633,13 @@ class CircuitToQuantikz:
 
             if len(lines) > 1:
                 for k_idx in range(len(lines) - 1, 0, -1):
-                    stipped_line = lines[k_idx].strip()
-                    if stipped_line:
-                        if stipped_line != "\\\\":
+                    stripped_line = lines[k_idx].strip()
+                    if stripped_line:
+                        if stripped_line != "\\\\":
                             if lines[k_idx].endswith(" \\\\"):
                                 lines[k_idx] = lines[k_idx].rstrip()[:-3].rstrip()
                             break
-                        elif k_idx == len(lines) - 1:  # pragma: no cover
+                        if k_idx == len(lines) - 1:  # pragma: no cover
                             lines[k_idx] = ""
             lines.append("\\end{quantikz}")
             final_parts.append("\n".join(filter(None, lines)))

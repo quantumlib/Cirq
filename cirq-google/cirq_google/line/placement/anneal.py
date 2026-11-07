@@ -57,7 +57,7 @@ class AnnealSequenceSearch:
             annealing step with arguments: solution candidate (list of linear
             sequences on the chip), current temperature (float), candidate cost
             (float), probability of accepting candidate (float), and acceptance
-            decision (boolean).
+            decision (Boolean).
 
         Returns:
           List of linear sequences on the chip found by this method.
@@ -100,7 +100,7 @@ class AnnealSequenceSearch:
         return -cost
 
     def _force_edges_active_move(self, state: _STATE) -> _STATE:
-        """Move function which repeats _force_edge_active_move a few times.
+        """Move function which repeats `_force_edge_active_move` a few times.
 
         Args:
           state: Search state, not mutated.
@@ -220,14 +220,14 @@ class AnnealSequenceSearch:
             if sample_bool():
                 # Append edge either before or after inner section.
                 if sample_bool():
-                    seqs.append(inner + [n1, n0] + head[::-1])
+                    seqs.append([*inner, n1, n0, *head[::-1]])
                     seqs.append(tail)
                 else:
-                    seqs.append(tail[::-1] + [n1, n0] + inner)
+                    seqs.append([*tail[::-1], n1, n0, *inner])
                     seqs.append(head)
             else:
                 # Form a new sequence from head, tail, and new edge.
-                seqs.append(head + [n0, n1] + tail)
+                seqs.append([*head, n0, n1, *tail])
                 seqs.append(inner)
 
         return [e for e in seqs if e]
@@ -344,7 +344,7 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
                         candidate (list of linear sequences on the chip),
                         current temperature (float), candidate cost (float),
                         probability of accepting candidate (float), and
-                        acceptance decision (boolean).
+                        acceptance decision (Boolean).
             seed: Optional seed value for random number generator.
 
         Returns:

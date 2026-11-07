@@ -46,7 +46,7 @@ T = TypeVar(
 
 
 def _exp(theta: complex | sympy.Basic):
-    """Utility method to return exp(theta) using numpy or sympy, depending on the type of theta."""
+    """Utility method to return exp(theta) using NumPy or SymPy, depending on the type of theta."""
     return sympy.exp(theta) if cirq.is_parameterized(theta) else np.exp(cast(complex, theta))
 
 
@@ -207,7 +207,7 @@ class FSimGateFamily(cirq.GateFamily):
             self.atol,
         )
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         accept_gates_json = [
             gate if not isinstance(gate, type) else cirq.json_cirq_type(gate)
             for gate in self.gates_to_accept
@@ -256,7 +256,7 @@ class FSimGateFamily(cirq.GateFamily):
         # TODO: Remove condition once https://github.com/quantumlib/Cirq/issues/4585 is fixed.
         if type(g) == cirq.PhasedISwapPowGate:
             return cirq.PhasedISwapPowGate
-        return g._value_equality_values_cls_()  # type: ignore
+        return g._value_equality_values_cls_()  # type: ignore[union-attr]
 
     def _check_equal(self, g1: POSSIBLE_FSIM_GATES, g2: POSSIBLE_FSIM_GATES) -> bool:
         if not self.allow_symbols:
@@ -286,7 +286,7 @@ class FSimGateFamily(cirq.GateFamily):
         """
         if not isinstance(gate, self.gate_types_to_check):
             return False
-        gate = cast(POSSIBLE_FSIM_GATES, gate)
+        cg: POSSIBLE_FSIM_GATES | None
         for g in self.gates_to_accept:
             if isinstance(g, type):
                 cg = self.convert(gate, cast(type, g))  # mypy hack.
@@ -295,7 +295,7 @@ class FSimGateFamily(cirq.GateFamily):
             elif isinstance(g, cirq.Gate):
                 for target in type(gate).mro():
                     if target in self.gate_types_to_check:
-                        cg = self.convert(g, target)
+                        cg = self.convert(g, cast(type, target))
                         if cg is None:
                             continue
                         if self._check_equal(gate, cg):
@@ -307,8 +307,8 @@ class FSimGateFamily(cirq.GateFamily):
         """Converts, if possible, the given `gate` to an equivalent instance of `target_gate_type`.
 
         This method can be used for converting instances of `POSSIBLE_FSIM_GATES` to other
-        equivalent types from the same group. For example, you can convert a sqrt iswap gate
-        to an equivalent fsim gate by calling:
+        equivalent types from the same group. For example, you can convert a sqrt iSWAP gate
+        to an equivalent FSim gate by calling:
 
         >>> gf = cirq_google.FSimGateFamily()
         >>> assert gf.convert(cirq.SQRT_ISWAP, cirq.FSimGate) == cirq.FSimGate(-np.pi/4, 0)

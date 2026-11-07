@@ -34,10 +34,10 @@ def circuit_to_pdf_using_qcircuit_via_tex(
     clean_ext=('dvi', 'ps'),
     documentclass='article',
 ) -> None:
-    """Compiles the QCircuit-based latex diagram of the given circuit.
+    """Compiles the QCircuit-based LaTeX diagram of the given circuit.
 
     Args:
-        circuit: The circuit to produce a pdf of.
+        circuit: The circuit to produce a PDF of.
         filepath: Where to output the pdf.
         pdf_kwargs: The arguments to pass to generate_pdf.
         qcircuit_kwargs: The arguments to pass to
@@ -45,7 +45,7 @@ def circuit_to_pdf_using_qcircuit_via_tex(
         clean_ext: The file extensions to clean up after compilation. By
             default, latexmk is used with the '-pdfps' flag, which produces
             intermediary dvi and ps files.
-        documentclass: The documentclass of the latex file.
+        documentclass: The documentclass of the LaTeX file.
 
     Raises:
         OSError, IOError: If cleanup fails.

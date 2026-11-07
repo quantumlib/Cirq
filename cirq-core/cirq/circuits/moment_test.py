@@ -296,7 +296,7 @@ def test_resolve_parameters() -> None:
     moment = cirq.Moment(cirq.X(a) ** sympy.Symbol('v'), cirq.Y(b) ** sympy.Symbol('w'))
     resolved_moment = cirq.resolve_parameters(moment, cirq.ParamResolver({'v': 0.1, 'w': 0.2}))
     assert resolved_moment == cirq.Moment(cirq.X(a) ** 0.1, cirq.Y(b) ** 0.2)
-    # sympy constant is resolved to a Python number
+    # SymPy constant is resolved to a Python number
     moment = cirq.Moment(cirq.Rz(rads=sympy.pi).on(a))
     resolved_moment = cirq.resolve_parameters(moment, {'pi': np.pi})
     assert resolved_moment == cirq.Moment(cirq.Rz(rads=np.pi).on(a))
@@ -516,6 +516,7 @@ def test_add() -> None:
     with pytest.raises(ValueError, match='Overlap'):
         _ = m1 + m2
 
+    # ruff: disable[RUF005]
     assert m1 + [[[[cirq.Y(b)]]]] == cirq.Moment(cirq.X(a), cirq.Y(b))
     assert m1 + [] == m1
     assert m1 + [] is m1
@@ -592,9 +593,7 @@ def test_moment_text_diagram() -> None:
     d: cirq.Qid
     a, b, c, d = cirq.GridQubit.rect(2, 2)
     m = cirq.Moment(cirq.CZ(a, b), cirq.CNOT(c, d))
-    assert (
-        str(m).strip()
-        == """
+    assert str(m).strip() == """
   ╷ 0 1
 ╶─┼─────
 0 │ @─@
@@ -602,7 +601,6 @@ def test_moment_text_diagram() -> None:
 1 │ @─X
   │
     """.strip()
-    )
 
     m = cirq.Moment(cirq.CZ(a, b), cirq.CNOT(c, d))
     cirq.testing.assert_has_diagram(
@@ -1004,3 +1002,24 @@ def test_moment_with_tags() -> None:
     # Test that tags are retained if the Moment is unchanged.
     assert moment.with_operations().tags == (tag_obj,)
     assert moment.without_operations_touching([q1]).tags == (tag_obj,)
+
+
+def test_moment_with_same_measurement_keys() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+
+    m = cirq.Moment(cirq.measure(q0, key="k"), cirq.measure(q1, key="k"))
+    assert len(m) == 2
+    assert cirq.measurement_key_names(m[q0]) == {"k"}
+    assert cirq.measurement_key_names(m[q1]) == {"k"}
+    assert cirq.measurement_key_names(m) == {"k"}
+
+
+def test_moment_with_same_measurement_control_keys() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+
+    m = cirq.Moment(cirq.measure(q0, key="k"), cirq.X(q1).with_classical_controls("k"))
+    assert len(m) == 2
+    assert cirq.measurement_key_names(m[q0]) == {"k"}
+    assert cirq.control_keys(m[q1]) == {"k"}
+    assert cirq.measurement_key_names(m) == {"k"}
+    assert cirq.control_keys(m) == {"k"}

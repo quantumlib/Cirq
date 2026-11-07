@@ -19,7 +19,6 @@ from collections.abc import Hashable
 from typing import cast, TYPE_CHECKING
 
 import networkx as nx
-from sortedcontainers import SortedDict, SortedSet
 
 from cirq import ops, value
 
@@ -76,16 +75,17 @@ def get_initial_mapping(
         max_num_placed_neighbors = max(nums_placed_neighbors.values())
         candidates = [v for v, n in nums_placed_neighbors.items() if n == max_num_placed_neighbors]
 
-        border = SortedSet().union(*(device_graph[v] for v in mapping)).difference(mapping)
-        total_distances = SortedDict()
-        for l, p in itertools.product(candidates, border):
+        border = set(itertools.chain.from_iterable(device_graph[v] for v in mapping))
+        border.difference_update(mapping)
+        total_distances = {}
+        for l, p in itertools.product(candidates, sorted(border)):
             total_distance = 0
             for pp, ll in mapping.items():
                 if logical_graph.has_edge(l, ll):
                     total_distance += physical_distances[p, pp]
             total_distances[l, p] = total_distance
         min_total_distance = min(total_distances.values())
-        best_candidates = [lp for lp, d in total_distances.items() if d == min_total_distance]
+        best_candidates = sorted(lp for lp, d in total_distances.items() if d == min_total_distance)
         choice = prng.choice(len(best_candidates))
         l, p = best_candidates[choice]
         assert p not in mapping

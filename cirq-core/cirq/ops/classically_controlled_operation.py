@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import textwrap
 from collections.abc import Mapping, Sequence, Set
 from typing import Any, TYPE_CHECKING
 
@@ -112,7 +113,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
 
     @property
     def classical_controls(self) -> frozenset[cirq.Condition]:
-        return frozenset(self._conditions).union(self._sub_operation.classical_controls)
+        return self._sub_operation.classical_controls.union(self._conditions)
 
     def without_classical_controls(self) -> cirq.Operation:
         return self._sub_operation.without_classical_controls()
@@ -185,7 +186,8 @@ class ClassicallyControlledOperation(raw_types.Operation):
                 + '(conditions=['
                 + ', '.join(str(c) for c in self._conditions)
                 + '])',
-            ) + wire_symbols[1:]
+                *wire_symbols[1:],
+            )
         exp_index = sub_info.exponent_qubit_index
         if exp_index is None:
             # None means at bottom, which means the last of the original wire symbols
@@ -238,5 +240,29 @@ class ClassicallyControlledOperation(raw_types.Operation):
         subop_qasm = protocols.qasm(self._sub_operation, args=args)
         if not self._conditions:
             return subop_qasm
+
         condition_qasm = " && ".join(protocols.qasm(c, args=args) for c in self._conditions)
-        return f'if ({condition_qasm}) {subop_qasm}'
+
+        statement_count = subop_qasm.count(';')
+
+        if statement_count == 0:
+            return subop_qasm
+
+        if statement_count == 1:
+            return f'if ({condition_qasm}) {subop_qasm}'
+
+        if args.version == "2.0":
+            result = ""
+
+            for stmt in subop_qasm.split(';'):
+                cleaned_stmt = stmt.strip()
+
+                if not cleaned_stmt:
+                    continue
+
+                result += f"if ({condition_qasm}) {cleaned_stmt};\n"
+
+            return result
+
+        body = textwrap.indent(subop_qasm, "    ")
+        return f"if ({condition_qasm}) {{\n{body}}}\n"

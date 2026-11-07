@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2025 Google LLC
+# Copyright 2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 from .engine import (
     CancelQuantumJobRequest,
     CancelQuantumReservationRequest,
+    CompileQecProgramRequest,
+    CompileQecProgramResponse,
     CreateQuantumJobRequest,
     CreateQuantumProgramAndJobRequest,
     CreateQuantumProgramRequest,
@@ -36,6 +38,8 @@ from .engine import (
     ListQuantumJobEventsResponse,
     ListQuantumJobsRequest,
     ListQuantumJobsResponse,
+    ListQuantumProcessorAutomationRunHistoryRequest,
+    ListQuantumProcessorAutomationRunHistoryResponse,
     ListQuantumProcessorConfigsRequest,
     ListQuantumProcessorConfigsResponse,
     ListQuantumProcessorsRequest,
@@ -65,10 +69,12 @@ from .quantum import (
     GcsLocation,
     InlineData,
     OutputConfig,
+    QecRecipe,
     QuantumCalibration,
     QuantumJob,
     QuantumJobEvent,
     QuantumProcessor,
+    QuantumProcessorAutomationRunHistory,
     QuantumProcessorConfig,
     QuantumProgram,
     QuantumReservation,
@@ -82,6 +88,8 @@ from .quantum import (
 __all__ = (
     'CancelQuantumJobRequest',
     'CancelQuantumReservationRequest',
+    'CompileQecProgramRequest',
+    'CompileQecProgramResponse',
     'CreateQuantumJobRequest',
     'CreateQuantumProgramAndJobRequest',
     'CreateQuantumProgramRequest',
@@ -102,6 +110,8 @@ __all__ = (
     'ListQuantumJobEventsResponse',
     'ListQuantumJobsRequest',
     'ListQuantumJobsResponse',
+    'ListQuantumProcessorAutomationRunHistoryRequest',
+    'ListQuantumProcessorAutomationRunHistoryResponse',
     'ListQuantumProcessorConfigsRequest',
     'ListQuantumProcessorConfigsResponse',
     'ListQuantumProcessorsRequest',
@@ -129,10 +139,12 @@ __all__ = (
     'GcsLocation',
     'InlineData',
     'OutputConfig',
+    'QecRecipe',
     'QuantumCalibration',
     'QuantumJob',
     'QuantumJobEvent',
     'QuantumProcessor',
+    'QuantumProcessorAutomationRunHistory',
     'QuantumProcessorConfig',
     'QuantumProgram',
     'QuantumReservation',

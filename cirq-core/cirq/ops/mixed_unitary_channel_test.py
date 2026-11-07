@@ -83,19 +83,13 @@ def test_matrix_mixture_from_unitaries() -> None:
 def test_matrix_mixture_str() -> None:
     mix = [(0.5, np.array([[1, 0], [0, 1]])), (0.5, np.array([[0, 1], [1, 0]]))]
     half_flip = cirq.MixedUnitaryChannel(mix)
-    assert (
-        str(half_flip)
-        == """MixedUnitaryChannel([(0.5, array([[1, 0],
+    assert str(half_flip) == """MixedUnitaryChannel([(0.5, array([[1, 0],
        [0, 1]])), (0.5, array([[0, 1],
        [1, 0]]))])"""
-    )
     half_flip_keyed = cirq.MixedUnitaryChannel(mix, key='flip')
-    assert (
-        str(half_flip_keyed)
-        == """MixedUnitaryChannel([(0.5, array([[1, 0],
+    assert str(half_flip_keyed) == """MixedUnitaryChannel([(0.5, array([[1, 0],
        [0, 1]])), (0.5, array([[0, 1],
        [1, 0]]))], key=flip)"""
-    )
 
 
 def test_matrix_mixture_repr() -> None:
@@ -104,14 +98,11 @@ def test_matrix_mixture_repr() -> None:
         (0.5, np.array([[0, 1], [1, 0]], dtype=np.dtype('complex64'))),
     ]
     half_flip = cirq.MixedUnitaryChannel(mix, key='flip')
-    assert (
-        repr(half_flip)
-        == """\
+    assert repr(half_flip) == """\
 cirq.MixedUnitaryChannel(mixture=[\
 (0.5, np.array([[(1+0j), 0j], [0j, (1+0j)]], dtype=np.dtype('complex64'))), \
 (0.5, np.array([[0j, (1+0j)], [(1+0j), 0j]], dtype=np.dtype('complex64')))], \
 key='flip')"""
-    )
 
 
 def test_mix_no_unitaries_fails() -> None:

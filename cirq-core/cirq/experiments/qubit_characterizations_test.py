@@ -14,9 +14,6 @@
 
 from __future__ import annotations
 
-import os
-from unittest import mock
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
@@ -78,58 +75,56 @@ def test_single_qubit_cliffords() -> None:
 
     # Check that XZ decomposition has at most one X gate per clifford.
     for gates in cliffords.c1_in_xz:
-        num_i = len([gate for gate in gates if gate == cirq.ops.SingleQubitCliffordGate.I])
-        num_x = len(
-            [
-                gate
-                for gate in gates
-                if gate
-                in (
-                    cirq.ops.SingleQubitCliffordGate.X,
-                    cirq.ops.SingleQubitCliffordGate.X_sqrt,
-                    cirq.ops.SingleQubitCliffordGate.X_nsqrt,
-                )
-            ]
+        num_i = sum(1 for gate in gates if gate == cirq.ops.SingleQubitCliffordGate.I)
+        num_x = sum(
+            1
+            for gate in gates
+            if gate
+            in (
+                cirq.ops.SingleQubitCliffordGate.X,
+                cirq.ops.SingleQubitCliffordGate.X_sqrt,
+                cirq.ops.SingleQubitCliffordGate.X_nsqrt,
+            )
         )
-        num_z = len(
-            [
-                gate
-                for gate in gates
-                if gate
-                in (
-                    cirq.ops.SingleQubitCliffordGate.Z,
-                    cirq.ops.SingleQubitCliffordGate.Z_sqrt,
-                    cirq.ops.SingleQubitCliffordGate.Z_nsqrt,
-                )
-            ]
+        num_z = sum(
+            1
+            for gate in gates
+            if gate
+            in (
+                cirq.ops.SingleQubitCliffordGate.Z,
+                cirq.ops.SingleQubitCliffordGate.Z_sqrt,
+                cirq.ops.SingleQubitCliffordGate.Z_nsqrt,
+            )
         )
         assert num_x + num_z + num_i == len(gates)
         assert num_x <= 1
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def test_single_qubit_randomized_benchmarking() -> None:
     # Check that the ground state population at the end of the Clifford
     # sequences is always unity.
     simulator = sim.Simulator()
     qubit = GridQubit(0, 0)
     num_cfds = tuple(np.logspace(np.log10(5), 3, 5, dtype=int))
-    results = single_qubit_randomized_benchmarking(simulator, qubit, num_clifford_range=num_cfds)
+    with cirq.testing.assert_deprecated('use single_qubit_rb instead', deadline='v2.0'):
+        results = single_qubit_randomized_benchmarking(
+            simulator, qubit, num_clifford_range=num_cfds
+        )
     g_pops = np.asarray(results.data)[:, 1]
     assert np.isclose(np.mean(g_pops), 1.0)
     assert np.isclose(results.pauli_error(), 0.0, atol=1e-7)  # warning is expected
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def test_parallel_single_qubit_parallel_single_qubit_randomized_benchmarking() -> None:
     # Check that the ground state population at the end of the Clifford
     # sequences is always unity.
     simulator = sim.Simulator()
     qubits = (GridQubit(0, 0), GridQubit(0, 1))
     num_cfds = range(5, 20, 5)
-    results = parallel_single_qubit_randomized_benchmarking(
-        simulator, num_clifford_range=num_cfds, repetitions=100, qubits=qubits
-    )
+    with cirq.testing.assert_deprecated('use parallel_single_qubit_rb instead', deadline='v2.0'):
+        results = parallel_single_qubit_randomized_benchmarking(
+            simulator, num_clifford_range=num_cfds, repetitions=100, qubits=qubits
+        )
     for qubit in qubits:
         g_pops = np.asarray(results.results_dictionary[qubit].data)[:, 1]
         assert np.isclose(np.mean(g_pops), 1.0)
@@ -140,14 +135,14 @@ def test_parallel_single_qubit_parallel_single_qubit_randomized_benchmarking() -
     _ = results.plot_integrated_histogram()
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def test_parallel_single_qubit_randomized_benchmarking_with_noise() -> None:
     simulator = sim.Simulator(noise=cirq.depolarize(1e-3), seed=0)
     qubits = (GridQubit(0, 0), GridQubit(0, 1))
     num_cfds = range(5, 7, 1)
-    results = parallel_single_qubit_randomized_benchmarking(
-        simulator, num_clifford_range=num_cfds, repetitions=10, qubits=qubits
-    )
+    with cirq.testing.assert_deprecated('use parallel_single_qubit_rb instead', deadline='v2.0'):
+        results = parallel_single_qubit_randomized_benchmarking(
+            simulator, num_clifford_range=num_cfds, repetitions=10, qubits=qubits
+        )
     for qubit in qubits:
         g_pops = np.asarray(results.results_dictionary[qubit].data)[:, 1]
         assert np.isclose(np.mean(g_pops), 0.99, atol=1e-2)
@@ -254,7 +249,7 @@ def test_tomography_plot_raises_for_incorrect_number_of_axes() -> None:
     result = single_qubit_state_tomography(simulator, qubit, circuit, 1000)
     with pytest.raises(TypeError):  # ax is not a list[plt.Axes]
         ax = plt.subplot()
-        result.plot(ax)  # type: ignore[arg-type]
+        result.plot(ax)
     with pytest.raises(ValueError):
         _, axes = plt.subplots(1, 3)
         result.plot(axes)

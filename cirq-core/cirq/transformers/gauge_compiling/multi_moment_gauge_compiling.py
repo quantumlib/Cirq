@@ -85,17 +85,16 @@ class MultiMomentGaugeTransformer(abc.ABC):
         A moment is a target moment if it contains at least one target op and
         all its operations are supported by this transformer.
         """
+        tags_to_ignore_set = frozenset(context.tags_to_ignore) if context else frozenset()
+
         # skip the moment if the moment is tagged to be ignored
-        if context and set(moment.tags).intersection(context.tags_to_ignore):
+        if not tags_to_ignore_set.isdisjoint(moment.tags):
             return False
 
         has_target_gates: bool = False
         for op in moment:
-            if (
-                context
-                and isinstance(op, ops.TaggedOperation)
-                and set(op.tags).intersection(context.tags_to_ignore)
-            ):  # skip the moment if the op is tagged to be ignored
+            # skip the moment if the op is tagged to be ignored
+            if not tags_to_ignore_set.isdisjoint(op.tags):
                 return False
             if op.gate:
                 if op in self.target:

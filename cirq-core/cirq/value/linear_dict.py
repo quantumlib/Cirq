@@ -103,7 +103,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
     addition and scalar multiplication for linear combinations of abstract
     vectors. Keys represent the vectors, values represent their coefficients.
     The only requirement on the keys is that they be hashable (i.e. are
-    immutable and implement __hash__ and __eq__ with equal objects hashing
+    immutable and implement `__hash__` and `__eq__` with equal objects hashing
     to equal values).
 
     A consequence of treating keys as opaque is that all relationships between
@@ -174,7 +174,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         return snapshot._terms.items()
 
     def update(self, *args, **kwargs):
-        terms = dict()
+        terms = {}
         terms.update(*args, **kwargs)
         for vector, coefficient in terms.items():
             if isinstance(coefficient, sympy.Basic):
@@ -220,7 +220,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         return snapshot._terms.__iter__()
 
     def __len__(self) -> int:
-        return len([v for v, c in self._terms.items() if c != 0])
+        return sum(1 for c in self._terms.values() if c != 0)
 
     def __iadd__(self, other: Self) -> Self:
         for vector, other_coefficient in other.items():
@@ -290,7 +290,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
     def __ne__(self, other: Any) -> bool:
         """Checks whether two linear combinations are not exactly equal.
 
-        See __eq__().
+        See `__eq__()`.
         """
         if not isinstance(other, LinearDict):
             return NotImplemented
@@ -324,13 +324,10 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         else:
             p.text(str(self))
 
-    def _json_dict_(self) -> dict[Any, Any]:
+    def _json_dict_(self) -> dict[str, Any]:
         if self._has_validator:
             raise ValueError('LinearDict with a validator is not json serializable.')
-        return {
-            'keys': [k for k in self._terms.keys()],
-            'values': [v for v in self._terms.values()],
-        }
+        return {'keys': list(self._terms.keys()), 'values': list(self._terms.values())}
 
     @classmethod
     def _from_json_dict_(cls, keys, values, **kwargs):
@@ -340,7 +337,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
         return any(protocols.is_parameterized(v) for v in self._terms.values())
 
     def _parameter_names_(self) -> Set[str]:
-        return set(name for v in self._terms.values() for name in protocols.parameter_names(v))
+        return {name for v in self._terms.values() for name in protocols.parameter_names(v)}
 
     def _resolve_parameters_(self, resolver: cirq.ParamResolver, recursive: bool) -> LinearDict:
         result = self.copy()

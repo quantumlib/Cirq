@@ -41,19 +41,19 @@ gate_dict = {'X': cirq.X, 'Y': cirq.Y, 'Z': cirq.Z, 'MS': cirq.XX, 'R': cirq.Pha
 
 
 class OperationString(Enum):
-    """String representations of operations supported by AQT resources."""
+    """String representations of operations supported by AQT resources.
+
+    Attributes:
+        MS: Cirq: XXPowGate, AQT: RXX gate.
+        Z: Cirq: ZPowGate, AQT: RZ gate.
+        R: Cirq: PhasedXPowGate, AQT: R gate.
+        MEASURE: Measurement gate.
+    """
 
     MS = "MS"
-    """Cirq: XXPowGate, AQT: RXX gate."""
-
     Z = "Z"
-    """Cirq: ZPowGate, AQT: RZ gate."""
-
     R = "R"
-    """Cirq: PhasedXPowGate, AQT: R gate."""
-
     MEASURE = "Meas"
-    """Measurement gate."""
 
 
 def get_op_string(op_obj: cirq.Operation) -> str:
@@ -147,15 +147,15 @@ class AQTNoiseModel(cirq.NoiseModel):
         gate = cast(cirq.EigenGate, gate_dict[op_str])
 
         if len(operation.qubits) == 1:
-            for idx in xtlk_arr.nonzero()[0]:
-                exponent = operation.gate.exponent  # type:ignore
+            for idx in cast(Sequence[int], xtlk_arr.nonzero()[0]):
+                exponent = operation.gate.exponent  # type: ignore[union-attr]
                 exponent = exponent * xtlk_arr[idx]
-                xtlk_op = operation.gate.on(system_qubits[idx]) ** exponent  # type:ignore
+                xtlk_op = operation.gate.on(system_qubits[idx]) ** exponent  # type: ignore[union-attr]
                 xtlk_op_list.append(xtlk_op)
         elif len(operation.qubits) == 2:
             for op_qubit in operation.qubits:
-                for idx in xtlk_arr.nonzero()[0]:
-                    exponent = operation.gate.exponent  # type:ignore
+                for idx in cast(Sequence[int], xtlk_arr.nonzero()[0]):
+                    exponent = operation.gate.exponent  # type: ignore[union-attr]
                     exponent = exponent * xtlk_arr[idx]
                     xtlk_op = gate.on(op_qubit, system_qubits[idx]) ** exponent
                     xtlk_op_list.append(xtlk_op)
@@ -191,7 +191,7 @@ class AQTSimulator:
         self.simulate_ideal = simulate_ideal
 
     def generate_circuit_from_list(self, json_string: str) -> None:
-        """Generates a list of cirq operations from a json string.
+        """Generates a list of cirq operations from a JSON string.
 
         The default behavior is to add a measurement to any qubit at the end
         of the circuit as there are no measurements defined in the AQT API.
@@ -216,8 +216,8 @@ class AQTSimulator:
                 qubits = [self.qubit_list[i] for i in circuit_list[2]]
                 self.circuit.append(gate.on(*qubits) ** angle)
         # TODO: Better solution for measurement at the end.
-        # Github issue: https://github.com/quantumlib/Cirq/issues/2199
-        self.circuit.append(cirq.measure(*[qubit for qubit in self.qubit_list], key='m'))
+        # GitHub issue: https://github.com/quantumlib/Cirq/issues/2199
+        self.circuit.append(cirq.measure(*self.qubit_list, key='m'))
 
     def simulate_samples(self, repetitions: int) -> cirq.Result:
         """Samples the circuit.
@@ -272,7 +272,7 @@ class AQTDevice(cirq.Device):
         if not all(isinstance(qubit, cirq.LineQubit) for qubit in qubits):
             raise TypeError(
                 "All qubits were not of type cirq.LineQubit, instead were "
-                f"{set(type(qubit) for qubit in qubits)}"
+                f"{ {type(qubit) for qubit in qubits} }"
             )
         self.qubits = frozenset(qubits)
 

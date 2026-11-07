@@ -113,7 +113,10 @@ class _BaseLineQid(ops.Qid):
         Args:
             qids: optional Iterable of qubits to constrain neighbors to.
         """
-        return {q for q in [self - 1, self + 1] if qids is None or q in qids}
+        the_neighbors = {self._with_x(x=self._x - 1), self._with_x(x=self._x + 1)}
+        if qids is not None:
+            the_neighbors.intersection_update(qids)
+        return the_neighbors
 
     @abc.abstractmethod
     def _with_x(self, x: int) -> Self:
@@ -206,7 +209,7 @@ class LineQid(_BaseLineQid):
         return inst
 
     def __getnewargs__(self):
-        """Returns a tuple of args to pass to __new__ when unpickling."""
+        """Returns a tuple of args to pass to `__new__` when unpickling."""
         return (self._x, self._dimension)
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs__
@@ -310,7 +313,7 @@ class LineQubit(_BaseLineQid):
         return inst
 
     def __getnewargs__(self):
-        """Returns a tuple of args to pass to __new__ when unpickling."""
+        """Returns a tuple of args to pass to `__new__` when unpickling."""
         return (self._x,)
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs__

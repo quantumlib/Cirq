@@ -22,17 +22,20 @@ from enum import Enum
 from pathlib import Path
 
 import cirq_web
+from cirq_web.deprecation import deprecated_cirq_web_class
 
 # Resolve the path so the bundle file can be accessed properly
 _DIST_PATH = Path(cirq_web.__file__).parents[1] / "cirq_web" / "dist"
 
 
+@deprecated_cirq_web_class
 class Env(Enum):
     JUPYTER = 1
     COLAB = 2
     OTHER = 3
 
 
+@deprecated_cirq_web_class
 class Widget(ABC):
     """Abstract class for all widgets."""
 
@@ -52,11 +55,11 @@ class Widget(ABC):
 
     @abstractmethod
     def get_widget_bundle_name(self) -> str:
-        """Returns the name of the Javascript library file for this widget."""
+        """Returns the name of the JavaScript library file for this widget."""
         raise NotImplementedError()
 
     def _repr_html_(self):
-        """Allows the object's html to be easily displayed in a notebook
+        """Allows the object's HTML to be easily displayed in a notebook
         by using the display() method.
         """
         client_code = self.get_client_code()
@@ -73,7 +76,7 @@ class Widget(ABC):
 
         Args:
             output_directory: the directory in which the output file will be
-            generated. The default is the current directory ('./')
+                generated. The default is the current directory ('./')
 
             file_name: the name of the output file. Default is 'bloch_sphere'
 
@@ -85,8 +88,7 @@ class Widget(ABC):
         client_code = self.get_client_code()
         contents = self._create_html_content(client_code)
         path_of_html_file = os.path.join(output_directory, file_name)
-        with open(path_of_html_file, 'w', encoding='utf-8') as f:
-            f.write(contents)
+        Path(path_of_html_file).write_text(contents, encoding='utf-8')
 
         if open_in_browser:
             webbrowser.open(path_of_html_file, new=2)
@@ -118,10 +120,6 @@ def _to_script_tag(bundle_filename: str) -> str:
     Returns:
         The bundle file as string (readable by browser) wrapped in HTML script tags.
     """
-    bundle_file_path = os.path.join(_DIST_PATH, bundle_filename)
-    bundle_file = open(bundle_file_path, 'r', encoding='utf-8')
-    bundle_file_contents = bundle_file.read()
-    bundle_file.close()
-    bundle_html = f'<script>{bundle_file_contents}</script>'
-
-    return bundle_html
+    bundle_file_path = _DIST_PATH.joinpath(bundle_filename)
+    bundle_file_contents = bundle_file_path.read_text(encoding='utf-8')
+    return f'<script>{bundle_file_contents}</script>'

@@ -316,8 +316,6 @@ AB
 
     d.force_vertical_padding_after(0, 0)
     with pytest.raises(ValueError):
-        print(d.vertical_padding)
-        print(dd.vertical_padding)
         TextDiagramDrawer.hstack((d, dd))
 
     dd.force_vertical_padding_after(0, 0)
@@ -384,7 +382,7 @@ AB D
 
 
 def test_drawer_eq() -> None:
-    assert TextDiagramDrawer().__eq__(23) == NotImplemented
+    assert TextDiagramDrawer().__eq__(23) is NotImplemented
 
     eq = ct.EqualsTester()
 

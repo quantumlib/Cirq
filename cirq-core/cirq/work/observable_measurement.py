@@ -115,7 +115,7 @@ class VarianceStoppingCriteria(StoppingCriteria):
             return 0
         return self.repetitions_per_chunk
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.dataclass_json_dict(self)
 
 
@@ -135,7 +135,7 @@ class RepetitionsStoppingCriteria(StoppingCriteria):
         to_do_next = min(self.repetitions_per_chunk, todo)
         return to_do_next
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         return protocols.dataclass_json_dict(self)
 
 
@@ -159,7 +159,7 @@ _STATE_TO_PARAM_VAL: dict[_NamedOneQubitState, tuple[float, float]] = {
     value.KET_ZERO: (0, 0),
     value.KET_ONE: (1, 0),
 }
-"""Mapping from an initial _NamedOneQubitState to the X- and Y-rotation parameter values."""
+"""Mapping from an initial `_NamedOneQubitState` to the X- and Y-rotation parameter values."""
 
 
 def _get_params_for_setting(
@@ -234,7 +234,7 @@ def _aggregate_n_repetitions(next_chunk_repetitions: set[int]) -> int:
     """A stopping criteria can request a different number of more_repetitions for each
     measurement spec. For batching efficiency, we take the max and issue a warning in this case."""
     if len(next_chunk_repetitions) == 1:
-        return list(next_chunk_repetitions)[0]
+        return next(iter(next_chunk_repetitions))
 
     reps = max(next_chunk_repetitions)
     warnings.warn(
@@ -299,7 +299,7 @@ def _check_meas_specs_still_todo(
 @dataclasses.dataclass(frozen=True)
 class _FlippyMeasSpec:
     """Internally, each MeasurementSpec class is split into two
-    _FlippyMeasSpecs to support readout symmetrization.
+    `_FlippyMeasSpecs` to support readout symmetrization.
 
     Bitstring results are combined, so this should be opaque to the user.
     """
@@ -328,8 +328,8 @@ def _subdivide_meas_specs(
 
     In readout symmetrization, we first run the "normal" circuit followed
     by running the circuit with flipped measurement.
-    One _MeasurementSpec is split into two _FlippyMeasSpecs. These are run
-    separately but accumulated according to their shared _MeasurementSpec.
+    One `_MeasurementSpec` is split into two `_FlippyMeasSpecs`. These are run
+    separately but accumulated according to their shared `_MeasurementSpec`.
     """
     n_qubits = len(qubits)
     flippy_mspecs = []
@@ -589,7 +589,7 @@ _GROUPING_FUNCS: dict[str, GROUPER_T] = {'greedy': group_settings_greedy}
 
 
 def _parse_grouper(grouper: str | GROUPER_T = group_settings_greedy) -> GROUPER_T:
-    """Logic for turning a named grouper into one of the build-in groupers in support of the
+    """Logic for turning a named grouper into one of the built-in groupers in support of the
     high-level `measure_observables` API."""
     if isinstance(grouper, str):
         try:
@@ -626,7 +626,7 @@ def measure_observables(
     """Measure a collection of PauliString observables for a state prepared by a Circuit.
 
     If you need more control over the process, please see `measure_grouped_settings` for a
-    lower-level API. If you would like your results returned as a pandas DataFrame,
+    lower-level API. If you would like your results returned as a Pandas DataFrame,
     please see `measure_observables_df`.
 
     Args:

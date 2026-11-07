@@ -20,6 +20,11 @@
                 "cancel_quantum_reservation"
               ]
             },
+            "CompileQecProgram": {
+              "methods": [
+                "compile_qec_program"
+              ]
+            },
             "CreateQuantumJob": {
               "methods": [
                 "create_quantum_job"
@@ -98,6 +103,11 @@
             "ListQuantumJobs": {
               "methods": [
                 "list_quantum_jobs"
+              ]
+            },
+            "ListQuantumProcessorAutomationRunHistory": {
+              "methods": [
+                "list_quantum_processor_automation_run_history"
               ]
             },
             "ListQuantumProcessorConfigs": {
@@ -175,6 +185,11 @@
                 "cancel_quantum_reservation"
               ]
             },
+            "CompileQecProgram": {
+              "methods": [
+                "compile_qec_program"
+              ]
+            },
             "CreateQuantumJob": {
               "methods": [
                 "create_quantum_job"
@@ -253,6 +268,11 @@
             "ListQuantumJobs": {
               "methods": [
                 "list_quantum_jobs"
+              ]
+            },
+            "ListQuantumProcessorAutomationRunHistory": {
+              "methods": [
+                "list_quantum_processor_automation_run_history"
               ]
             },
             "ListQuantumProcessorConfigs": {
@@ -330,6 +350,11 @@
                 "cancel_quantum_reservation"
               ]
             },
+            "CompileQecProgram": {
+              "methods": [
+                "compile_qec_program"
+              ]
+            },
             "CreateQuantumJob": {
               "methods": [
                 "create_quantum_job"
@@ -408,6 +433,11 @@
             "ListQuantumJobs": {
               "methods": [
                 "list_quantum_jobs"
+              ]
+            },
+            "ListQuantumProcessorAutomationRunHistory": {
+              "methods": [
+                "list_quantum_processor_automation_run_history"
               ]
             },
             "ListQuantumProcessorConfigs": {

@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import datetime
+import functools
 from unittest import mock
 
 import duet
@@ -194,6 +195,17 @@ _METRIC_SNAPSHOT = v2.metrics_pb2.MetricsSnapshot(
 )
 
 
+class _FrozenDateTime(datetime.datetime):
+    """Frozen datetime for testing time related behavior."""
+
+    _stock_datetime = datetime.datetime
+
+    @classmethod
+    @functools.cache
+    def now(cls, tz=None):
+        return cls._stock_datetime.now(tz)
+
+
 class FakeEngineContext(EngineContext):
     """Fake engine context for testing."""
 
@@ -366,6 +378,65 @@ def test_get_sampler_from_run_name_with_defaults() -> None:
     assert sampler.device_config_name == default_config_alias
 
 
+def test_get_sampler_initializes_circuits_per_job() -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="run", config_alias="config_alias"
+            )
+        ),
+    )
+    sampler_default = processor.get_sampler()
+    assert sampler_default._circuits_per_job == 1
+    assert sampler_default.circuits_per_job == 1
+
+    circuits_per_job = 5
+    sampler = processor.get_sampler(circuits_per_job=circuits_per_job)
+    assert sampler._circuits_per_job == circuits_per_job
+    assert sampler.circuits_per_job == circuits_per_job
+
+
+def test_get_sampler_initializes_circuits_per_job_with_snapshot() -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                config_alias="config_alias", snapshot_id="snap"
+            )
+        ),
+    )
+    snapshot = Snapshot(id='test_snapshot')
+    circuits_per_job = 5
+    sampler = processor.get_sampler(
+        device_config_revision=snapshot, circuits_per_job=circuits_per_job
+    )
+    assert sampler._circuits_per_job == circuits_per_job
+    assert sampler.circuits_per_job == circuits_per_job
+
+
+def test_get_sampler_initializes_circuits_per_job_with_run() -> None:
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="run", config_alias="config_alias"
+            )
+        ),
+    )
+    run = Run(id='test_run')
+    circuits_per_job = 5
+    sampler = processor.get_sampler(device_config_revision=run, circuits_per_job=circuits_per_job)
+    assert sampler._circuits_per_job == circuits_per_job
+    assert sampler.circuits_per_job == circuits_per_job
+
+
 def test_get_sampler_from_snapshot_id() -> None:
     default_snapshot_id = 'default_snap'
     processor = cg.EngineProcessor(
@@ -423,73 +494,6 @@ def test_get_sampler_loads_processor_with_default_device_configuration(get_proce
     assert sampler.device_config_name == "config_alias"
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.list_calibrations_async')
-def test_list_calibrations(list_calibrations):
-    list_calibrations.return_value = [_CALIBRATION]
-    processor = cg.EngineProcessor('a', 'p', EngineContext())
-    assert [c.timestamp for c in processor.list_calibrations()] == [1562544000021]
-    list_calibrations.assert_called_with('a', 'p', '')
-    assert [c.timestamp for c in processor.list_calibrations(earliest_timestamp=1562500000)] == [
-        1562544000021
-    ]
-    list_calibrations.assert_called_with('a', 'p', 'timestamp >= 1562500000')
-    assert [c.timestamp for c in processor.list_calibrations(latest_timestamp=1562600000)] == [
-        1562544000021
-    ]
-    list_calibrations.assert_called_with('a', 'p', 'timestamp <= 1562600000')
-    assert [c.timestamp for c in processor.list_calibrations(1562500000, 1562600000)] == [
-        1562544000021
-    ]
-    list_calibrations.assert_called_with(
-        'a', 'p', 'timestamp >= 1562500000 AND timestamp <= 1562600000'
-    )
-    assert [
-        c.timestamp
-        for c in processor.list_calibrations(
-            earliest_timestamp=datetime.datetime.fromtimestamp(1562500000)
-        )
-    ] == [1562544000021]
-    list_calibrations.assert_called_with('a', 'p', 'timestamp >= 1562500000')
-
-    today = datetime.date.today()
-    # Use local time to get timestamp
-    today_midnight_timestamp = int(
-        datetime.datetime(today.year, today.month, today.day).timestamp()
-    )
-    assert [c.timestamp for c in processor.list_calibrations(earliest_timestamp=today)] == [
-        1562544000021
-    ]
-    list_calibrations.assert_called_with('a', 'p', f'timestamp >= {today_midnight_timestamp}')
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_calibration_async')
-def test_get_calibration(get_calibration):
-    get_calibration.return_value = _CALIBRATION
-    processor = cg.EngineProcessor('a', 'p', EngineContext())
-    calibration = processor.get_calibration(1562544000021)
-    assert calibration.timestamp == 1562544000021
-    assert set(calibration.keys()) == {'xeb', 't1', 'globalMetric'}
-    get_calibration.assert_called_once_with('a', 'p', 1562544000021)
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_current_calibration_async')
-def test_current_calibration(get_current_calibration):
-    get_current_calibration.return_value = _CALIBRATION
-    processor = cg.EngineProcessor('a', 'p', EngineContext())
-    calibration = processor.get_current_calibration()
-    assert calibration.timestamp == 1562544000021
-    assert set(calibration.keys()) == {'xeb', 't1', 'globalMetric'}
-    get_current_calibration.assert_called_once_with('a', 'p')
-
-
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_current_calibration_async')
-def test_missing_latest_calibration(get_current_calibration):
-    get_current_calibration.return_value = None
-    processor = cg.EngineProcessor('a', 'p', EngineContext())
-    assert not processor.get_current_calibration()
-    get_current_calibration.assert_called_once_with('a', 'p')
-
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient.create_reservation_async')
 def test_create_reservation(create_reservation):
     name = 'projects/proj/processors/p0/reservations/psherman-wallaby-way'
@@ -513,12 +517,6 @@ def test_create_reservation(create_reservation):
         datetime.datetime.fromtimestamp(1000003600),
         ['dstrain@google.com'],
     )
-    with cirq.testing.assert_deprecated('Change whitelisted_users', deadline='v1.7'):
-        _ = processor.create_reservation(
-            datetime.datetime.fromtimestamp(1000000000),
-            datetime.datetime.fromtimestamp(1000003600),
-            whitelisted_users=['dstrain@google.com'],
-        )
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.delete_reservation_async')
@@ -667,10 +665,6 @@ def test_update_reservation(update_reservation):
     update_reservation.assert_called_once_with(
         'proj', 'p0', 'rid', start=start, end=end, allowlisted_users=['dstrain@google.com']
     )
-    with cirq.testing.assert_deprecated('Change whitelisted_users', deadline='v1.7'):
-        _ = processor.update_reservation(
-            'rid', start, end, whitelisted_users=['dstrain@google.com']
-        )
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_reservations_async')
@@ -769,6 +763,7 @@ def test_get_schedule_filter_by_time_slot(list_time_slots):
     )
 
 
+@mock.patch('datetime.datetime', _FrozenDateTime)
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots_async')
 def test_get_schedule_time_filter_behavior(list_time_slots):
     list_time_slots.return_value = []
@@ -811,6 +806,7 @@ def test_get_schedule_time_filter_behavior(list_time_slots):
     list_time_slots.assert_called_with('proj', 'p0', f'start_time < {utc_ts}')
 
 
+@mock.patch('datetime.datetime', _FrozenDateTime)
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_reservations_async')
 def test_list_reservations_time_filter_behavior(list_reservations):
     list_reservations.return_value = []
@@ -1070,7 +1066,7 @@ def test_get_default_config(client):
     )
     client().get_quantum_processor_config_async.return_value = quantum_config
 
-    default_run = 'current'
+    default_run = 'default'
     default_config = 'config_alias'
     processor = cg.EngineProcessor(
         project_id=project_id,
@@ -1152,7 +1148,7 @@ def test_get_config_from_snapshot(client):
 def test_get_config_not_found(client):
     project_id = "test_project_id"
     processor_id = "test_proc_id"
-    default_run = Run(id="current")
+    default_run = Run(id="default")
     config_name = "default"
 
     client().get_quantum_processor_config_async.return_value = None
@@ -1271,3 +1267,43 @@ def test_list_configs_from_run(client):
     assert results[0].config_name == expected_configs[0].config_name
     assert results[1].snapshot_id == expected_configs[1].snapshot_id
     assert results[1].config_name == expected_configs[1].config_name
+
+
+def test_get_sampler_invalid_revision_type():
+    processor = cg.EngineProcessor(
+        project_id="test_project_id", processor_id="test_proc_id", context=EngineContext()
+    )
+    with pytest.raises(TypeError, match="device_config_revision must be an instance of"):
+        _ = processor.get_sampler(device_config_revision="2026-03-04_193134.630")
+
+
+def test_get_config_invalid_revision_type():
+    processor = cg.EngineProcessor(
+        project_id="test_project_id",
+        processor_id="test_proc_id",
+        context=EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="default_run", config_alias="default_alias"
+            )
+        ),
+    )
+
+    with pytest.raises(TypeError, match="device_config_revision must be an instance of"):
+        _ = processor.get_config(device_config_revision="2026-03-04_193134.630")
+
+
+def test_list_configs_invalid_revision_type():
+    processor = cg.EngineProcessor(
+        project_id="test_project_id",
+        processor_id="test_proc_id",
+        context=EngineContext(),
+        _processor=quantum.QuantumProcessor(
+            default_device_config_key=quantum.DeviceConfigKey(
+                run="default_run", config_alias="default_alias"
+            )
+        ),
+    )
+
+    with pytest.raises(TypeError, match="device_config_revision must be an instance of"):
+        _ = processor.list_configs(device_config_revision="2026-02-20_114756.470")

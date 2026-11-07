@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2025 Google LLC
+# Copyright 2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@ from __future__ import annotations
 
 from typing import MutableMapping, MutableSequence
 
+import google.protobuf.any_pb2 as any_pb2  # type: ignore
+import google.protobuf.duration_pb2 as duration_pb2  # type: ignore
+import google.protobuf.field_mask_pb2 as field_mask_pb2  # type: ignore
+import google.protobuf.timestamp_pb2 as timestamp_pb2  # type: ignore
 import proto  # type: ignore
-from google.protobuf import any_pb2  # type: ignore
-from google.protobuf import duration_pb2  # type: ignore
-from google.protobuf import field_mask_pb2  # type: ignore
-from google.protobuf import timestamp_pb2  # type: ignore
 
 __protobuf__ = proto.module(
     package='google.cloud.quantum.v1alpha1',
@@ -44,6 +44,8 @@ __protobuf__ = proto.module(
         'QuantumReservationBudget',
         'QuantumTimeSlot',
         'QuantumReservation',
+        'QuantumProcessorAutomationRunHistory',
+        'QecRecipe',
     },
 )
 
@@ -60,7 +62,7 @@ class QuantumProgram(proto.Message):
 
     Attributes:
         name (str):
-            -
+            Identifier. -
         create_time (google.protobuf.timestamp_pb2.Timestamp):
             -
         update_time (google.protobuf.timestamp_pb2.Timestamp):
@@ -114,11 +116,11 @@ class QuantumJob(proto.Message):
 
     Attributes:
         name (str):
-            -
+            Identifier. -
         create_time (google.protobuf.timestamp_pb2.Timestamp):
-            -
+            Output only. -
         update_time (google.protobuf.timestamp_pb2.Timestamp):
-            -
+            Output only. -
         labels (MutableMapping[str, str]):
             -
         label_fingerprint (str):
@@ -130,7 +132,7 @@ class QuantumJob(proto.Message):
         output_config (cirq_google.cloud.quantum_v1alpha1.types.OutputConfig):
             -
         execution_status (cirq_google.cloud.quantum_v1alpha1.types.ExecutionStatus):
-            -
+            Output only. -
         gcs_run_context_location (cirq_google.cloud.quantum_v1alpha1.types.GcsLocation):
             -
 
@@ -141,7 +143,21 @@ class QuantumJob(proto.Message):
             This field is a member of `oneof`_ ``run_context_location``.
         run_context (google.protobuf.any_pb2.Any):
             -
+        execute_circuit (cirq_google.cloud.quantum_v1alpha1.types.QuantumJob.ExecuteCircuitAction):
+            Optional. -
+
+            This field is a member of `oneof`_ ``action``.
+        calibrate_circuit (cirq_google.cloud.quantum_v1alpha1.types.QuantumJob.CalibrateCircuitAction):
+            Optional. -
+
+            This field is a member of `oneof`_ ``action``.
     """
+
+    class ExecuteCircuitAction(proto.Message):
+        r"""-"""
+
+    class CalibrateCircuitAction(proto.Message):
+        r"""-"""
 
     name: str = proto.Field(proto.STRING, number=1)
     create_time: timestamp_pb2.Timestamp = proto.Field(
@@ -167,6 +183,12 @@ class QuantumJob(proto.Message):
         proto.MESSAGE, number=12, oneof='run_context_location', message='InlineData'
     )
     run_context: any_pb2.Any = proto.Field(proto.MESSAGE, number=11, message=any_pb2.Any)
+    execute_circuit: ExecuteCircuitAction = proto.Field(
+        proto.MESSAGE, number=13, oneof='action', message=ExecuteCircuitAction
+    )
+    calibrate_circuit: CalibrateCircuitAction = proto.Field(
+        proto.MESSAGE, number=14, oneof='action', message=CalibrateCircuitAction
+    )
 
 
 class SchedulingConfig(proto.Message):
@@ -223,6 +245,8 @@ class ExecutionStatus(proto.Message):
         failure (cirq_google.cloud.quantum_v1alpha1.types.ExecutionStatus.Failure):
             -
         timing (cirq_google.cloud.quantum_v1alpha1.types.ExecutionStatus.Timing):
+            -
+        device_config_key (cirq_google.cloud.quantum_v1alpha1.types.DeviceConfigKey):
             -
     """
 
@@ -340,6 +364,9 @@ class ExecutionStatus(proto.Message):
     calibration_name: str = proto.Field(proto.STRING, number=4)
     failure: Failure = proto.Field(proto.MESSAGE, number=5, message=Failure)
     timing: Timing = proto.Field(proto.MESSAGE, number=6, message=Timing)
+    device_config_key: 'DeviceConfigKey' = proto.Field(
+        proto.MESSAGE, number=7, message='DeviceConfigKey'
+    )
 
 
 class DeviceConfigSelector(proto.Message):
@@ -819,6 +846,38 @@ class QuantumReservation(proto.Message):
         proto.MESSAGE, number=4, message=timestamp_pb2.Timestamp
     )
     allowlisted_users: MutableSequence[str] = proto.RepeatedField(proto.STRING, number=5)
+
+
+class QuantumProcessorAutomationRunHistory(proto.Message):
+    r"""-
+
+    Attributes:
+        snapshot_id (str):
+            -
+        timestamp (google.protobuf.timestamp_pb2.Timestamp):
+            -
+        configs (MutableSequence[cirq_google.cloud.quantum_v1alpha1.types.QuantumProcessorConfig]):
+            -
+    """
+
+    snapshot_id: str = proto.Field(proto.STRING, number=1)
+    timestamp: timestamp_pb2.Timestamp = proto.Field(
+        proto.MESSAGE, number=2, message=timestamp_pb2.Timestamp
+    )
+    configs: MutableSequence['QuantumProcessorConfig'] = proto.RepeatedField(
+        proto.MESSAGE, number=3, message='QuantumProcessorConfig'
+    )
+
+
+class QecRecipe(proto.Message):
+    r"""-
+
+    Attributes:
+        desired_algorithms (MutableSequence[str]):
+            -
+    """
+
+    desired_algorithms: MutableSequence[str] = proto.RepeatedField(proto.STRING, number=1)
 
 
 __all__ = tuple(sorted(__protobuf__.manifest))

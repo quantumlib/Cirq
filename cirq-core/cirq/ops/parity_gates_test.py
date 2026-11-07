@@ -91,9 +91,9 @@ def test_xx_diagrams() -> None:
     cirq.testing.assert_has_diagram(
         circuit,
         """
-a: ───XX───XX───XX───────
-      │    │    │
-b: ───XX───XX───XX^0.5───
+a: ───XX───XX─────XX───────
+      │    │      │
+b: ───XX───XX^3───XX^0.5───
 """,
     )
 
@@ -163,9 +163,9 @@ def test_yy_diagrams() -> None:
     cirq.testing.assert_has_diagram(
         circuit,
         """
-a: ───YY───YY───YY───────
-      │    │    │
-b: ───YY───YY───YY^0.5───
+a: ───YY───YY─────YY───────
+      │    │      │
+b: ───YY───YY^3───YY^0.5───
 """,
     )
 
@@ -234,16 +234,16 @@ def test_zz_matrix() -> None:
     )
 
 
-def test_zz_diagrams() -> None:
+def test_zz_diagram() -> None:
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     circuit = cirq.Circuit(cirq.ZZ(a, b), cirq.ZZ(a, b) ** 3, cirq.ZZ(a, b) ** 0.5)
     cirq.testing.assert_has_diagram(
         circuit,
         """
-a: ───ZZ───ZZ───ZZ───────
-      │    │    │
-b: ───ZZ───ZZ───ZZ^0.5───
+a: ───ZZ───ZZ─────ZZ───────
+      │    │      │
+b: ───ZZ───ZZ^3───ZZ^0.5───
 """,
     )
 
@@ -331,27 +331,14 @@ def test_json_serialization() -> None:
 
 @pytest.mark.parametrize('gate_cls', (cirq.XXPowGate, cirq.YYPowGate, cirq.ZZPowGate))
 @pytest.mark.parametrize(
-    'exponent,is_clifford',
+    ['exponent', 'is_clifford'],
     ((0, True), (0.5, True), (0.75, False), (1, True), (1.5, True), (-1.5, True)),
 )
-def test_clifford_protocols(
+def test_has_stabilizer_effect(
     gate_cls: type[cirq.EigenGate], exponent: float, is_clifford: bool
 ) -> None:
     gate = gate_cls(exponent=exponent)
-    assert hasattr(gate, '_decompose_into_clifford_with_qubits_')
-    if is_clifford:
-        clifford_decomposition = cirq.Circuit(
-            gate._decompose_into_clifford_with_qubits_(cirq.LineQubit.range(2))
-        )
-        assert cirq.has_stabilizer_effect(gate)
-        assert cirq.has_stabilizer_effect(clifford_decomposition)
-        if exponent == 0:
-            assert clifford_decomposition == cirq.Circuit()
-        else:
-            np.testing.assert_allclose(cirq.unitary(gate), cirq.unitary(clifford_decomposition))
-    else:
-        assert not cirq.has_stabilizer_effect(gate)
-        assert gate._decompose_into_clifford_with_qubits_(cirq.LineQubit.range(2)) is NotImplemented
+    assert cirq.has_stabilizer_effect(gate) is is_clifford
 
 
 def test_parity_gate_multiplication():

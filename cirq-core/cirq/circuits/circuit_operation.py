@@ -22,8 +22,8 @@ component operations in order, including any nested CircuitOperations.
 from __future__ import annotations
 
 import math
-from collections.abc import Callable, Iterator, Mapping, Sequence
-from functools import cached_property
+from collections.abc import Callable, Iterator, Mapping, Sequence, Set
+from functools import cached_property, reduce
 from typing import Any, cast, TYPE_CHECKING, TypeAlias
 
 import numpy as np
@@ -87,7 +87,7 @@ class CircuitOperation(ops.Operation):
         Args:
             circuit: The FrozenCircuit wrapped by this operation.
             repetitions: How many times the circuit should be repeated. This can be
-                integer, or a sympy expression. If sympy, the expression must
+                integer, or a SymPy expression. If SymPy, the expression must
                 resolve to an integer, or float within 0.001 of integer, at
                 runtime.
             qubit_map: Remappings for qubits in the circuit.
@@ -120,7 +120,7 @@ class CircuitOperation(ops.Operation):
                 with repetitions or repetition_ids.
 
         Raises:
-            TypeError: if repetitions is not an integer or sympy expression, or if
+            TypeError: if repetitions is not an integer or SymPy expression, or if
                 the provided circuit is not a FrozenCircuit.
             ValueError: if any of the following conditions is met.
                 - Negative repetitions on non-invertible circuit
@@ -286,7 +286,10 @@ class CircuitOperation(ops.Operation):
     def qubits(self) -> tuple[cirq.Qid, ...]:
         """Returns the qubits operated on by this object."""
         ordered_qubits = ops.QubitOrder.DEFAULT.order_for(self.circuit.all_qubits())
-        return tuple(self.qubit_map.get(q, q) for q in ordered_qubits)
+        mapped = tuple(self.qubit_map.get(q, q) for q in ordered_qubits)
+        if self._are_qubits_parameterized() and self.param_resolver:
+            return protocols.resolve_parameters(mapped, self.param_resolver)
+        return mapped
 
     def _default_repetition_ids(self) -> list[str] | None:
         return default_repetition_ids(self.repetitions) if self.use_repetition_ids else None
@@ -304,6 +307,19 @@ class CircuitOperation(ops.Operation):
             return False
         operations = self._mapped_any_loop.all_operations()
         return all(protocols.has_unitary(op) for op in operations)
+
+    def _unitary_(self) -> np.ndarray:
+        if len(self.qubits) > 1 or not protocols.has_unitary(self):
+            return NotImplemented
+
+        unitaries = [protocols.unitary(op) for op in self.circuit.all_operations()]
+        dim = max((u.shape for u in unitaries), default=(1,))[0]
+        u = np.eye(dim, dtype=np.complex128)
+        u = reduce(lambda u1, u2: np.dot(u1, u2, out=u), reversed(unitaries), u)
+
+        if self.repetitions != 1:
+            u = np.linalg.matrix_power(u, self.repetitions)
+        return u
 
     def _ensure_deterministic_loop_count(self):
         if self.repeat_until or isinstance(self.repetitions, sympy.Expr):
@@ -349,16 +365,55 @@ class CircuitOperation(ops.Operation):
     def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
         return self._control_keys
 
+    @cached_method
+    def _is_qubit_map_parameterized(self) -> bool:
+        return any(
+            protocols.is_parameterized(k) or protocols.is_parameterized(v)
+            for k, v in self.qubit_map.items()
+        )
+
+    @cached_method
+    def _are_qubits_parameterized(self) -> bool:
+        return self._is_qubit_map_parameterized() or any(
+            op._are_qubits_parameterized() for op in self.circuit.all_operations()
+        )
+
     def _is_parameterized_(self) -> bool:
-        return any(self._parameter_names_generator())
+        return any(self._parameter_name_sets())
 
     def _parameter_names_(self) -> frozenset[str]:
-        return frozenset(self._parameter_names_generator())
+        # Union whole sets rather than individual names, so that large subcircuit name sets are
+        # copied in bulk.
+        sets = [s for s in self._parameter_name_sets() if s]
+        if len(sets) == 1 and isinstance(sets[0], frozenset):
+            return sets[0]
+        return frozenset().union(*sets)
 
-    def _parameter_names_generator(self) -> Iterator[str]:
-        yield from protocols.parameter_names(self.repetitions)
-        yield from protocols.parameter_names(self._mapped_repeat_until)
-        yield from protocols.parameter_names(self._mapped_any_loop)
+    def _parameter_name_sets(self) -> Iterator[Set[str]]:
+        yield protocols.parameter_names(self.repetitions)
+        yield protocols.parameter_names(self._mapped_repeat_until)
+        if self._mapping_preserves_parameter_names():
+            # Reuse the names cached on the frozen subcircuit instead of building the mapped copy.
+            yield protocols.parameter_names(self.circuit)
+        else:
+            yield protocols.parameter_names(self._mapped_any_loop)
+        # get variable qubits that are in the map but not circuit
+        mapped_qubits = self.qubit_map.keys() - self.circuit.all_qubits()
+        for k in mapped_qubits:
+            yield protocols.parameter_names((k, self.qubit_map[k]))
+
+    def _mapping_preserves_parameter_names(self) -> bool:
+        """Returns whether `_mapped_any_loop` has the same parameter names as `self.circuit`.
+
+        Measurement key mappings never change parameter names. Parameter resolution can, a
+        parameterized qubit map can introduce or replace variable qubits, and inverting the
+        subcircuit for negative repetitions is not guaranteed to preserve them.
+        """
+        return (
+            not self.param_resolver
+            and not self._is_qubit_map_parameterized()
+            and not (isinstance(self.repetitions, INT_CLASSES) and self.repetitions < 0)
+        )
 
     @cached_property
     def _mapped_any_loop(self) -> cirq.Circuit:
@@ -475,7 +530,7 @@ class CircuitOperation(ops.Operation):
     def __str__(self):
         # TODO: support out-of-line subcircuit definition in string format.
         msg_lines = str(self.circuit).split('\n')
-        msg_width = max([len(line) for line in msg_lines])
+        msg_width = max(len(line) for line in msg_lines)
         circuit_msg = '\n'.join(f'[ {line:<{msg_width}} ]' for line in msg_lines)
         args = []
 
@@ -534,7 +589,7 @@ class CircuitOperation(ops.Operation):
             del state[hash_attr]
         return state
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> dict[str, Any]:
         resp = {
             'circuit': self.circuit,
             'repetitions': self.repetitions,
@@ -602,7 +657,7 @@ class CircuitOperation(ops.Operation):
         Returns:
             A copy of this operation repeated `repetitions` times with the
             appropriate `repetition_ids`. The output `repetition_ids` are the
-            cartesian product of input `repetition_ids` with the base
+            Cartesian product of input `repetition_ids` with the base
             operation's `repetition_ids`. If the base operation has unset
             `repetition_ids` (indicates {-1, 0, 1} `repetitions` with no custom
             IDs), the input `repetition_ids` are directly used.
@@ -834,6 +889,23 @@ class CircuitOperation(ops.Operation):
         resolved = self.with_params(resolver.param_dict, recursive)
         # repetitions can resolve to a float, but this is ok since constructor converts to
         # nearby int.
-        return resolved.replace(
-            repetitions=resolver.value_of(cast('cirq.TParamVal', self.repetitions), recursive)
+        resolved_repetitions = resolver.value_of(
+            cast('cirq.TParamVal', self.repetitions), recursive
         )
+        # avoid unnecessary copy when self.repetitions is resolved as is
+        if resolved_repetitions is not self.repetitions:
+            resolved = resolved.replace(repetitions=resolved_repetitions)
+        if self._is_qubit_map_parameterized():
+            new_qubit_map = {
+                protocols.resolve_parameters(k, resolver, recursive): protocols.resolve_parameters(
+                    v, resolver, recursive
+                )
+                for k, v in self.qubit_map.items()
+            }
+            resolved = resolved.replace(qubit_map=new_qubit_map)
+            if len(set(resolved.qubits)) != len(set(self.qubits)):
+                raise ValueError(
+                    f'Collision in qubit map composition. Original map:\n{self.qubit_map}'
+                    f'\nMap after changes: {resolved.qubit_map}'
+                )
+        return resolved

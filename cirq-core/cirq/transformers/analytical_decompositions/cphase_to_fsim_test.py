@@ -91,9 +91,11 @@ def test_decomposition_to_sycamore_gate(exponent) -> None:
 
 @pytest.mark.parametrize(
     'theta, phi',
-    itertools.product(
-        (-2.4 * np.pi, -np.pi / 11, np.pi / 9, np.pi / 2, 1.4 * np.pi),
-        (-1.4 * np.pi, -np.pi / 9, np.pi / 11, np.pi / 2, 2.4 * np.pi),
+    list(
+        itertools.product(
+            (-2.4 * np.pi, -np.pi / 11, np.pi / 9, np.pi / 2, 1.4 * np.pi),
+            (-1.4 * np.pi, -np.pi / 9, np.pi / 11, np.pi / 2, 2.4 * np.pi),
+        )
     ),
 )
 def test_valid_cphase_exponents(theta, phi) -> None:
@@ -127,9 +129,11 @@ def complement_intervals(intervals: Sequence[tuple[float, float]]) -> Sequence[t
 
 @pytest.mark.parametrize(
     'theta, phi',
-    itertools.product(
-        (-2.3 * np.pi, -np.pi / 7, np.pi / 5, 1.8 * np.pi),
-        (-1.7 * np.pi, -np.pi / 5, np.pi / 7, 2.5 * np.pi),
+    list(
+        itertools.product(
+            (-2.3 * np.pi, -np.pi / 7, np.pi / 5, 1.8 * np.pi),
+            (-1.7 * np.pi, -np.pi / 5, np.pi / 7, 2.5 * np.pi),
+        )
     ),
 )
 def test_invalid_cphase_exponents(theta, phi) -> None:

@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import dataclasses
 import time
-from collections.abc import Iterable
+from collections.abc import Collection
 from typing import Any, cast, TYPE_CHECKING
 
 import matplotlib.pyplot as plt
@@ -213,7 +213,7 @@ class SingleQubitReadoutCalibrationResult:
 
 
 def estimate_single_qubit_readout_errors(
-    sampler: cirq.Sampler, *, qubits: Iterable[cirq.Qid], repetitions: int = 1000
+    sampler: cirq.Sampler, *, qubits: Collection[cirq.Qid], repetitions: int = 1000
 ) -> SingleQubitReadoutCalibrationResult:
     """Estimate single-qubit readout error.
 
@@ -234,7 +234,7 @@ def estimate_single_qubit_readout_errors(
         the probabilities. Also stores a timestamp indicating the time when
         data was finished being collected from the sampler.
     """
-    num_qubits = len(list(qubits))
+    num_qubits = len(qubits)
     return estimate_parallel_single_qubit_readout_errors(
         sampler=sampler,
         qubits=qubits,
@@ -247,7 +247,7 @@ def estimate_single_qubit_readout_errors(
 def estimate_parallel_single_qubit_readout_errors(
     sampler: cirq.Sampler,
     *,
-    qubits: Iterable[cirq.Qid],
+    qubits: Collection[cirq.Qid],
     trials: int = 20,
     repetitions: int = 1000,
     trials_per_batch: int | None = None,
@@ -268,7 +268,7 @@ def estimate_parallel_single_qubit_readout_errors(
         trials: The number of bitstrings to prepare.
         trials_per_batch:  If provided, split the experiment into batches
             with this number of trials in each batch.
-        bit_strings: Optional numpy array of shape (trials, qubits) where the
+        bit_strings: Optional NumPy array of shape (trials, qubits) where the
             first dimension is the number of the trial and the second
             dimension is the qubit (ordered by the qubit order from
             the qubits parameter).  Each value should be a 0 or 1 which
@@ -282,12 +282,12 @@ def estimate_parallel_single_qubit_readout_errors(
         the probabilities. Also stores a timestamp indicating the time when
         data was finished being collected from the sampler.  Note that,
         if there did not exist a trial where a given qubit was set to |0〉,
-        the zero-state error will be set to `nan` (not a number).  Likewise
+        the zero-state error will be set to `NaN` (not a number).  Likewise
         for qubits with no |1〉trial and one-state error.
 
     Raises:
         ValueError: If the number of trials, repetitions, or trials_per batch is
-            negative, or if bit_strings is not a numpy array or of the wrong
+            negative, or if bit_strings is not a NumPy array or of the wrong
             shape.
     """
     qubits = list(qubits)

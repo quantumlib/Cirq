@@ -44,7 +44,7 @@ __cirq_debug__ = contextvars.ContextVar('__cirq_debug__', default=__debug__)
 document(
     __cirq_debug__,
     "A cirq specific flag which can be used to conditionally turn off all validations across Cirq "
-    "to boost performance in production mode. Defaults to python's built-in constant __debug__. "
+    "to boost performance in production mode. Defaults to python's built-in constant `__debug__`. "
     "The flag is implemented as a `ContextVar` and is thread safe.",
 )
 
@@ -63,10 +63,6 @@ def with_debug(value: bool) -> Iterator[None]:
         yield
     finally:
         __cirq_debug__.reset(token)
-
-
-# Sentinel used by wrapped_no_args below when method has not yet been cached.
-_NOT_FOUND = object()
 
 
 TFunc = TypeVar('TFunc', bound=Callable)
@@ -103,11 +99,12 @@ def cached_method(method: TFunc | None = None, *, maxsize: int = 128) -> Any:
 
             @functools.wraps(func)
             def wrapped_no_args(self):
-                result = getattr(self, cache_name, _NOT_FOUND)
-                if result is _NOT_FOUND:
+                try:
+                    return getattr(self, cache_name)
+                except AttributeError:
                     result = func(self)
                     object.__setattr__(self, cache_name, result)
-                return result
+                    return result
 
             return wrapped_no_args
 
@@ -135,7 +132,7 @@ def _method_cache_name(func: Callable) -> str:
 
 
 def proper_repr(value: Any) -> str:
-    """Overrides sympy and numpy returning repr strings that don't parse."""
+    """Overrides SymPy and NumPy returning repr strings that don't parse."""
 
     if isinstance(value, sympy.Basic):
         # HACK: work around https://github.com/sympy/sympy/issues/16074
@@ -215,10 +212,10 @@ def dataclass_repr(value: Any, namespace: str = 'cirq') -> str:
         value: The dataclass. We respect the `repr` attribute of dataclass fields if you deign
             to omit a field from the repr.
         namespace: The Python namespace or module name to prepend with a "." to the class name.
-            This is the key difference between the default dataclass-generated __repr__.
+            This is the key difference between the default dataclass-generated `__repr__`.
 
     Returns:
-        A representation suitable for the __repr__ method of a dataclass.
+        A representation suitable for the `__repr__` method of a dataclass.
     """
     field_strs = []
     field: dataclasses.Field
@@ -234,11 +231,11 @@ def dataclass_repr(value: Any, namespace: str = 'cirq') -> str:
 
 
 def proper_eq(a: Any, b: Any) -> bool:
-    """Compares objects for equality, working around __eq__ not always working.
+    """Compares objects for equality, working around `__eq__` not always working.
 
-    For example, in numpy a == b broadcasts and returns an array instead of
+    For example, in NumPy a == b broadcasts and returns an array instead of
     doing what np.array_equal(a, b) does. This method uses np.array_equal(a, b)
-    when dealing with numpy arrays.
+    when dealing with NumPy arrays.
     """
     if type(a) == type(b):
         if isinstance(a, np.ndarray):
@@ -264,7 +261,7 @@ def _warn_or_error(msg):
             f"During testing using Cirq deprecated functionality is not allowed: {msg}"
             f"Update to non-deprecated functionality, or alternatively, you can quiet "
             f"this error by removing the CIRQ_TESTING environment variable "
-            f"temporarily with `@mock.patch.dict(os.environ, clear='CIRQ_TESTING')`.\n"
+            f"temporarily with `@mock.patch.dict(os.environ, {{'CIRQ_TESTING': 'false'}})`.\n"
             f"In case the usage of deprecated cirq is intentional, use "
             f"`with cirq.testing.assert_deprecated(...):` around this line:\n"
             f"{filename}:{line_number}: in {function_name}\n"
@@ -511,15 +508,15 @@ class DeprecatedModuleLoader(importlib.abc.Loader):
         self.loader = loader
         if hasattr(loader, 'exec_module'):
             # mypy#2427
-            self.exec_module = self._wrap_exec_module(loader.exec_module)  # type: ignore
+            self.exec_module = self._wrap_exec_module(loader.exec_module)  # type: ignore[method-assign]
         # while this is rare and load_module was deprecated in 3.4
         # in older environments this line makes them work as well
         if hasattr(loader, 'load_module'):
             # mypy#2427
-            self.load_module = self._wrap_load_module(loader.load_module)  # type: ignore
+            self.load_module = self._wrap_load_module(loader.load_module)  # type: ignore[method-assign]
         if hasattr(loader, 'create_module'):
             # mypy#2427
-            self.create_module = loader.create_module  # type: ignore
+            self.create_module = loader.create_module  # type: ignore[method-assign]
         self.old_module_name = old_module_name
         self.new_module_name = new_module_name
 
@@ -589,7 +586,7 @@ _warned: set[str] = set()
 
 
 def _called_from_test() -> bool:
-    return 'CIRQ_TESTING' in os.environ
+    return os.environ.get("CIRQ_TESTING", "").lower() == "true"
 
 
 def _should_dedupe_module_deprecation() -> bool:
@@ -636,7 +633,7 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
         deadline: str,
         broken_module_exception: BaseException | None,
     ):
-        """An aliasing module finder that uses existing module finders to find a python
+        """An aliasing module finder that uses existing module finders to find a Python
         module spec and intercept the execution of matching modules.
         """
         self.new_module_name = new_module_name

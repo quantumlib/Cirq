@@ -67,7 +67,7 @@ def test_tilted_square_methods() -> None:
 
 
 def test_tilted_square_lattice_n_nodes() -> None:
-    for width, height in itertools.product(list(range(1, 4 + 1)), repeat=2):
+    for width, height in itertools.product(range(1, 4 + 1), repeat=2):
         topo = TiltedSquareLattice(width, height)
         assert topo.n_nodes == topo.graph.number_of_nodes()
 

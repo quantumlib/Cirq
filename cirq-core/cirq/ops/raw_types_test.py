@@ -469,7 +469,31 @@ def test_tagged_operation_equality() -> None:
         op.with_tags('tag1', 'tag2'),
         op.with_tags('tag1').with_tags('tag2'),
         cirq.TaggedOperation(op, 'tag1', 'tag2'),
+        cirq.TaggedOperation(cirq.TaggedOperation(op, 'tag1'), 'tag2'),
     )
+
+
+def test_tagged_operation_flattens_nested_tagged_operations() -> None:
+    q = cirq.LineQubit(0)
+    op = cirq.X(q)
+    nested = cirq.TaggedOperation(cirq.TaggedOperation(op.with_tags('a'), 'b'), 'c', 'd')
+
+    assert nested.sub_operation is op
+    assert nested.untagged is op
+    assert nested.tags == ('a', 'b', 'c', 'd')
+    assert repr(nested) == "cirq.TaggedOperation(cirq.X(cirq.LineQubit(0)), 'a','b','c','d')"
+
+    # An empty outer wrapper still collapses onto the inner one.
+    assert cirq.TaggedOperation(op.with_tags('a')).sub_operation is op
+
+    # JSON written by versions that allowed nesting is flattened when read back.
+    nested_json = (
+        '{"cirq_type": "TaggedOperation", "sub_operation": {"cirq_type": "TaggedOperation",'
+        ' "sub_operation": ' + cirq.to_json(op) + ', "tags": ["a"]}, "tags": ["b"]}'
+    )
+    loaded = cirq.read_json(json_text=nested_json)
+    assert loaded == op.with_tags('a', 'b')
+    assert loaded.sub_operation == op
 
 
 def test_tagged_operation() -> None:
@@ -529,9 +553,30 @@ def test_circuit_diagram() -> None:
         def __str__(self):
             return '<taggy>'
 
+    class DiagramInfoTag:
+        """Tag that customizes diagram rendering via `_circuit_diagram_info_`."""
+
+        def __str__(self):
+            return 'should-not-appear-in-diagram'
+
+        def __repr__(self):
+            return 'DiagramInfoTag()'
+
+        def _circuit_diagram_info_(
+            self, args: cirq.CircuitDiagramInfoArgs
+        ) -> str | cirq.CircuitDiagramInfo:
+            if args.use_unicode_characters:
+                return '★'
+            return cirq.CircuitDiagramInfo(wire_symbols=('D',))
+
+    # str/repr exist for documentation; protocol path must not use them.
+    assert str(DiagramInfoTag()) == 'should-not-appear-in-diagram'
+    assert repr(DiagramInfoTag()) == 'DiagramInfoTag()'
+
     h = cirq.H(cirq.GridQubit(1, 1))
     tagged_h = h.with_tags('tag1')
     non_string_tag_h = h.with_tags(TaggyTag())
+    diagram_info_tag_h = h.with_tags(DiagramInfoTag())
 
     expected = cirq.CircuitDiagramInfo(
         wire_symbols=("H[tag1]",),
@@ -557,6 +602,23 @@ def test_circuit_diagram() -> None:
     assert c.to_text_diagram(include_tags=False) == diagram_without_tags
     assert c.to_text_diagram(include_tags={str}) == diagram_without_tags
     assert c.to_text_diagram(include_tags={TaggyTag}) == diagram_with_non_string_tag
+
+    # Tags implementing _circuit_diagram_info_ customize diagram text (not str).
+    c = cirq.Circuit(diagram_info_tag_h)
+    assert c.to_text_diagram(use_unicode_characters=True) == "(1, 1): ───H[★]───"
+    assert c.to_text_diagram(use_unicode_characters=False) == "(1, 1): ---H[D]---"
+    assert c.to_text_diagram(include_tags=False) == diagram_without_tags
+    assert c.to_text_diagram(include_tags={str}) == diagram_without_tags
+    assert (
+        c.to_text_diagram(include_tags={DiagramInfoTag}, use_unicode_characters=True)
+        == "(1, 1): ───H[★]───"
+    )
+    # Mixed tags: protocol text for custom tags, str() fallback for others.
+    mixed = h.with_tags('plain', DiagramInfoTag(), TaggyTag())
+    assert (
+        cirq.Circuit(mixed).to_text_diagram(use_unicode_characters=True)
+        == "(1, 1): ───H[plain, ★, <taggy>]───"
+    )
 
 
 def test_circuit_diagram_tagged_global_phase() -> None:

@@ -125,7 +125,7 @@ class ParallelGate(raw_types.Gate):
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         diagram_info = protocols.circuit_diagram_info(self.sub_gate, args, NotImplemented)
-        if diagram_info == NotImplemented:
+        if diagram_info is NotImplemented:
             return diagram_info
 
         # Include symbols for every qubit instead of just one.

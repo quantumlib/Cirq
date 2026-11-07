@@ -185,7 +185,7 @@ class StreamManager:
 
     @property
     def _executor(self) -> AsyncioExecutor:
-        # We must re-use a single Executor due to multi-threading issues in gRPC
+        # We must reuse a single Executor due to multi-threading issues in gRPC
         # clients: https://github.com/grpc/grpc/issues/25364.
         return AsyncioExecutor.instance()
 
@@ -278,7 +278,7 @@ class StreamManager:
             # Either when this request is canceled or the _manage_stream() loop is canceled.
             except asyncio.CancelledError:
                 # TODO(#5996) Consider moving the request future cancellation logic into a future
-                # done callback, so that the the cancellation caller can wait for it to complete.
+                # done callback, so that the cancellation caller can wait for it to complete.
                 # TODO(#5996) Check the condition that response_future is not done before
                 # cancelling, once request cancellation is moved to a callback.
                 if response_future is not None:

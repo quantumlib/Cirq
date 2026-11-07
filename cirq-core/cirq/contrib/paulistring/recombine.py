@@ -39,7 +39,7 @@ def _sorted_best_string_placements(
         node_max = (string_op, 0, possible_node)
 
         for i, out_op in enumerate(output_ops):
-            if not set(out_op.qubits) & set(string_op.qubits):
+            if set(out_op.qubits).isdisjoint(string_op.qubits):
                 # Skip if operations don't share qubits
                 continue
             if isinstance(out_op, ops.PauliStringPhasor) and protocols.commutes(
@@ -69,6 +69,14 @@ def _sorted_best_string_placements(
 def move_pauli_strings_into_circuit(
     circuit_left: circuits.Circuit | circuitdag.CircuitDag, circuit_right: circuits.Circuit
 ) -> circuits.Circuit:
+    non_pauli_string_phasor = next(
+        (o for o in circuit_left.all_operations() if not isinstance(o, ops.PauliStringPhasor)), None
+    )
+    if non_pauli_string_phasor is not None:
+        raise ValueError(
+            f'Expected only PauliStringPhasor operations in circuit_left. '
+            f'Found {non_pauli_string_phasor}.'
+        )
     if isinstance(circuit_left, circuitdag.CircuitDag):
         string_dag = circuitdag.CircuitDag(
             incoming_graph_data=circuit_left, can_reorder=pauli_string_reorder_pred
@@ -77,10 +85,10 @@ def move_pauli_strings_into_circuit(
         string_dag = pauli_string_dag_from_circuit(cast(circuits.Circuit, circuit_left))
     output_ops = list(circuit_right.all_operations())
 
-    rightmost_nodes = set(string_dag.nodes()) - set(before for before, _ in string_dag.edges())
+    rightmost_nodes = set(string_dag.nodes()) - {before for before, _ in string_dag.edges()}
 
     while rightmost_nodes:
-        # Sort the pauli string placements based on paulistring length and
+        # Sort the Pauli string placements based on paulistring length and
         # furthest possible distance in circuit_right
         placements = _sorted_best_string_placements(rightmost_nodes, output_ops)
         last_index = len(output_ops)
@@ -95,7 +103,7 @@ def move_pauli_strings_into_circuit(
 
             last_index = best_index
             output_ops.insert(best_index, best_string_op)
-            # Remove the best one from the dag and update rightmost_nodes
+            # Remove the best one from the DAG and update rightmost_nodes
             rightmost_nodes.remove(best_node)
             rightmost_nodes.update(
                 pred_node
