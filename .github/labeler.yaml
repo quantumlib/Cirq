@@ -16,6 +16,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Skip labeling if more than this many files have been changed.
+max-files-changed: 25
+
 # Skip changed-files labels when a wide refactor would add more than this many.
 changed-files-labels-limit: 5
 
