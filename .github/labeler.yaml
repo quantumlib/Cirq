@@ -120,16 +120,6 @@ area/experiments:
           - 'cirq-google/cirq_google/experimental/**'
           - 'docs/experiments/**'
 
-area/interop:
-  - changed-files:
-      - any-glob-to-any-file:
-          - 'cirq-core/cirq/interop/**'
-
-area/linalg:
-  - changed-files:
-      - any-glob-to-any-file:
-          - 'cirq-core/cirq/linalg/**'
-
 area/gates:
   - changed-files:
       - any-glob-to-any-file:
@@ -142,6 +132,23 @@ area/gates:
           - 'cirq-google/cirq_google/ops/*fsim*.py'
           - 'cirq-google/cirq_google/ops/*gate*.py'
           - 'cirq-google/cirq_google/ops/*swap*.py'
+
+area/interop:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'cirq-core/cirq/interop/**'
+
+area/linalg:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'cirq-core/cirq/linalg/**'
+
+area/measurements:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'cirq-core/cirq/ops/*measure*'
+          - 'cirq-core/cirq/protocols/measurement_key_protocol*'
+          - 'cirq-core/cirq/value/measurement_key*'
 
 area/noise:
   - changed-files:
@@ -206,10 +213,13 @@ area/serialization:
           - 'docs/dev/serialization.md'
 
 area/simulation:
-  - changed-files:
-      - any-glob-to-any-file:
-          - 'cirq-core/cirq/sim/**'
-          - 'docs/simulate/**'
+  - all:
+      - changed-files:
+          - any-glob-to-any-file:
+              - 'cirq-core/cirq/sim/**'
+              - 'docs/simulate/**'
+          - all-globs-to-all-files:
+              - '!check/**'
 
 area/tags:
   - changed-files:
