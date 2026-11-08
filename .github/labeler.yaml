@@ -21,181 +21,280 @@ changed-files-labels-limit: 5
 
 # --- Hardware provider interfaces ---
 
-interface/cirq-google:
-  - changed-files:
-      - any-glob-to-any-file: 'cirq-google/**'
-      - any-glob-to-any-file: 'docs/google/**'
-
 interface/cirq-ionq:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-ionq/**'
-      - any-glob-to-any-file: 'docs/hardware/ionq/**'
+      - any-glob-to-any-file:
+          - 'cirq-ionq/**'
+          - 'docs/hardware/ionq/**'
 
 interface/cirq-aqt:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-aqt/**'
-      - any-glob-to-any-file: 'docs/hardware/aqt/**'
+      - any-glob-to-any-file:
+          - 'cirq-aqt/**'
+          - 'docs/hardware/aqt/**'
 
 interface/cirq-pasqal:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-pasqal/**'
-      - any-glob-to-any-file: 'docs/hardware/pasqal/**'
-
-interface/cirq-web:
-  - changed-files:
-      - any-glob-to-any-file: 'cirq-web/**'
+      - any-glob-to-any-file:
+          - 'cirq-pasqal/**'
+          - 'docs/hardware/pasqal/**'
 
 # --- Google Quantum Engine sub-areas ---
 
 area/google/engine:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-google/cirq_google/engine/**'
+      - any-glob-to-any-file:
+          - 'cirq-google/cirq_google/engine/**'
 
 area/google/device:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-google/cirq_google/devices/**'
+      - any-glob-to-any-file:
+          - 'cirq-google/cirq_google/devices/**'
+
+area/google/calibrations:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'cirq-google/cirq_google/devices/calibrations/**'
+          - 'cirq-google/cirq_google/engine/*calibration*'
+          - 'cirq-google/cirq_google/ops/calibration_tag*'
+          - 'docs/google/calibration.md'
+          - 'docs/tutorials/google/visualizing_calibration_metrics.ipynb'
+
+area/google/placement:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'cirq-google/cirq_google/line/**'
+          - 'cirq-google/cirq_google/workflow/qubit_placement*'
+          - 'docs/google/qubit-placement.ipynb'
 
 area/google/protos:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-google/cirq_google/api/**'
-      - any-glob-to-any-file: 'cirq-google/cirq_google/cloud/**'
+      - any-glob-to-any-file:
+          - 'cirq-google/cirq_google/api/**'
+          - 'cirq-google/cirq_google/cloud/**'
+          - 'dev_tools/build-protos.sh'
 
 area/google:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-google/**'
-      - any-glob-to-any-file: 'docs/google/**'
+      - any-glob-to-any-file:
+          - 'cirq-google/**'
+          - 'docs/google/**'
+          - 'docs/tutorials/google/**'
 
 # --- Cirq core sub-areas ---
 
 area/gates:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-core/cirq/ops/**'
+      - any-glob-to-any-file:
+          - 'cirq-core/cirq/ops/**'
+          - 'cirq-google/cirq_google/ops/**'
+          - 'cirq-core/cirq/ion/**'
+          - 'cirq-core/cirq/neutral_atoms/*gates*'
 
 area/simulation:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-core/cirq/sim/**'
+      - any-glob-to-any-file:
+          - 'cirq-core/cirq/sim/**'
+          - 'docs/simulate/**'
 
 area/transformers:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-core/cirq/transformers/**'
-      - any-glob-to-any-file: 'cirq-google/cirq_google/transformers/**'
+      - any-glob-to-any-file:
+          - 'cirq-core/cirq/transformers/**'
+          - 'cirq-google/cirq_google/transformers/**'
+          - 'docs/transform/**'
 
 area/experiments:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-core/cirq/experiments/**'
-      - any-glob-to-any-file: 'cirq-google/cirq_google/experimental/**'
+      - any-glob-to-any-file:
+          - 'cirq-core/cirq/experiments/**'
+          - 'cirq-google/cirq_google/experimental/**'
+          - 'docs/experiments/**'
 
 area/protocols:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-core/cirq/protocols/**'
+      - any-glob-to-any-file:
+          - 'cirq-core/cirq/protocols/**'
 
 area/linalg:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-core/cirq/linalg/**'
+      - any-glob-to-any-file:
+          - 'cirq-core/cirq/linalg/**'
 
 area/devices:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-core/cirq/devices/**'
+      - any-glob-to-any-file:
+          - 'cirq-core/cirq/devices/**'
+          - 'cirq-core/cirq/neutral_atoms/**'
+          - 'cirq-core/cirq/ion/**'
+          - 'docs/hardware/*.ipynb'
 
 area/circuits:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-core/cirq/circuits/**'
+      - any-glob-to-any-file:
+          - 'cirq-core/cirq/circuits/**'
 
 area/contrib:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-core/cirq/contrib/**'
+      - any-glob-to-any-file:
+          - 'cirq-core/cirq/contrib/**'
 
 area/workflow:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-core/cirq/work/**'
-      - any-glob-to-any-file: 'cirq-google/cirq_google/workflow/**'
+      - any-glob-to-any-file:
+          - 'cirq-core/cirq/work/**'
+          - 'cirq-google/cirq_google/workflow/**'
 
-area/variational:
+area/parameters:
+  # Exclude result* modules under study/ because they map to area/result.
   - changed-files:
-      - any-glob-to-any-file: 'cirq-core/cirq/study/**'
-      - any-glob-to-any-file: 'cirq-google/cirq_google/study/**'
+      - all-globs-to-any-file:
+          - 'cirq-core/cirq/study/**'
+          - '!cirq-core/cirq/study/result*'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'cirq-google/cirq_google/study/**'
+
+area/result:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'cirq-core/cirq/study/result*'
+          - 'cirq-google/cirq_google/engine/engine_result*'
+          - 'cirq-ionq/cirq_ionq/results*'
+
+area/classical:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'cirq-core/cirq/value/*classical*'
+          - 'cirq-core/cirq/value/*condition*'
+          - 'cirq-core/cirq/value/measurement_key*'
+          - 'cirq-core/cirq/ops/classically_controlled_operation*'
+          - 'cirq-core/cirq/protocols/control_key_protocol*'
+          - 'cirq-core/cirq/sim/classical_simulator*'
+          - 'docs/build/classical_control.ipynb'
 
 area/qis:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-core/cirq/qis/**'
+      - any-glob-to-any-file:
+          - 'cirq-core/cirq/qis/**'
 
 area/visualization:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-core/cirq/vis/**'
+      - any-glob-to-any-file:
+          - 'cirq-core/cirq/vis/**'
 
 area/interop:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-core/cirq/interop/**'
+      - any-glob-to-any-file:
+          - 'cirq-core/cirq/interop/**'
 
 area/serialization:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-google/cirq_google/serialization/**'
+      - any-glob-to-any-file:
+          - 'cirq-google/cirq_google/serialization/**'
+          - 'cirq-ionq/cirq_ionq/serializer*'
+          - 'cirq-core/cirq/protocols/json_serialization*'
+          - 'cirq-core/cirq/contrib/json*.py'
+          - '**/json_resolver_cache.py'
+          - '**/json_test_data/**'
+          - 'docs/dev/serialization.md'
 
 area/routing:
   - changed-files:
-      - any-glob-to-any-file: 'cirq-core/cirq/transformers/routing/**'
-      - any-glob-to-any-file: 'cirq-core/cirq/contrib/routing/**'
+      - any-glob-to-any-file:
+          - 'cirq-core/cirq/transformers/routing/**'
+          - 'cirq-core/cirq/contrib/routing/**'
 
 area/noise:
   - changed-files:
-      - any-glob-to-any-file: 'docs/noise/**'
-
-area/testing:
-  - changed-files:
-      - any-glob-to-any-file: 'cirq-core/cirq/testing/**'
+      - any-glob-to-any-file:
+          - '**/*noise*.py'
+          - 'cirq-core/cirq/contrib/noise_models/**'
+          - 'cirq-google/cirq_google/experimental/noise_models/**'
+          - 'docs/noise/**'
 
 # --- Repository infrastructure ---
 
-area/javascript:
-  - changed-files:
-      - any-glob-to-any-file: 'cirq-web/cirq_web/**'
-
 area/docs:
   - changed-files:
-      - any-glob-to-any-file: 'docs/**'
+      - any-glob-to-any-file:
+          - '*.md'
+          - '.github/SECURITY.md'
+          - 'AUTHORS'
+          - 'CITATION.cff'
+          - 'dev_tools/docs/**'
+          - 'dev_tools/notebooks/**'
+          - 'docs/**'
+          - 'LICENSE'
 
 area/examples:
   - changed-files:
-      - any-glob-to-any-file: 'examples/**'
+      - any-glob-to-any-file:
+          - 'examples/**'
 
 area/performance:
   - changed-files:
-      - any-glob-to-any-file: 'benchmarks/**'
-      - any-glob-to-any-file: 'dev_tools/profiling/**'
+      - any-glob-to-any-file:
+          - 'benchmarks/**'
+          - 'dev_tools/profiling/**'
 
 area/devops:
+  # Exclude dev_tools/{docs,notebooks}/ because they map to area/docs.
   - changed-files:
-      - any-glob-to-any-file: 'dev_tools/**'
-      - any-glob-to-any-file: 'check/**'
+      - all-globs-to-any-file:
+          - 'dev_tools/**'
+          - '!dev_tools/docs/**'
+          - '!dev_tools/notebooks/**'
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.*.y*ml'
+          - '.*config'
+          - '.*ignore'
+          - '.*rc'
+          - '.git*'
+          - '.github/**'
+          - 'check/**'
+          - 'conftest.py'
+          - 'pyproject.toml'
+          - 'setup.py'
 
 area/ci:
   - changed-files:
-      - any-glob-to-any-file: '.github/workflows/**'
-      - any-glob-to-any-file: 'dev_tools/requirements/**'
-      - any-glob-to-any-file: 'dev_tools/ci/**'
-      - any-glob-to-any-file: '.codecov.yaml'
+      - any-glob-to-any-file:
+          - '.codecov.yaml'
+          - '.github/workflows/**'
+          - 'dev_tools/ci/**'
 
 area/github:
   - changed-files:
-      - any-glob-to-any-file: '.github/**'
+      - any-glob-to-any-file:
+          - '.github/**'
 
 area/python:
+  # Exclude packaging test fixtures under dev_tools/modules_test_data/.
   - changed-files:
-      - any-glob-to-any-file: '**/*.py'
-      - any-glob-to-any-file: '**/setup.py'
-      - any-glob-to-any-file: '**/pyproject.toml'
-      - any-glob-to-any-file: 'dev_tools/requirements/deps/**'
+      - all-globs-to-any-file:
+          - '**/setup.py'
+          - '!dev_tools/modules_test_data/**'
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/pyproject.toml'
+          - 'dev_tools/requirements/deps/**'
 
 area/dependencies:
   - changed-files:
-      - any-glob-to-any-file: '**/*.lock'
-      - any-glob-to-any-file: 'apt-system-requirements.txt'
-      - any-glob-to-any-file: '**/requirements.txt'
-      - any-glob-to-any-file: 'dev_tools/requirements/**'
-      - any-glob-to-any-file: 'dev_tools/conf/**'
+      - any-glob-to-any-file:
+          - '**/requirements.txt'
+          - '.github/dependabot.yml'
+          - 'apt-system-requirements.txt'
+          - 'dev_tools/conf/**'
+          - 'dev_tools/requirements/**'
 
 area/releases:
   - changed-files:
-      - any-glob-to-any-file: '.github/workflows/release-*.yml'
-      - any-glob-to-any-file: 'dev_tools/packaging/**'
-      - any-glob-to-any-file: 'release.md'
+      - any-glob-to-any-file:
+          - '.github/workflows/release-*.y*ml'
+          - 'dev_tools/packaging/**'
+          - 'docs/dev/release.md'
+          - 'docs/dev/versions.md'
+          - 'MANIFEST.in'
