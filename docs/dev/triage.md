@@ -88,9 +88,9 @@ Features and Bugs with no priority label on them will still be up for grabs for 
 
 The goal of [feature area labels](https://github.com/quantumlib/Cirq/labels?q=area) is to enable
 easy filtering to certain areas.  This can help during planning, exploring problematic areas, and
-finding duplicate issues.  Multiple `area/*` labels can be added to a single issue.
+finding duplicate issues.  Multiple `area/*` labels can be added to a single issue or pull request.
 Some of these labels are applied automatically for pull requests according to the files
-they change.  To adjust rules for such automatic labels, see [`.github/labeler.yaml`](
+they change.  The rules for such automatic labels are defined in [`.github/labeler.yaml`](
 https://github.com/quantumlib/Cirq/blob/main/.github/labeler.yaml).
 
 
