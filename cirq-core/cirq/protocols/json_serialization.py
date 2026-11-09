@@ -68,8 +68,7 @@ document(
     provide their own resolver functions. 3rd party resolvers can be
     prepended to this list:
 
-        MY_DEFAULT_RESOLVERS = [_resolve_my_classes] \
-                               + cirq.protocols.json.DEFAULT_RESOLVERS
+        MY_DEFAULT_RESOLVERS = [_resolve_my_classes, *cirq.DEFAULT_RESOLVERS] 
 
         def my_read_json(file_or_fn, resolvers=None):
             if resolvers is None:
