@@ -137,7 +137,7 @@ def test_transpose_qubits() -> None:
 
 def test_field_getters() -> None:
     args = ExampleSimulationState()
-    assert args.prng is np.random
+    assert isinstance(args.prng, np.random.Generator)
     assert args.qubit_map == {q: i for i, q in enumerate(cirq.LineQubit.range(2))}
 
 

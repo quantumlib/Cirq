@@ -23,7 +23,7 @@ install an appropriate Cirq hardware interface module. Please visit the
 site](https://quantumai.google/cirq/hardware) for information about the
 hardware interface modules currently available.
 
-[Cirq]: https://github.com/quantumlib/cirq
+[Cirq]: https://github.com/quantumlib/Cirq
 [Cirq documentation site]: https://quantumai.google/cirq
 
 ## Installation
