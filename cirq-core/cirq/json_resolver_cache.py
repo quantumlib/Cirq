@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import datetime
 import functools
+import numbers
 from typing import NamedTuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -100,6 +101,43 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         return frozenset(qids)
 
     import sympy
+
+    def _safe_sympy_args(ctor):
+        def _construct(args):
+            if not isinstance(args, (list, tuple)) or not all(
+                isinstance(a, (numbers.Number, sympy.Basic)) for a in args
+            ):
+                raise ValueError(f"{ctor.__name__} args must be numbers or sympy.Basic instances.")
+            return ctor(*args)
+
+        return _construct
+
+    def _safe_sympy_symbol(name):
+        if not isinstance(name, str):
+            raise ValueError(f"sympy.Symbol name must be a str, not {type(name).__name__}.")
+        return sympy.Symbol(name)
+
+    def _safe_sympy_integer(i):
+        if not isinstance(i, numbers.Integral) or isinstance(i, bool):
+            raise ValueError(f"sympy.Integer i must be an integer, not {type(i).__name__}.")
+        return sympy.Integer(i)
+
+    def _safe_sympy_float(approx):
+        if not isinstance(approx, numbers.Real) or isinstance(approx, bool):
+            raise ValueError(
+                f"sympy.Float approx must be a real number, not {type(approx).__name__}."
+            )
+        return sympy.Float(approx)
+
+    def _safe_sympy_rational(p, q):
+        if (
+            not isinstance(p, numbers.Integral)
+            or isinstance(p, bool)
+            or not isinstance(q, numbers.Integral)
+            or isinstance(q, bool)
+        ):
+            raise ValueError("sympy.Rational p and q must be integers.")
+        return sympy.Rational(p, q)
 
     return {
         'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
@@ -273,25 +311,25 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'pandas.DataFrame': pd.DataFrame,
         'pandas.Index': pd.Index,
         'pandas.MultiIndex': pd.MultiIndex.from_tuples,
-        'sympy.Symbol': sympy.Symbol,
-        'sympy.Add': lambda args: sympy.Add(*args),
-        'sympy.Mul': lambda args: sympy.Mul(*args),
-        'sympy.Pow': lambda args: sympy.Pow(*args),
-        'sympy.GreaterThan': lambda args: sympy.GreaterThan(*args),
-        'sympy.StrictGreaterThan': lambda args: sympy.StrictGreaterThan(*args),
-        'sympy.LessThan': lambda args: sympy.LessThan(*args),
-        'sympy.StrictLessThan': lambda args: sympy.StrictLessThan(*args),
-        'sympy.Equality': lambda args: sympy.Equality(*args),
-        'sympy.Unequality': lambda args: sympy.Unequality(*args),
-        'sympy.And': lambda args: sympy.And(*args),
-        'sympy.Or': lambda args: sympy.Or(*args),
-        'sympy.Not': lambda args: sympy.Not(*args),
-        'sympy.Xor': lambda args: sympy.Xor(*args),
-        'sympy.Indexed': lambda args: sympy.Indexed(*args),
-        'sympy.IndexedBase': lambda args: sympy.IndexedBase(*args),
-        'sympy.Float': lambda approx: sympy.Float(approx),
-        'sympy.Integer': sympy.Integer,
-        'sympy.Rational': sympy.Rational,
+        'sympy.Symbol': _safe_sympy_symbol,
+        'sympy.Add': _safe_sympy_args(sympy.Add),
+        'sympy.Mul': _safe_sympy_args(sympy.Mul),
+        'sympy.Pow': _safe_sympy_args(sympy.Pow),
+        'sympy.GreaterThan': _safe_sympy_args(sympy.GreaterThan),
+        'sympy.StrictGreaterThan': _safe_sympy_args(sympy.StrictGreaterThan),
+        'sympy.LessThan': _safe_sympy_args(sympy.LessThan),
+        'sympy.StrictLessThan': _safe_sympy_args(sympy.StrictLessThan),
+        'sympy.Equality': _safe_sympy_args(sympy.Equality),
+        'sympy.Unequality': _safe_sympy_args(sympy.Unequality),
+        'sympy.And': _safe_sympy_args(sympy.And),
+        'sympy.Or': _safe_sympy_args(sympy.Or),
+        'sympy.Not': _safe_sympy_args(sympy.Not),
+        'sympy.Xor': _safe_sympy_args(sympy.Xor),
+        'sympy.Indexed': _safe_sympy_args(sympy.Indexed),
+        'sympy.IndexedBase': _safe_sympy_args(sympy.IndexedBase),
+        'sympy.Float': _safe_sympy_float,
+        'sympy.Integer': _safe_sympy_integer,
+        'sympy.Rational': _safe_sympy_rational,
         'sympy.pi': lambda: sympy.pi,
         'sympy.E': lambda: sympy.E,
         'sympy.EulerGamma': lambda: sympy.EulerGamma,

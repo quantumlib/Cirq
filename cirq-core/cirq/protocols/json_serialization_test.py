@@ -344,6 +344,104 @@ def test_sympy() -> None:
     assert_json_roundtrip_works(sympy.E)
     assert_json_roundtrip_works(sympy.EulerGamma)
 
+    # Boolean and indexed expressions.
+    base = sympy.IndexedBase('x')
+    assert_json_roundtrip_works(base)
+    assert_json_roundtrip_works(base[0])
+    assert_json_roundtrip_works(sympy.Not(s))
+    assert_json_roundtrip_works(sympy.Xor(s, t))
+
+    # Raw numeric literals in args are still accepted.
+    raw_num_json = json.dumps(
+        {'cirq_type': 'sympy.Add', 'args': [{'cirq_type': 'sympy.Symbol', 'name': 's'}, 2]}
+    )
+    assert cirq.read_json(json_text=raw_num_json) == s + 2
+
+
+@pytest.mark.parametrize(
+    'cirq_type',
+    [
+        'sympy.Add',
+        'sympy.Mul',
+        'sympy.Pow',
+        'sympy.GreaterThan',
+        'sympy.StrictGreaterThan',
+        'sympy.LessThan',
+        'sympy.StrictLessThan',
+        'sympy.Equality',
+        'sympy.Unequality',
+        'sympy.And',
+        'sympy.Or',
+        'sympy.Not',
+        'sympy.Xor',
+        'sympy.Indexed',
+        'sympy.IndexedBase',
+    ],
+)
+@mock.patch(
+    'sympy.parsing.sympy_parser.parse_expr',
+    side_effect=AssertionError('parse_expr must not be called'),
+)
+def test_sympy_args_resolvers_reject_non_sympy_args(
+    mock_parse_expr: mock.MagicMock, cirq_type: str
+) -> None:
+    # String elements in args must be rejected before reaching sympify / parse_expr.
+    with pytest.raises(ValueError, match='args must be numbers or sympy.Basic instances'):
+        cirq.read_json(json_text=json.dumps({'cirq_type': cirq_type, 'args': ['x', 'y']}))
+
+    # Nested containers (e.g. IndexedBase shape list) must also be rejected.
+    with pytest.raises(ValueError, match='args must be numbers or sympy.Basic instances'):
+        cirq.read_json(
+            json_text=json.dumps(
+                {
+                    'cirq_type': cirq_type,
+                    'args': [{'cirq_type': 'sympy.Symbol', 'name': 'x'}, ['x + 1']],
+                }
+            )
+        )
+
+    # Non-sequence args must be rejected.
+    with pytest.raises(ValueError, match='args must be numbers or sympy.Basic instances'):
+        cirq.read_json(json_text=json.dumps({'cirq_type': cirq_type, 'args': 123}))
+
+    mock_parse_expr.assert_not_called()
+
+
+@mock.patch(
+    'sympy.parsing.sympy_parser.parse_expr',
+    side_effect=AssertionError('parse_expr must not be called'),
+)
+def test_sympy_scalar_resolvers_reject_invalid_types(mock_parse_expr: mock.MagicMock) -> None:
+    with pytest.raises(ValueError, match='sympy.Symbol name must be a str'):
+        cirq.read_json(json_text='{"cirq_type": "sympy.Symbol", "name": 123}')
+    with pytest.raises(TypeError):
+        cirq.read_json(json_text='{"cirq_type": "sympy.Symbol", "name": "x", "real": true}')
+
+    for bad_int in ['"1 + 1"', '[1]', 'true', '1.5']:
+        with pytest.raises(ValueError, match='sympy.Integer i must be an integer'):
+            cirq.read_json(json_text=f'{{"cirq_type": "sympy.Integer", "i": {bad_int}}}')
+
+    for bad_float in ['"1.5"', '[1.5]', 'true']:
+        with pytest.raises(ValueError, match='sympy.Float approx must be a real number'):
+            cirq.read_json(json_text=f'{{"cirq_type": "sympy.Float", "approx": {bad_float}}}')
+
+    # sympy.Rational with a single list arg would otherwise call sympify() -> parse_expr().
+    with pytest.raises(TypeError):
+        cirq.read_json(json_text='{"cirq_type": "sympy.Rational", "p": ["1 + 1"]}')
+    for bad_p, bad_q in [
+        ('["1 + 1"]', '2'),
+        ('"1"', '2'),
+        ('true', '2'),
+        ('1', '"2"'),
+        ('1', 'false'),
+    ]:
+        with pytest.raises(ValueError, match='sympy.Rational p and q must be integers'):
+            cirq.read_json(
+                json_text=f'{{"cirq_type": "sympy.Rational", "p": {bad_p}, "q": {bad_q}}}'
+            )
+
+    mock_parse_expr.assert_not_called()
+
 
 class SBKImpl(cirq.SerializableByKey):
     """A test implementation of SerializableByKey."""
