@@ -207,11 +207,12 @@ def _map_operations_impl(
                 )
             ).with_tags(*op.tags)
         mop = map_func(op, idx)
-        mapped_ops = [mop] if isinstance(mop, ops.Operation) else [*ops.flatten_to_ops(mop)]
-        if not mapped_ops or (
-            len(mapped_ops) == 1 and (not raise_if_add_qubits or mapped_ops[0].qubits == op.qubits)
-        ):
-            return mapped_ops
+        if (mapped_to_operation := isinstance(mop, ops.Operation)) and mop.qubits == op.qubits:
+            return [mop]
+        mapped_ops: list[cirq.Operation] = (
+            [cast(ops.Operation, mop)] if mapped_to_operation else list(ops.flatten_to_ops(mop))
+        )
+
         mapped_ops_qubits = frozenset(q for op in mapped_ops for q in op.qubits)
         if raise_if_add_qubits and not mapped_ops_qubits.issubset(op.qubits):
             raise ValueError(
