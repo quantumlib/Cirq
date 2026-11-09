@@ -212,7 +212,7 @@ def _map_operations_impl(
             len(mapped_ops) == 1 and (not raise_if_add_qubits or mapped_ops[0].qubits == op.qubits)
         ):
             return mapped_ops
-        mapped_ops_qubits = {q for m in mapped_ops for q in m.qubits}
+        mapped_ops_qubits = frozenset(q for op in mapped_ops for q in op.qubits)
         if raise_if_add_qubits and not mapped_ops_qubits.issubset(op.qubits):
             raise ValueError(
                 f"Mapped operations {mapped_ops} should act on a subset "
