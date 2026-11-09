@@ -423,8 +423,8 @@ def _from_deprecated_import_sub():
 def _import_deprecated_first_new_second():
     """To ensure that module_a gets initialized only once.
 
-    Note that the single execution of _compat_test_data and module_a is asserted
-    in _test_deprecated_module_inner by counting the INFO messages emitted by
+    Note that the single execution of `_compat_test_data` and `module_a` is asserted
+    in `_test_deprecated_module_inner` by counting the INFO messages emitted by
     the modules ('init:compat_test_data' and 'init:module_a').
     """
 
@@ -449,7 +449,7 @@ def _import_deprecated_first_new_second():
 def _import_new_first_deprecated_second():
     """To ensure that module_a gets initialized only once.
 
-    It is the same as _import_deprecated_first_new_second just with different import order.
+    It is the same as `_import_deprecated_first_new_second` just with different import order.
     See that for more details.
     """
     from cirq.testing._compat_test_data.module_a import module_b
@@ -727,10 +727,10 @@ def test_same_name_submodule_earlier_in_subtree():
     """Tests whether module resolution works in the right order.
 
     We have two packages with a bool `DUPE_CONSTANT` attribute each:
-       1. cirq.testing._compat_test_data.module_a.sub.dupe.DUPE_CONSTANT=True # the right one
-       2. cirq.testing._compat_test_data.module_a.dupe.DUPE_CONSTANT=False # the wrong one
+       1. `cirq.testing._compat_test_data.module_a.sub.dupe.DUPE_CONSTANT=True` # the right one
+       2. `cirq.testing._compat_test_data.module_a.dupe.DUPE_CONSTANT=False` # the wrong one
 
-    If the new module's (in this case cirq.testing._compat_test_data.module_a) path has precedence
+    If the new module's (in this case `cirq.testing._compat_test_data.module_a`) path has precedence
     during module spec resolution, dupe number 2 is going to get resolved.
 
     You might wonder where this comes up in cirq. There was a bug where the lookup path was not in

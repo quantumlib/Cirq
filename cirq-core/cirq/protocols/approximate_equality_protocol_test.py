@@ -113,7 +113,7 @@ def test_approx_eq_special_numerics() -> None:
 
 
 class X(Number):
-    """Subtype of Number that can fallback to __eq__"""
+    """Subtype of Number that can fallback to `__eq__`"""
 
     def __init__(self, val):
         self.val = val
@@ -128,7 +128,7 @@ class X(Number):
 
 
 class Y(Number):
-    """Subtype of Number that cannot fallback to __eq__"""
+    """Subtype of Number that cannot fallback to `__eq__`"""
 
     def __init__(self):
         pass

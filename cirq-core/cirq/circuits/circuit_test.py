@@ -2620,7 +2620,7 @@ def test_circuit_superoperator_too_many_qubits() -> None:
     ),
 )
 def test_circuit_superoperator_fixed_values(circuit, expected_superoperator) -> None:
-    """Tests Circuit._superoperator_() on a few simple circuits."""
+    """Tests `Circuit._superoperator_()` on a few simple circuits."""
     assert circuit._has_superoperator_()
     assert np.allclose(circuit._superoperator_(), expected_superoperator)
 
@@ -2638,7 +2638,7 @@ def test_circuit_superoperator_fixed_values(circuit, expected_superoperator) -> 
     ),
 )
 def test_circuit_superoperator_depolarizing_channel_compositions(rs, n_qubits) -> None:
-    """Tests Circuit._superoperator_() on compositions of depolarizing channels."""
+    """Tests `Circuit._superoperator_()` on compositions of depolarizing channels."""
 
     def pauli_error_probability(r: float, n_qubits: int) -> float:
         """Computes Pauli error probability for given depolarization parameter.
