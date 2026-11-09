@@ -38,7 +38,7 @@ packs = ['cirq_web'] + ['cirq_web.' + package for package in find_packages(where
 setup(
     name=name,
     version=__version__,
-    url='http://github.com/quantumlib/cirq',
+    url='https://github.com/quantumlib/Cirq',
     author='The Cirq Developers',
     author_email='cirq-dev@googlegroups.com',
     maintainer="Google Quantum AI open-source maintainers",
