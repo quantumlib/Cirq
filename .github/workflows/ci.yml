@@ -29,7 +29,7 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           architecture: 'x64'
       - name: Misc
         run: check/misc
@@ -45,7 +45,7 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           architecture: 'x64'
       - name: Install dependencies
         run: pip install -r dev_tools/requirements/deps/packaging.txt
@@ -63,7 +63,7 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           architecture: 'x64'
       - name: Install dependencies
         run: pip install -r dev_tools/requirements/deps/format.txt
@@ -79,7 +79,7 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           architecture: 'x64'
       - name: Install mypy
         run: pip install -r dev_tools/requirements/mypy.env.txt
@@ -97,7 +97,7 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           architecture: 'x64'
       - name: Install system packages
         run: |
@@ -117,7 +117,7 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           architecture: 'x64'
       - name: Install lint tools
         run: pip install -r dev_tools/requirements/lint.env.txt
@@ -139,7 +139,7 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/dev.env.txt
@@ -155,7 +155,7 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/deps/tensorflow-docs.txt
@@ -194,7 +194,7 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           architecture: 'x64'
       - name: Install dependencies
         run: pip install -r dev_tools/requirements/isolated-base.env.txt
@@ -208,7 +208,7 @@ jobs:
         # check only the required version for merge queue
         python-version: |-
           ${{ fromJSON(case(
-            github.event_name == 'merge_group', '["3.11"]',
+            github.event_name == 'merge_group', '["3.11", "3.12"]',
             '["3.11", "3.12", "3.13", "3.14"]'
           )) }}
     runs-on: ubuntu-22.04-x64-8-core
@@ -244,7 +244,7 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           architecture: 'x64'
       - name: Install requirements
         run: pip install uv
@@ -261,7 +261,7 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           architecture: 'x64'
       - name: Install requirements
         run: |
@@ -308,7 +308,7 @@ jobs:
         # check only the required version for merge queue
         python-version: |-
           ${{ fromJSON(case(
-            github.event_name == 'merge_group', '["3.11"]',
+            github.event_name == 'merge_group', '["3.11", "3.12"]',
             '["3.11", "3.12", "3.13", "3.14"]'
           )) }}
     runs-on: windows-2022-x64-8-core
@@ -343,7 +343,7 @@ jobs:
         # check only the required version for merge queue
         python-version: |-
           ${{ fromJSON(case(
-            github.event_name == 'merge_group', '["3.11"]',
+            github.event_name == 'merge_group', '["3.11", "3.12"]',
             '["3.11", "3.12", "3.13", "3.14"]'
           )) }}
     # macos-15-large is Intel; macos-15-xlarge is ARM and the one we want.
@@ -386,7 +386,7 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/isolated-base.env.txt
@@ -410,7 +410,7 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           architecture: 'x64'
       - name: Install requirements
         run: pip install -r dev_tools/requirements/notebooks.env.txt
