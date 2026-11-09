@@ -218,7 +218,7 @@ def _map_operations_impl(
                 f"Mapped operations {mapped_ops} should act on a subset "
                 f"of qubits of the original operation {op}"
             )
-        if wrap_in_circuit_op and len(mapped_ops_qubits) < sum(len(m.qubits) for m in mapped_ops):
+        if wrap_in_circuit_op and len(mapped_ops_qubits) < sum(len(op.qubits) for op in mapped_ops):
             # Mapped operations should be wrapped in a `CircuitOperation` only iff they occupy more
             # than one moment, i.e. there are at least two operations that share a qubit.
             mapped_ops = [
