@@ -29,7 +29,7 @@ import numpy as np
 import pandas as pd
 import sympy
 
-from cirq._doc import doc_private
+from cirq._doc import doc_private, document
 
 ObjectFactory = type | Callable[..., Any]
 
@@ -57,23 +57,26 @@ def _lazy_resolver(dict_factory: Callable[[], dict[str, ObjectFactory]]) -> Json
 
 
 DEFAULT_RESOLVERS: list[JsonResolver] = []
-"""A default list of 'JsonResolver' functions for use in read_json.
+document(
+    DEFAULT_RESOLVERS,
+    r"""A default list of 'JsonResolver' functions for use in read_json.
 
-For more information about cirq_type resolution during deserialization
-please read the docstring for `cirq.read_json`.
+    For more information about cirq_type resolution during deserialization
+    please read the docstring for `cirq.read_json`.
 
-3rd party packages which extend Cirq's JSON serialization API should
-provide their own resolver functions. 3rd party resolvers can be
-prepended to this list:
+    3rd party packages which extend Cirq's JSON serialization API should
+    provide their own resolver functions. 3rd party resolvers can be
+    prepended to this list:
 
-    MY_DEFAULT_RESOLVERS = [_resolve_my_classes] \
-                           + cirq.protocols.json.DEFAULT_RESOLVERS
+        MY_DEFAULT_RESOLVERS = [_resolve_my_classes] \
+                               + cirq.protocols.json.DEFAULT_RESOLVERS
 
-    def my_read_json(file_or_fn, resolvers=None):
-        if resolvers is None:
-            resolvers = MY_DEFAULT_RESOLVERS
-        return cirq.read_json(file_or_fn, resolvers=resolvers)
-"""
+        def my_read_json(file_or_fn, resolvers=None):
+            if resolvers is None:
+                resolvers = MY_DEFAULT_RESOLVERS
+            return cirq.read_json(file_or_fn, resolvers=resolvers)
+    """,
+)
 
 
 def _register_resolver(dict_factory: Callable[[], dict[str, ObjectFactory]]) -> None:
