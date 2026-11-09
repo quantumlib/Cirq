@@ -368,7 +368,9 @@ def test_sympy() -> None:
     ],
     ids=lambda expr: type(expr),
 )
-def test_sympy_rejects_string_expression(mock_parse_expr: mock.MagicMock, expr: sympy.Expr) -> None:
+def test_sympy_rejects_string_expression(
+    mock_parse_expr: mock.MagicMock, expr: sympy.Basic
+) -> None:
     s_json = cirq.to_json(sympy.Symbol('s'), indent=None)
     t_json = cirq.to_json(sympy.Symbol('t'), indent=None)
     json_text = cirq.to_json(expr, indent=None)
@@ -377,9 +379,31 @@ def test_sympy_rejects_string_expression(mock_parse_expr: mock.MagicMock, expr: 
         *([json_text.replace(t_json, '"t+1"')] if t_json in json_text else []),
     ]
     for bad in bad_json_texts:
-        with pytest.raises(ValueError, match="Expected a serialized sympy expression"):
+        with pytest.raises(ValueError, match="Expected a serialized SymPy argument, got.*str"):
             _ = cirq.read_json(json_text=bad)
         mock_parse_expr.assert_not_called()
+
+
+@mock.patch('sympy.parsing.sympy_parser.parse_expr')
+@pytest.mark.parametrize(
+    'bad_json_text, got_type_name',
+    [
+        (cirq.to_json(sympy.Symbol("foo")).replace('"foo"', '["bar"]'), "list"),
+        (cirq.to_json(sympy.Float(1.5)).replace("1.5", '"1 + 0.5"'), "str"),
+        (cirq.to_json(sympy.Integer(101)).replace("101", '["100 + 1"]'), "list"),
+        (cirq.to_json(sympy.Rational(101, 233)).replace("101", '["s+1"]'), "list"),
+        (cirq.to_json(sympy.Rational(101, 233)).replace("233", '["t+1"]'), "list"),
+    ],
+    ids=["Symbol", "Float", "Integer", "Rational-p", "Rational-q"],
+)
+def test_sympy_scalar_rejects_incorrect_type(
+    mock_parse_expr: mock.MagicMock, bad_json_text: str, got_type_name: str
+) -> None:
+    with pytest.raises(
+        ValueError, match=f"Expected a serialized SymPy argument, got.*{got_type_name}"
+    ):
+        _ = cirq.read_json(json_text=bad_json_text)
+    mock_parse_expr.assert_not_called()
 
 
 class SBKImpl(cirq.SerializableByKey):

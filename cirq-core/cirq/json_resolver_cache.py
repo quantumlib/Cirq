@@ -20,8 +20,6 @@ import functools
 from typing import Any, NamedTuple, TYPE_CHECKING, TypeVar
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
-
     import cirq
     from cirq.protocols.json_serialization import ObjectFactory
 
@@ -103,17 +101,12 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     def _symmetricalqidpair(qids):
         return frozenset(qids)
 
-    def _sympy_check_args(cls: type[TSymPy]) -> Callable[[Sequence[Any]], TSymPy]:
-        @functools.wraps(cls)
-        def wrapper(args: Sequence[Any]) -> TSymPy:
-            for arg in args:
-                if not isinstance(arg, sympy.Basic):
-                    raise ValueError(
-                        f"Expected a serialized sympy expression, got {type(arg).__name__}."
-                    )
-            return cls(*args)
-
-        return wrapper
+    def _sympy_check_args(cls: type[TSymPy], allowed_type: type, *args: Any) -> TSymPy:
+        """Instantiate SymPy class after ensuring all arguments are of the `allowed_type` type."""
+        for arg in args:
+            if not isinstance(arg, allowed_type):
+                raise ValueError(f"Expected a serialized SymPy argument, got {type(arg).__name__}.")
+        return cls(*args)
 
     return {
         'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
@@ -287,25 +280,29 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'pandas.DataFrame': pd.DataFrame,
         'pandas.Index': pd.Index,
         'pandas.MultiIndex': pd.MultiIndex.from_tuples,
-        'sympy.Symbol': sympy.Symbol,
-        'sympy.Add': _sympy_check_args(sympy.Add),
-        'sympy.Mul': _sympy_check_args(sympy.Mul),
-        'sympy.Pow': _sympy_check_args(sympy.Pow),
-        'sympy.GreaterThan': _sympy_check_args(sympy.GreaterThan),
-        'sympy.StrictGreaterThan': _sympy_check_args(sympy.StrictGreaterThan),
-        'sympy.LessThan': _sympy_check_args(sympy.LessThan),
-        'sympy.StrictLessThan': _sympy_check_args(sympy.StrictLessThan),
-        'sympy.Equality': _sympy_check_args(sympy.Equality),
-        'sympy.Unequality': _sympy_check_args(sympy.Unequality),
-        'sympy.And': _sympy_check_args(sympy.And),
-        'sympy.Or': _sympy_check_args(sympy.Or),
-        'sympy.Not': _sympy_check_args(sympy.Not),
-        'sympy.Xor': _sympy_check_args(sympy.Xor),
-        'sympy.Indexed': _sympy_check_args(sympy.Indexed),
-        'sympy.IndexedBase': _sympy_check_args(sympy.IndexedBase),
-        'sympy.Float': lambda approx: sympy.Float(approx),
-        'sympy.Integer': sympy.Integer,
-        'sympy.Rational': sympy.Rational,
+        'sympy.Symbol': lambda name: _sympy_check_args(sympy.Symbol, str, name),
+        'sympy.Add': lambda args: _sympy_check_args(sympy.Add, sympy.Basic, *args),
+        'sympy.Mul': lambda args: _sympy_check_args(sympy.Mul, sympy.Basic, *args),
+        'sympy.Pow': lambda args: _sympy_check_args(sympy.Pow, sympy.Basic, *args),
+        'sympy.GreaterThan': lambda args: _sympy_check_args(sympy.GreaterThan, sympy.Basic, *args),
+        'sympy.StrictGreaterThan': lambda args: _sympy_check_args(
+            sympy.StrictGreaterThan, sympy.Basic, *args
+        ),
+        'sympy.LessThan': lambda args: _sympy_check_args(sympy.LessThan, sympy.Basic, *args),
+        'sympy.StrictLessThan': lambda args: _sympy_check_args(
+            sympy.StrictLessThan, sympy.Basic, *args
+        ),
+        'sympy.Equality': lambda args: _sympy_check_args(sympy.Equality, sympy.Basic, *args),
+        'sympy.Unequality': lambda args: _sympy_check_args(sympy.Unequality, sympy.Basic, *args),
+        'sympy.And': lambda args: _sympy_check_args(sympy.And, sympy.Basic, *args),
+        'sympy.Or': lambda args: _sympy_check_args(sympy.Or, sympy.Basic, *args),
+        'sympy.Not': lambda args: _sympy_check_args(sympy.Not, sympy.Basic, *args),
+        'sympy.Xor': lambda args: _sympy_check_args(sympy.Xor, sympy.Basic, *args),
+        'sympy.Indexed': lambda args: _sympy_check_args(sympy.Indexed, sympy.Basic, *args),
+        'sympy.IndexedBase': lambda args: _sympy_check_args(sympy.IndexedBase, sympy.Basic, *args),
+        'sympy.Float': lambda approx: _sympy_check_args(sympy.Float, float, approx),
+        'sympy.Integer': lambda i: _sympy_check_args(sympy.Integer, int, i),
+        'sympy.Rational': lambda p, q: _sympy_check_args(sympy.Rational, int, p, q),
         'sympy.pi': lambda: sympy.pi,
         'sympy.E': lambda: sympy.E,
         'sympy.EulerGamma': lambda: sympy.EulerGamma,
