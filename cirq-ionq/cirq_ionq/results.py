@@ -16,7 +16,6 @@
 from __future__ import annotations
 
 import collections
-from collections import Counter
 from collections.abc import Sequence
 
 import numpy as np
@@ -30,9 +29,7 @@ class QPUResult:
     def __init__(
         self, counts: dict[int, int], num_qubits: int, measurement_dict: dict[str, Sequence[int]]
     ):
-        # We require a consistent ordering, and here we use bitvector as such.
-        # OrderedDict can be removed in Python 3.7, where it is part of the contract.
-        self._counts = collections.OrderedDict(sorted(counts.items()))
+        self._counts = dict(sorted(counts.items()))
         self._num_qubits = num_qubits
         self._measurement_dict = measurement_dict
         self._repetitions = sum(self._counts.values())
@@ -75,7 +72,7 @@ class QPUResult:
             result.extend([bit_value] * count)
         return result
 
-    def counts(self, key: str | None = None) -> Counter[int]:
+    def counts(self, key: str | None = None) -> collections.Counter[int]:
         """Returns the processed counts of the measurement results.
 
         If a key parameter is supplied, these are the counts for the measurement results for
@@ -102,7 +99,7 @@ class QPUResult:
                 f'Measurement key {key} is not a key for a measurement gate in the'
                 'circuit that produced these results.'
             )
-        result: Counter[int] = collections.Counter()
+        result: collections.Counter[int] = collections.Counter()
         result.update(self.ordered_results(key))
         return result
 
