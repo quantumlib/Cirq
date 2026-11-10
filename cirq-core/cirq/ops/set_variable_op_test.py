@@ -243,6 +243,6 @@ def test_set_variable_from_json_rejects_string_expression(mock_sympify: mock.Mag
     assert cirq.read_json(json_text=valid) == cirq.SetVariable(a, sympy.Symbol('b') + 1)
 
     malicious = json.dumps({**json.loads(valid), "expression": "b + 1"})
-    with pytest.raises(ValueError, match="must be a serialized sympy expression"):
+    with pytest.raises(TypeError, match="must be a serialized sympy expression"):
         cirq.read_json(json_text=malicious)
     mock_sympify.assert_not_called()

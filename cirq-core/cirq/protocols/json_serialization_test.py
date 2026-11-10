@@ -379,7 +379,7 @@ def test_sympy_rejects_string_expression(
         *([json_text.replace(t_json, '"t+1"')] if t_json in json_text else []),
     ]
     for bad in bad_json_texts:
-        with pytest.raises(ValueError, match="Expected a serialized SymPy argument, got.*str"):
+        with pytest.raises(TypeError, match="Expected a serialized SymPy argument, got.*str"):
             _ = cirq.read_json(json_text=bad)
         mock_parse_expr.assert_not_called()
 
@@ -400,7 +400,7 @@ def test_sympy_scalar_rejects_incorrect_type(
     mock_parse_expr: mock.MagicMock, bad_json_text: str, got_type_name: str
 ) -> None:
     with pytest.raises(
-        ValueError, match=f"Expected a serialized SymPy argument, got.*{got_type_name}"
+        TypeError, match=f"Expected a serialized SymPy argument, got.*{got_type_name}"
     ):
         _ = cirq.read_json(json_text=bad_json_text)
     mock_parse_expr.assert_not_called()

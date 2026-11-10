@@ -105,7 +105,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         """Instantiate SymPy class after ensuring all arguments are of the `allowed_type` type."""
         for arg in args:
             if not isinstance(arg, allowed_type):
-                raise ValueError(f"Expected a serialized SymPy argument, got {type(arg).__name__}.")
+                raise TypeError(f"Expected a serialized SymPy argument, got {type(arg).__name__}.")
         return cls(*args)
 
     return {
