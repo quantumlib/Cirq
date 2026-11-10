@@ -363,9 +363,13 @@ class PauliStringPhasorGate(raw_types.Gate):
     def _decompose_(self, qubits: Sequence[cirq.Qid]) -> Iterator[cirq.OP_TREE]:
         if len(self.dense_pauli_string) <= 0:
             return
-        any_qubit = qubits[0]
+        # Identity factors do not contribute to the parity, so exclude them.
+        active_qubits = [q for q, m in zip(qubits, self.dense_pauli_string.pauli_mask) if m]
+        if not active_qubits:
+            return
+        any_qubit = active_qubits[0]
         to_z_ops = op_tree.freeze_op_tree(self._to_z_basis_ops(qubits))
-        xor_decomp = tuple(xor_nonlocal_decompose(qubits, any_qubit))
+        xor_decomp = tuple(xor_nonlocal_decompose(active_qubits, any_qubit))
         yield to_z_ops
         yield xor_decomp
 
