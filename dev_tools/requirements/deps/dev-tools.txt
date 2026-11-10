@@ -9,7 +9,7 @@
 -r ruff.txt
 
 # For verifying behavior of qasm output.
-qiskit-aer~=0.17.0
+qiskit-aer~=0.18.0
 
 # For testing stimcirq compatibility (cirq-google)
 stimcirq

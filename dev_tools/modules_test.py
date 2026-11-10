@@ -37,7 +37,7 @@ def test_modules() -> None:
         raw_setup={
             'name': 'module1',
             'version': '1.2.3.dev',
-            'url': 'http://github.com/quantumlib/cirq',
+            'url': 'https://github.com/quantumlib/Cirq',
             'author': 'The Cirq Developers',
             'author_email': 'cirq-dev@googlegroups.com',
             'maintainer': 'The Quantum AI open-source software maintainers',
