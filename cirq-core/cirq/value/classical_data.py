@@ -52,12 +52,12 @@ class ClassicalDataStoreReader(abc.ABC):
     @property
     @abc.abstractmethod
     def records(self) -> Mapping[cirq.MeasurementKey, list[tuple[int, ...]]]:
-        """Gets the a mapping from measurement key to measurement records."""
+        """Gets the mapping from measurement key to measurement records."""
 
     @property
     @abc.abstractmethod
     def channel_records(self) -> Mapping[cirq.MeasurementKey, list[int]]:
-        """Gets the a mapping from measurement key to channel measurement records."""
+        """Gets the mapping from measurement key to channel measurement records."""
 
     @abc.abstractmethod
     def get_int(self, key: cirq.MeasurementKey, index=-1) -> int:
@@ -175,22 +175,22 @@ class ClassicalDataDictionaryStore(ClassicalDataStore):
 
     @property
     def records(self) -> Mapping[cirq.MeasurementKey, list[tuple[int, ...]]]:
-        """Gets the a mapping from measurement key to measurement records."""
+        """Gets the mapping from measurement key to measurement records."""
         return self._records
 
     @property
     def channel_records(self) -> Mapping[cirq.MeasurementKey, list[int]]:
-        """Gets the a mapping from measurement key to channel measurement records."""
+        """Gets the mapping from measurement key to channel measurement records."""
         return self._channel_records
 
     @property
     def measured_qubits(self) -> Mapping[cirq.MeasurementKey, list[tuple[cirq.Qid, ...]]]:
-        """Gets the a mapping from measurement key to the qubits measured."""
+        """Gets the mapping from measurement key to the qubits measured."""
         return self._measured_qubits
 
     @property
     def measurement_types(self) -> Mapping[cirq.MeasurementKey, cirq.MeasurementType]:
-        """Gets the a mapping from measurement key to the measurement type."""
+        """Gets the mapping from measurement key to the measurement type."""
         return self._measurement_types
 
     def keys(self) -> tuple[cirq.MeasurementKey, ...]:
