@@ -1,4 +1,5 @@
 ghostscript
 latexmk
+lmodern
 poppler-utils
 texlive-latex-extra
