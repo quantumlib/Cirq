@@ -249,6 +249,7 @@ def _get_raw_docstring_and_line_map(
                 line_map.append((src_line, src_col))
 
     if not line_map:  # pragma: no cover
+        assert isinstance(node.value, str)
         return node.value, [(node.lineno, node.col_offset)]
     return "".join(raw_parts), line_map
 

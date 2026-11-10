@@ -25,6 +25,8 @@ from pylint.testutils import CheckerTestCase, MessageTest
 
 from dev_tools.pylint_docstring_underscore_checker import (
     DocstringUnderscoreChecker,
+    find_unescaped_underscore_symbols_in_docstring,
+    find_unescaped_underscore_symbols_in_file,
     find_unescaped_underscore_symbols_in_source,
 )
 
@@ -148,9 +150,48 @@ class TestDocstringUnderscoreChecker(CheckerTestCase):
         ):
             self.checker.process_module(node)
 
+    def test_prose_after_indented_code_block_is_flagged(self) -> None:
+        source = (
+            '"""Summary:\n\n'
+            '        x = _in_code_block_\n'
+            '      Prose after code block referencing __init__.\n'
+            '    Base indent line.\n'
+            '"""\n'
+        )
+        node = parse(source)
+        with self.assertAddsMessages(
+            MessageTest(
+                msg_id="unescaped-underscore-in-docstring",
+                line=4,
+                col_offset=41,
+                args=("__init__",),
+            )
+        ):
+            self.checker.process_module(node)
+
+    def test_implicitly_concatenated_docstring_tokens(self) -> None:
+        source = (
+            'def f():\n'
+            '    (\n'
+            '        "First literal part "\n'
+            '        "second part referencing __init__."\n'
+            '    )\n'
+        )
+        node = parse(source)
+        with self.assertAddsMessages(
+            MessageTest(
+                msg_id="unescaped-underscore-in-docstring",
+                line=4,
+                col_offset=33,
+                args=("__init__",),
+            )
+        ):
+            self.checker.process_module(node)
+
     @pytest.mark.parametrize(
         "source",
         [
+            pytest.param('def f():\n    """"""\n', id="empty-docstring"),
             pytest.param(
                 '"""Uses `__init__`, `_unitary_`, and ``_private_helper`` in backticks."""\n',
                 id="inline-backticks",
@@ -270,3 +311,15 @@ def test_find_unescaped_underscore_symbols_in_source_offsets() -> None:
     assert find_unescaped_underscore_symbols_in_source(
         '"""Trailing symbol_name_ in prose."""\n'
     ) == [(1, 12, "symbol_name_")]
+
+
+def test_find_unescaped_underscore_symbols_in_docstring_without_line_map() -> None:
+    assert find_unescaped_underscore_symbols_in_docstring(
+        "Summary.\nCalls _unitary_ directly."
+    ) == [(2, 6, "_unitary_")]
+
+
+def test_find_unescaped_underscore_symbols_in_file(tmp_path: pathlib.Path) -> None:
+    path = tmp_path / "sample.py"
+    path.write_text('"""Module docstring referencing _private_helper."""\n', encoding="utf-8")
+    assert find_unescaped_underscore_symbols_in_file(path) == [(1, 32, "_private_helper")]
