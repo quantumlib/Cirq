@@ -102,7 +102,7 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get update
-          sudo apt-get install $(cat apt-system-requirements.txt)
+          sudo apt-get install --no-install-recommends $(cat apt-system-requirements.txt)
       - name: Install changed files test dependencies
         run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
       - name: Changed files test
@@ -181,7 +181,7 @@ jobs:
       - name: Install requirements
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends -y yamllint
+          sudo apt-get install --no-install-recommends yamllint
       - name: Run yamllint
         run: yamllint . CITATION.cff
   isolated-modules:
@@ -227,7 +227,7 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get update
-          sudo apt-get install $(cat apt-system-requirements.txt)
+          sudo apt-get install --no-install-recommends $(cat apt-system-requirements.txt)
       - name: Install requirements
         run: |
           pip install --upgrade setuptools
@@ -289,7 +289,7 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get update
-          sudo apt-get install $(cat apt-system-requirements.txt)
+          sudo apt-get install --no-install-recommends $(cat apt-system-requirements.txt)
       - name: Install requirements
         run: |
           pip install --upgrade setuptools
