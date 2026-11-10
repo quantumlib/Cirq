@@ -203,9 +203,15 @@ class CallFunctionOperation(ops.Operation):
         return frozenset(str(k) for k in self._measurement_key_objs_())
 
     def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
-        if not protocols.control_keys(self._circuit_function):
-            return frozenset()
-        return protocols.control_keys(self._decompose_())
+        keys = self._mapped_keys(protocols.control_keys(self._circuit_function))
+        if keys and (self._parent_path or self._extern_keys):
+            keys = frozenset(
+                protocols.with_rescoped_keys(
+                    value.KeyCondition(k), self._parent_path, self._extern_keys
+                ).key
+                for k in keys
+            )
+        return keys
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> CallFunctionOperation:
         """Returns a copy of this operation with `key_map` composed onto its key mapping.
