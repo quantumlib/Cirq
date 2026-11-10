@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import ast
 import io
-import pathlib
 import re
 import tokenize
 from typing import TYPE_CHECKING
@@ -33,18 +32,19 @@ if TYPE_CHECKING:
 # 1. Double-underscore (__foo__) or single-underscore-wrapped (_foo_) identifiers
 # 2. Leading-underscore identifiers containing at least one more underscore (_foo_bar)
 # 3. Trailing-underscore identifiers containing at least one internal underscore (foo_bar_)
+# A trailing `.attr` / `.ext` is skipped only when the matched symbol does not end in `_`
+# (CommonMark still renders `__init__.py` and `_private_.attr` with bold/italics).
 UNESCAPED_UNDERSCORE_PATTERN = re.compile(
     r"(?<![`\w/\\-])"
-    r"(_+[a-zA-Z][a-zA-Z0-9]*(?:_[a-zA-Z0-9_]*)+|[a-zA-Z][a-zA-Z0-9]*(?:_[a-zA-Z0-9]+)+_+)"
-    r"(?![`\w/\\-]|(?:\.[a-zA-Z]))"
+    r"(_+[a-zA-Z][a-zA-Z0-9]*_[a-zA-Z0-9_]*|[a-zA-Z][a-zA-Z0-9]*(?:_[a-zA-Z0-9]+)+_+)"
+    r"(?![`\w/\\-]|(?<!_)\.[a-zA-Z])"
 )
 
-_FENCED_CODE_BLOCK_RE = re.compile(r"```.*?```", flags=re.DOTALL)
+_FENCED_CODE_BLOCK_RE = re.compile(r"(`{3,}|~{3,}).*?\1", flags=re.DOTALL)
 _DISPLAY_MATH_RE = re.compile(r"\$\$.*?\$\$", flags=re.DOTALL)
-_DOCTEST_BLOCK_RE = re.compile(r"^[ \t]*>>>.*(?:\n[ \t]*\.\.\..*)*", flags=re.MULTILINE)
-_EXAMPLE_OUTPUT_BLOCK_RE = re.compile(
-    r"^[ \t]*===\s*example output\s*===.*$", flags=re.IGNORECASE | re.DOTALL | re.MULTILINE
-)
+# tensorflow_docs renders everything from `>>>` up to the next blank line as a code block,
+# including `...` continuation lines and expected output lines.
+_DOCTEST_BLOCK_RE = re.compile(r"^[ \t]*>>>.*(?:\n(?![ \t]*$).+)*", flags=re.MULTILINE)
 _DOUBLE_BACKTICK_RE = re.compile(r"``(?:(?!``)[^\n])+``")
 _SINGLE_BACKTICK_RE = re.compile(r"`[^`\n]+`")
 _URL_RE = re.compile(r"https?://\S+")
@@ -56,9 +56,26 @@ _SECTION_HEADER_RE = re.compile(
     r"^(Args|Arguments|Attributes|Parameters|Returns|Yields|Raises|Example|Examples|Usage):\s*$"
 )
 _PARAM_SECTION_NAMES = {"Args", "Arguments", "Attributes", "Parameters"}
+# Note: Google-style `Example:`/`Examples:`/`Usage:` sections often contain un-fenced
+# 4-space-indented code directly under the header. Masking all 4-space-indented lines in
+# these sections avoids false positives on such code, at the cost of also masking prose in
+# those sections (which `tensorflow_docs` renders as normal Markdown).
 _CODE_SECTION_NAMES = {"Example", "Examples", "Usage"}
 _PARAM_DEF_RE = re.compile(r"^\*{0,2}[a-zA-Z_][a-zA-Z0-9_]*(?:\s*\([^)]*\))?\s*:")
 _STRING_TOKEN_QUOTE_RE = re.compile(r"^([rRuUbBfF]*(\"\"\"|\'\'\'|\"|\'))(.*)\2$", flags=re.DOTALL)
+
+
+def _splitlines_lf(text: str, *, keepends: bool = False) -> list[str]:
+    r"""Like `str.splitlines`, but splits only on `\n` to match Python `ast`/`tokenize`."""
+    if not text:
+        return []
+    parts = text.split("\n")
+    if parts[-1] == "":
+        parts.pop()
+        return [p + "\n" for p in parts] if keepends else parts
+    if keepends:
+        return [p + "\n" for p in parts[:-1]] + [parts[-1]]
+    return parts
 
 
 def _mask_with_spaces(match: re.Match[str]) -> str:
@@ -72,7 +89,7 @@ def mask_docstring_code_and_math(docstring: str) -> str:
     Newlines and character positions within unmasked text are preserved so that
     line numbers and column offsets remain accurate.
     """
-    lines = docstring.splitlines(keepends=True)
+    lines = _splitlines_lf(docstring, keepends=True)
     indents = [len(line) - len(line.lstrip(" ")) for line in lines[1:] if line.strip()]
     base_indent = min(indents) if indents else 0
 
@@ -80,7 +97,6 @@ def mask_docstring_code_and_math(docstring: str) -> str:
     masked = _FENCED_CODE_BLOCK_RE.sub(_mask_with_spaces, docstring)
     masked = _DISPLAY_MATH_RE.sub(_mask_with_spaces, masked)
     masked = _DOCTEST_BLOCK_RE.sub(_mask_with_spaces, masked)
-    masked = _EXAMPLE_OUTPUT_BLOCK_RE.sub(_mask_with_spaces, masked)
 
     # 2. Mask indented code blocks and parameter names inside Args/Attributes sections.
     out_lines: list[str] = []
@@ -90,7 +106,7 @@ def mask_docstring_code_and_math(docstring: str) -> str:
     prev_ended_with_colon = False
     saw_blank_since_colon = False
 
-    for idx, line in enumerate(masked.splitlines(keepends=True)):
+    for idx, line in enumerate(_splitlines_lf(masked, keepends=True)):
         stripped = line.strip()
         if not stripped:
             if prev_ended_with_colon:
@@ -148,26 +164,21 @@ def mask_docstring_code_and_math(docstring: str) -> str:
 
 
 def find_unescaped_underscore_symbols_in_docstring(
-    docstring: str, line_map: list[tuple[int, int]] | None = None
+    docstring: str, line_map: list[tuple[int, int]]
 ) -> list[tuple[int, int, str]]:
     """Finds unescaped underscore-delimited symbols in a docstring.
 
     Args:
         docstring: The docstring text to inspect.
-        line_map: Optional list of `(source_lineno, source_col_offset)` for each line in
-            `docstring`.
+        line_map: List of `(source_lineno, source_col_offset)` for each line in `docstring`.
 
     Returns:
         A list of `(lineno, col_offset, symbol)` tuples for each unescaped symbol found.
     """
     masked = mask_docstring_code_and_math(docstring)
     results: list[tuple[int, int, str]] = []
-    for line_idx, line in enumerate(masked.splitlines()):
-        if line_map is not None and line_idx < len(line_map):
-            lineno, col_base = line_map[line_idx]
-        else:
-            lineno = 1 + line_idx
-            col_base = 0
+    for line_idx, line in enumerate(_splitlines_lf(masked)):
+        lineno, col_base = line_map[line_idx]
         for match in UNESCAPED_UNDERSCORE_PATTERN.finditer(line):
             results.append((lineno, col_base + match.start(), match.group(1)))
     return results
@@ -221,12 +232,23 @@ def _extract_docstring_nodes(tree: ast.AST) -> list[ast.Constant]:
     return nodes
 
 
+def _byte_col_to_char_col(line: str, byte_col: int) -> int:
+    """Converts an AST UTF-8 byte column offset to a character offset matching `tokenize`."""
+    if line.isascii():
+        return byte_col
+    return len(line.encode("utf-8")[:byte_col].decode("utf-8"))
+
+
 def _get_raw_docstring_and_line_map(
-    string_tokens: list[tokenize.TokenInfo], node: ast.Constant
+    source_lines: list[str], string_tokens: list[tokenize.TokenInfo], node: ast.Constant
 ) -> tuple[str, list[tuple[int, int]]]:
     """Reconstructs raw text and `(source_lineno, source_col_offset)` per line for `node`."""
-    start = (node.lineno, node.col_offset)
-    end = (node.end_lineno or node.lineno, node.end_col_offset or 0)
+    start = (node.lineno, _byte_col_to_char_col(source_lines[node.lineno - 1], node.col_offset))
+    end_lineno = node.end_lineno or node.lineno
+    end = (
+        end_lineno,
+        _byte_col_to_char_col(source_lines[end_lineno - 1], node.end_col_offset or 0),
+    )
     raw_parts: list[str] = []
     line_map: list[tuple[int, int]] = []
 
@@ -237,7 +259,7 @@ def _get_raw_docstring_and_line_map(
                 continue
             prefix_len = len(m.group(1))
             inner = m.group(3)
-            inner_lines = inner.splitlines(keepends=True)
+            inner_lines = _splitlines_lf(inner, keepends=True)
             if not inner_lines:
                 inner_lines = [""]
             for idx, line_text in enumerate(inner_lines):
@@ -250,7 +272,8 @@ def _get_raw_docstring_and_line_map(
 
     if not line_map:  # pragma: no cover
         assert isinstance(node.value, str)
-        return node.value, [(node.lineno, node.col_offset)]
+        num_lines = max(1, len(_splitlines_lf(node.value)))
+        return node.value, [(start[0] + i, start[1] if i == 0 else 0) for i in range(num_lines)]
     return "".join(raw_parts), line_map
 
 
@@ -264,6 +287,7 @@ def find_unescaped_underscore_symbols_in_source(source: str) -> list[tuple[int, 
         A sorted list of `(lineno, col_offset, symbol)` tuples for each unescaped symbol found.
     """
     tree = ast.parse(source)
+    source_lines = source.split("\n")
     string_tokens = [
         tok
         for tok in tokenize.generate_tokens(io.StringIO(source).readline)
@@ -272,19 +296,11 @@ def find_unescaped_underscore_symbols_in_source(source: str) -> list[tuple[int, 
     findings: list[tuple[int, int, str]] = []
 
     for doc_node in _extract_docstring_nodes(tree):
-        raw_text, line_map = _get_raw_docstring_and_line_map(string_tokens, doc_node)
-        findings.extend(find_unescaped_underscore_symbols_in_docstring(raw_text, line_map=line_map))
+        raw_text, line_map = _get_raw_docstring_and_line_map(source_lines, string_tokens, doc_node)
+        findings.extend(find_unescaped_underscore_symbols_in_docstring(raw_text, line_map))
 
     findings.sort()
     return findings
-
-
-def find_unescaped_underscore_symbols_in_file(
-    filepath: str | pathlib.Path,
-) -> list[tuple[int, int, str]]:
-    """Checks a Python file for unescaped underscore symbols in docstrings."""
-    source = pathlib.Path(filepath).read_text(encoding="utf-8")
-    return find_unescaped_underscore_symbols_in_source(source)
 
 
 class DocstringUnderscoreChecker(BaseRawFileChecker):
@@ -296,12 +312,15 @@ class DocstringUnderscoreChecker(BaseRawFileChecker):
     name = "unescaped-underscore-in-docstring"
     msgs = {
         "C0002": (
-            "Unescaped symbol '%s' in docstring; wrap literal symbols in backticks",
+            (
+                "Unescaped symbol '%s' in docstring; wrap code symbols in backticks or use "
+                "*emphasis*"
+            ),
             "unescaped-underscore-in-docstring",
             (
                 "Wrap underscore-delimited symbols (such as `__init__`, `_unitary_`, or "
                 "`_private_helper`) in backticks in docstrings so Markdown does not render "
-                "them as italics or bold."
+                "them as italics or bold, or use `*...*` / `**...**` when emphasis is intended."
             ),
         )
     }
