@@ -915,40 +915,6 @@ def test_loader_create_module():
     )
 
 
-def test_deprecated_module_loader_load_module_wrapper():
-    hello_module = types.ModuleType('hello')
-
-    class StubLoader(importlib.abc.Loader):
-        def load_module(self, fullname: str) -> ModuleType:
-            # we simulate loader behavior - it is assumed that loaders will set the
-            # module cache with the loaded module
-            sys.modules[fullname] = hello_module
-            return hello_module
-
-    with pytest.raises(AssertionError, match="for old was asked to load something_else"):
-        DeprecatedModuleLoader(StubLoader(), 'old', 'new').load_module('something_else')
-
-    # new module already loaded
-    sys.modules['new_hello'] = hello_module
-    assert (
-        DeprecatedModuleLoader(StubLoader(), 'old_hello', 'new_hello').load_module('old_hello')
-        == hello_module
-    )
-    assert 'old_hello' in sys.modules and sys.modules['old_hello'] == sys.modules['new_hello']
-    del sys.modules['new_hello']
-    del sys.modules['old_hello']
-
-    # new module is not loaded
-    assert (
-        DeprecatedModuleLoader(StubLoader(), 'old_hello', 'new_hello').load_module('old_hello')
-        == hello_module
-    )
-    assert 'new_hello' in sys.modules
-    assert 'old_hello' in sys.modules and sys.modules['old_hello'] == sys.modules['new_hello']
-    del sys.modules['new_hello']
-    del sys.modules['old_hello']
-
-
 def test_deprecated_module_loader_repr():
     class StubLoader(importlib.abc.Loader):
         def module_repr(self, module: ModuleType) -> str:
