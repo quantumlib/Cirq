@@ -166,7 +166,7 @@ class SetVariable(raw_types.Operation):
         # string would otherwise be handed to sympy.sympify, whose eval-based parser runs
         # arbitrary code, so reject it here rather than parse data from cirq.read_json.
         if not isinstance(expression, sympy.Basic):
-            raise ValueError(
+            raise TypeError(
                 "SetVariable expression must be a serialized sympy expression, not "
                 f"{type(expression).__name__}."
             )

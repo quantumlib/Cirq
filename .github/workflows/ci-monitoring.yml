@@ -25,7 +25,7 @@ jobs:
     name: Pytest Ubuntu
     strategy:
       matrix:
-        python-version: ['3.11']
+        python-version: ['3.12']
     runs-on: ubuntu-22.04-x64-8-core
     steps:
       - name: Check out source repository
