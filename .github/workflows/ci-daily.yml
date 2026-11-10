@@ -36,7 +36,7 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends -y $(cat apt-system-requirements.txt)
+          sudo apt-get install --no-install-recommends $(cat apt-system-requirements.txt)
       - name: Install requirements
         run: |
           pip install --upgrade "cirq~=1.0.dev" "cirq-core[contrib]~=1.0.dev"
