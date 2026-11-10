@@ -45,7 +45,7 @@ cirq_packages = ['cirq'] + [
 setup(
     name=name,
     version=__version__,
-    url='http://github.com/quantumlib/cirq',
+    url='https://github.com/quantumlib/Cirq',
     author='The Cirq Developers',
     author_email='cirq-dev@googlegroups.com',
     maintainer="The Quantum AI open-source software maintainers",
@@ -102,4 +102,7 @@ setup(
         "sdk",
         "simulation",
     ],
+    entry_points={
+        'pytest_randomly.random_seeder': ['cirq = cirq.value.random_state:reseed_default_prng']
+    },
 )
