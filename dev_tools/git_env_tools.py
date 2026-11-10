@@ -45,7 +45,7 @@ def _git_fetch_for_comparison(
 
     Returns:
         A ComparableCommits containing the commit id of the actual branch and
-        a the id of a commit to compare against (e.g. for when doing incremental
+        the id of a commit to compare against (e.g. for when doing incremental
         checks).
     """
     actual_id = ''
