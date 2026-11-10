@@ -85,13 +85,6 @@ class Repeat(raw_types.Operation):
         return self._sub_operation
 
     @property
-    def classical_controls(self) -> frozenset[cirq.Condition]:
-        return self._sub_operation.classical_controls
-
-    def without_classical_controls(self) -> cirq.Operation:
-        return Repeat(self._count, self._sub_operation.without_classical_controls())
-
-    @property
     def qubits(self) -> tuple[cirq.Qid, ...]:
         return self._sub_operation.qubits
 
@@ -112,6 +105,14 @@ class Repeat(raw_types.Operation):
         return CircuitOperation(
             FrozenCircuit(self._sub_operation), repetitions=self._count, use_repetition_ids=False
         )
+
+    def _has_unitary_(self) -> bool:
+        return self._count == 0 or protocols.has_unitary(self._sub_operation)
+
+    def _act_on_(self, sim_state: cirq.SimulationStateBase) -> bool:
+        for _ in range(self._count):
+            protocols.act_on(self._sub_operation, sim_state)
+        return True
 
     def _value_equality_values_(self) -> Any:
         return self._count, self._sub_operation

@@ -69,9 +69,35 @@ def test_classical_controls() -> None:
     q = cirq.LineQubit(0)
     cond = cirq.KeyCondition(cirq.MeasurementKey('a'))
     op = cirq.Repeat(3, cirq.X(q).with_classical_controls('a'))
-    assert op.classical_controls == frozenset([cond])
-    assert op.without_classical_controls() == cirq.Repeat(3, cirq.X(q))
+    # Repeat has no outer classical condition; the body's controls are only reported as keys.
+    assert op.classical_controls == frozenset()
+    assert op.without_classical_controls() is op
     assert cirq.control_keys(op) == frozenset([cirq.MeasurementKey('a')])
+    assert cond in op.sub_operation.classical_controls
+
+    outer = op.with_classical_controls('b')
+    assert outer.classical_controls == frozenset([cirq.KeyCondition(cirq.MeasurementKey('b'))])
+    assert outer.without_classical_controls() == op
+
+
+def test_has_unitary() -> None:
+    q = cirq.LineQubit(0)
+    assert cirq.has_unitary(cirq.Repeat(3, cirq.X(q)))
+    assert cirq.has_unitary(cirq.Repeat(2, cirq.X(q), cirq.Y(q)))
+    assert not cirq.has_unitary(cirq.Repeat(3, cirq.measure(q, key='a')))
+    assert cirq.has_unitary(cirq.Repeat(0, cirq.measure(q, key='a')))
+
+
+def test_act_on_simulation() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.Repeat(3, cirq.X(q0), cirq.measure(q0, key='m')), cirq.measure(q1, key='z')
+    )
+    result = cirq.Simulator().run(circuit)
+    assert result.records['m'].shape == (1, 3, 1)
+    assert result.records['m'][0, :, 0].tolist() == [1, 0, 1]
+    zero = cirq.Circuit(cirq.Repeat(0, cirq.X(q0)), cirq.measure(q0, key='r'))
+    assert cirq.Simulator().run(zero).measurements['r'][0, 0] == 0
 
 
 def test_with_qubits() -> None:
