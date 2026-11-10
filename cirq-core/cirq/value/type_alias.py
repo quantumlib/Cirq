@@ -12,15 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Supply aliases for commonly used types."""
+
 from __future__ import annotations
 
 import numpy as np
 import sympy
 
 from cirq._doc import document
-
-"""Supply aliases for commonly used types.
-"""
 
 TParamKey = str | sympy.Expr
 document(TParamKey, """A parameter that a parameter resolver may map to a value.""")
