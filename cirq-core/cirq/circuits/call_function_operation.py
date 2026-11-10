@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class CallFunctionOperation(ops.Operation):
-    """An operation that maps to a Circuit at runtime via CircuitFunction.
+    """An operation that maps to a Circuit upon _decompose_ via CircuitFunction.
 
     Note: This is an experimental class designed as part of a prototype
     for Cirq 2.0. The interface for this class is subject to change
@@ -45,6 +45,7 @@ class CallFunctionOperation(ops.Operation):
         param_resolver: study.ParamResolverOrSimilarType | None = None,
         measurement_key_map: Mapping[str, str] | None = None,
         parent_path: tuple[str, ...] = (),
+        extern_keys: frozenset[cirq.MeasurementKey] = frozenset(),
     ) -> None:
         """Initializes a CallFunctionOperation.
 
@@ -56,6 +57,12 @@ class CallFunctionOperation(ops.Operation):
             measurement_key_map: Remappings for measurement keys in the called circuit.
             parent_path: Measurement keys produced by the called circuit are
                 prefixed with this path.
+            extern_keys: The set of measurement keys defined at extern scope. The values here
+                are used by decomposition and simulation routines to cache which external
+                measurement keys exist as possible binding targets for unbound
+                `ClassicallyControlledOperation` keys. This field is not intended to be set or
+                changed manually, and should be empty in circuits that aren't in the middle of
+                decomposition.
 
         Raises:
             TypeError: If `circuit_function` is not a `CircuitFunction`.
@@ -76,18 +83,13 @@ class CallFunctionOperation(ops.Operation):
         self._circuit_function = circuit_function
         self._function_args = tuple(function_args)
 
-        # Only retain resolver entries that can affect the called circuit
-        resolver = study.ParamResolver(param_resolver)
         possible_resolver_names = self._unresolved_parameter_names()
-        filtered_resolver_items = {
-            k: v
-            for k, v in resolver.param_dict.items()
-            if (k.name if isinstance(k, sympy.Symbol) else k) in possible_resolver_names
-        }
-        self._param_resolver = (
-            resolver
-            if len(filtered_resolver_items) == len(resolver.param_dict)
-            else study.ParamResolver(filtered_resolver_items)
+        self._param_resolver = study.ParamResolver(
+            {
+                sympy.Symbol(name): v
+                for k, v in study.ParamResolver(param_resolver).param_dict.items()
+                if (name := k.name if isinstance(k, sympy.Symbol) else k) in possible_resolver_names
+            }
         )
 
         # resolve qubits if they are parameterized
@@ -113,6 +115,7 @@ class CallFunctionOperation(ops.Operation):
                     'is not allowed for measurement keys in a CallFunctionOperation'
                 )
         self._parent_path = tuple(parent_path)
+        self._extern_keys = frozenset(extern_keys)
 
     @property
     def circuit_function(self) -> cirq.CircuitFunction:
@@ -146,6 +149,7 @@ class CallFunctionOperation(ops.Operation):
             'param_resolver': self._param_resolver,
             'measurement_key_map': self._measurement_key_map,
             'parent_path': self._parent_path,
+            'extern_keys': self._extern_keys,
             **changes,
         }
         return CallFunctionOperation(**kwargs)
@@ -166,8 +170,10 @@ class CallFunctionOperation(ops.Operation):
             circuit = protocols.resolve_parameters(circuit, self._param_resolver, recursive=False)
         if self._measurement_key_map:
             circuit = protocols.with_measurement_key_mapping(circuit, self._measurement_key_map)
-        if self._parent_path:
-            circuit = protocols.with_rescoped_keys(circuit, self._parent_path)
+        if self._parent_path or self._extern_keys:
+            circuit = protocols.with_rescoped_keys(
+                circuit, self._parent_path, bindable_keys=self._extern_keys
+            )
         return circuit
 
     def _has_unitary_(self) -> bool:
@@ -197,7 +203,9 @@ class CallFunctionOperation(ops.Operation):
         return frozenset(str(k) for k in self._measurement_key_objs_())
 
     def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
-        return self._mapped_keys(protocols.control_keys(self._circuit_function))
+        if not protocols.control_keys(self._circuit_function):
+            return frozenset()
+        return protocols.control_keys(self._decompose_())
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> CallFunctionOperation:
         """Returns a copy of this operation with `key_map` composed onto its key mapping.
@@ -231,7 +239,9 @@ class CallFunctionOperation(ops.Operation):
     def _with_rescoped_keys_(
         self, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey]
     ) -> CallFunctionOperation:
-        return self.replace(parent_path=path + self._parent_path)
+        bindable_keys = frozenset(k for k in bindable_keys if len(k.path) <= len(path))
+        bindable_keys |= {k.with_key_path_prefix(*path) for k in self._extern_keys}
+        return self.replace(parent_path=path + self._parent_path, extern_keys=bindable_keys)
 
     def _value_equality_values_(self) -> Any:
         return (
@@ -246,12 +256,17 @@ class CallFunctionOperation(ops.Operation):
         """Returns True if the called circuit still contains unresolved parameters."""
         return bool(self._parameter_names_())
 
-    def _unresolved_parameter_names(self) -> set[str]:
+    def _unresolved_parameter_names(self) -> Set[str]:
         """Returns the parameters of the decomposed circuit before `param_resolver` is applied."""
-        bound = {p.name for p in self._circuit_function.function_params}
-        names = set(protocols.parameter_names(self._circuit_function.circuit)) - bound
-        for arg in self._function_args:
-            names |= protocols.parameter_names(arg)
+        circuit_names = protocols.parameter_names(self._circuit_function.circuit)
+        fparam_names = {p.name for p in self._circuit_function.function_params}
+        farg_names = {
+            name
+            for fparam, farg in zip(self._circuit_function.function_params, self._function_args)
+            if fparam.name in circuit_names
+            for name in protocols.parameter_names(farg)
+        }
+        names = (circuit_names - fparam_names) | farg_names
         return names
 
     def _parameter_names_(self) -> Set[str]:
@@ -303,10 +318,12 @@ class CallFunctionOperation(ops.Operation):
 
     def __repr__(self) -> str:
         args = ", ".join(proper_repr(a) for a in self._function_args)
+        if len(self._function_args) == 1:
+            args += ","
         result = (
             f"cirq.CallFunctionOperation("
             f"circuit_function={proper_repr(self._circuit_function)}, "
-            f"function_args=[{args}], "
+            f"function_args=({args}), "
             f"param_resolver={proper_repr(self._param_resolver.param_dict)}"
         )
         if self._measurement_key_map:
@@ -325,7 +342,7 @@ class CallFunctionOperation(ops.Operation):
             )
             result += f" [{resolver_items}]"
         if self._measurement_key_map:
-            key_items = ", ".join(f"{k}: {v}" for k, v in self._measurement_key_map.items())
+            key_items = ", ".join(f"{k}: {v}" for k, v in sorted(self._measurement_key_map.items()))
             result += f" key_map={{{key_items}}}"
         if self._parent_path:
             result += f" parent_path={self._parent_path}"
@@ -334,6 +351,9 @@ class CallFunctionOperation(ops.Operation):
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         formatted_args = ", ".join(str(p) for p in self._function_args)
         label = f"{self._circuit_function.name}({formatted_args})"
-        if not self.qubits:
-            return protocols.CircuitDiagramInfo(wire_symbols=())
-        return protocols.CircuitDiagramInfo(wire_symbols=(label,) + ("",) * (len(self.qubits) - 1))
+        wire_symbols: tuple[str, ...] = ()
+        if self.qubits:
+            wire_symbols = (label,) + ("",) * (len(self.qubits) - 1)
+        if args.label_map is not None:
+            wire_symbols += ("^",) * len(protocols.control_keys(self))
+        return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols)

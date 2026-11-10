@@ -70,16 +70,16 @@ def test_parameterized() -> None:
 
 
 def test_parameter_resolution() -> None:
-    x = sympy.Symbol('x')
+    x, y, z = sympy.symbols('x y z')
     q = cirq.VariableLineQid(x)
     theta = sympy.Symbol('theta')
     c = cirq.Circuit(cirq.X(q) ** theta)
-    cf = cirq.CircuitFunction("test_function", c, function_params=[theta])
+    cf = cirq.CircuitFunction("test_function", c, function_params=[theta, y])
 
-    op = cirq.CallFunctionOperation(cf, [0.5])
+    op = cirq.CallFunctionOperation(cf, [0.5, z])
     op_resolved = cirq.resolve_parameters(op, {x: 1})
     assert op_resolved.circuit_function == cf
-    assert op_resolved.function_args == (0.5,)
+    assert op_resolved.function_args == (0.5, z)
     assert cirq.parameter_names(op) == {'x'}
     assert cirq.parameter_names(op_resolved) == set()
     assert op_resolved.param_resolver == cirq.ParamResolver({x: 1})
@@ -88,9 +88,13 @@ def test_parameter_resolution() -> None:
     assert op.qubits == (q,)
     assert op_resolved.qubits == (cirq.q(1),)
 
-    op_overlapping_resolver = cirq.CallFunctionOperation(cf, [0.5], {theta: 0.25})
+    op_overlapping_resolver = cirq.CallFunctionOperation(cf, [0.5, z], {theta: 0.25})
     assert cirq.parameter_names(op_overlapping_resolver) == {'x'}
     assert op_overlapping_resolver.param_resolver == cirq.ParamResolver()
+
+    op_str = cirq.CallFunctionOperation(cf, [0.5, z], param_resolver={'x': 1})
+    op_sym = cirq.CallFunctionOperation(cf, [0.5, z], param_resolver={x: 1})
+    assert op_resolved == op_str == op_sym
 
 
 def test_decompose() -> None:
@@ -143,6 +147,11 @@ def test_same_qubits() -> None:
     assert op.qubits == (cirq.q(0),)
     with pytest.raises(ValueError, match='Overlapping operations'):
         cirq.decompose(op)
+    with pytest.raises(ValueError, match='Overlapping operations'):
+        cirq.has_unitary(op)
+    with pytest.raises(ValueError, match='Overlapping operations'):
+        cirq.unitary(op)
+    assert cirq.has_unitary(cirq.CallFunctionOperation(cf, [1]))
 
     c = cirq.Circuit(cirq.CNOT(cirq.q(0), cirq.VariableLineQid(x)))
     cf = cirq.CircuitFunction('f', c, function_params=[x])
@@ -150,6 +159,11 @@ def test_same_qubits() -> None:
     assert op.qubits == (cirq.q(0),)
     with pytest.raises(ValueError, match='Duplicate qids for <cirq.CNOT'):
         cirq.decompose(op)
+    with pytest.raises(ValueError, match='Duplicate qids for <cirq.CNOT'):
+        cirq.has_unitary(op)
+    with pytest.raises(ValueError, match='Duplicate qids for <cirq.CNOT'):
+        cirq.unitary(op)
+    assert cirq.has_unitary(cirq.CallFunctionOperation(cf, [1]))
 
 
 def test_with_qubits() -> None:
@@ -232,6 +246,14 @@ def test_str() -> None:
     )
     assert str(all_params_op) == "test_function(0.5) [x=2] key_map={m0: a} parent_path=('p',)"
 
+    c_two_keys = cirq.Circuit(cirq.measure(cirq.q(0), key='b'), cirq.measure(cirq.q(1), key='a'))
+    two_keys_op = cirq.CallFunctionOperation(
+        cirq.CircuitFunction("test_function", c_two_keys),
+        [],
+        measurement_key_map={'b': 'y', 'a': 'x'},
+    )
+    assert str(two_keys_op) == "test_function() key_map={a: x, b: y}"
+
 
 def test_circuit_diagram() -> None:
     x = sympy.Symbol('x')
@@ -251,6 +273,32 @@ def test_circuit_diagram() -> None:
     circuit = cirq.Circuit(op)
     diagram = circuit.to_text_diagram()
     assert diagram.strip() == "test_function"
+
+    c = cirq.Circuit(
+        cirq.measure(cirq.q(0), key='m'), cirq.X(cirq.q(1)).with_classical_controls('m')
+    )
+    op = cirq.CallFunctionOperation(cirq.CircuitFunction("f", c), [])
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(op),
+        """
+0: ───f()───
+      │
+1: ───┴─────
+        """,
+    )
+
+    c = cirq.Circuit(cirq.X(cirq.q(1)).with_classical_controls('ext'))
+    op = cirq.CallFunctionOperation(cirq.CircuitFunction("g", c), [])
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(cirq.measure(cirq.q(0), key='ext'), op),
+        """
+0: ─────M─────────
+        ║
+1: ─────╫───g()───
+        ║   ║
+ext: ═══@═══^═════
+        """,
+    )
 
 
 def test_unitary() -> None:
@@ -339,6 +387,22 @@ def test_with_key_path() -> None:
     assert cirq.with_key_path(prefixed_op, ('x',)).parent_path == ('x',)
 
 
+def test_control_keys() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    body = cirq.FrozenCircuit(
+        cirq.X(q1).with_classical_controls('m1'), cirq.Y(q1).with_classical_controls('m2')
+    )
+    op = cirq.CallFunctionOperation(cirq.CircuitFunction('test_function', body), [])
+    cop = cirq.CircuitOperation(
+        cirq.FrozenCircuit(cirq.measure(q0, key='m1'), op), repetitions=2, use_repetition_ids=True
+    )
+
+    unrolled_classical_controls = [
+        str(ckey) for roll_op in cirq.decompose(cop) for ckey in cirq.control_keys(roll_op)
+    ]
+    assert unrolled_classical_controls == ['0:m1', 'm2', '1:m1', 'm2']
+
+
 def test_circuit_operation_matches_simulator() -> None:
     q0, q1 = cirq.LineQubit.range(2)
     c = cirq.Circuit(
@@ -355,6 +419,34 @@ def test_circuit_operation_matches_simulator() -> None:
     assert cirq.measurement_key_names(repeated_circuit) == {'0:m', '0:n', '1:m', '1:n'}
     result = cirq.Simulator().run(repeated_circuit, repetitions=3)
     assert set(result.measurements) == cirq.measurement_key_names(repeated_circuit)
+
+
+@pytest.mark.parametrize(
+    'transformer, should_unroll',
+    [(cirq.expand_composite, True), (cirq.merge_single_qubit_gates_to_phxz, False)],
+)
+def test_transformed_and_simulate(transformer, should_unroll) -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    x, theta = sympy.symbols('x theta')
+    body = cirq.Circuit(
+        cirq.H(cirq.VariableLineQid(x)), cirq.CNOT(cirq.VariableLineQid(x), q1), cirq.Z(q1) ** theta
+    )
+    cf = cirq.CircuitFunction("test_function", body, function_params=[x, theta])
+    op = cirq.CallFunctionOperation(cf, [0, 0.25])
+    circuit = cirq.Circuit(op)
+
+    transformed = transformer(circuit)
+    is_unrolled = not any(
+        isinstance(o, cirq.CallFunctionOperation) for o in transformed.all_operations()
+    )
+    assert is_unrolled == should_unroll
+
+    reference = cirq.Circuit(cirq.decompose(op))
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.Simulator().simulate(transformed).final_state_vector,
+        cirq.Simulator().simulate(reference).final_state_vector,
+        atol=1e-8,
+    )
 
 
 def test_protocols() -> None:
