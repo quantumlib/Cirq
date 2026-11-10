@@ -515,9 +515,6 @@ class DeprecatedModuleLoader(importlib.abc.Loader):
         self.old_module_name = old_module_name
         self.new_module_name = new_module_name
 
-    def module_repr(self, module: ModuleType) -> str:
-        return self.loader.module_repr(module)
-
     def _wrap_exec_module(self, method: Any) -> Any:
         def exec_module(module: ModuleType) -> None:
             assert module.__name__ == self.old_module_name, (

@@ -915,18 +915,6 @@ def test_loader_create_module():
     )
 
 
-def test_deprecated_module_loader_repr():
-    class StubLoader(importlib.abc.Loader):
-        def module_repr(self, module: ModuleType) -> str:
-            return 'hello'
-
-    module = types.ModuleType('old')
-    assert (
-        DeprecatedModuleLoader(StubLoader(), 'old_hello', 'new_hello').module_repr(module)
-        == 'hello'
-    )
-
-
 def test_subprocess_test_failure():
     with pytest.raises(Failed, match='ValueError.*this fails'):
         run_in_subprocess(_test_subprocess_test_failure_inner)
