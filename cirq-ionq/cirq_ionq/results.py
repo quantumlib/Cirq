@@ -29,6 +29,7 @@ class QPUResult:
     def __init__(
         self, counts: dict[int, int], num_qubits: int, measurement_dict: dict[str, Sequence[int]]
     ):
+        # Sort by bitvector for deterministic ordering across measurement keys.
         self._counts = dict(sorted(counts.items()))
         self._num_qubits = num_qubits
         self._measurement_dict = measurement_dict
