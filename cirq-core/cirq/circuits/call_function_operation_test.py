@@ -207,6 +207,11 @@ def test_repr() -> None:
     op = cirq.CallFunctionOperation(cf, [0.5], param_resolver={'x': 1})
     cirq.testing.assert_equivalent_repr(op)
 
+    cf = cirq.CircuitFunction("test_function", cirq.Circuit(cirq.X(cirq.q(0)) ** theta), [theta])
+    op = cirq.CallFunctionOperation(cf, [0.5]).with_qubits(cirq.q(7))
+    assert op.qubit_map == {cirq.q(0): cirq.q(7)}
+    cirq.testing.assert_equivalent_repr(op)
+
 
 def test_json_serializes_shared_circuit_function_once() -> None:
     x = sympy.Symbol('x')
@@ -264,6 +269,10 @@ def test_str() -> None:
         measurement_key_map={'b': 'y', 'a': 'x'},
     )
     assert str(two_keys_op) == "test_function() key_map={a: x, b: y}"
+    assert (
+        str(two_keys_op.with_qubits(cirq.q(5), cirq.q(4)))
+        == "test_function() key_map={a: x, b: y} qubit_map={q(0): q(5), q(1): q(4)}"
+    )
 
 
 def test_circuit_diagram() -> None:
