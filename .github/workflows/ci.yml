@@ -102,7 +102,7 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get update
-          sudo apt-get install $(cat apt-system-requirements.txt)
+          sudo apt-get install --no-install-recommends $(cat apt-system-requirements.txt)
       - name: Install changed files test dependencies
         run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
       - name: Changed files test
@@ -181,7 +181,7 @@ jobs:
       - name: Install requirements
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends -y yamllint
+          sudo apt-get install --no-install-recommends yamllint
       - name: Run yamllint
         run: yamllint . CITATION.cff
   isolated-modules:
@@ -208,8 +208,8 @@ jobs:
         # check only the required version for merge queue
         python-version: |-
           ${{ fromJSON(case(
-            github.event_name == 'merge_group', '["3.11", "3.12"]',
-            '["3.11", "3.12", "3.13", "3.14"]'
+            github.event_name == 'merge_group', '["3.12"]',
+            '["3.12", "3.13", "3.14"]'
           )) }}
     runs-on: ubuntu-22.04-x64-8-core
     steps:
@@ -227,7 +227,7 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get update
-          sudo apt-get install $(cat apt-system-requirements.txt)
+          sudo apt-get install --no-install-recommends $(cat apt-system-requirements.txt)
       - name: Install requirements
         run: |
           pip install --upgrade setuptools
@@ -289,7 +289,7 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get update
-          sudo apt-get install $(cat apt-system-requirements.txt)
+          sudo apt-get install --no-install-recommends $(cat apt-system-requirements.txt)
       - name: Install requirements
         run: |
           pip install --upgrade setuptools
@@ -308,8 +308,8 @@ jobs:
         # check only the required version for merge queue
         python-version: |-
           ${{ fromJSON(case(
-            github.event_name == 'merge_group', '["3.11", "3.12"]',
-            '["3.11", "3.12", "3.13", "3.14"]'
+            github.event_name == 'merge_group', '["3.12"]',
+            '["3.12", "3.13", "3.14"]'
           )) }}
     runs-on: windows-2022-x64-8-core
     steps:
@@ -343,8 +343,8 @@ jobs:
         # check only the required version for merge queue
         python-version: |-
           ${{ fromJSON(case(
-            github.event_name == 'merge_group', '["3.11", "3.12"]',
-            '["3.11", "3.12", "3.13", "3.14"]'
+            github.event_name == 'merge_group', '["3.12"]',
+            '["3.12", "3.13", "3.14"]'
           )) }}
     # macos-15-large is Intel; macos-15-xlarge is ARM and the one we want.
     runs-on: macos-15-xlarge

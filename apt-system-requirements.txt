@@ -1,3 +1,5 @@
+ghostscript
 latexmk
-python3-tk
+lmodern
+poppler-utils
 texlive-latex-extra
