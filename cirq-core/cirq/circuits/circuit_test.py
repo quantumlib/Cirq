@@ -5159,13 +5159,72 @@ def test_insert_in_existing_moment_measurement_control_key_conflict() -> None:
     )
 
 
-def test_insert_moment_with_same_measurement_control_keys() -> None:
-    c1 = cirq.Circuit()
-    c1.insert(0, cirq.Moment(cirq.measure(q0, key="k"), cirq.measure(q1, key="k")))
-    assert c1 == cirq.Circuit(cirq.Moment(cirq.measure(q0, key="k"), cirq.measure(q1, key="k")))
+_ALL_INSERT_STRATEGIES = [
+    cirq.InsertStrategy.EARLIEST,
+    cirq.InsertStrategy.NEW,
+    cirq.InsertStrategy.INLINE,
+    cirq.InsertStrategy.NEW_THEN_INLINE,
+    cirq.InsertStrategy.LATEST,
+]
 
-    c2 = cirq.Circuit()
-    c2.insert(0, cirq.Moment(cirq.measure(q0, key="k"), cirq.X(q1).with_classical_controls("k")))
-    assert c2 == cirq.Circuit(
-        cirq.Moment(cirq.measure(q0, key="k"), cirq.X(q1).with_classical_controls("k"))
+
+@pytest.mark.parametrize(
+    'moment',
+    [
+        # Two measurements with the same key on different qubits.
+        cirq.Moment(cirq.measure(q0, key="k"), cirq.measure(q1, key="k")),
+        # A measurement and an operation classically controlled by the same key.
+        cirq.Moment(cirq.measure(q0, key="k"), cirq.X(q1).with_classical_controls("k")),
+    ],
+)
+@pytest.mark.parametrize('strategy', _ALL_INSERT_STRATEGIES)
+def test_moment_with_overlapping_keys_is_added_intact(
+    moment: cirq.Moment, strategy: cirq.InsertStrategy
+) -> None:
+    """Explicit moments with overlapping keys are supported by all insertion methods."""
+    # Operations added one by one are separated into different moments.
+    assert len(cirq.Circuit(moment.operations, strategy=strategy)) == 2
+
+    # __init__ adds the moment intact
+    assert cirq.Circuit(moment, strategy=strategy) == cirq.Circuit([moment])
+    assert cirq.Circuit(cirq.X(q0), moment, cirq.Y(q0), strategy=strategy) == cirq.Circuit(
+        [cirq.Moment(cirq.X(q0)), moment, cirq.Moment(cirq.Y(q0))]
     )
+
+    # append adds the moment intact
+    c = cirq.Circuit(cirq.X(q0))
+    c.append(moment, strategy=strategy)
+    assert c == cirq.Circuit([cirq.Moment(cirq.X(q0)), moment])
+
+    # insert adds the moment intact
+    c = cirq.Circuit(cirq.X(q0), cirq.Y(q0))
+    assert c.insert(1, moment, strategy=strategy) == 2
+    assert c == cirq.Circuit([cirq.Moment(cirq.X(q0)), moment, cirq.Moment(cirq.Y(q0))])
+
+
+@pytest.mark.parametrize('strategy', _ALL_INSERT_STRATEGIES)
+def test_multi_qubit_measurement_with_single_key_is_added_to_single_moment(
+    strategy: cirq.InsertStrategy,
+) -> None:
+    """Measuring several qubits under one key is best done with a single multi-qubit measurement."""
+    m = cirq.measure(q0, q1, q2, q3, key="m")
+    expected = cirq.Circuit([cirq.Moment(cirq.X(q0)), cirq.Moment(m)])
+
+    # A multi-qubit measurement is a single operation, hence it always occupies a single moment.
+    assert cirq.Circuit(cirq.X(q0), m, strategy=strategy) == expected
+
+    c = cirq.Circuit(cirq.X(q0))
+    c.append(m, strategy=strategy)
+    assert c == expected
+
+    c = cirq.Circuit(cirq.X(q0))
+    assert c.insert(1, m, strategy=strategy) == 2
+    assert c == expected
+
+    assert cirq.measurement_key_names(c) == {"m"}
+    assert all(c.operation_at(q, 1) == m for q in (q0, q1, q2, q3))
+
+    # In contrast, separate single-qubit measurements with the same key are kept apart.
+    c = cirq.Circuit([cirq.measure(q, key="m") for q in (q0, q1, q2, q3)], strategy=strategy)
+    assert len(c) == 4
+    assert cirq.measurement_key_names(c) == {"m"}
