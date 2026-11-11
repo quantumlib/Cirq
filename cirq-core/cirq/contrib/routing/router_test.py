@@ -54,7 +54,7 @@ def test_route_circuit(n_moments, algo, circuit_seed, routing_seed) -> None:
 def test_route_circuit_reproducible_with_seed(algo, seed) -> None:
     circuit = cirq.testing.random_circuit(8, 20, 0.5, random_state=seed)
     device_graph = ccr.get_grid_device_graph(4, 3)
-    random_states = [seed, seed, seed] + [np.random.RandomState(seed) for _ in range(3)]
+    random_states = [seed, seed, seed] + [np.random.default_rng(seed) for _ in range(3)]
 
     swap_networks = []
     for random_state in random_states:
