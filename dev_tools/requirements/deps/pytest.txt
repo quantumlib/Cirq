@@ -1,10 +1,8 @@
 # dependencies to run pytest
 
-# TODO: unpin pytest when pytest-benchmark releases a fix for
-# https://github.com/ionelmc/pytest-benchmark/issues/321
-pytest<9.2
+pytest
 pytest-asyncio
-pytest-benchmark
+pytest-benchmark>=5.3.1
 pytest-cov
 pytest-randomly
 coverage~=7.4
