@@ -106,7 +106,7 @@ THREE_SQRT_ISWAP_UNITARIES = [
     *perturbations_weyl(np.pi * 3 / 16, np.pi * 3 / 16, -np.pi / 16),
     *perturbations_weyl(np.pi * 3 / 32, np.pi * 3 / 32, np.pi / 32),
     *perturbations_weyl(np.pi * 3 / 32, np.pi * 3 / 32, -np.pi / 32),
-    # Some random points
+    # Some random points that require 3 sqrt-iSWAP gates
     random_unitary(97155),
     random_unitary(45378),
     random_unitary(78061),
@@ -157,7 +157,7 @@ TWO_SQRT_ISWAP_UNITARIES = [
     *perturbations_weyl(1 / 4 * np.pi / 4, 1 / 4 * np.pi * 3 / 16, 1 / 4 * np.pi / 16),
     *perturbations_weyl(1 / 4 * np.pi / 4, 1 / 4 * np.pi * 3 / 16, 1 / 4 * -np.pi / 16),
     *perturbations_weyl(1 / 4 * np.pi / 4, 1 / 4 * np.pi / 8, 1 / 4 * 0),
-    # Some random points
+    # Some random points that require 2 sqrt-iSWAP gates
     random_unitary(17323),
     random_unitary(99415),
     random_unitary(65832),

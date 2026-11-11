@@ -184,28 +184,13 @@ def test_parameterize_phased_fsim_circuit(gate) -> None:
     )
 
     p_circuit = parameterize_circuit(circuit, SqrtISwapXEBOptions())
-    cirq.testing.assert_has_diagram(
-        p_circuit,
-        """\
-0                                    1
-│                                    │
-PhX(0.25)^0.5                        Y^0.5
-│                                    │
-PhFSim(theta, zeta, chi, gamma, phi)─PhFSim(theta, zeta, chi, gamma, phi)
-│                                    │
-X^0.5                                PhX(0.25)^0.5
-│                                    │
-PhFSim(theta, zeta, chi, gamma, phi)─PhFSim(theta, zeta, chi, gamma, phi)
-│                                    │
-Y^0.5                                Y^0.5
-│                                    │
-PhFSim(theta, zeta, chi, gamma, phi)─PhFSim(theta, zeta, chi, gamma, phi)
-│                                    │
-X^0.5                                PhX(0.25)^0.5
-│                                    │
-    """,
-        transpose=True,
-    )
+    parameterized_gate = SqrtISwapXEBOptions().get_parameterized_gate()
+    assert len(p_circuit) == len(circuit)
+    for moment, p_moment in zip(circuit, p_circuit):
+        if moment == cirq.Moment(gate(q0, q1)):
+            assert p_moment == cirq.Moment(parameterized_gate(q0, q1))
+        else:
+            assert p_moment == moment
 
 
 def test_get_initial_simplex() -> None:

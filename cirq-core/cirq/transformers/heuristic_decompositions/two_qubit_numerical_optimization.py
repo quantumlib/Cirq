@@ -257,7 +257,7 @@ def _optimize_template(
     target: np.ndarray,
     base_gate: np.ndarray,
     num_layers: int,
-    rng: np.random.RandomState,
+    rng: np.random.Generator,
     num_restarts: int,
     maxiter: int,
 ) -> tuple[np.ndarray, float]:
@@ -468,7 +468,7 @@ def two_qubit_gate_numerical_compilation(
     if not 0 < target_fidelity < 1:
         raise ValueError(f'target_fidelity must be in (0, 1), got {target_fidelity}')
 
-    rng = value.parse_random_state(random_state)
+    rng = value.parse_random_generator(random_state)
 
     best: TwoQubitNumericalCompilationResult | None = None
     best_overall = -np.inf

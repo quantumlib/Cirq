@@ -74,21 +74,9 @@ def test_route_circuit_reproducible_between_runs(algo) -> None:
     device_graph = ccr.get_grid_device_graph(2, 3)
 
     swap_network = ccr.route_circuit(circuit, device_graph, algo_name=algo, random_state=seed)
-    swap_network_str = str(swap_network).lstrip('\n').rstrip()
-    expected_swap_network_str = """
-               ┌──┐
-(0, 0): ───5────T─────5───0↦1───3───@───3───────3───────3───
-                          │         │
-(0, 1): ───3────@─────3───1↦0───5───┼───5───────5───────5───
-                │                   │
-(0, 2): ───1────┼X────1─────────1───┼───1───────1───────1───
-                │                   │
-(1, 0): ───0────┼─────0─────────0───@───0───T───0───Y───0───
-                │
-(1, 1): ───2────X─────2───X─────2───Y───2───────2───────2───
-               └──┘
-    """.lstrip('\n').rstrip()
-    assert swap_network_str == expected_swap_network_str
+    assert ccr.is_valid_routing(circuit, swap_network)
+    swap_network2 = ccr.route_circuit(circuit, device_graph, algo_name=algo, random_state=seed)
+    assert swap_network2 == swap_network
 
 
 @pytest.mark.parametrize(

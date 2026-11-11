@@ -116,7 +116,7 @@ def test_exact_compilation_random_su4(base_gate_name: str, seed: int) -> None:
     (exact decomposition): NuOp uses 3 CZ, 3 SYC or 3 sqrt-iSWAP gates for
     random unitaries.
     """
-    target = random_special_unitary(4, random_state=value.parse_random_state(seed))
+    target = random_special_unitary(4, random_state=value.parse_random_generator(seed))
     result = two_qubit_gate_numerical_compilation(
         target, _BASE_GATES[base_gate_name], random_state=seed
     )
@@ -163,7 +163,7 @@ def test_approximate_compilation_uses_fewer_gates() -> None:
     # Target seed chosen so that the best 2-CZ decomposition has Fd in
     # [0.99, 1 - 1e-8): exact compilation needs 3 CZ gates, but the Fd >= 0.99
     # threshold is already met with 2.
-    target = random_special_unitary(4, random_state=value.parse_random_state(1))
+    target = random_special_unitary(4, random_state=value.parse_random_generator(2))
     exact = two_qubit_gate_numerical_compilation(target, _CZ, random_state=1)
     approximate = two_qubit_gate_numerical_compilation(
         target, _CZ, target_fidelity=0.99, random_state=1
@@ -182,7 +182,7 @@ def test_noise_adaptive_compilation_prefers_higher_overall_fidelity() -> None:
     3-CZ decomposition (Fu = 0.94^3) and over any sqrt-iSWAP decomposition.
     With error rates given, `success` is measured by Fu.
     """
-    target = random_special_unitary(4, random_state=value.parse_random_state(1))
+    target = random_special_unitary(4, random_state=value.parse_random_generator(1))
     result = two_qubit_gate_numerical_compilation(
         target,
         [_CZ, _SQRT_ISWAP],
@@ -229,7 +229,7 @@ def test_noise_adaptive_compilation_prefers_more_reliable_gates() -> None:
 
 
 def test_noise_adaptive_compilation_single_qubit_error_rates() -> None:
-    target = random_special_unitary(4, random_state=value.parse_random_state(1))
+    target = random_special_unitary(4, random_state=value.parse_random_generator(1))
     result = two_qubit_gate_numerical_compilation(
         target,
         _CZ,
@@ -246,7 +246,7 @@ def test_noise_adaptive_compilation_single_qubit_error_rates() -> None:
 
 def test_noise_adaptive_compilation_per_qubit_error_rates() -> None:
     """A (q0_rate, q1_rate) pair folds per-qubit calibration data into Fh."""
-    target = random_special_unitary(4, random_state=value.parse_random_state(1))
+    target = random_special_unitary(4, random_state=value.parse_random_generator(1))
     result = two_qubit_gate_numerical_compilation(
         target,
         _CZ,
@@ -269,7 +269,7 @@ def test_noise_adaptive_compilation_triggered_by_single_qubit_error_rates() -> N
     single-qubit error rate, Fu(2 CZ) = Fd * 0.99^6 beats Fu(3 CZ) = 0.99^8,
     so the shorter decomposition wins even without base gate error rates.
     """
-    target = random_special_unitary(4, random_state=value.parse_random_state(1))
+    target = random_special_unitary(4, random_state=value.parse_random_generator(1))
     result = two_qubit_gate_numerical_compilation(
         target, _CZ, single_qubit_error_rates=0.01, target_fidelity=0.9, random_state=1
     )
@@ -282,7 +282,7 @@ def test_noise_adaptive_compilation_triggered_by_single_qubit_error_rates() -> N
 
 
 def test_local_unitaries_reconstruct_actual_gate() -> None:
-    target = random_special_unitary(4, random_state=value.parse_random_state(1))
+    target = random_special_unitary(4, random_state=value.parse_random_generator(1))
     result = two_qubit_gate_numerical_compilation(target, _CZ, num_restarts=1, random_state=1)
     assert len(result.local_unitaries) == result.num_base_gates + 1
     for k0, k1 in result.local_unitaries:
@@ -292,13 +292,13 @@ def test_local_unitaries_reconstruct_actual_gate() -> None:
 
 
 def test_actual_gate_matches_target_up_to_global_phase() -> None:
-    target = random_special_unitary(4, random_state=value.parse_random_state(1))
+    target = random_special_unitary(4, random_state=value.parse_random_generator(1))
     result = two_qubit_gate_numerical_compilation(target, _CZ, random_state=1)
     cirq.testing.assert_allclose_up_to_global_phase(result.actual_gate, target, atol=1e-6)
 
 
 def test_determinism_with_seed() -> None:
-    target = random_special_unitary(4, random_state=value.parse_random_state(1))
+    target = random_special_unitary(4, random_state=value.parse_random_generator(1))
     result1 = two_qubit_gate_numerical_compilation(target, _CZ, num_restarts=1, random_state=1)
     result2 = two_qubit_gate_numerical_compilation(target, _CZ, num_restarts=1, random_state=1)
     assert np.array_equal(result1.actual_gate, result2.actual_gate)
@@ -307,7 +307,7 @@ def test_determinism_with_seed() -> None:
 
 def test_max_layers_failure_mode() -> None:
     """If max_layers is too small, return the best-effort result with success=False."""
-    target = random_special_unitary(4, random_state=value.parse_random_state(1))
+    target = random_special_unitary(4, random_state=value.parse_random_generator(1))
     result = two_qubit_gate_numerical_compilation(
         target, _CZ, max_layers=1, num_restarts=1, random_state=1
     )
@@ -333,7 +333,7 @@ def test_multiple_base_gates_first_meeting_threshold_wins() -> None:
 
 def test_numerical_compiler_wrapper() -> None:
     compiler = TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=1)
-    target = random_special_unitary(4, random_state=value.parse_random_state(1))
+    target = random_special_unitary(4, random_state=value.parse_random_generator(1))
     result = compiler.compile_two_qubit_gate(target)
     assert result.success
     assert np.array_equal(result.base_gate_unitary, _CZ)
@@ -344,7 +344,7 @@ def test_numerical_compiler_equality() -> None:
     # A non-empty memoization cache does not affect equality.
     cached_compiler = TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=1)
     cached_compiler.compile_two_qubit_gate(
-        random_special_unitary(4, random_state=value.parse_random_state(1))
+        random_special_unitary(4, random_state=value.parse_random_generator(1))
     )
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(
@@ -405,8 +405,8 @@ def test_numerical_compiler_json_rejects_live_rng() -> None:
 def test_numerical_compiler_memoizes_results() -> None:
     """Identical unitaries are compiled once; distinct ones are compiled separately."""
     compiler = TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=1, num_restarts=1)
-    target1 = random_special_unitary(4, random_state=value.parse_random_state(1))
-    target2 = random_special_unitary(4, random_state=value.parse_random_state(2))
+    target1 = random_special_unitary(4, random_state=value.parse_random_generator(1))
+    target2 = random_special_unitary(4, random_state=value.parse_random_generator(2))
     with mock.patch(
         'cirq.transformers.heuristic_decompositions.two_qubit_numerical_optimization'
         '.two_qubit_gate_numerical_compilation',
@@ -421,8 +421,8 @@ def test_numerical_compiler_memoizes_results() -> None:
 def test_numerical_compiler_cache_tolerates_numerical_noise() -> None:
     """Unitaries differing only by floating-point noise share a cache entry."""
     compiler = TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=1, num_restarts=1)
-    target = random_special_unitary(4, random_state=value.parse_random_state(1))
-    other = random_special_unitary(4, random_state=value.parse_random_state(2))
+    target = random_special_unitary(4, random_state=value.parse_random_generator(1))
+    other = random_special_unitary(4, random_state=value.parse_random_generator(2))
     # Mathematically the same unitary, recomputed in a different order.
     noisy = (target @ other) @ other.conj().T
     assert noisy.tobytes() != target.tobytes()
@@ -470,7 +470,7 @@ def test_numerical_compiler_invalid_max_cache_size() -> None:
 
 
 def test_input_validation() -> None:
-    target = random_special_unitary(4, random_state=value.parse_random_state(1))
+    target = random_special_unitary(4, random_state=value.parse_random_generator(1))
     with pytest.raises(ValueError, match='target_unitary must have shape'):
         two_qubit_gate_numerical_compilation(np.eye(2), _CZ)
     with pytest.raises(ValueError, match='target_fidelity must be in'):
@@ -513,7 +513,7 @@ def test_input_validation() -> None:
 
 def test_non_unitary_inputs_raise_value_error() -> None:
     """Non-finite or non-unitary inputs are rejected before optimization runs."""
-    target = random_special_unitary(4, random_state=value.parse_random_state(1))
+    target = random_special_unitary(4, random_state=value.parse_random_generator(1))
     with pytest.raises(ValueError, match='target_unitary must contain only finite'):
         two_qubit_gate_numerical_compilation(np.full((4, 4), np.nan), _CZ)
     with pytest.raises(ValueError, match='target_unitary must be unitary'):
