@@ -17,6 +17,7 @@ from __future__ import annotations
 import contextlib
 import dataclasses
 import datetime
+import gzip
 import importlib
 import io
 import json
@@ -344,6 +345,67 @@ def test_sympy() -> None:
     assert_json_roundtrip_works(sympy.EulerGamma)
 
 
+@mock.patch('sympy.parsing.sympy_parser.parse_expr')
+@pytest.mark.parametrize(
+    'expr',
+    [
+        sympy.Add(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Mul(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Pow(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Pow(2, sympy.Symbol('s')),
+        sympy.GreaterThan(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.StrictGreaterThan(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.LessThan(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.StrictLessThan(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Equality(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Unequality(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.And(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Or(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Not(sympy.Symbol('s')),
+        sympy.Xor(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Indexed(sympy.IndexedBase(sympy.Symbol('s')), sympy.Integer(1)),
+        sympy.IndexedBase(sympy.Symbol('s')),
+    ],
+    ids=lambda expr: type(expr),
+)
+def test_sympy_rejects_string_expression(
+    mock_parse_expr: mock.MagicMock, expr: sympy.Basic
+) -> None:
+    s_json = cirq.to_json(sympy.Symbol('s'), indent=None)
+    t_json = cirq.to_json(sympy.Symbol('t'), indent=None)
+    json_text = cirq.to_json(expr, indent=None)
+    bad_json_texts = [
+        json_text.replace(s_json, '"s+1"'),
+        *([json_text.replace(t_json, '"t+1"')] if t_json in json_text else []),
+    ]
+    for bad in bad_json_texts:
+        with pytest.raises(TypeError, match="Expected a serialized SymPy argument, got.*str"):
+            _ = cirq.read_json(json_text=bad)
+        mock_parse_expr.assert_not_called()
+
+
+@mock.patch('sympy.parsing.sympy_parser.parse_expr')
+@pytest.mark.parametrize(
+    'bad_json_text, got_type_name',
+    [
+        (cirq.to_json(sympy.Symbol("foo")).replace('"foo"', '["bar"]'), "list"),
+        (cirq.to_json(sympy.Float(1.5)).replace("1.5", '"1 + 0.5"'), "str"),
+        (cirq.to_json(sympy.Integer(101)).replace("101", '["100 + 1"]'), "list"),
+        (cirq.to_json(sympy.Rational(101, 233)).replace("101", '["s+1"]'), "list"),
+        (cirq.to_json(sympy.Rational(101, 233)).replace("233", '["t+1"]'), "list"),
+    ],
+    ids=["Symbol", "Float", "Integer", "Rational-p", "Rational-q"],
+)
+def test_sympy_scalar_rejects_incorrect_type(
+    mock_parse_expr: mock.MagicMock, bad_json_text: str, got_type_name: str
+) -> None:
+    with pytest.raises(
+        TypeError, match=f"Expected a serialized SymPy argument, got.*{got_type_name}"
+    ):
+        _ = cirq.read_json(json_text=bad_json_text)
+    mock_parse_expr.assert_not_called()
+
+
 class SBKImpl(cirq.SerializableByKey):
     """A test implementation of SerializableByKey."""
 
@@ -550,7 +612,7 @@ def test_type_serialization(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cl
     sto = SerializableTypeObject(cls)
     test_resolvers = [custom_resolver, *cirq.DEFAULT_RESOLVERS]
     expected_json = f'{{\n  "cirq_type": "SerializableTypeObject",\n  "test_type": "{typename}"\n}}'
-    assert cirq.to_json(sto) == expected_json
+    assert cirq.to_json(sto, indent=2) == expected_json
     assert cirq.read_json(json_text=expected_json, resolvers=test_resolvers) == sto
     assert_json_roundtrip_works(sto, resolvers=test_resolvers)
 
@@ -571,11 +633,7 @@ def test_invalid_type_deserialize() -> None:
 
 
 def test_to_from_strings() -> None:
-    x_json_text = """{
-  "cirq_type": "_PauliX",
-  "exponent": 1.0,
-  "global_shift": 0.0
-}"""
+    x_json_text = '{"cirq_type": "_PauliX", "exponent": 1.0, "global_shift": 0.0}'
     assert cirq.to_json(cirq.X) == x_json_text
     assert cirq.read_json(json_text=x_json_text) == cirq.X
 
@@ -594,6 +652,33 @@ def test_to_from_json_gzip() -> None:
         _ = cirq.read_json_gzip(io.StringIO(), gzip_raw=gzip_data)
     with pytest.raises(ValueError):
         _ = cirq.read_json_gzip()
+
+
+def test_json_gzip_compresslevel() -> None:
+    qubits = cirq.LineQubit.range(100)
+    test_circuit = cirq.Circuit(
+        10 * [cirq.X.on_each(*qubits), cirq.Y.on_each(*qubits), cirq.Z.on_each(*qubits)]
+    )
+    gzip_data_level_0 = cirq.to_json_gzip(test_circuit, compresslevel=0)
+    gzip_data_level_9 = cirq.to_json_gzip(test_circuit, compresslevel=9)
+    assert len(gzip_data_level_9) < 0.1 * len(gzip_data_level_0)
+    json_bytes = cirq.to_json(test_circuit).encode()
+    assert gzip.decompress(gzip_data_level_0) == json_bytes
+    assert gzip.decompress(gzip_data_level_9) == json_bytes
+
+
+def test_json_gzip_is_reproducible(tmp_path: pathlib.Path) -> None:
+    expected_bytes = (
+        # gzip.compress(b'1', compresslevel=1, mtime=0) using Python 3.13
+        b'\x1f\x8b\x08\x00\x00\x00\x00\x00\x04\xff3\x04\x00\xb7\xef\xdc\x83\x01\x00\x00\x00'
+    )
+    actual_bytes = cirq.to_json_gzip(1)
+    gzip_file_path = tmp_path.joinpath("one.json.gz")
+    cirq.to_json_gzip(1, gzip_file_path)
+    assert gzip_file_path.read_bytes() == actual_bytes
+    # compare without the gzip header OS byte which may vary over Python versions
+    assert actual_bytes.startswith(expected_bytes[:9])
+    assert actual_bytes.endswith(expected_bytes[10:])
 
 
 def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: str | None):
@@ -746,9 +831,9 @@ def test_dataclass_json_dict() -> None:
 
 
 def test_numpy_values() -> None:
-    assert cirq.to_json({'value': np.array(1)}) == """{
-  "value": 1
-}"""
+    assert cirq.to_json({'value': np.array(1)}) == '{"value": 1}'
+    # Verify support for special floating point values.
+    assert_json_roundtrip_works(np.array([np.nan, -np.inf, np.inf]))
 
 
 def test_basic_time_assertions() -> None:

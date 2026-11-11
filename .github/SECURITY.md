@@ -7,7 +7,7 @@ every effort to acknowledge your contributions.
 Please **do not** use GitHub issues to report security vulnerabilities; GitHub
 issues are public, and doing so could allow someone to exploit the information
 before the problem can be addressed. Instead, please use the GitHub ["Report
-a Vulnerability"](https://github.com/quantumlib/cirq/security/advisories/new)
+a Vulnerability"](https://github.com/quantumlib/Cirq/security/advisories/new)
 interface from the _Security_ tab of the Cirq repository.
 
 Please report security issues in third-party modules to the person or team

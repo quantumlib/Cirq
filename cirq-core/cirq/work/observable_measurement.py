@@ -139,6 +139,9 @@ class RepetitionsStoppingCriteria(StoppingCriteria):
         return protocols.dataclass_json_dict(self)
 
 
+# Mapping from single-qubit Pauli observable to the X- and Y-rotation parameter values. The
+# second element in the key is whether to measure in the positive or negative (flipped) basis
+# for readout symmetrization.
 _OBS_TO_PARAM_VAL: dict[tuple[cirq.Pauli, bool], tuple[float, float]] = {
     (ops.X, False): (0, -1 / 2),
     (ops.X, True): (0, +1 / 2),
@@ -147,10 +150,8 @@ _OBS_TO_PARAM_VAL: dict[tuple[cirq.Pauli, bool], tuple[float, float]] = {
     (ops.Z, False): (0, 0),
     (ops.Z, True): (1, 0),
 }
-"""Mapping from single-qubit Pauli observable to the X- and Y-rotation parameter values. The
-second element in the key is whether to measure in the positive or negative (flipped) basis
-for readout symmetrization."""
 
+# Mapping from an initial `_NamedOneQubitState` to the X- and Y-rotation parameter values.
 _STATE_TO_PARAM_VAL: dict[_NamedOneQubitState, tuple[float, float]] = {
     value.KET_PLUS: (0, +1 / 2),
     value.KET_MINUS: (0, -1 / 2),
@@ -159,7 +160,6 @@ _STATE_TO_PARAM_VAL: dict[_NamedOneQubitState, tuple[float, float]] = {
     value.KET_ZERO: (0, 0),
     value.KET_ONE: (1, 0),
 }
-"""Mapping from an initial `_NamedOneQubitState` to the X- and Y-rotation parameter values."""
 
 
 def _get_params_for_setting(

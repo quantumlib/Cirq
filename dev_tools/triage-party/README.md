@@ -11,7 +11,8 @@ configuration changes.
 
 1.  Generate a personal access token on GitHub with read-only permissions for `public_repo`. (Please
     refer to the GitHub documentation for [personal access tokens] for information on how to do
-    that.) The token will be a string of characters that begins with the letters `gho_`.
+    that.) The token will be a string of characters that begins with `ghp_` (for classic tokens)
+    or `github_pat_` (for fine-grained tokens).
 
 2.  Store this token string in the environment variable `GITHUB_TOKEN`:
 
@@ -40,7 +41,7 @@ an error message and did not return to the shell, but rather paused with `update
 final message. The Triage Party server will then be listening for web browser connections on port
 8080 on your local host. It will produce more output as it detects that files have changed.
 
-[personal access tokens]: https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line
+[personal access tokens]: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
 
 ## Cloud configuration & Setup
 

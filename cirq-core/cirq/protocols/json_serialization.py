@@ -29,7 +29,7 @@ import numpy as np
 import pandas as pd
 import sympy
 
-from cirq._doc import doc_private
+from cirq._doc import doc_private, document
 
 ObjectFactory = type | Callable[..., Any]
 
@@ -57,23 +57,25 @@ def _lazy_resolver(dict_factory: Callable[[], dict[str, ObjectFactory]]) -> Json
 
 
 DEFAULT_RESOLVERS: list[JsonResolver] = []
-"""A default list of 'JsonResolver' functions for use in read_json.
+document(
+    DEFAULT_RESOLVERS,
+    r"""A default list of 'JsonResolver' functions for use in read_json.
 
-For more information about cirq_type resolution during deserialization
-please read the docstring for `cirq.read_json`.
+    For more information about cirq_type resolution during deserialization
+    please read the docstring for `cirq.read_json`.
 
-3rd party packages which extend Cirq's JSON serialization API should
-provide their own resolver functions. 3rd party resolvers can be
-prepended to this list:
+    3rd party packages which extend Cirq's JSON serialization API should
+    provide their own resolver functions. 3rd party resolvers can be
+    prepended to this list:
 
-    MY_DEFAULT_RESOLVERS = [_resolve_my_classes] \
-                           + cirq.protocols.json.DEFAULT_RESOLVERS
+        MY_DEFAULT_RESOLVERS = [_resolve_my_classes, *cirq.DEFAULT_RESOLVERS]
 
-    def my_read_json(file_or_fn, resolvers=None):
-        if resolvers is None:
-            resolvers = MY_DEFAULT_RESOLVERS
-        return cirq.read_json(file_or_fn, resolvers=resolvers)
-"""
+        def my_read_json(file_or_fn, resolvers=None):
+            if resolvers is None:
+                resolvers = MY_DEFAULT_RESOLVERS
+            return cirq.read_json(file_or_fn, resolvers=resolvers)
+    """,
+)
 
 
 def _register_resolver(dict_factory: Callable[[], dict[str, ObjectFactory]]) -> None:
@@ -466,14 +468,24 @@ def cirq_type_from_json(type_str: str, resolvers: Sequence[JsonResolver] | None 
 
 @overload
 def to_json(
-    obj: Any, file_or_fn: IO | pathlib.Path | str, *, indent=2, separators=None, cls=CirqEncoder
+    obj: Any,
+    file_or_fn: IO | pathlib.Path | str,
+    *,
+    indent: int | None = None,
+    separators: tuple[str, str] | None = None,
+    cls: type[json.JSONEncoder] = CirqEncoder,
 ) -> None:
     pass
 
 
 @overload
 def to_json(
-    obj: Any, file_or_fn: None = None, *, indent=2, separators=None, cls=CirqEncoder
+    obj: Any,
+    file_or_fn: None = None,
+    *,
+    indent: int | None = None,
+    separators: tuple[str, str] | None = None,
+    cls: type[json.JSONEncoder] = CirqEncoder,
 ) -> str:
     pass
 
@@ -482,7 +494,7 @@ def to_json(
     obj: Any,
     file_or_fn: None | IO | pathlib.Path | str = None,
     *,
-    indent: int | None = 2,
+    indent: int | None = None,
     separators: tuple[str, str] | None = None,
     cls: type[json.JSONEncoder] = CirqEncoder,
 ) -> str | None:
@@ -498,9 +510,10 @@ def to_json(
             indicate that the method should return the JSON text as its result.
             Defaults to `None`.
         indent: Pretty-print the resulting file with this indent level.
+            When `None` produce a compact JSON without a newline character.
             Passed to json.dump.
         separators: Passed to json.dump; key-value pairs delimiters defined as
-            `(item_separator, key_separators)` tuple. Note that any non-standard
+            `(item_separator, key_separator)` tuple. Note that any non-standard
             operators (':', ',') will cause `read_json` to fail.
         cls: Passed to json.dump; the default value of CirqEncoder
             enables the serialization of Cirq objects which implement
@@ -566,17 +579,43 @@ def read_json(
     return json.load(cast(IO, file_or_fn), object_hook=obj_hook)
 
 
+@overload
 def to_json_gzip(
     obj: Any,
-    file_or_fn: None | IO | pathlib.Path | str = None,
+    file_or_fn: IO | pathlib.Path | str,
     *,
-    indent: int = 2,
+    compresslevel: int = 1,
+    indent: int | None = None,
+    cls: type[json.JSONEncoder] = CirqEncoder,
+) -> None:
+    pass
+
+
+@overload
+def to_json_gzip(
+    obj: Any,
+    file_or_fn: None = None,
+    *,
+    compresslevel: int = 1,
+    indent: int | None = None,
+    cls: type[json.JSONEncoder] = CirqEncoder,
+) -> bytes:
+    pass
+
+
+def to_json_gzip(
+    obj: Any,
+    file_or_fn: IO | pathlib.Path | str | None = None,
+    *,
+    compresslevel: int = 1,
+    indent: int | None = None,
     cls: type[json.JSONEncoder] = CirqEncoder,
 ) -> bytes | None:
     """Write a gzipped JSON file containing a representation of obj.
 
     The object may be a cirq object or have data members that are cirq
-    objects which implement the SupportsJSON protocol.
+    objects which implement the SupportsJSON protocol.  The gzip output
+    is reproducible assuming the same Python version and OS platform.
 
     Args:
         obj: An object which can be serialized to a JSON representation.
@@ -584,21 +623,25 @@ def to_json_gzip(
             an IO object (such as a file or buffer) to write to, or `None` to
             indicate that the method should return the JSON text as its result.
             Defaults to `None`.
+        compresslevel: Passed to gzip.compress; an integer from 0 to 9 specifying
+            the level of gzip compression.  The default value 1 results in the
+            fastest performance with a compression rate of plain JSON increased
+            to about 3.4% compared to 2.3% at level 9.
         indent: Pretty-print the resulting file with this indent level.
-            Passed to json.dump.
+            Produce a compact JSON when `None`.  Passed to json.dump.
         cls: Passed to json.dump; the default value of CirqEncoder
             enables the serialization of Cirq objects which implement
             the SupportsJSON protocol. To support serialization of 3rd
             party classes, prefer adding the `_json_dict_` magic method
             to your classes rather than overriding this default.
     """
-    json_str = to_json(obj, indent=indent, cls=cls)
+    json_bytes = to_json(obj, indent=indent, cls=cls).encode()
+    gzip_data = gzip.compress(json_bytes, compresslevel=compresslevel, mtime=0)
     if isinstance(file_or_fn, (str, pathlib.Path)):
-        with gzip.open(file_or_fn, 'wt', encoding='utf-8') as actually_a_file:
-            actually_a_file.write(json_str)
-            return None
+        actually_a_path = pathlib.Path(file_or_fn)
+        actually_a_path.write_bytes(gzip_data)
+        return None
 
-    gzip_data = gzip.compress(bytes(json_str, encoding='utf-8'))
     if file_or_fn is None:
         return gzip_data
 
