@@ -28,7 +28,7 @@ from cirq.transformers.heuristic_decompositions.two_qubit_gate_tabulation import
     TwoQubitGateTabulation,
 )
 
-_rng = value.parse_random_state(11)  # for determinism
+_rng = value.parse_random_generator(11)  # for determinism
 
 sycamore_tabulation = two_qubit_gate_product_tabulation(
     cirq.unitary(cirq.FSimGate(np.pi / 2, np.pi / 6)), 0.2, random_state=_rng
@@ -123,7 +123,7 @@ def test_sycamore_gate_tabulation_repr() -> None:
 
 
 def test_sycamore_gate_tabulation_eq() -> None:
-    rng = value.parse_random_state(11)
+    rng = value.parse_random_generator(11)
     sycamore_tabulation_copy = two_qubit_gate_product_tabulation(
         cirq.unitary(cirq.FSimGate(np.pi / 2, np.pi / 6)), 0.2, random_state=rng
     )

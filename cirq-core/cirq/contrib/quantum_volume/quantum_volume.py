@@ -39,7 +39,7 @@ def generate_model_circuit(
     # Setup the circuit and its qubits.
     qubits = cirq.LineQubit.range(num_qubits)
     circuit = cirq.Circuit()
-    random_state = cirq.value.parse_random_state(random_state)
+    random_state = cirq.value.parse_random_generator(random_state)
 
     # For each layer.
     for _ in range(depth):

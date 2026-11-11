@@ -990,7 +990,7 @@ def test_merge_operations_deterministic_order(qubit_order):
 
 @pytest.mark.parametrize("op_density", [0.1, 0.5, 0.9])
 def test_merge_operations_complexity(op_density):
-    prng = cirq.value.parse_random_state(11011)
+    prng = cirq.value.parse_random_generator(11011)
     circuit = cirq.testing.random_circuit(20, 500, op_density, random_state=prng)
     for merge_func in [
         lambda _, __: None,

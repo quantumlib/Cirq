@@ -52,7 +52,7 @@ def get_initial_mapping(
     qubits that minimizes the average distance to already mapped logical
     neighbors is selected.
     """
-    prng = value.parse_random_state(random_state)
+    prng = value.parse_random_generator(random_state)
 
     unplaced_vertices = set(logical_graph)
 

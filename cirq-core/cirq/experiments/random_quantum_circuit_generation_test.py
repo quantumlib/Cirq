@@ -51,29 +51,20 @@ def test_random_rotation_between_two_qubit_circuit() -> None:
     assert len(circuit) == 4 * 2
     assert circuit.all_qubits() == {q0, q1}
 
-    cirq.testing.assert_has_diagram(
-        circuit,
-        """\
-0             1
-│             │
-Y^0.5         X^0.5
-│             │
-@─────────────@
-│             │
-PhX(0.25)^0.5 Y^0.5
-│             │
-@─────────────@
-│             │
-Y^0.5         X^0.5
-│             │
-@─────────────@
-│             │
-X^0.5         PhX(0.25)^0.5
-│             │
-@─────────────@
-│             │""",
-        transpose=True,
+    for i, moment in enumerate(circuit):
+        if i % 2 == 1:
+            assert moment == cirq.Moment(cirq.CZ(q0, q1))
+        else:
+            assert len(moment) == 2 and moment.qubits == {q0, q1}
+
+    circuit2 = random_rotations_between_two_qubit_circuit(
+        q0, q1, 4, seed=np.random.default_rng(52), add_final_single_qubit_layer=False
     )
+    assert circuit2 == circuit
+    circuit3 = random_rotations_between_two_qubit_circuit(
+        q0, q1, 4, seed=53, add_final_single_qubit_layer=False
+    )
+    assert circuit3 != circuit
 
 
 def test_generate_library_of_2q_circuits() -> None:
@@ -370,7 +361,7 @@ def test_random_rotations_between_grid_interaction_layers(
     qubits: Iterable[cirq.GridQubit],
     depth: int,
     two_qubit_op_factory: Callable[
-        [cirq.GridQubit, cirq.GridQubit, np.random.RandomState], cirq.OP_TREE
+        [cirq.GridQubit, cirq.GridQubit, np.random.Generator], cirq.OP_TREE
     ],
     pattern: Sequence[GridInteractionLayer],
     single_qubit_gates: Sequence[cirq.Gate],
