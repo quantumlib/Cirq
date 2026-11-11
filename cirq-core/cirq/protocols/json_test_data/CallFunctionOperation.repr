@@ -39,5 +39,6 @@
         param_resolver={},
         measurement_key_map={'m': 'n'},
         parent_path=('p', 'q'),
+        qubit_map={cirq.LineQubit(0): cirq.LineQubit(3)},
     ),
 ]

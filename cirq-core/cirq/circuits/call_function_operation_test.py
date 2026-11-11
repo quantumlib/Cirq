@@ -79,7 +79,9 @@ def test_parameter_resolution() -> None:
     op = cirq.CallFunctionOperation(cf, [0.5, z])
     op_resolved = cirq.resolve_parameters(op, {x: 1})
     assert op_resolved.circuit_function == cf
-    assert op_resolved.function_args == (0.5, z)
+
+    assert op.function_args == op_resolved.function_args == (0.5, y)
+    assert op == cirq.CallFunctionOperation(cf, [0.5, 123])
     assert cirq.parameter_names(op) == {'x'}
     assert cirq.parameter_names(op_resolved) == set()
     assert op_resolved.param_resolver == cirq.ParamResolver({x: 1})
@@ -167,16 +169,25 @@ def test_same_qubits() -> None:
 
 
 def test_with_qubits() -> None:
-    q = cirq.q(0)
+    q0, q1, q7, q8 = (cirq.LineQubit(i) for i in (0, 1, 7, 8))
     theta = sympy.Symbol('theta')
-    c = cirq.Circuit(cirq.X(q) ** theta)
+    c = cirq.Circuit(cirq.X(q0) ** theta, cirq.CNOT(q0, q1))
     cf = cirq.CircuitFunction("test_function", c, function_params=[theta])
     op = cirq.CallFunctionOperation(cf, [0.5])
 
-    assert op.with_qubits(cirq.q(0)) == op
+    assert op.with_qubits(q0, q1) is op
+    with pytest.raises(ValueError, match='Expected 2 qubits, got 1'):
+        _ = op.with_qubits(q7)
 
-    with pytest.raises(ValueError, match="CallFunctionOperation does not support `with_qubits`"):
-        _ = op.with_qubits(cirq.q(1))
+    moved = op.with_qubits(q7, q8)
+    assert moved.qubits == (q7, q8)
+    assert moved.qubit_map == {q0: q7, q1: q8}
+    assert moved.circuit_function is cf
+    assert cirq.decompose_once(moved) == [cirq.X(q7) ** 0.5, cirq.CNOT(q7, q8)]
+
+    moved_twice = moved.with_qubits(q1, q0)
+    assert moved_twice.qubit_map == {q0: q1, q1: q0}
+    assert cirq.decompose_once(moved_twice) == [cirq.X(q1) ** 0.5, cirq.CNOT(q1, q0)]
 
 
 def test_repr() -> None:
