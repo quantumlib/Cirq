@@ -16,6 +16,44 @@ message MetricsSnapshot {
 
   // All of the metrics collected during this snapshot.
   repeated Metric metrics = 2;
+
+  // Metrics collected during this snapshot, grouped by metric name.
+  //
+  // This is a more compact alternative to `metrics` for metrics with a single
+  // value per set of targets: the metric name is stored once per metric set
+  // rather than once per target, and each measurement can carry its
+  // uncertainty (rather than it being stored as a separate metric, e.g. by
+  // the convention of naming it `<name>_ERR`). Metrics with multiple values
+  // per set of targets must use `metrics`.
+  //
+  // A snapshot may populate `metrics`, `metric_sets`, or both. If both have
+  // an entry for the same metric name and targets, readers should use the one
+  // in `metric_sets`.
+  repeated MetricSet metric_sets = 3;
+}
+
+// All measurements of a single metric, e.g. 't1' measured on every qubit.
+message MetricSet {
+  // A single measurement of the metric on a set of targets.
+  message Measurement {
+    // The targets of the measurement, e.g. one qubit (`q0_1`) for
+    // single-qubit metrics or two qubits for two-qubit metrics. May be empty
+    // when the metric applies globally.
+    repeated string targets = 1;
+
+    // The measured value. Unset if the metric has no value for these targets.
+    Value value = 2;
+
+    // The uncertainty of the measured value. Unset if it is not known.
+    Value uncertainty = 3;
+  }
+
+  // The name of the metric. This is the type of metric, e.g. 't1' or
+  // 'randomized_benchmarking'.
+  string name = 1;
+
+  // The measurements of this metric, one per set of targets.
+  repeated Measurement measurements = 2;
 }
 
 // The actual metrics.

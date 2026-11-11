@@ -129,6 +129,126 @@ def test_calibration_metrics_dictionary():
         _ = calibration['not-it']
 
 
+def test_calibration_metric_sets() -> None:
+    calibration = cg.Calibration(
+        Merge(
+            """
+            metric_sets: [{
+                name: 'sq_rb_pauli_error',
+                measurements: [{
+                    targets: ['0_0'],
+                    value: {double_val: 0.001},
+                    uncertainty: {double_val: 0.0001}
+                }, {
+                    targets: ['0_1'],
+                    value: {double_val: 0.002}
+                }]
+            }, {
+                name: 'cz_inferred_gate_error',
+                measurements: [{
+                    targets: ['0_0', '0_1'],
+                    value: {double_val: 0.005},
+                    uncertainty: {double_val: 0.0005}
+                }]
+            }, {
+                name: 'globalMetric',
+                measurements: [{value: {int32_val: 12300}}]
+            }, {
+                name: 'noValue',
+                measurements: [{targets: ['0_0']}]
+            }]
+            """,
+            v2.metrics_pb2.MetricsSnapshot(),
+        )
+    )
+    q00, q01 = cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)
+    assert dict(calibration) == {
+        'sq_rb_pauli_error': {(q00,): [0.001], (q01,): [0.002]},
+        'sq_rb_pauli_error_ERR': {(q00,): [0.0001]},
+        'cz_inferred_gate_error': {(q00, q01): [0.005]},
+        'cz_inferred_gate_error_ERR': {(q00, q01): [0.0005]},
+        'globalMetric': {(): [12300]},
+        'noValue': {(q00,): []},
+    }
+
+
+def test_calibration_metric_sets_equivalent_to_metrics() -> None:
+    legacy = Merge(
+        """
+        timestamp_ms: 1562544000021,
+        metrics: [
+            {name: 't1', targets: ['0_0'], values: [{double_val: 321}]},
+            {name: 't1_ERR', targets: ['0_0'], values: [{double_val: 3}]},
+            {name: 't1', targets: ['0_1'], values: [{double_val: 911}]},
+            {name: 't1_ERR', targets: ['0_1'], values: [{double_val: 9}]}
+        ]
+        """,
+        v2.metrics_pb2.MetricsSnapshot(),
+    )
+    condensed = Merge(
+        """
+        timestamp_ms: 1562544000021,
+        metric_sets: [{
+            name: 't1',
+            measurements: [
+                {targets: ['0_0'], value: {double_val: 321}, uncertainty: {double_val: 3}},
+                {targets: ['0_1'], value: {double_val: 911}, uncertainty: {double_val: 9}}
+            ]
+        }]
+        """,
+        v2.metrics_pb2.MetricsSnapshot(),
+    )
+    both = v2.metrics_pb2.MetricsSnapshot()
+    both.MergeFrom(legacy)
+    both.MergeFrom(condensed)
+
+    assert cg.Calibration(legacy) == cg.Calibration(condensed) == cg.Calibration(both)
+    assert cg.Calibration(condensed).to_proto() == cg.Calibration(legacy).to_proto()
+
+
+def test_calibration_metric_sets_take_precedence() -> None:
+    calibration = cg.Calibration(
+        Merge(
+            """
+            metrics: [
+                {name: 'globalMetric', values: [{int32_val: 1}]},
+                {name: 't1', targets: ['0_0'], values: [{double_val: 1}]},
+                {name: 't1', targets: ['0_1'], values: [{double_val: 2}]},
+                {name: 't1_ERR', targets: ['0_0'], values: [{double_val: 0.1}]},
+                {name: 't1_ERR', targets: ['0_1'], values: [{double_val: 0.2}]}
+            ]
+            metric_sets: [
+                {name: 'globalMetric', measurements: [{value: {int32_val: 3}}]},
+                {
+                    name: 't1',
+                    measurements: [
+                        {targets: ['0_0'], value: {double_val: 4}, uncertainty: {double_val: 0.4}}
+                    ]
+                }
+            ]
+            """,
+            v2.metrics_pb2.MetricsSnapshot(),
+        )
+    )
+    assert calibration['globalMetric'] == {(): [3]}
+    assert calibration['t1'] == {(cirq.GridQubit(0, 0),): [4], (cirq.GridQubit(0, 1),): [2]}
+    assert calibration['t1_ERR'] == {(cirq.GridQubit(0, 0),): [0.4], (cirq.GridQubit(0, 1),): [0.2]}
+
+
+def test_calibration_metric_sets_multiple_global_metrics() -> None:
+    snapshot = Merge(
+        """
+        metric_sets: [{
+            name: 'globalMetric',
+            measurements: [{value: {int32_val: 1}}, {value: {int32_val: 2}}]
+        }]
+        """,
+        v2.metrics_pb2.MetricsSnapshot(),
+    )
+    with pytest.raises(AssertionError, match='Only one metric of a given name'):
+        _ = cg.Calibration(snapshot)
+
+
 def test_calibration_str():
     calibration = cg.Calibration(_CALIBRATION_DATA)
     str_cal = "Calibration(keys=['cz_inferred_gate_error_pauli', 'globalMetric', 'one_error', 't1',"

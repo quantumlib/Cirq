@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n cirq_google/api/v2/metrics.proto\x12\x12\x63irq.google.api.v2\"T\n\x0fMetricsSnapshot\x12\x14\n\x0ctimestamp_ms\x18\x01 \x01(\x04\x12+\n\x07metrics\x18\x02 \x03(\x0b\x32\x1a.cirq.google.api.v2.Metric\"R\n\x06Metric\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07targets\x18\x02 \x03(\t\x12)\n\x06values\x18\x03 \x03(\x0b\x32\x19.cirq.google.api.v2.Value\"a\n\x05Value\x12\x14\n\ndouble_val\x18\x01 \x01(\x01H\x00\x12\x13\n\tint32_val\x18\x02 \x01(\x05H\x00\x12\x13\n\tint64_val\x18\x03 \x01(\x03H\x00\x12\x11\n\x07str_val\x18\x04 \x01(\tH\x00\x42\x05\n\x03valB3\n\x1d\x63om.google.cirq.google.api.v2B\x10\x43\x61librationProtoP\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n cirq_google/api/v2/metrics.proto\x12\x12\x63irq.google.api.v2\"\x88\x01\n\x0fMetricsSnapshot\x12\x14\n\x0ctimestamp_ms\x18\x01 \x01(\x04\x12+\n\x07metrics\x18\x02 \x03(\x0b\x32\x1a.cirq.google.api.v2.Metric\x12\x32\n\x0bmetric_sets\x18\x03 \x03(\x0b\x32\x1d.cirq.google.api.v2.MetricSet\"\xd4\x01\n\tMetricSet\x12\x0c\n\x04name\x18\x01 \x01(\t\x12?\n\x0cmeasurements\x18\x02 \x03(\x0b\x32).cirq.google.api.v2.MetricSet.Measurement\x1ax\n\x0bMeasurement\x12\x0f\n\x07targets\x18\x01 \x03(\t\x12(\n\x05value\x18\x02 \x01(\x0b\x32\x19.cirq.google.api.v2.Value\x12.\n\x0buncertainty\x18\x03 \x01(\x0b\x32\x19.cirq.google.api.v2.Value\"R\n\x06Metric\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07targets\x18\x02 \x03(\t\x12)\n\x06values\x18\x03 \x03(\x0b\x32\x19.cirq.google.api.v2.Value\"a\n\x05Value\x12\x14\n\ndouble_val\x18\x01 \x01(\x01H\x00\x12\x13\n\tint32_val\x18\x02 \x01(\x05H\x00\x12\x13\n\tint64_val\x18\x03 \x01(\x03H\x00\x12\x11\n\x07str_val\x18\x04 \x01(\tH\x00\x42\x05\n\x03valB3\n\x1d\x63om.google.cirq.google.api.v2B\x10\x43\x61librationProtoP\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -32,10 +32,14 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'cirq_google.api.v2.metrics_
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'\n\035com.google.cirq.google.api.v2B\020CalibrationProtoP\001'
-  _globals['_METRICSSNAPSHOT']._serialized_start=56
-  _globals['_METRICSSNAPSHOT']._serialized_end=140
-  _globals['_METRIC']._serialized_start=142
-  _globals['_METRIC']._serialized_end=224
-  _globals['_VALUE']._serialized_start=226
-  _globals['_VALUE']._serialized_end=323
+  _globals['_METRICSSNAPSHOT']._serialized_start=57
+  _globals['_METRICSSNAPSHOT']._serialized_end=193
+  _globals['_METRICSET']._serialized_start=196
+  _globals['_METRICSET']._serialized_end=408
+  _globals['_METRICSET_MEASUREMENT']._serialized_start=288
+  _globals['_METRICSET_MEASUREMENT']._serialized_end=408
+  _globals['_METRIC']._serialized_start=410
+  _globals['_METRIC']._serialized_end=492
+  _globals['_VALUE']._serialized_start=494
+  _globals['_VALUE']._serialized_end=591
 # @@protoc_insertion_point(module_scope)
