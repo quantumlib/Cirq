@@ -718,3 +718,22 @@ def test_gate_str() -> None:
         ** -0.5
     )
     assert str(gate) == 'exp(-iπ0.25*+ZYX)'
+
+
+def test_unitary_with_identity_qubits() -> None:
+    # Regression test for https://github.com/quantumlib/Cirq/issues/6612
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    for qubits, ps in [
+        ([q0, q1], cirq.Z(q0)),
+        ([q0, q1], cirq.X(q1)),
+        ([q0, q1, q2], cirq.Y(q1)),
+        ([q0, q1, q2], cirq.X(q0) * cirq.Z(q2)),
+    ]:
+        phasor = cirq.PauliStringPhasor(ps, qubits, exponent_neg=0.3, exponent_pos=0.1)
+        pauli = ps.matrix(qubits)
+        identity = np.eye(len(pauli))
+        expected = (
+            np.exp(1j * np.pi * 0.3) * (identity - pauli) / 2
+            + np.exp(1j * np.pi * 0.1) * (identity + pauli) / 2
+        )
+        np.testing.assert_allclose(cirq.unitary(phasor), expected, atol=1e-7)
