@@ -58,10 +58,8 @@ def test_initialization_reproducible_between_runs() -> None:
     logical_graph = nx.relabel_nodes(logical_graph, cirq.LineQubit)
     device_graph = ccr.get_grid_device_graph(2, 3)
     initial_mapping = ccr.initialization.get_initial_mapping(logical_graph, device_graph, seed)
-    # The mapping is a bijection from the device qubits onto the logical qubits.
     assert set(initial_mapping) == set(device_graph)
     assert sorted(initial_mapping.values()) == sorted(logical_graph)
-    # An int seed and an equivalent generator give the same mapping.
     assert initial_mapping == ccr.initialization.get_initial_mapping(
         logical_graph, device_graph, np.random.default_rng(seed)
     )
