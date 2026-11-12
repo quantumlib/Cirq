@@ -1,0 +1,90 @@
+[
+  {
+    "cirq_type": "Switch",
+    "control": {
+      "cirq_type": "MeasurementKey",
+      "name": "m",
+      "path": []
+    },
+    "cases": [
+      {
+        "cirq_type": "Case",
+        "values": [
+          0
+        ],
+        "then": {
+          "cirq_type": "SingleQubitPauliStringGateOperation",
+          "pauli": {
+            "cirq_type": "_PauliX",
+            "exponent": 1.0,
+            "global_shift": 0.0
+          },
+          "qubit": {
+            "cirq_type": "LineQubit",
+            "x": 0
+          }
+        }
+      },
+      {
+        "cirq_type": "Case",
+        "values": [
+          1,
+          3
+        ],
+        "then": {
+          "cirq_type": "SingleQubitPauliStringGateOperation",
+          "pauli": {
+            "cirq_type": "_PauliY",
+            "exponent": 1.0,
+            "global_shift": 0.0
+          },
+          "qubit": {
+            "cirq_type": "LineQubit",
+            "x": 1
+          }
+        }
+      }
+    ],
+    "default": null
+  },
+  {
+    "cirq_type": "Switch",
+    "control": {
+      "cirq_type": "MeasurementKey",
+      "name": "m",
+      "path": []
+    },
+    "cases": [
+      {
+        "cirq_type": "Case",
+        "values": [
+          2
+        ],
+        "then": {
+          "cirq_type": "SingleQubitPauliStringGateOperation",
+          "pauli": {
+            "cirq_type": "_PauliX",
+            "exponent": 1.0,
+            "global_shift": 0.0
+          },
+          "qubit": {
+            "cirq_type": "LineQubit",
+            "x": 0
+          }
+        }
+      }
+    ],
+    "default": {
+      "cirq_type": "SingleQubitPauliStringGateOperation",
+      "pauli": {
+        "cirq_type": "_PauliZ",
+        "exponent": 1.0,
+        "global_shift": 0.0
+      },
+      "qubit": {
+        "cirq_type": "LineQubit",
+        "x": 1
+      }
+    }
+  }
+]

@@ -1,0 +1,44 @@
+[
+  {
+    "cirq_type": "OrCondition",
+    "conditions": [
+      {
+        "cirq_type": "KeyCondition",
+        "key": {
+          "cirq_type": "MeasurementKey",
+          "name": "a",
+          "path": []
+        },
+        "index": -1
+      },
+      {
+        "cirq_type": "BitMaskKeyCondition",
+        "key": {
+          "cirq_type": "MeasurementKey",
+          "name": "b",
+          "path": []
+        },
+        "index": -1,
+        "target_value": 2,
+        "equal_target": true,
+        "bitmask": null
+      }
+    ],
+    "invert": false
+  },
+  {
+    "cirq_type": "OrCondition",
+    "conditions": [
+      {
+        "cirq_type": "KeyCondition",
+        "key": {
+          "cirq_type": "MeasurementKey",
+          "name": "c",
+          "path": []
+        },
+        "index": -1
+      }
+    ],
+    "invert": true
+  }
+]
