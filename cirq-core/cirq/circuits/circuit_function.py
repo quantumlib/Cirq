@@ -30,8 +30,12 @@ if TYPE_CHECKING:
 
 
 @value.value_equality
-class CircuitFunction:
+class CircuitFunction(protocols.SerializableByKey):
     """A function that maps from a given set of parameters to a circuit.
+
+    A `CircuitFunction` may be defined once and used multiple times in a
+    circuit via `CallFunctionOperation` without incurring a large amount
+    of extra memory or serialization overhead.
 
     Note: This is an experimental class designed as part of a prototype
         for Cirq 2.0. The interface for this class is subject to change
@@ -104,6 +108,18 @@ class CircuitFunction:
     def all_qubits(self) -> frozenset[cirq.Qid]:
         """Returns the set of all qubits in the circuit."""
         return self._circuit.all_qubits()
+
+    def _is_measurement_(self) -> bool:
+        return protocols.is_measurement(self._circuit)
+
+    def _measurement_key_objs_(self) -> frozenset[cirq.MeasurementKey]:
+        return protocols.measurement_key_objs(self._circuit)
+
+    def _measurement_key_names_(self) -> frozenset[str]:
+        return protocols.measurement_key_names(self._circuit)
+
+    def _control_keys_(self) -> frozenset[cirq.MeasurementKey]:
+        return protocols.control_keys(self._circuit)
 
     def _value_equality_values_(self) -> Any:
         return (self._name, self._circuit, self._function_params)

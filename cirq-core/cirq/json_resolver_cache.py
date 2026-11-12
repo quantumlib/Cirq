@@ -121,6 +121,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'CCXPowGate': cirq.CCXPowGate,
         'CCYPowGate': cirq.CCYPowGate,
         'CCZPowGate': cirq.CCZPowGate,
+        'CallFunctionOperation': cirq.CallFunctionOperation,
         'Circuit': cirq.Circuit,
         'CircuitFunction': cirq.CircuitFunction,
         'CircuitOperation': cirq.CircuitOperation,
