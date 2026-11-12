@@ -1,0 +1,85 @@
+[
+  {
+    "cirq_type": "For",
+    "loop_var": {
+      "cirq_type": "sympy.Symbol",
+      "name": "i"
+    },
+    "values": [
+      0,
+      1,
+      2
+    ],
+    "sub_operation": {
+      "cirq_type": "SingleQubitPauliStringGateOperation",
+      "pauli": {
+        "cirq_type": "_PauliY",
+        "exponent": 1.0,
+        "global_shift": 0.0
+      },
+      "qubit": {
+        "cirq_type": "NamedQubit",
+        "name": "target"
+      }
+    }
+  },
+  {
+    "cirq_type": "For",
+    "loop_var": null,
+    "values": [
+      0,
+      1
+    ],
+    "sub_operation": {
+      "cirq_type": "CircuitOperation",
+      "circuit": {
+        "cirq_type": "VAL",
+        "key": 0,
+        "val": {
+          "cirq_type": "FrozenCircuit",
+          "moments": [
+            {
+              "cirq_type": "Moment",
+              "operations": [
+                {
+                  "cirq_type": "SingleQubitPauliStringGateOperation",
+                  "pauli": {
+                    "cirq_type": "_PauliX",
+                    "exponent": 1.0,
+                    "global_shift": 0.0
+                  },
+                  "qubit": {
+                    "cirq_type": "LineQubit",
+                    "x": 0
+                  }
+                },
+                {
+                  "cirq_type": "SingleQubitPauliStringGateOperation",
+                  "pauli": {
+                    "cirq_type": "_PauliY",
+                    "exponent": 1.0,
+                    "global_shift": 0.0
+                  },
+                  "qubit": {
+                    "cirq_type": "LineQubit",
+                    "x": 1
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "repetitions": 1,
+      "qubit_map": [],
+      "measurement_key_map": {},
+      "param_resolver": {
+        "cirq_type": "ParamResolver",
+        "param_dict": []
+      },
+      "repetition_ids": null,
+      "use_repetition_ids": false,
+      "parent_path": []
+    }
+  }
+]
