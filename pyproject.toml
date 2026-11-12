@@ -164,6 +164,7 @@ ignore-paths=[
 ignore-patterns = [".*_pb2\\.py"]
 load-plugins = [
     "dev_tools.pylint_copyright_checker",
+    "dev_tools.pylint_docstring_underscore_checker",
     "pylint.extensions.docparams",
     "pylint.extensions.docstyle",
 ]
@@ -203,6 +204,7 @@ enable= [
     "simplifiable-if-statement",
     "too-many-function-args",
     "trailing-whitespace",
+    "unescaped-underscore-in-docstring",
     "unhashable-dict-key",
     "unnecessary-semicolon",
     "unreachable",

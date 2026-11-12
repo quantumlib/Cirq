@@ -211,7 +211,7 @@ def test_unrecognized_diagonal_breaks_chain():
 
 
 def test_is_z_or_cz_pow_gate_helper_edge_cases():
-    """Test edge cases in _is_z_or_cz_pow_gate helper function for full coverage."""
+    """Test edge cases in `_is_z_or_cz_pow_gate` helper function for full coverage."""
 
     q = cirq.NamedQubit('q')
 

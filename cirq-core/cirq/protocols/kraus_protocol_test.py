@@ -202,7 +202,7 @@ def test_strat_kraus_from_apply_channel_returns_none() -> None:
     ],
 )
 def test_kraus_fallback_to_apply_channel(channel_cls, params) -> None:
-    """Kraus protocol falls back to _apply_channel_ when no _kraus_, _mixture_, or _unitary_."""
+    """Falls back to `_apply_channel_` without `_kraus_`, `_mixture_`, or `_unitary_`."""
     # Create the expected channel and get its Kraus operators
     expected_channel = channel_cls(*params)
     expected_kraus = cirq.kraus(expected_channel)
