@@ -276,4 +276,5 @@ from cirq.ops.variable_qid import (
     VariableQid as VariableQid,
 )
 
+from cirq.ops.repeat_op import Repeat as Repeat
 from cirq.ops.while_op import While as While
