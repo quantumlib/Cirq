@@ -149,16 +149,29 @@ def test_apply_swap():
 
 def test_shortest_path():
     device_graph, initial_mapping, q = construct_device_graph_and_mapping()
+
+    # Add a disconnected qubit "f" mapped to q[0]
+    device_graph.add_node(cirq.NamedQubit("f"))
+    initial_mapping[q[0]] = cirq.NamedQubit("f")
+
     mm = cirq.MappingManager(device_graph, initial_mapping)
-    q_int = [mm.logical_qid_to_int[q[i]] if q[i] in initial_mapping else -1 for i in range(len(q))]
+    q_int = [mm.logical_qid_to_int[qi] for qi in q]
     one_to_four = [q_int[1], q_int[3], q_int[2], q_int[4]]
     assert all(mm.shortest_path(q_int[1], q_int[2]) == one_to_four[:3])
     assert all(mm.shortest_path(q_int[1], q_int[4]) == one_to_four)
     # shortest path on symmetric qubit reverses the list
     assert all(mm.shortest_path(q_int[4], q_int[1]) == one_to_four[::-1])
 
+    # shortest path from a node to itself is the node itself
+    for qi in q_int:
+        np.testing.assert_array_equal(mm.shortest_path(qi, qi), [qi])
+        np.testing.assert_array_equal(mm.shortest_path(qi, qi, undirected=True), [qi])
+    # unreachable path on disconnected component raises ValueError
+    with pytest.raises(ValueError, match=f"No path exists between {q_int[0]} and {q_int[1]}"):
+        mm.shortest_path(q_int[0], q_int[1])
+
     # undirected and directed shortest paths are the same for undirected graph
-    for lq1, lq2 in itertools.product(mm.logical_qid_to_int.values(), repeat=2):
+    for lq1, lq2 in itertools.product(one_to_four, repeat=2):
         np.testing.assert_array_equal(
             mm.shortest_path(lq1, lq2, undirected=True),
             mm.shortest_path(lq1, lq2, undirected=False),
@@ -224,9 +237,9 @@ def test_shortest_path_with_directed_graph():
     q_int = [mm.logical_qid_to_int[qi] for qi in q]
 
     # path from 2 to 0 does not exist
-    # TODO: raise ValueError with informative message
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError, match=f"No path exists between {q_int[2]} and {q_int[0]}"):
         mm.shortest_path(q_int[2], q_int[0])
+
     # path from 0 to 2 exists
     np.testing.assert_array_equal(q_int, mm.shortest_path(q_int[0], q_int[2]))
 
@@ -235,3 +248,7 @@ def test_shortest_path_with_directed_graph():
     np.testing.assert_array_equal(
         q_int[::-1], mm.shortest_path(q_int[2], q_int[0], undirected=True)
     )
+    # Self-path should return single-element list
+    for qi in q_int:
+        assert list(mm.shortest_path(qi, qi)) == [qi]
+        assert list(mm.shortest_path(qi, qi, undirected=True)) == [qi]
