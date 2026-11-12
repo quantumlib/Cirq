@@ -18,12 +18,11 @@ from unittest import mock
 
 import numpy as np
 import pytest
-import sympy
 
 import cirq
 from cirq.transformers.gauge_compiling import SqrtCZGaugeTransformer
 from cirq.transformers.gauge_compiling.gauge_compiling_test_utils import GaugeTester
-from cirq.transformers.gauge_compiling.sqrt_cz_gauge import _symbolize_as_cz_pow, SqrtCZGauge
+from cirq.transformers.gauge_compiling.sqrt_cz_gauge import SqrtCZGauge
 
 
 class TestSqrtCZGauge(GaugeTester):
@@ -137,11 +136,3 @@ def test_sample_rejects_unsupported_gate(gate, choices) -> None:
     prng.choice.side_effect = choices
     with pytest.raises(ValueError, match=r'CZ\*\*0\.5 or CZ\*\*-0\.5 up to global phase'):
         SqrtCZGauge().sample(gate, prng)
-
-
-@pytest.mark.parametrize(
-    'gate', [g for g in _UNSUPPORTED_GATES if not isinstance(g, cirq.CZPowGate)]
-)
-def test_symbolize_rejects_unsupported_gate(gate) -> None:
-    with pytest.raises(ValueError, match="Can't symbolize non-CZPowGate"):
-        _symbolize_as_cz_pow(gate, [sympy.Symbol('s')])
