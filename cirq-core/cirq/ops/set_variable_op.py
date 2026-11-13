@@ -159,5 +159,15 @@ class SetVariable(raw_types.Operation):
         return {'target': self._target, 'expression': self._expression}
 
     @classmethod
-    def _from_json_dict_(cls, target, expression, **kwargs):
+    def _from_json_dict_(
+        cls, target: sympy.Symbol, expression: sympy.Basic, **kwargs
+    ) -> SetVariable:
+        # A genuinely serialized expression is always a deserialized sympy object. A bare
+        # string would otherwise be handed to sympy.sympify, whose eval-based parser runs
+        # arbitrary code, so reject it here rather than parse data from cirq.read_json.
+        if not isinstance(expression, sympy.Basic):
+            raise TypeError(
+                "SetVariable expression must be a serialized sympy expression, not "
+                f"{type(expression).__name__}."
+            )
         return cls(target=target, expression=expression)

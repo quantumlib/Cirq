@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Locates imports that violate cirq's submodule dependencies.
 
 Specifically, this test treats the modules as a tree structure where `cirq` is

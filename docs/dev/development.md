@@ -76,7 +76,7 @@ package manager.
 
 1. Install system dependencies.
 
-    Make sure you have Python 3.11 or greater.
+    Make sure you have Python 3.12 or greater.
     You can install most other dependencies via `apt-get`:
 
     ```bash

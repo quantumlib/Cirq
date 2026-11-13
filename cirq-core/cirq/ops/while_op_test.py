@@ -609,22 +609,23 @@ def test_qasm() -> None:
         _ = cirq.qasm(circuit)
 
     qasm_str = cirq.qasm(circuit, args=cirq.QasmArgs(version='3.0'))
-    assert 'while (m_a!=0) {\n  x q[1];\n}' in qasm_str
+    assert 'while (m_a!=0) {\n    x q[1];\n}' in qasm_str
 
     op_multi = cirq.While(['a', 'b'], cirq.X(q1))
     circuit_multi = cirq.Circuit(cirq.measure(q0, key='a'), cirq.measure(q0, key='b'), op_multi)
     qasm_str_3 = cirq.qasm(circuit_multi, args=cirq.QasmArgs(version='3.0'))
-    assert 'while (m_a!=0 && m_b!=0) {\n  x q[1];\n}' in qasm_str_3
+    assert 'while (m_a!=0 && m_b!=0) {\n    x q[1];\n}' in qasm_str_3
 
     op_meas = cirq.While('a', cirq.measure(q0, q1, key='a'))
     circuit_meas = cirq.Circuit(cirq.measure(q0, q1, key='a'), op_meas)
     qasm_meas = cirq.qasm(circuit_meas, args=cirq.QasmArgs(version='3.0'))
-    assert 'while (m_a!=0) {\n  m_a[0] = measure q[0];\n  m_a[1] = measure q[1];\n}' in qasm_meas
+    expected_meas = 'while (m_a!=0) {\n    m_a[0] = measure q[0];\n    m_a[1] = measure q[1];\n}'
+    assert expected_meas in qasm_meas
 
     op_nested = cirq.While('a', cirq.While('b', cirq.X(q1)))
     circuit_nested = cirq.Circuit(cirq.measure(q0, key='a'), cirq.measure(q0, key='b'), op_nested)
     qasm_nested = cirq.qasm(circuit_nested, args=cirq.QasmArgs(version='3.0'))
-    assert 'while (m_a!=0) {\n  while (m_b!=0) {\n    x q[1];\n  }\n}' in qasm_nested
+    assert 'while (m_a!=0) {\n    while (m_b!=0) {\n        x q[1];\n    }\n}' in qasm_nested
 
 
 def test_qasm_sub_op_no_qasm() -> None:

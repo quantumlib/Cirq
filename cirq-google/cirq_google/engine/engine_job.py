@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     from google.protobuf import any_pb2
 
     import cirq_google.engine.engine as engine_base
-    from cirq_google.engine.engine import engine_processor, engine_program
+    from cirq_google.engine import engine_processor, engine_program
 
 
 TERMINAL_STATES = [

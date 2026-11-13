@@ -64,7 +64,7 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
         Returns:
             The samples in order.
         """
-        prng = value.parse_random_state(seed)
+        prng = value.parse_random_generator(seed)
         measurements = []
         for _ in range(repetitions):
             state = self.copy()
