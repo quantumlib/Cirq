@@ -32,7 +32,13 @@ def _is_z_or_cz_pow_gate(op: cirq.Operation) -> bool:
     and instead strictly check for gates known to be diagonal in the computational basis.
     """
     # ZPowGate covers Z, S, T, Rz. CZPowGate covers CZ.
-    return isinstance(op.gate, (ops.ZPowGate, ops.CZPowGate, ops.IdentityGate))
+    if isinstance(op.gate, (ops.ZPowGate, ops.CZPowGate, ops.IdentityGate)):
+        return True
+    elif isinstance(op.gate, ops.PhasedXZGate):
+        # If x exponent is exactly even number in PhasedXZGate,
+        # then this gate acts like ZPowGate.
+        return op.gate.x_exponent % 2 == 0
+    return False
 
 
 @transformer_api.transformer(add_deep_support=True)
