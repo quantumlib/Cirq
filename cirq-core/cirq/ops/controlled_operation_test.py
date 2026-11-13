@@ -121,7 +121,7 @@ def test_controlled_operation_init() -> None:
     with pytest.raises(ValueError, match='Cannot control measurement'):
         _ = cirq.ControlledOperation([cb], cirq.measure(q))
     with pytest.raises(ValueError, match='Cannot control channel'):
-        _ = cirq.ControlledOperation([cb], cirq.PhaseDampingChannel(1)(q))
+        _ = cirq.ControlledOperation([cb], cirq.AmplitudeDampingChannel(1)(q))
 
 
 def test_controlled_operation_eq() -> None:
@@ -430,7 +430,9 @@ def test_parameterizable(resolve_fn) -> None:
 
     cchan = cirq.ControlledOperation(
         [qubits[0]],
-        cirq.RandomGateChannel(sub_gate=cirq.PhaseDampingChannel(0.1), probability=a)(qubits[1]),
+        cirq.RandomGateChannel(sub_gate=cirq.AmplitudeDampingChannel(0.1), probability=a)(
+            qubits[1]
+        ),
     )
     with pytest.raises(ValueError, match='Cannot control channel'):
         resolve_fn(cchan, cirq.ParamResolver({'a': 0.1}))
@@ -466,9 +468,10 @@ def test_controlled_operation_gate() -> None:
     assert op.gate is None
 
 
-def test_controlled_mixture() -> None:
+@pytest.mark.parametrize('sub_gate', [cirq.phase_flip(0.25), cirq.phase_damp(0.75)])
+def test_controlled_mixture(sub_gate) -> None:
     a, b = cirq.LineQubit.range(2)
-    c_yes = cirq.ControlledOperation(controls=[b], sub_operation=cirq.phase_flip(0.25).on(a))
+    c_yes = cirq.ControlledOperation(controls=[b], sub_operation=sub_gate.on(a))
     assert cirq.has_mixture(c_yes)
     assert cirq.approx_eq(cirq.mixture(c_yes), [(0.75, np.eye(4)), (0.25, cirq.unitary(cirq.CZ))])
 
