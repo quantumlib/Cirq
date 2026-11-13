@@ -384,7 +384,10 @@ class Calibration(abc.Mapping):
         `calibration['t1']`
 
     This class can be instantiated either from a `MetricsSnapshot` proto
-    or from a dictionary of metric values.
+    or from a dictionary of metric values. Both the `metrics` and the more compact
+    `metric_sets` fields of the proto are read; uncertainties from `metric_sets` are
+    exposed as metrics named `<name>_ERR`. `to_proto` (and so JSON serialization) always writes
+    the `metrics` field.
 
     Attributes:
         timestamp: The time that this calibration was run, in milliseconds since
@@ -398,27 +401,67 @@ class Calibration(abc.Mapping):
     ) -> None:
         self.timestamp = calibration.timestamp_ms
         if metrics is None:
-            self._metric_dict = self._compute_metric_dict(calibration.metrics)
+            self._metric_dict = self._compute_metric_dict(calibration)
         else:
             self._metric_dict = metrics
 
-    def _compute_metric_dict(self, metrics: v2.metrics_pb2.MetricsSnapshot) -> ALL_METRICS:
+    def _compute_metric_dict(self, calibration: v2.metrics_pb2.MetricsSnapshot) -> ALL_METRICS:
+        """Builds the metric dictionary from both the `metrics` and `metric_sets` fields.
+
+        A measurement in `metric_sets` becomes the same entries that the equivalent `metrics`
+        would: its value under the metric set's name, and its uncertainty (if set) under the
+        metric set's name with an `_ERR` suffix. Entries are merged per metric name and targets;
+        if both fields have an entry for the same metric name and targets, the one from
+        `metric_sets` is used.
+        """
         results: ALL_METRICS = defaultdict(dict)
-        for metric in metrics:
-            name = metric.name
-            # Flatten the values to a list, removing keys containing type names
-            # (e.g. proto version of each value is {<type>: value}).
-            flat_values = [getattr(v, v.WhichOneof('val')) for v in metric.values]
-            if metric.targets:
-                qubits = tuple(self.str_to_key(t) for t in metric.targets)
-                results[name][qubits] = flat_values
-            else:
-                assert len(results[name]) == 0, (
-                    'Only one metric of a given name can have no targets. '
-                    f'Found multiple for key {name}'
+        for metric in calibration.metrics:
+            self._add_metric(
+                results,
+                metric.name,
+                metric.targets,
+                [self._value_from_proto(v) for v in metric.values],
+            )
+
+        metric_set_results: ALL_METRICS = defaultdict(dict)
+        for metric_set in calibration.metric_sets:
+            for measurement in metric_set.measurements:
+                values = (
+                    [self._value_from_proto(measurement.value)]
+                    if measurement.HasField('value')
+                    else []
                 )
-                results[name][()] = flat_values
+                self._add_metric(metric_set_results, metric_set.name, measurement.targets, values)
+                if measurement.HasField('uncertainty'):
+                    self._add_metric(
+                        metric_set_results,
+                        f'{metric_set.name}_ERR',
+                        measurement.targets,
+                        [self._value_from_proto(measurement.uncertainty)],
+                    )
+
+        for name, metric_dict in metric_set_results.items():
+            results[name].update(metric_dict)
         return results
+
+    def _add_metric(
+        self, results: ALL_METRICS, name: str, targets: Sequence[str], values: METRIC_VALUE
+    ) -> None:
+        """Adds the values of a metric on the given targets to `results`."""
+        if targets:
+            qubits = tuple(self.str_to_key(t) for t in targets)
+            results[name][qubits] = values
+        else:
+            assert len(results[name]) == 0, (
+                'Only one metric of a given name can have no targets. '
+                f'Found multiple for key {name}'
+            )
+            results[name][()] = values
+
+    @staticmethod
+    def _value_from_proto(value: v2.metrics_pb2.Value) -> str | int | float:
+        """Unwraps the oneof in a `Value`, e.g. the proto `{double_val: 0.5}` becomes 0.5."""
+        return getattr(value, cast(str, value.WhichOneof('val')))
 
     def __getitem__(self, key: str) -> METRIC_DICT:
         """Supports getting calibrations by index.
@@ -500,7 +543,6 @@ class Calibration(abc.Mapping):
             The string in ISO 8601 format YYYY-MM-DDTHH:MM:SS.ffffff.
         """
         dt = datetime.datetime.fromtimestamp(self.timestamp / 1000, tz)
-        dt += datetime.timedelta(microseconds=self.timestamp % 1000000)
         return dt.isoformat(sep=' ', timespec=timespec)
 
     def str_to_key(self, target: str) -> cirq.GridQubit | str:

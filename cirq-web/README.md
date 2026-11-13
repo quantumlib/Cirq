@@ -26,7 +26,7 @@ browser-based 3D visualization tools and features in Cirq. `cirq-web` also
 provides a development environment for contributors to create and add their
 own visualizations to the module.
 
-[Cirq]: https://github.com/quantumlib/cirq
+[Cirq]: https://github.com/quantumlib/Cirq
 [Cirq documentation site]: https://quantumai.google/cirq
 
 ## Installation
@@ -58,9 +58,11 @@ version.
 
 ## Documentation
 
-Documentation for `cirq-web` can be found in the `README` file located in the
-module's subdirectory in the [Cirq repository on GitHub]. To get started
-with using Cirq in general, please refer to the [Cirq documentation site].
+Documentation for `cirq-web` can be found in the [`README`
+file](https://github.com/quantumlib/Cirq/blob/main/cirq-web/cirq_web/README.md)
+located in the module's subdirectory in the [Cirq repository on GitHub]. To get
+started with using Cirq in general, please refer to the [Cirq documentation
+site].
 
 Below is a quick example of using `cirq-web` to generate a portable 3D
 rendering of the Bloch sphere:
@@ -83,8 +85,8 @@ additional options to specify the output directory or to open the
 visualization in a browser, for example.
 
 You can also view and interact with a Bloch sphere in a [Google
-Colab](https://colab.google.com) notebook or Jupyter notebook. Here is an
-example:
+Colab](https://colab.google.com/) notebook or Jupyter notebook. Here
+is an example:
 
 ```python
 import cirq
@@ -110,4 +112,8 @@ repository on GitHub].
 
 ## Disclaimer
 
-Cirq is not an official Google product. Copyright 2019 The Cirq Developers.
+This is not an officially supported Google product. This project is not
+eligible for the [Google Open Source Software Vulnerability Rewards
+Program](https://bughunters.google.com/open-source-security).
+
+Copyright 2019 The Cirq Developers.

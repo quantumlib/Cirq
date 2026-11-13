@@ -1,6 +1,6 @@
 # Cirq infra
 
-_Cirq-infra_ is the name of a the Google Cloud Platform (GCP) project implemented and managed by the
+_Cirq-infra_ is the name of a Google Cloud Platform (GCP) project implemented and managed by the
 Google Quantum AI team in support of open-source projects like Cirq. It was originally introduced
 around the years 2020–2021 to implement several systems:
 
@@ -25,7 +25,7 @@ Access is granted to Cirq maintainers only.
 
 The tools below are required to manage our infra:
 
-*   Cloud SDK: https://cloud.google.com/sdk/docs/quickstart
+*   Cloud SDK: https://docs.cloud.google.com/sdk/docs/install-sdk
 *   kubectl: `gcloud components install kubectl`.
 *   skaffold: `gcloud components install skaffold`.
 
