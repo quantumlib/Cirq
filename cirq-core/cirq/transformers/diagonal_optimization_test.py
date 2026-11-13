@@ -141,6 +141,55 @@ def test_feature_request_full_example():
     cirq.testing.assert_same_circuits(optimized, expected)
 
 
+def test_remove_diagonal_phased_xz_gate_chain():
+    """Test that a diagonal PhasedXZGate is recognized as a diagonal gate and removed.
+
+    This test also checks that gates are removed and PhasedXZGate does not block
+    diagonal chain. Test the optimization feature request #8523.
+    """
+    q0, q1 = cirq.LineQubit.range(2)
+
+    circuit = cirq.Circuit(
+        cirq.CZ(q0, q1),
+        cirq.PhasedXZGate(x_exponent=0, z_exponent=0.5, axis_phase_exponent=0).on(q1),
+        cirq.PhasedXZGate(x_exponent=2, z_exponent=1, axis_phase_exponent=1).on(q1),
+        cirq.Moment(cirq.measure(q0, key='m0'), cirq.measure(q1, key='m1')),
+    )
+
+    optimized = drop_diagonal_before_measurement(circuit)
+
+    # Should remove whole diagonal chain
+    expected = cirq.Circuit(cirq.measure(q0, key='m0'), cirq.measure(q1, key='m1'))
+
+    cirq.testing.assert_same_circuits(optimized, expected)
+
+
+def test_preserves_non_diagonal_phased_xz_gate():
+    """Test that a non-diagonal PhasedXZGate is not removed.
+
+    Negative test for the optimization feature request #8523.
+    """
+    q0, q1 = cirq.LineQubit.range(2)
+
+    circuit = cirq.Circuit(
+        cirq.PhasedXZGate(x_exponent=0.1, z_exponent=1, axis_phase_exponent=0.5).on(q0),
+        cirq.PhasedXZGate(x_exponent=3, z_exponent=0, axis_phase_exponent=0).on(q1),
+        cirq.measure(q0, key='m0'),
+        cirq.measure(q1, key='m1'),
+    )
+
+    optimized = drop_diagonal_before_measurement(circuit)
+
+    expected = cirq.Circuit(
+        cirq.PhasedXZGate(x_exponent=0.1, z_exponent=0, axis_phase_exponent=0.5).on(q0),
+        cirq.PhasedXZGate(x_exponent=3, z_exponent=0, axis_phase_exponent=0).on(q1),
+        cirq.measure(q0, key='m0'),
+        cirq.measure(q1, key='m1'),
+    )
+
+    cirq.testing.assert_same_circuits(optimized, expected)
+
+
 def test_preserves_non_diagonal_gates():
     """Test that non-diagonal gates are preserved."""
     q = cirq.NamedQubit('q')
@@ -231,6 +280,24 @@ def test_is_z_or_cz_pow_gate_helper_edge_cases():
     # Test two-qubit CZ gate
     q0, q1 = cirq.LineQubit.range(2)
     assert _is_z_or_cz_pow_gate(cirq.CZ(q0, q1))
+
+    # Test phased XZ gates
+    assert _is_z_or_cz_pow_gate(
+        cirq.PhasedXZGate(x_exponent=0, z_exponent=0, axis_phase_exponent=0).on(q)
+    )
+    assert _is_z_or_cz_pow_gate(
+        cirq.PhasedXZGate(x_exponent=0, z_exponent=1, axis_phase_exponent=1).on(q)
+    )
+    assert _is_z_or_cz_pow_gate(
+        cirq.PhasedXZGate(x_exponent=4, z_exponent=0.5, axis_phase_exponent=0).on(q)
+    )
+
+    assert not _is_z_or_cz_pow_gate(
+        cirq.PhasedXZGate(x_exponent=0.1, z_exponent=1, axis_phase_exponent=0).on(q)
+    )
+    assert not _is_z_or_cz_pow_gate(
+        cirq.PhasedXZGate(x_exponent=1, z_exponent=1, axis_phase_exponent=1).on(q)
+    )
 
     # Other diagonal gates (like CCZ) are not detected by the optimized version
     # This is intentional - eject_z is only effective for Z and CZ anyway
