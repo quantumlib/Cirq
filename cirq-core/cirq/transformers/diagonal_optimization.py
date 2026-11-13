@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 
 def _is_z_or_cz_pow_gate(op: cirq.Operation) -> bool:
-    """Checks if an operation is a known diagonal gate (Z, CZ, etc.).
+    """Checks if an operation is a known diagonal gate (Z, CZ, diagonal PhasedXZ, etc.).
 
     As suggested in review, we avoid computing the unitary matrix (which is expensive)
     and instead strictly check for gates known to be diagonal in the computational basis.
@@ -35,7 +35,7 @@ def _is_z_or_cz_pow_gate(op: cirq.Operation) -> bool:
     if isinstance(op.gate, (ops.ZPowGate, ops.CZPowGate, ops.IdentityGate)):
         return True
     elif isinstance(op.gate, ops.PhasedXZGate):
-        # If x exponent is exactly even number in PhasedXZGate,
+        # If x exponent is an even number in PhasedXZGate,
         # then this gate acts like ZPowGate.
         return op.gate.x_exponent % 2 == 0
     return False
