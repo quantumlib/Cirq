@@ -142,9 +142,9 @@ def test_feature_request_full_example():
 
 
 def test_remove_diagonal_phased_xz_gate_chain():
-    """Test that a diagonal PhasedXZGate is recognized as the diagonal gates and removed.
+    """Test that a diagonal PhasedXZGate is recognized as a diagonal gate and removed.
 
-    This test also checks that gates are completely removed an PhasedXZGate does not block
+    This test also checks that gates are removed and PhasedXZGate does not block
     diagonal chain. Test the optimization feature request #8523.
     """
     q0 = cirq.NamedQubit('q')
@@ -164,7 +164,7 @@ def test_remove_diagonal_phased_xz_gate_chain():
     cirq.testing.assert_same_circuits(optimized, expected)
 
 
-def test_preverses_non_diagonal_phased_xz_gate():
+def test_preserves_non_diagonal_phased_xz_gate():
     """Test that a non-diagonal PhasedXZGate is not removed.
 
     Negative test for the optimization feature request #8523.
