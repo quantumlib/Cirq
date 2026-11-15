@@ -447,14 +447,29 @@ def _arg_func_from_proto(
 
     if (op_expr := _SYMPY_EXPR_PER_TYPE.get(func.type, None)) is not None:
         return op_expr(
-            *[arg_from_proto(a, required_arg_name=f'An {func.type} argument') for a in func.args]
+            *_check_sympy_args(
+                [arg_from_proto(a, required_arg_name=f'An {func.type} argument') for a in func.args]
+            )
         )
     if func.type == "[]":
         # Handle sympy.Indexed i.e. M[a, b] as a special case.
         base = sympy.IndexedBase(arg_from_proto(func.args[0]))
-        args = [arg_from_proto(a) for a in func.args[1:]]
+        args = _check_sympy_args([arg_from_proto(a) for a in func.args[1:]])
         return sympy.Indexed(base, *args)
     raise ValueError(f'Unrecognized sympy function {func}')
+
+
+def _check_sympy_args(args: list[ARG_RETURN_LIKE | None]) -> list[ARG_RETURN_LIKE | None]:
+    """Ensures deserialized SymPy function arguments are SymPy objects or numbers.
+
+    Other argument types such as strings can only arise from a corrupted proto
+    and must not be passed to SymPy constructors, which may call the unsafe
+    `sympy.parse_expr` on them.
+    """
+    for arg in args:
+        if not isinstance(arg, (sympy.Basic, numbers.Number)):
+            raise TypeError(f"Expected a serialized SymPy argument, got {type(arg).__name__}.")
+    return args
 
 
 def condition_to_proto(control: Condition, *, out: v2.program_pb2.Arg) -> v2.program_pb2.Arg:

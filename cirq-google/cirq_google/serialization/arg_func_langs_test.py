@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import base64
+import builtins
 from typing import cast
 
 import numpy as np
@@ -364,6 +365,19 @@ def test_invalid_sympy_func():
         _ = arg_from_proto(v2.program_pb2.Arg(func=v2.program_pb2.ArgFunction(type='dingdong')))
     with pytest.raises(ValueError, match='Unrecognized Sympy expression'):
         _ = arg_to_proto(sympy.Quaternion(sympy.Symbol('a'), 1, 2, 3))
+
+
+@pytest.mark.parametrize('func_type', ['add', 'mul', 'pow', '==', '<', '&', '^', '!', '[]'])
+def test_sympy_func_rejects_string_arg(func_type):
+    payload = "__import__('builtins').__setattr__('_cirq_pwned', 1)"
+    func = v2.program_pb2.ArgFunction(type=func_type)
+    func.args.add().symbol = 'x'
+    func.args.add().arg_value.string_value = payload
+    with pytest.raises(TypeError, match='Expected a serialized SymPy argument, got str'):
+        _ = arg_from_proto(v2.program_pb2.Arg(func=func))
+    with pytest.raises(TypeError, match='Expected a serialized SymPy argument, got str'):
+        _ = float_arg_from_proto(v2.program_pb2.FloatArg(func=func))
+    assert not hasattr(builtins, '_cirq_pwned')
 
 
 @pytest.mark.parametrize('rotation_angles_arg', [{}, {'rotation_angles': [0.1, 0.3]}])
