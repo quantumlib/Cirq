@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence, Set
-from typing import Any, TYPE_CHECKING
+from typing import Any, Iterable, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -42,13 +42,14 @@ class PauliRotationGate(raw_types.Gate):
     """
 
     def __init__(
-        self, dense_pauli_string: cirq.DensePauliString | str, exponent: cirq.TParamVal = 1
+        self,
+        dense_pauli_string: cirq.DensePauliString | Iterable[cirq.PAULI_GATE_LIKE] | np.ndarray,
+        exponent: cirq.TParamVal = 1,
     ):
         """Initializes the gate.
 
         Args:
-            dense_pauli_string: The Pauli string $P$ to rotate about. Strings will be converted to
-                a DensePauliString.
+            dense_pauli_string: The Pauli string $P$ to rotate about.
             exponent: The exponent $k$ in $e^{i k P}$. Defaults to 1.
 
         Raises:
@@ -56,13 +57,6 @@ class PauliRotationGate(raw_types.Gate):
         """
         if isinstance(dense_pauli_string, str):
             dense_pauli_string = dps.DensePauliString(dense_pauli_string)
-        elif isinstance(dense_pauli_string, dps.BaseDensePauliString):
-            dense_pauli_string = dense_pauli_string.frozen()
-        else:
-            raise TypeError(
-                'dense_pauli_string must be a cirq.DensePauliString or a string, '
-                f'got {type(dense_pauli_string)}.'
-            )
         self._dense_pauli_string: cirq.DensePauliString = dense_pauli_string
         self._exponent: cirq.TParamVal = exponent
 
@@ -78,11 +72,6 @@ class PauliRotationGate(raw_types.Gate):
 
     def _num_qubits_(self) -> int:
         return len(self._dense_pauli_string)
-
-    def on(self, *qubits: cirq.Qid) -> cirq.PauliRotation:
-        from cirq.ops import pauli_rotation
-
-        return pauli_rotation.PauliRotation(self._dense_pauli_string, self._exponent, qubits)
 
     def _value_equality_values_(self) -> Any:
         return (self._dense_pauli_string, self._exponent)

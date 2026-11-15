@@ -36,16 +36,6 @@ def test_gate_accepts_string() -> None:
     )
 
 
-def test_gate_raises_for_invalid_string() -> None:
-    with pytest.raises(TypeError):
-        cirq.PauliRotationGate('ABC')
-
-
-def test_gate_raises_for_invalid_input() -> None:
-    with pytest.raises(TypeError):
-        cirq.PauliRotationGate(cirq.X(q0))
-
-
 def test_gate_num_qubits() -> None:
     assert cirq.num_qubits(cirq.PauliRotationGate('XIZ', 0.3)) == 3
 

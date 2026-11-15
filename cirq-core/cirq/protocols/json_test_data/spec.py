@@ -42,7 +42,6 @@ TestSpec = ModuleJsonTestSpec(
         'KakDecomposition',
         'LinearCombinationOfGates',
         'LinearCombinationOfOperations',
-        'PauliRotation',
         'PauliSumCollector',
         'PauliSumExponential',
         'PeriodicValue',
