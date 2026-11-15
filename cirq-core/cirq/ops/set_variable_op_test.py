@@ -236,13 +236,13 @@ def test_set_variable_act_on_edge_cases() -> None:
     assert state.param_resolver.value_of(a) == 1 + 2j
 
 
-@mock.patch('sympy.sympify')
-def test_set_variable_from_json_rejects_string_expression(mock_sympify: mock.MagicMock) -> None:
+@mock.patch('sympy.parsing.sympy_parser.parse_expr')
+def test_set_variable_from_json_rejects_string_expression(mock_parse_expr: mock.MagicMock) -> None:
     a = sympy.Symbol('a')
     valid = cirq.to_json(cirq.SetVariable(a, sympy.Symbol('b') + 1))
     assert cirq.read_json(json_text=valid) == cirq.SetVariable(a, sympy.Symbol('b') + 1)
 
     malicious = json.dumps({**json.loads(valid), "expression": "b + 1"})
-    with pytest.raises(ValueError, match="must be a serialized sympy expression"):
+    with pytest.raises(TypeError, match="must be a serialized sympy expression"):
         cirq.read_json(json_text=malicious)
-    mock_sympify.assert_not_called()
+    mock_parse_expr.assert_not_called()
