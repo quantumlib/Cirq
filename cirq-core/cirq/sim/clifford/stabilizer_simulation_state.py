@@ -28,8 +28,6 @@ from cirq.protocols import has_unitary, num_qubits, unitary
 from cirq.sim.simulation_state import SimulationState
 
 if TYPE_CHECKING:
-    import numpy as np
-
     import cirq
 
 
@@ -45,7 +43,7 @@ class StabilizerSimulationState(
         self,
         *,
         state: TStabilizerState,
-        prng: np.random.RandomState | None = None,
+        prng: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         qubits: Sequence[cirq.Qid] | None = None,
         classical_data: cirq.ClassicalDataStore | None = None,
     ):
@@ -54,8 +52,8 @@ class StabilizerSimulationState(
         Args:
             state: The quantum stabilizer state to use in the simulation or
                 act_on invocation.
-            prng: The pseudo random number generator to use for probabilistic
-                effects.
+            prng: The pseudo random number generator (or seed) to use for
+                probabilistic effects.
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
@@ -122,6 +120,10 @@ class StabilizerSimulationState(
         return True
 
     def _strat_apply_mixture(self, val: Any, qubits: Sequence[cirq.Qid]) -> bool:
+        if len(qubits) != 1:
+            # The sampled unitary can only be applied via a single-qubit Clifford decomposition
+            # below, so skip computing an exponentially large dense mixture for multi-qubit ops.
+            return NotImplemented
         mixture = protocols.mixture(val, None)
         if mixture is None:
             return NotImplemented
