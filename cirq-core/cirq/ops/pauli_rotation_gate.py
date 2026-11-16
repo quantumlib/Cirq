@@ -14,8 +14,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence, Set
-from typing import Any, Iterable, TYPE_CHECKING
+from collections.abc import Iterable, Sequence, Set
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -55,7 +55,7 @@ class PauliRotationGate(raw_types.Gate):
         Raises:
             TypeError: If `dense_pauli_string` is not a `cirq.DensePauliString` or a string.
         """
-        if isinstance(dense_pauli_string, str):
+        if not isinstance(dense_pauli_string, dps.DensePauliString):
             dense_pauli_string = dps.DensePauliString(dense_pauli_string)
         self._dense_pauli_string: cirq.DensePauliString = dense_pauli_string
         self._exponent: cirq.TParamVal = exponent
@@ -111,13 +111,13 @@ class PauliRotationGate(raw_types.Gate):
                 `exponent * dense_pauli_string.coefficient` is not real.
         """
         if self._is_parameterized_():
-            raise ValueError('PauliRotationGate should not be parameterized.')
+            raise ValueError("PauliRotationGate should not be parameterized.")
         angle = complex(self._angle())
         if not self._has_real_angle():
             raise ValueError(
-                f'PauliRotationGate requires the resulting exponent '
-                f'(exponent * dense_pauli_string.coefficient) to have no imaginary component. '
-                f'Got {angle}.'
+                f"PauliRotationGate requires the resulting exponent "
+                f"(exponent * dense_pauli_string.coefficient) to have no imaginary component. "
+                f"Got {angle}."
             )
         identity = np.eye(2 ** self._num_qubits_(), dtype=np.complex128)
         pauli_unitary = protocols.unitary(self._unit_pauli_string())
@@ -161,12 +161,12 @@ class PauliRotationGate(raw_types.Gate):
 
     def __repr__(self) -> str:
         return (
-            f'cirq.PauliRotationGate({self._dense_pauli_string!r}, '
-            f'{_compat.proper_repr(self._exponent)})'
+            f"cirq.PauliRotationGate({self._dense_pauli_string!r}, "
+            f"{_compat.proper_repr(self._exponent)})"
         )
 
     def __str__(self) -> str:
-        return f'exp(j * {self._exponent!s} * ({self._dense_pauli_string!s}))'
+        return f"exp(j * {self._exponent!s} * ({self._dense_pauli_string!s}))"
 
     def _json_dict_(self) -> dict[str, Any]:
-        return protocols.obj_to_dict_helper(self, ['dense_pauli_string', 'exponent'])
+        return protocols.obj_to_dict_helper(self, ["dense_pauli_string", "exponent"])
