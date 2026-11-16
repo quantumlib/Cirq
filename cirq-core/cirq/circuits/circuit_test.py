@@ -5135,7 +5135,6 @@ def test_insert_earliest_batch() -> None:
 
 
 def test_insert_in_existing_moment_same_measurement_key_different_qubits() -> None:
-    q0, q1 = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.measure(q0, key="k"))
 
     op_to_add = cirq.measure(q1, key="k")
@@ -5156,6 +5155,20 @@ def test_insert_in_existing_moment_measurement_control_key_conflict() -> None:
 
     assert c == cirq.Circuit(
         cirq.Moment(cirq.X(q1).with_classical_controls("k")), cirq.Moment(cirq.measure(q0, key="k"))
+    )
+
+
+def test_init_same_measurement_key_different_qubits() -> None:
+    assert cirq.Circuit(cirq.measure(q0, key="k"), cirq.measure(q1, key="k")) == cirq.Circuit(
+        cirq.Moment(cirq.measure(q0, key="k")), cirq.Moment(cirq.measure(q1, key="k"))
+    )
+
+
+def test_init_measurement_control_key_conflict() -> None:
+    assert cirq.Circuit(
+        cirq.measure(q0, key="k"), cirq.X(q1).with_classical_controls("k")
+    ) == cirq.Circuit(
+        cirq.Moment(cirq.measure(q0, key="k")), cirq.Moment(cirq.X(q1).with_classical_controls("k"))
     )
 
 
@@ -5186,7 +5199,6 @@ def test_moment_with_overlapping_keys_is_added_intact(
     assert len(cirq.Circuit(moment.operations, strategy=strategy)) == 2
 
     # __init__ adds the moment intact
-    assert cirq.Circuit(moment, strategy=strategy) == cirq.Circuit([moment])
     assert cirq.Circuit(cirq.X(q0), moment, cirq.Y(q0), strategy=strategy) == cirq.Circuit(
         [cirq.Moment(cirq.X(q0)), moment, cirq.Moment(cirq.Y(q0))]
     )
@@ -5196,7 +5208,12 @@ def test_moment_with_overlapping_keys_is_added_intact(
     c.append(moment, strategy=strategy)
     assert c == cirq.Circuit([cirq.Moment(cirq.X(q0)), moment])
 
-    # insert adds the moment intact
+    # insert adds the moment intact (empty starting circuit)
+    c = cirq.Circuit()
+    c.insert(0, moment, strategy=strategy)
+    assert c.moments == [moment]
+
+    # insert adds the moment intact (starting circuit with operations)
     c = cirq.Circuit(cirq.X(q0), cirq.Y(q0))
     assert c.insert(1, moment, strategy=strategy) == 2
     assert c == cirq.Circuit([cirq.Moment(cirq.X(q0)), moment, cirq.Moment(cirq.Y(q0))])
@@ -5228,3 +5245,17 @@ def test_multi_qubit_measurement_with_single_key_is_added_to_single_moment(
     c = cirq.Circuit([cirq.measure(q, key="m") for q in (q0, q1, q2, q3)], strategy=strategy)
     assert len(c) == 4
     assert cirq.measurement_key_names(c) == {"m"}
+
+
+def test_init_op_with_same_measurement_key_is_not_added_to_previous_moment() -> None:
+    m = cirq.Moment(cirq.measure(q0, key="k"))
+    assert cirq.Circuit(m, cirq.measure(q1, key="k")) == cirq.Circuit(
+        cirq.Moment(cirq.measure(q0, key="k")), cirq.Moment(cirq.measure(q1, key="k"))
+    )
+
+
+def test_init_op_with_control_key_conflict_is_not_added_to_previous_moment() -> None:
+    m = cirq.Moment(cirq.measure(q0, key="k"))
+    assert cirq.Circuit(m, cirq.X(q1).with_classical_controls("k")) == cirq.Circuit(
+        cirq.Moment(cirq.measure(q0, key="k")), cirq.Moment(cirq.X(q1).with_classical_controls("k"))
+    )

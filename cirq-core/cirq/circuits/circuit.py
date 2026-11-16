@@ -2626,7 +2626,7 @@ class Circuit(AbstractCircuit):
         still share a moment. To measure several qubits under one key, prefer
         a single multi-qubit measurement, e.g. `cirq.measure(q0, q1, key="m")`,
         or use distinct keys. An explicitly constructed `cirq.Moment` is
-        inserted intact and its operations are not checked for overlapping
+        appended intact and its operations are not checked for overlapping
         keys; therefore such operations can be intentionally packed into one
         moment, e.g. `cirq.Moment(cirq.measure(q0, key="m"), cirq.measure(q1, key="m"))`.
 

@@ -1007,9 +1007,9 @@ def test_moment_with_tags() -> None:
 def test_moment_with_same_measurement_keys() -> None:
     """Moments may hold several measurements with the same key."""
     q0, q1 = cirq.LineQubit.range(2)
-    m0, m1 = cirq.measure(q0, key="k"), cirq.measure(q1, key="k")
+    mk0, mk1 = cirq.measure(q0, key="k"), cirq.measure(q1, key="k")
 
-    m = cirq.Moment(m0, m1)
+    m = cirq.Moment(mk0, mk1)
     assert len(m) == 2
     assert cirq.measurement_key_names(m[q0]) == {"k"}
     assert cirq.measurement_key_names(m[q1]) == {"k"}
@@ -1019,20 +1019,20 @@ def test_moment_with_same_measurement_keys() -> None:
 def test_moment_from_ops_with_same_measurement_key() -> None:
     """An operation added to a moment can have the same measurement key as an existing op."""
     q0, q1 = cirq.LineQubit.range(2)
-    m0, m1 = cirq.measure(q0, key="k"), cirq.measure(q1, key="k")
+    mk0, mk1 = cirq.measure(q0, key="k"), cirq.measure(q1, key="k")
 
-    m = cirq.Moment(m0, m1)
-    assert cirq.Moment.from_ops(m0, m1) == m
-    assert cirq.Moment(m0).with_operation(m1) == m
-    assert cirq.Moment(m0).with_operations(m1) == m
+    m = cirq.Moment(mk0, mk1)
+    assert cirq.Moment.from_ops(mk0, mk1) == m
+    assert cirq.Moment(mk0).with_operation(mk1) == m
+    assert cirq.Moment(mk0).with_operations(mk1) == m
 
 
 def test_moment_with_same_measurement_control_keys() -> None:
     """Moments may hold a measurement and an operation classically controlled by its key."""
     q0, q1 = cirq.LineQubit.range(2)
-    m0, cx1 = cirq.measure(q0, key="k"), cirq.X(q1).with_classical_controls("k")
+    mk0, cx1 = cirq.measure(q0, key="k"), cirq.X(q1).with_classical_controls("k")
 
-    m = cirq.Moment(m0, cx1)
+    m = cirq.Moment(mk0, cx1)
     assert len(m) == 2
     assert cirq.measurement_key_names(m[q0]) == {"k"}
     assert cirq.control_keys(m[q1]) == {"k"}
@@ -1041,11 +1041,11 @@ def test_moment_with_same_measurement_control_keys() -> None:
 
 
 def test_moment_from_ops_with_same_measurement_control_keys() -> None:
-    """An operation added to a moment can be a controlled by a key measured in the moment."""
+    """An operation added to a moment can be controlled by a key measured in the moment."""
     q0, q1 = cirq.LineQubit.range(2)
-    m0, cx1 = cirq.measure(q0, key="k"), cirq.X(q1).with_classical_controls("k")
+    mk0, cx1 = cirq.measure(q0, key="k"), cirq.X(q1).with_classical_controls("k")
 
-    m = cirq.Moment(m0, cx1)
-    assert cirq.Moment.from_ops(m0, cx1) == m
-    assert cirq.Moment(m0).with_operation(cx1) == m
-    assert cirq.Moment(m0).with_operations(cx1) == m
+    m = cirq.Moment(mk0, cx1)
+    assert cirq.Moment.from_ops(mk0, cx1) == m
+    assert cirq.Moment(mk0).with_operation(cx1) == m
+    assert cirq.Moment(mk0).with_operations(cx1) == m
