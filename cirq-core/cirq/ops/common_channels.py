@@ -848,8 +848,8 @@ class PhaseDampingChannel(raw_types.Gate):
         return True
 
     def _mixture_(self) -> Sequence[tuple[float, Any]]:
-        # p = gamma / (2 * (1 - sqrt(1 - gamma))) is algebraically equal to (1 - sqrt(1 - gamma)) / 2,
-        # but avoids cancellation for small values of gamma.
+        # p = gamma / (2 * (1 - sqrt(1 - gamma))) is algebraically equal to
+        # (1 - sqrt(1 - gamma)) / 2, but avoids cancellation for small values of gamma.
         p = float(self._gamma / (2.0 * (1.0 + np.sqrt(1.0 - self._gamma))))
         return ((1.0 - p, identity.I), (p, pauli_gates.Z))
 
