@@ -848,7 +848,8 @@ class PhaseDampingChannel(raw_types.Gate):
         return True
 
     def _mixture_(self) -> Sequence[tuple[float, Any]]:
-        # Algebraically equal to (1 - sqrt(1 - gamma)) / 2, but avoids cancellation for small gamma.
+        # p = gamma / (2 * (1 - sqrt(1 - gamma))) is algebraically equal to (1 - sqrt(1 - gamma)) / 2,
+        # but avoids cancellation for small values of gamma.
         p = float(self._gamma / (2.0 * (1.0 + np.sqrt(1.0 - self._gamma))))
         return ((1.0 - p, identity.I), (p, pauli_gates.Z))
 
@@ -903,6 +904,9 @@ def phase_damp(gamma: float) -> PhaseDampingChannel:
           \end{bmatrix}
     \end{aligned}
     $$
+
+    This channel also has a mixture representation like the
+    phase flip channel
 
     Args:
         gamma: The damping constant.
