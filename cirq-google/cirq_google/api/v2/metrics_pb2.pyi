@@ -28,6 +28,7 @@ class MetricsSnapshot(_message.Message):
 
     TIMESTAMP_MS_FIELD_NUMBER: _builtins.int
     METRICS_FIELD_NUMBER: _builtins.int
+    METRIC_SETS_FIELD_NUMBER: _builtins.int
     timestamp_ms: _builtins.int
     """The time the metrics were collected, in unix time (milliseconds since
     Epoch minus leap seconds). Metric collection take time, so this is the
@@ -37,19 +38,103 @@ class MetricsSnapshot(_message.Message):
     def metrics(self) -> _containers.RepeatedCompositeFieldContainer[Global___Metric]:
         """All of the metrics collected during this snapshot."""
 
+    @_builtins.property
+    def metric_sets(self) -> _containers.RepeatedCompositeFieldContainer[Global___MetricSet]:
+        """Metrics collected during this snapshot, grouped by metric name.
+
+        This is a more compact alternative to `metrics` for metrics with a single
+        value per set of targets: the metric name is stored once per metric set
+        rather than once per target, and each measurement can carry its
+        uncertainty (rather than it being stored as a separate metric, e.g. by
+        the convention of naming it `<name>_ERR`). Metrics with multiple values
+        per set of targets must use `metrics`.
+
+        A snapshot may populate `metrics`, `metric_sets`, or both. If both have
+        an entry for the same metric name and targets, readers should use the one
+        in `metric_sets`.
+        """
+
     def __init__(
         self,
         *,
         timestamp_ms: _builtins.int = ...,
         metrics: _abc.Iterable[Global___Metric] | None = ...,
+        metric_sets: _abc.Iterable[Global___MetricSet] | None = ...,
     ) -> None: ...
     _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
     def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["metrics", b"metrics", "timestamp_ms", b"timestamp_ms"]  # noqa: Y015
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["metric_sets", b"metric_sets", "metrics", b"metrics", "timestamp_ms", b"timestamp_ms"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
     def WhichOneof(self, oneof_group: _Never) -> None: ...
 
 Global___MetricsSnapshot: _TypeAlias = MetricsSnapshot  # noqa: Y015
+
+@_typing.final
+class MetricSet(_message.Message):
+    """All measurements of a single metric, e.g. 't1' measured on every qubit."""
+
+    DESCRIPTOR: _descriptor.Descriptor
+
+    @_typing.final
+    class Measurement(_message.Message):
+        """A single measurement of the metric on a set of targets."""
+
+        DESCRIPTOR: _descriptor.Descriptor
+
+        TARGETS_FIELD_NUMBER: _builtins.int
+        VALUE_FIELD_NUMBER: _builtins.int
+        UNCERTAINTY_FIELD_NUMBER: _builtins.int
+        @_builtins.property
+        def targets(self) -> _containers.RepeatedScalarFieldContainer[_builtins.str]:
+            """The targets of the measurement, e.g. one qubit (`q0_1`) for
+            single-qubit metrics or two qubits for two-qubit metrics. May be empty
+            when the metric applies globally.
+            """
+
+        @_builtins.property
+        def value(self) -> Global___Value:
+            """The measured value. Unset if the metric has no value for these targets."""
+
+        @_builtins.property
+        def uncertainty(self) -> Global___Value:
+            """The uncertainty of the measured value. Unset if it is not known."""
+
+        def __init__(
+            self,
+            *,
+            targets: _abc.Iterable[_builtins.str] | None = ...,
+            value: Global___Value | None = ...,
+            uncertainty: Global___Value | None = ...,
+        ) -> None: ...
+        _HasFieldArgType: _TypeAlias = _typing.Literal["uncertainty", b"uncertainty", "value", b"value"]  # noqa: Y015
+        def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+        _ClearFieldArgType: _TypeAlias = _typing.Literal["targets", b"targets", "uncertainty", b"uncertainty", "value", b"value"]  # noqa: Y015
+        def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+        def WhichOneof(self, oneof_group: _Never) -> None: ...
+
+    NAME_FIELD_NUMBER: _builtins.int
+    MEASUREMENTS_FIELD_NUMBER: _builtins.int
+    name: _builtins.str
+    """The name of the metric. This is the type of metric, e.g. 't1' or
+    'randomized_benchmarking'.
+    """
+    @_builtins.property
+    def measurements(self) -> _containers.RepeatedCompositeFieldContainer[Global___MetricSet.Measurement]:
+        """The measurements of this metric, one per set of targets."""
+
+    def __init__(
+        self,
+        *,
+        name: _builtins.str = ...,
+        measurements: _abc.Iterable[Global___MetricSet.Measurement] | None = ...,
+    ) -> None: ...
+    _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["measurements", b"measurements", "name", b"name"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def WhichOneof(self, oneof_group: _Never) -> None: ...
+
+Global___MetricSet: _TypeAlias = MetricSet  # noqa: Y015
 
 @_typing.final
 class Metric(_message.Message):
