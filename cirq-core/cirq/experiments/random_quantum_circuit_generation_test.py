@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import itertools
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence, Set as AbstractSet
 from typing import cast
 
 import networkx as nx
@@ -36,7 +36,7 @@ from cirq.experiments.random_quantum_circuit_generation import (
     random_rotations_between_two_qubit_circuit,
 )
 
-SINGLE_QUBIT_LAYER = dict[cirq.GridQubit, cirq.Gate | None]
+SINGLE_QUBIT_LAYER = dict[cirq.Qid, cirq.Gate | None]
 
 
 def test_random_rotation_between_two_qubit_circuit() -> None:
@@ -46,34 +46,30 @@ def test_random_rotation_between_two_qubit_circuit() -> None:
     assert circuit.all_qubits() == {q0, q1}
 
     circuit = random_rotations_between_two_qubit_circuit(
-        q0, q1, 4, seed=52, add_final_single_qubit_layer=False
+        q0, q1, 4, seed=52, add_final_single_qubit_layer=True
     )
-    assert len(circuit) == 4 * 2
+    assert len(circuit) == 4 * 2 + 1
     assert circuit.all_qubits() == {q0, q1}
 
-    cirq.testing.assert_has_diagram(
-        circuit,
-        """\
-0             1
-│             │
-Y^0.5         X^0.5
-│             │
-@─────────────@
-│             │
-PhX(0.25)^0.5 Y^0.5
-│             │
-@─────────────@
-│             │
-Y^0.5         X^0.5
-│             │
-@─────────────@
-│             │
-X^0.5         PhX(0.25)^0.5
-│             │
-@─────────────@
-│             │""",
-        transpose=True,
+    single_qubit_gates = (
+        cirq.X**0.5,
+        cirq.Y**0.5,
+        cirq.PhasedXPowGate(phase_exponent=0.25, exponent=0.5),
     )
+    single_qubit_moments = circuit[::2]
+    two_qubit_moments = circuit[1::2]
+    assert all(m == cirq.Moment(cirq.CZ(q0, q1)) for m in two_qubit_moments)
+    assert all(op.gate in single_qubit_gates for m in single_qubit_moments for op in m)
+    _validate_single_qubit_layers({q0, q1}, single_qubit_moments)
+
+    circuit2 = random_rotations_between_two_qubit_circuit(
+        q0, q1, 4, seed=np.random.default_rng(52), add_final_single_qubit_layer=True
+    )
+    assert circuit2 == circuit
+    circuit3 = random_rotations_between_two_qubit_circuit(
+        q0, q1, 4, seed=53, add_final_single_qubit_layer=True
+    )
+    assert circuit3 != circuit
 
 
 def test_generate_library_of_2q_circuits() -> None:
@@ -246,9 +242,7 @@ def test_random_combinations_layer_circuit_vs_device() -> None:
         assert np.all(comb1.combinations == comb2.combinations)
 
 
-def _cz_with_adjacent_z_rotations(
-    a: cirq.GridQubit, b: cirq.GridQubit, prng: np.random.RandomState
-):
+def _cz_with_adjacent_z_rotations(a: cirq.GridQubit, b: cirq.GridQubit, prng: np.random.Generator):
     z_exponents = [prng.uniform(0, 1) for _ in range(4)]
     yield cirq.Z(a) ** z_exponents[0]
     yield cirq.Z(b) ** z_exponents[1]
@@ -370,7 +364,7 @@ def test_random_rotations_between_grid_interaction_layers(
     qubits: Iterable[cirq.GridQubit],
     depth: int,
     two_qubit_op_factory: Callable[
-        [cirq.GridQubit, cirq.GridQubit, np.random.RandomState], cirq.OP_TREE
+        [cirq.GridQubit, cirq.GridQubit, np.random.Generator], cirq.OP_TREE
     ],
     pattern: Sequence[GridInteractionLayer],
     single_qubit_gates: Sequence[cirq.Gate],
@@ -460,7 +454,7 @@ def test_grid_interaction_layer_repr() -> None:
 
 
 def _validate_single_qubit_layers(
-    qubits: set[cirq.GridQubit], moments: Sequence[cirq.Moment], non_repeating_layers: bool = True
+    qubits: AbstractSet[cirq.Qid], moments: Iterable[cirq.Moment], non_repeating_layers: bool = True
 ) -> None:
     previous_single_qubit_gates: SINGLE_QUBIT_LAYER = dict.fromkeys(qubits)
 
@@ -472,7 +466,7 @@ def _validate_single_qubit_layers(
             assert cirq.num_qubits(op) == 1
             if non_repeating_layers:
                 # Gate differs from previous single-qubit gate on this qubit
-                q = cast(cirq.GridQubit, op.qubits[0])
+                q = op.qubits[0]
                 assert op.gate != previous_single_qubit_gates[q]
                 previous_single_qubit_gates[q] = op.gate
 
