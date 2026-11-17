@@ -66,9 +66,13 @@ To get started with using Cirq in general, please refer to the [Cirq
 documentation site].
 
 For more information about getting help, reporting bugs, and other matters
-related to Cirq and the Cirq-Core integration module, please visit the [Cirq
+related to Cirq and the `cirq-google` integration module, please visit the [Cirq
 repository on GitHub](https://github.com/quantumlib/Cirq).
 
 ## Disclaimer
 
-Cirq is not an official Google product. Copyright 2019 The Cirq Developers.
+This is not an officially supported Google product. This project is not
+eligible for the [Google Open Source Software Vulnerability Rewards
+Program](https://bughunters.google.com/open-source-security).
+
+Copyright 2018 The Cirq Developers.

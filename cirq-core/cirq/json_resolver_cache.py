@@ -17,12 +17,11 @@ from __future__ import annotations
 
 import datetime
 import functools
-from typing import NamedTuple, TYPE_CHECKING
+from typing import Any, NamedTuple, TYPE_CHECKING, TypeVar
 
 if TYPE_CHECKING:
     import cirq
     from cirq.protocols.json_serialization import ObjectFactory
-
 
 # Needed for backwards compatible named tuples of CrossEntropyResult
 CrossEntropyPair = NamedTuple('CrossEntropyPair', [('num_cycle', int), ('xeb_fidelity', float)])
@@ -44,12 +43,15 @@ CrossEntropyResultDict = NamedTuple(
 def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     import numpy as np
     import pandas as pd
+    import sympy
 
     import cirq
     from cirq.devices import InsertionNoiseModel, NoiseModelFromNoiseProperties, ThermalNoiseModel
     from cirq.devices.noise_model import _NoNoiseModel
     from cirq.experiments import GridInteractionLayer
     from cirq.ops import raw_types
+
+    TSymPy = TypeVar('TSymPy', bound=sympy.Basic)
 
     def _boolean_hamiltonian_gate_op(qubit_map, boolean_strs, theta):
         return cirq.BooleanHamiltonianGate(
@@ -99,7 +101,12 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
     def _symmetricalqidpair(qids):
         return frozenset(qids)
 
-    import sympy
+    def _sympy_check_args(cls: type[TSymPy], allowed_type: type, *args: Any) -> TSymPy:
+        """Instantiate SymPy class after ensuring all arguments are of the `allowed_type` type."""
+        for arg in args:
+            if not isinstance(arg, allowed_type):
+                raise TypeError(f"Expected a serialized SymPy argument, got {type(arg).__name__}.")
+        return cls(*args)
 
     return {
         'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
@@ -273,25 +280,29 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'pandas.DataFrame': pd.DataFrame,
         'pandas.Index': pd.Index,
         'pandas.MultiIndex': pd.MultiIndex.from_tuples,
-        'sympy.Symbol': sympy.Symbol,
-        'sympy.Add': lambda args: sympy.Add(*args),
-        'sympy.Mul': lambda args: sympy.Mul(*args),
-        'sympy.Pow': lambda args: sympy.Pow(*args),
-        'sympy.GreaterThan': lambda args: sympy.GreaterThan(*args),
-        'sympy.StrictGreaterThan': lambda args: sympy.StrictGreaterThan(*args),
-        'sympy.LessThan': lambda args: sympy.LessThan(*args),
-        'sympy.StrictLessThan': lambda args: sympy.StrictLessThan(*args),
-        'sympy.Equality': lambda args: sympy.Equality(*args),
-        'sympy.Unequality': lambda args: sympy.Unequality(*args),
-        'sympy.And': lambda args: sympy.And(*args),
-        'sympy.Or': lambda args: sympy.Or(*args),
-        'sympy.Not': lambda args: sympy.Not(*args),
-        'sympy.Xor': lambda args: sympy.Xor(*args),
-        'sympy.Indexed': lambda args: sympy.Indexed(*args),
-        'sympy.IndexedBase': lambda args: sympy.IndexedBase(*args),
-        'sympy.Float': lambda approx: sympy.Float(approx),
-        'sympy.Integer': sympy.Integer,
-        'sympy.Rational': sympy.Rational,
+        'sympy.Symbol': lambda name: _sympy_check_args(sympy.Symbol, str, name),
+        'sympy.Add': lambda args: _sympy_check_args(sympy.Add, sympy.Basic, *args),
+        'sympy.Mul': lambda args: _sympy_check_args(sympy.Mul, sympy.Basic, *args),
+        'sympy.Pow': lambda args: _sympy_check_args(sympy.Pow, sympy.Basic, *args),
+        'sympy.GreaterThan': lambda args: _sympy_check_args(sympy.GreaterThan, sympy.Basic, *args),
+        'sympy.StrictGreaterThan': lambda args: _sympy_check_args(
+            sympy.StrictGreaterThan, sympy.Basic, *args
+        ),
+        'sympy.LessThan': lambda args: _sympy_check_args(sympy.LessThan, sympy.Basic, *args),
+        'sympy.StrictLessThan': lambda args: _sympy_check_args(
+            sympy.StrictLessThan, sympy.Basic, *args
+        ),
+        'sympy.Equality': lambda args: _sympy_check_args(sympy.Equality, sympy.Basic, *args),
+        'sympy.Unequality': lambda args: _sympy_check_args(sympy.Unequality, sympy.Basic, *args),
+        'sympy.And': lambda args: _sympy_check_args(sympy.And, sympy.Basic, *args),
+        'sympy.Or': lambda args: _sympy_check_args(sympy.Or, sympy.Basic, *args),
+        'sympy.Not': lambda args: _sympy_check_args(sympy.Not, sympy.Basic, *args),
+        'sympy.Xor': lambda args: _sympy_check_args(sympy.Xor, sympy.Basic, *args),
+        'sympy.Indexed': lambda args: _sympy_check_args(sympy.Indexed, sympy.Basic, *args),
+        'sympy.IndexedBase': lambda args: _sympy_check_args(sympy.IndexedBase, sympy.Basic, *args),
+        'sympy.Float': lambda approx: _sympy_check_args(sympy.Float, float, approx),
+        'sympy.Integer': lambda i: _sympy_check_args(sympy.Integer, int, i),
+        'sympy.Rational': lambda p, q: _sympy_check_args(sympy.Rational, int, p, q),
         'sympy.pi': lambda: sympy.pi,
         'sympy.E': lambda: sympy.E,
         'sympy.EulerGamma': lambda: sympy.EulerGamma,
