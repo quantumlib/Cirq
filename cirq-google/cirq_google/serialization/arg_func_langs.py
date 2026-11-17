@@ -454,7 +454,7 @@ def _arg_func_from_proto(
         )
     if func.type == "[]":
         # Handle sympy.Indexed i.e. M[a, b] as a special case.
-        base = sympy.IndexedBase(arg_from_proto(func.args[0]))
+        base = sympy.IndexedBase(_check_sympy_arg(arg_from_proto(func.args[0])))
         args = [_check_sympy_arg(arg_from_proto(a)) for a in func.args[1:]]
         return sympy.Indexed(base, *args)
     raise ValueError(f'Unrecognized sympy function {func}')
