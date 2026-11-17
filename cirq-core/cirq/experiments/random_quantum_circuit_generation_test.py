@@ -237,9 +237,7 @@ def test_random_combinations_layer_circuit_vs_device() -> None:
         assert np.all(comb1.combinations == comb2.combinations)
 
 
-def _cz_with_adjacent_z_rotations(
-    a: cirq.GridQubit, b: cirq.GridQubit, prng: np.random.Generator
-):
+def _cz_with_adjacent_z_rotations(a: cirq.GridQubit, b: cirq.GridQubit, prng: np.random.Generator):
     z_exponents = [prng.uniform(0, 1) for _ in range(4)]
     yield cirq.Z(a) ** z_exponents[0]
     yield cirq.Z(b) ** z_exponents[1]

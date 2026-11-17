@@ -34,7 +34,7 @@ def random_superposition(
     Args:
         dim: The dimension of the vector.
         random_state: A seed (int) or `np.random.Generator` to use when
-            generating random values.  Use a default unseeded generator
+            generating random values. Use a default unseeded generator
             when unspecified.
 
     Returns:
@@ -53,7 +53,9 @@ def random_density_matrix(
 
     Args:
         dim: The width and height of the matrix.
-        random_state: A seed to use for random number generation.
+        random_state: A seed (int) or `np.random.Generator` to use when
+            generating random values. Use a default unseeded generator
+            when unspecified.
 
     Returns:
         The sampled density matrix.
@@ -74,7 +76,9 @@ def random_unitary(dim: int, *, random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = N
 
     Args:
         dim: The width and height of the matrix.
-        random_state: A seed to use for random number generation.
+        random_state: A seed (int) or `np.random.Generator` to use when
+            generating random values. Use a default unseeded generator
+            when unspecified.
 
     Returns:
         The sampled unitary matrix.
@@ -99,8 +103,8 @@ def random_orthogonal(
     Args:
         dim: The width and height of the matrix.
         random_state: A seed (int) or `np.random.Generator` to use when
-            generating random values. If not set, a new unseeded generator is
-            used.
+            generating random values. Use a default unseeded generator
+            when unspecified.
 
     Returns:
         The sampled orthogonal matrix.
@@ -125,8 +129,8 @@ def random_special_unitary(
     Args:
         dim: The width and height of the matrix.
         random_state: A seed (int) or `np.random.Generator` to use when
-            generating random values. If not set, a new unseeded generator is
-            used.
+            generating random values. Use a default unseeded generator
+            when unspecified.
 
     Returns:
         The sampled special unitary.
@@ -145,8 +149,8 @@ def random_special_orthogonal(
     Args:
         dim: The width and height of the matrix.
         random_state: A seed (int) or `np.random.Generator` to use when
-            generating random values. If not set, a new unseeded generator is
-            used.
+            generating random values. Use a default unseeded generator
+            when unspecified.
 
     Returns:
         The sampled special orthogonal matrix.

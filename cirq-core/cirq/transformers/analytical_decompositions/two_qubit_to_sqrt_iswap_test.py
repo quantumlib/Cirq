@@ -29,7 +29,7 @@ def random_unitary(seed: cirq.RANDOM_STATE_OR_SEED_LIKE) -> np.ndarray:
 
 
 def random_locals(x: float, y: float, z: float, seed=None) -> np.ndarray:
-    rng = np.random.RandomState(seed)
+    rng = cirq.value.parse_random_generator(seed)
     a0 = cirq.testing.random_unitary(2, random_state=rng)
     a1 = cirq.testing.random_unitary(2, random_state=rng)
     b0 = cirq.testing.random_unitary(2, random_state=rng)

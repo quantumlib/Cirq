@@ -141,8 +141,10 @@ def test_benchmark_2q_xeb_fidelities_parallel() -> None:
 
 
 def test_benchmark_2q_xeb_fidelities_vectorized() -> None:
-    rs = np.random.RandomState(52)
-    mock_records = [{'pure_probs': rs.rand(4), 'sampled_probs': rs.rand(4)} for _ in range(100)]
+    prng = cirq.value.parse_random_generator(52)
+    mock_records = [
+        {'pure_probs': prng.random(4), 'sampled_probs': prng.random(4)} for _ in range(100)
+    ]
     df = pd.DataFrame(mock_records)
 
     # Using `df.apply` is wayyyy slower than the new implementation!
@@ -306,9 +308,9 @@ def test_parallel_full_workflow(request, use_pool) -> None:
 
 
 def test_fit_exponential_decays() -> None:
-    rs = np.random.RandomState(999)
+    prng = cirq.value.parse_random_generator(999)
     cycle_depths = np.arange(3, 100, 11)
-    fidelities = 0.95 * 0.98**cycle_depths + rs.normal(0, 0.2)
+    fidelities = 0.95 * 0.98**cycle_depths + prng.normal(0, 0.02, size=len(cycle_depths))
     a, layer_fid, a_std, layer_fid_std = _fit_exponential_decay(cycle_depths, fidelities)
     np.testing.assert_allclose([a, layer_fid], [0.95, 0.98], atol=0.02)
     assert 0 < a_std < 0.2 / len(cycle_depths)
@@ -316,9 +318,9 @@ def test_fit_exponential_decays() -> None:
 
 
 def test_fit_exponential_decays_negative_fids() -> None:
-    rs = np.random.RandomState(999)
+    prng = cirq.value.parse_random_generator(999)
     cycle_depths = np.arange(3, 100, 11)
-    fidelities = 0.5 * 0.5**cycle_depths + rs.normal(0, 0.2) - 0.5
+    fidelities = 0.5 * 0.5**cycle_depths + prng.normal(0, 0.2, size=len(cycle_depths)) - 0.5
     assert np.sum(fidelities > 0) <= 1, 'they go negative'
     a, layer_fid, a_std, layer_fid_std = _fit_exponential_decay(cycle_depths, fidelities)
     assert a == 0

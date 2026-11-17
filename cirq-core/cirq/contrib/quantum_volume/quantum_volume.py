@@ -39,18 +39,18 @@ def generate_model_circuit(
     # Setup the circuit and its qubits.
     qubits = cirq.LineQubit.range(num_qubits)
     circuit = cirq.Circuit()
-    random_state = cirq.value.parse_random_generator(random_state)
+    prng = cirq.value.parse_random_generator(random_state)
 
     # For each layer.
     for _ in range(depth):
         # Generate uniformly random permutation Pj of [0...n-1]
-        perm = random_state.permutation(num_qubits)
+        perm = prng.permutation(num_qubits)
 
         # For each consecutive pair in Pj, generate Haar random SU(4)
         # Decompose each SU(4) into CNOT + SU(2) and add to Ci
         for k in range(0, num_qubits - 1, 2):
             permuted_indices = [int(perm[k]), int(perm[k + 1])]
-            special_unitary = cirq.testing.random_special_unitary(4, random_state=random_state)
+            special_unitary = cirq.testing.random_special_unitary(4, random_state=prng)
 
             # Convert the decomposed unitary to Cirq operations and add them to
             # the circuit.

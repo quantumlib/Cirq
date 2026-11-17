@@ -31,7 +31,21 @@ def get_seeded_initial_mapping(graph_seed, init_seed) -> dict[cirq.Qid, cirq.Qid
     return ccr.initialization.get_initial_mapping(logical_graph, device_graph, init_seed)
 
 
-@pytest.mark.parametrize('seed', [random.randint(0, 2**32) for _ in range(10)])
+@pytest.mark.parametrize(
+    'seed',
+    [
+        2808166307,
+        2964856584,
+        3863580774,
+        1207019995,
+        2077596062,
+        4124502545,
+        3813097263,
+        1379865102,
+        3125474506,
+        3624983485,
+    ],
+)
 def test_initialization_reproducible_with_seed(seed) -> None:
     wrappers = (lambda s: s, np.random.default_rng)
     mappings = [
