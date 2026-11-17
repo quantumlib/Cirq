@@ -34,16 +34,16 @@ def get_seeded_initial_mapping(graph_seed, init_seed) -> dict[cirq.Qid, cirq.Qid
 @pytest.mark.parametrize(
     'seed',
     [
+        1207019995,
+        1379865102,
+        2077596062,
         2808166307,
         2964856584,
-        3863580774,
-        1207019995,
-        2077596062,
-        4124502545,
-        3813097263,
-        1379865102,
         3125474506,
         3624983485,
+        3813097263,
+        3863580774,
+        4124502545,
     ],
 )
 def test_initialization_reproducible_with_seed(seed) -> None:
