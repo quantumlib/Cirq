@@ -572,7 +572,6 @@ def test_phase_damping_mixture_matches_kraus(gamma: float) -> None:
     d = cirq.phase_damp(gamma)
     mixture_kraus = [np.sqrt(p) * u for p, u in cirq.mixture(d)]
     np.testing.assert_allclose(cirq.kraus_to_choi(cirq.kraus(d)), cirq.kraus_to_choi(mixture_kraus))
-    )
 
 
 def test_phase_damping_channel_repr() -> None:
