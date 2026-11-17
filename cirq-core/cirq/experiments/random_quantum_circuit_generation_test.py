@@ -238,7 +238,7 @@ def test_random_combinations_layer_circuit_vs_device() -> None:
 
 
 def _cz_with_adjacent_z_rotations(
-    a: cirq.GridQubit, b: cirq.GridQubit, prng: np.random.RandomState
+    a: cirq.GridQubit, b: cirq.GridQubit, prng: np.random.Generator
 ):
     z_exponents = [prng.uniform(0, 1) for _ in range(4)]
     yield cirq.Z(a) ** z_exponents[0]

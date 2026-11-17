@@ -200,7 +200,8 @@ def random_rotations_between_two_qubit_circuit(
         two_qubit_op_factory: A callable that returns a two-qubit operation.
             These operations will be generated with calls of the form
             `two_qubit_op_factory(q0, q1, prng)`, where `prng` is the
-            pseudorandom number generator.
+            pseudorandom number generator in the form of a
+            `np.random.Generator` object.
         single_qubit_gates: Single-qubit gates are selected randomly from this
             sequence. No qubit is acted upon by the same single-qubit gate in
             consecutive cycles. If only one choice of single-qubit gate is

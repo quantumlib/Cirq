@@ -61,11 +61,11 @@ def random_qubit_unitary(
             sampled randomly. This corresponds to sampling over U(2) instead of
             SU(2).
         rng: Random number generator (or seed) to be used in sampling. Anything
-            accepted by `cirq.value.parse_random_generator`. Default is a new,
-            unseeded `np.random.Generator`.
+            accepted by `cirq.value.parse_random_generator`. If unspecified,
+            use a default unseeded `np.random.Generator`.
     """
     real_rng = random_state.parse_random_generator(rng)
-    size = tuple(shape)
+    shape = tuple(shape)
 
     theta = np.arcsin(np.sqrt(real_rng.random(size)))
     phi_d = real_rng.random(size) * np.pi * 2

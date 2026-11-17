@@ -105,7 +105,8 @@ def test_sycamore_gate_tabulation(seed) -> None:
     base_gate = cirq.unitary(cirq.FSimGate(np.pi / 2, np.pi / 6))
     tab = two_qubit_gate_product_tabulation(
         base_gate, 0.1, sample_scaling=2, random_state=np.random.RandomState(seed)
-    )
+    tab = two_qubit_gate_product_tabulation(base_gate, 0.1, sample_scaling=2, random_state=seed)
+)
     result = tab.compile_two_qubit_gate(base_gate)
     assert result.success
 

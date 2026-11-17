@@ -34,8 +34,8 @@ def random_superposition(
     Args:
         dim: The dimension of the vector.
         random_state: A seed (int) or `np.random.Generator` to use when
-            generating random values. If not set, a new unseeded generator is
-            used.
+            generating random values.  Use a default unseeded generator
+            when unspecified.
 
     Returns:
         The sampled unit-length vector.

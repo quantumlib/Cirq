@@ -397,7 +397,7 @@ def test_numerical_compiler_json_roundtrip() -> None:
 
 
 def test_numerical_compiler_json_rejects_live_rng() -> None:
-    compiler = TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=np.random.RandomState(1))
+    compiler = TwoQubitNumericalCompiler(base_gates=(_CZ,), random_state=np.random.default_rng())
     with pytest.raises(ValueError, match='None or an integer seed'):
         cirq.to_json(compiler)
 
