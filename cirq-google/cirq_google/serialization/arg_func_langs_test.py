@@ -15,8 +15,8 @@
 from __future__ import annotations
 
 import base64
-import builtins
 from typing import cast
+from unittest import mock
 
 import numpy as np
 import pytest
@@ -367,17 +367,36 @@ def test_invalid_sympy_func():
         _ = arg_to_proto(sympy.Quaternion(sympy.Symbol('a'), 1, 2, 3))
 
 
-@pytest.mark.parametrize('func_type', ['add', 'mul', 'pow', '==', '<', '&', '^', '!', '[]'])
-def test_sympy_func_rejects_string_arg(func_type):
-    payload = "__import__('builtins').__setattr__('_cirq_pwned', 1)"
-    func = v2.program_pb2.ArgFunction(type=func_type)
-    func.args.add().symbol = 'x'
-    func.args.add().arg_value.string_value = payload
-    with pytest.raises(TypeError, match='Expected a serialized SymPy argument, got str'):
-        _ = arg_from_proto(v2.program_pb2.Arg(func=func))
-    with pytest.raises(TypeError, match='Expected a serialized SymPy argument, got str'):
-        _ = float_arg_from_proto(v2.program_pb2.FloatArg(func=func))
-    assert not hasattr(builtins, '_cirq_pwned')
+@mock.patch('sympy.parsing.sympy_parser.parse_expr')
+@pytest.mark.parametrize(
+    'expr',
+    [
+        sympy.Add(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Mul(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.GreaterThan(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.StrictGreaterThan(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.LessThan(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.StrictLessThan(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Equality(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Unequality(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.And(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Or(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Not(sympy.Symbol('s')),
+        sympy.Xor(sympy.Symbol('s'), sympy.Symbol('t')),
+        sympy.Indexed(sympy.IndexedBase(sympy.Symbol('s')), sympy.Integer(1)),
+        sympy.Indexed(sympy.IndexedBase(sympy.Symbol('t')), sympy.Symbol('s')),
+    ],
+    ids=lambda expr: type(expr),
+)
+def test_sympy_func_rejects_string_arg(mock_parse_expr: mock.MagicMock, expr: sympy.Basic) -> None:
+    msg = arg_to_proto(expr)
+    # find Symbol("s") in the protobuf field for function arguments
+    arg_s = next(a for a in msg.func.args if a.symbol == 's')
+    # and then replace it with a string expression
+    arg_s.arg_value.string_value = 's+1'
+    with pytest.raises(TypeError, match="Expected a serialized SymPy argument, got.*str"):
+        _ = arg_from_proto(msg)
+    mock_parse_expr.assert_not_called()
 
 
 @pytest.mark.parametrize('rotation_angles_arg', [{}, {'rotation_angles': [0.1, 0.3]}])
