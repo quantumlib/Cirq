@@ -177,6 +177,7 @@ def _potential_cross_partial_w(
     [Where W(a) is shorthand for PhasedX(phase_exponent=a).]
 
     Uses the following identity:
+
         ───W(a)───W(b)^t───
         ≡ ───Z^-a───X───Z^a───W(b)^t────── (expand W(a))
         ≡ ───Z^-a───X───W(b-a)^t───Z^a──── (move Z^a across, phasing axis)

@@ -1,15 +1,4 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-# Used for classical post-processing:
-
-from __future__ import annotations
-
-from collections import Counter
-
-import numpy as np
-import scipy as sp
-
-import cirq
-
 """Demonstrates Simon's algorithm.
 Simon's Algorithm solves the following problem:
 
@@ -61,6 +50,16 @@ distinguished (since the null-space of the system of equations
 provided by the measurements gives a random vector). This will
 lead to low frequency count in output string.
 """
+
+from __future__ import annotations
+
+# Used for classical post-processing:
+from collections import Counter
+
+import numpy as np
+import scipy as sp
+
+import cirq
 
 
 def main(qubit_count=3):

@@ -34,20 +34,20 @@ def get_state_histogram(result: result.Result) -> np.ndarray:
                 state histogram should be computed.
 
     Returns:
-        The state histogram (a numpy array) corresponding to the trial result.
+        The state histogram (a NumPy array) corresponding to the trial result.
     """
     num_qubits = sum(value.shape[1] for value in result.measurements.values())
     states = 2**num_qubits
     values = np.zeros(states)
     # measurements is a dict of {measurement gate key:
-    #                            array(repetitions, boolean result)}
+    #                            array(repetitions, Boolean result)}
     # Convert this to an array of repetitions, each with an array of booleans.
     # e.g. {q1: array([[True, True]]), q2: array([[False, False]])}
     #      --> array([[True, False], [True, False]])
     measurement_by_result = np.hstack(list(result.measurements.values()))
 
     for meas in measurement_by_result:
-        # Convert each array of booleans to a string representation.
+        # Convert each array of Booleans to a string representation.
         # e.g. [True, False] -> [1, 0] -> '10' -> 2
         state_ind = int(''.join([str(x) for x in [int(x) for x in meas]]), 2)
         values[state_ind] += 1

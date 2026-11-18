@@ -115,7 +115,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
 
     @property
     def pauli_string(self) -> cirq.PauliString:
-        """The underlying pauli string."""
+        """The underlying Pauli string."""
         return self._pauli_string
 
     @property
@@ -191,7 +191,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
         return protocols.CircuitDiagramInfo(wire_symbols=syms, exponent=self.exponent_relative)
 
     def conjugated_by(self, clifford: cirq.OP_TREE) -> PauliStringPhasor:
-        r"""Returns the Pauli string conjugated by a clifford operation.
+        r"""Returns the Pauli string conjugated by a Clifford operation.
 
         The PauliStringPhasor $P$ conjugated by the Clifford operation $C$ is
           $C^\dagger P C$.
@@ -207,7 +207,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
     ) -> PauliStringPhasor:  # pragma: no cover
         """Determines how the Pauli phasor changes when conjugated by Cliffords.
 
-        The output and input pauli phasors are related by a circuit equivalence.
+        The output and input Pauli phasors are related by a circuit equivalence.
         In particular, this circuit:
 
             ───ops───INPUT_PAULI_PHASOR───
@@ -228,7 +228,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
         Args:
             ops: The operations to move over the string.
             after_to_before: Determines whether the operations start after the
-                pauli string, instead of before (and so are moving in the
+                Pauli string, instead of before (and so are moving in the
                 opposite direction).
         """
         new_pauli_string: ps.PauliString = ps.PauliString()

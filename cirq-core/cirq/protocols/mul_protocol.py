@@ -26,7 +26,7 @@ RaiseTypeErrorIfNotProvided: Any = ([],)
 def mul(lhs: Any, rhs: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     """Returns lhs * rhs, or else a default if the operator is not implemented.
 
-    This method is mostly used by __pow__ methods trying to return
+    This method is mostly used by `__pow__` methods trying to return
     NotImplemented instead of causing a TypeError.
 
     Args:
@@ -42,8 +42,8 @@ def mul(lhs: Any, rhs: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
 
     Raises:
         TypeError:
-            lhs doesn't have __mul__ or it returned NotImplemented
-            AND lhs doesn't have __rmul__ or it returned NotImplemented
+            lhs doesn't have `__mul__` or it returned NotImplemented
+            AND lhs doesn't have `__rmul__` or it returned NotImplemented
             AND a default value isn't specified.
     """
     # Use left-hand-side's __mul__.
@@ -55,7 +55,7 @@ def mul(lhs: Any, rhs: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
         right_mul = getattr(rhs, '__rmul__', None)
         result = NotImplemented if right_mul is None else right_mul(lhs)
 
-    # Don't build up factors of 1.0 vs sympy Symbols.
+    # Don't build up factors of 1.0 vs SymPy Symbols.
     if lhs == 1 and is_parameterized(rhs):
         result = rhs
     if rhs == 1 and is_parameterized(lhs):

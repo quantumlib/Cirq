@@ -34,7 +34,7 @@ class Calibration:
         return self._calibration_dict['target']
 
     def calibration_time(self, tz: datetime.tzinfo | None = None) -> datetime.datetime:
-        """Return a python datetime object for the calibration time.
+        """Return a Python datetime object for the calibration time.
 
         Args:
             tz: The timezone for the string. If None, the method uses the platform's local timezone.

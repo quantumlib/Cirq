@@ -88,7 +88,7 @@ class Coupler(ops.Qid):
         return 2
 
     def __getnewargs__(self):
-        """Returns a tuple of args to pass to __new__ when unpickling."""
+        """Returns a tuple of args to pass to `__new__` when unpickling."""
         return (self._qubit0, self._qubit1)
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs__

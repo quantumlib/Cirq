@@ -58,14 +58,14 @@ Global___ParameterSweep: _TypeAlias = ParameterSweep  # noqa: Y015
 
 @_typing.final
 class ProductSweep(_message.Message):
-    """A cartesian product of parameter sweeps."""
+    """A Cartesian product of parameter sweeps."""
 
     DESCRIPTOR: _descriptor.Descriptor
 
     FACTORS_FIELD_NUMBER: _builtins.int
     @_builtins.property
     def factors(self) -> _containers.RepeatedCompositeFieldContainer[Global___ZipSweep]:
-        """A list of parameter sweeps to combine into a cartesian sweep.
+        """A list of parameter sweeps to combine into a Cartesian sweep.
 
         Example: if one of the factors assigns
         "a": 0.0

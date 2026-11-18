@@ -83,7 +83,7 @@ class Metadata:
     Args:
         device_parameters: If presents, it means it is reg_param sweep.
         is_const: If true, the associated sweep value will be put in parameters instead of axes.
-        label: If presents, use it as column name instead of using self._key.
+        label: If presents, use it as column name instead of using `self._key`.
         unit:  If presents, the values in sweep are treated as values with this unit.
             This is a temporary solution. This can be avoided if the values use tunits.
             In this case, we should not keep unit information in metadata.

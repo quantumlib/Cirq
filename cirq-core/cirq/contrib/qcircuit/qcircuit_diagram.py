@@ -27,13 +27,13 @@ if TYPE_CHECKING:
 
 
 def qcircuit_qubit_namer(qubit: cirq.Qid) -> str:
-    """Returns the latex code for a QCircuit label of given qubit.
+    """Returns the LaTeX code for a QCircuit label of given qubit.
 
     Args:
         qubit: The qubit which name to represent.
 
     Returns:
-        Latex code for the label.
+        LaTeX code for the label.
     """
     return r'\lstick{' + escape_text_for_latex(str(qubit)) + '}&'
 
@@ -69,14 +69,14 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
 def circuit_to_latex_using_qcircuit(
     circuit: cirq.Circuit, qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT
 ) -> str:
-    """Returns a QCircuit-based latex diagram of the given circuit.
+    """Returns a QCircuit-based LaTeX diagram of the given circuit.
 
     Args:
         circuit: The circuit to represent in latex.
         qubit_order: Determines the order of qubit wires in the diagram.
 
     Returns:
-        Latex code for the diagram.
+        LaTeX code for the diagram.
     """
     diagram = circuit.to_text_diagram_drawer(
         qubit_namer=qcircuit_qubit_namer,

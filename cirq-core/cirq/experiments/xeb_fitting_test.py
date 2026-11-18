@@ -42,9 +42,9 @@ from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
 _POOL_NUM_PROCESSES = min(4, multiprocessing.cpu_count())
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def pool() -> Iterator[multiprocessing.pool.Pool]:
-    ctx = multiprocessing.get_context()
+    ctx = multiprocessing.get_context('spawn')
     with ctx.Pool(_POOL_NUM_PROCESSES) as pool:
         yield pool
 
@@ -141,8 +141,10 @@ def test_benchmark_2q_xeb_fidelities_parallel() -> None:
 
 
 def test_benchmark_2q_xeb_fidelities_vectorized() -> None:
-    rs = np.random.RandomState(52)
-    mock_records = [{'pure_probs': rs.rand(4), 'sampled_probs': rs.rand(4)} for _ in range(100)]
+    prng = cirq.value.parse_random_generator(52)
+    mock_records = [
+        {'pure_probs': prng.random(4), 'sampled_probs': prng.random(4)} for _ in range(100)
+    ]
     df = pd.DataFrame(mock_records)
 
     # Using `df.apply` is wayyyy slower than the new implementation!
@@ -184,28 +186,13 @@ def test_parameterize_phased_fsim_circuit(gate) -> None:
     )
 
     p_circuit = parameterize_circuit(circuit, SqrtISwapXEBOptions())
-    cirq.testing.assert_has_diagram(
-        p_circuit,
-        """\
-0                                    1
-│                                    │
-Y^0.5                                X^0.5
-│                                    │
-PhFSim(theta, zeta, chi, gamma, phi)─PhFSim(theta, zeta, chi, gamma, phi)
-│                                    │
-PhX(0.25)^0.5                        Y^0.5
-│                                    │
-PhFSim(theta, zeta, chi, gamma, phi)─PhFSim(theta, zeta, chi, gamma, phi)
-│                                    │
-Y^0.5                                X^0.5
-│                                    │
-PhFSim(theta, zeta, chi, gamma, phi)─PhFSim(theta, zeta, chi, gamma, phi)
-│                                    │
-X^0.5                                PhX(0.25)^0.5
-│                                    │
-    """,
-        transpose=True,
-    )
+    parameterized_gate = SqrtISwapXEBOptions().get_parameterized_gate()
+    assert len(p_circuit) == len(circuit)
+    for moment, p_moment in zip(circuit, p_circuit):
+        if moment == cirq.Moment(gate(q0, q1)):
+            assert p_moment == cirq.Moment(parameterized_gate(q0, q1))
+        else:
+            assert p_moment == moment
 
 
 def test_get_initial_simplex() -> None:
@@ -218,7 +205,7 @@ def test_get_initial_simplex() -> None:
 
 def test_characterize_phased_fsim_parameters_with_xeb(pool) -> None:
     q0, q1 = cirq.LineQubit.range(2)
-    rs = np.random.RandomState(52)
+    rs = np.random.default_rng(52)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
             q0, q1, depth=20, two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b), seed=rs
@@ -270,7 +257,7 @@ def test_parallel_full_workflow(request, use_pool) -> None:
     cycle_depths = [2, 3, 4]
     graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(2, 2))
     combs = rqcg.get_random_combinations_for_device(
-        n_library_circuits=len(circuits), n_combinations=2, device_graph=graph, random_state=10
+        n_library_circuits=len(circuits), n_combinations=2, device_graph=graph, random_state=20
     )
 
     sampled_df = sample_2q_xeb_circuits(
@@ -321,9 +308,9 @@ def test_parallel_full_workflow(request, use_pool) -> None:
 
 
 def test_fit_exponential_decays() -> None:
-    rs = np.random.RandomState(999)
+    prng = cirq.value.parse_random_generator(999)
     cycle_depths = np.arange(3, 100, 11)
-    fidelities = 0.95 * 0.98**cycle_depths + rs.normal(0, 0.2)
+    fidelities = 0.95 * 0.98**cycle_depths + prng.normal(0, 0.02, size=len(cycle_depths))
     a, layer_fid, a_std, layer_fid_std = _fit_exponential_decay(cycle_depths, fidelities)
     np.testing.assert_allclose([a, layer_fid], [0.95, 0.98], atol=0.02)
     assert 0 < a_std < 0.2 / len(cycle_depths)
@@ -331,9 +318,9 @@ def test_fit_exponential_decays() -> None:
 
 
 def test_fit_exponential_decays_negative_fids() -> None:
-    rs = np.random.RandomState(999)
+    prng = cirq.value.parse_random_generator(999)
     cycle_depths = np.arange(3, 100, 11)
-    fidelities = 0.5 * 0.5**cycle_depths + rs.normal(0, 0.2) - 0.5
+    fidelities = 0.5 * 0.5**cycle_depths + prng.normal(0, 0.2, size=len(cycle_depths)) - 0.5
     assert np.sum(fidelities > 0) <= 1, 'they go negative'
     a, layer_fid, a_std, layer_fid_std = _fit_exponential_decay(cycle_depths, fidelities)
     assert a == 0

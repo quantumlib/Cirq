@@ -42,7 +42,7 @@ class _MeasurementQid(ops.Qid):
         Args:
             key: The key of the measurement gate being deferred.
             qid: One qubit that is being measured. Each deferred measurement
-                should create one new _MeasurementQid per qubit being measured
+                should create one new `_MeasurementQid` per qubit being measured
                 by that gate.
             index: For repeated measurement keys, this represents the index of that measurement.
         """

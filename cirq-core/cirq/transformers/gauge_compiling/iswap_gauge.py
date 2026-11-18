@@ -31,6 +31,7 @@ class RZRotation(Gauge):
     """Represents an ISWAP Gauge composed of Rz rotations.
 
     The gauge replaces an ISWAP gate with either
+
         0: ───Rz(t)──────iSwap───Rz(sgn*t)───
                             │
         1: ───Rz(-sgn*t)───iSwap───Rz(-t)───
@@ -69,6 +70,7 @@ class XYRotation(Gauge):
     """Represents an ISWAP Gauge composed of XY rotations.
 
     The gauge replaces an ISWAP gate with either
+
         0: ───XY(a)───iSwap───XY(b)───
                         │
         1: ───XY(b)───iSwap───XY(a)───

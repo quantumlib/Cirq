@@ -44,7 +44,7 @@ def test_assert_deprecated_log_handling() -> None:
             warnings.warn("hello, this is deprecated in v1.2")
             warnings.warn("hello, this is deprecated in v1.2")
 
-    # allowing for multiple deprecation warnings (in case of json serialization for multiple objects
+    # allowing for multiple deprecation warnings (in case of JSON serialization for multiple objects
     # for example)
     with assert_deprecated(deadline="v1.2", count=2):
         warnings.warn("hello, this is deprecated in v1.2")

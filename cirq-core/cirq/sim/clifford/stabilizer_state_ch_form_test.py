@@ -19,8 +19,8 @@ import pytest
 
 import cirq
 
-# TODO: This and clifford tableau need tests.
-# Github issue: https://github.com/quantumlib/Cirq/issues/3021
+# TODO: This and Clifford tableau need tests.
+# GitHub issue: https://github.com/quantumlib/Cirq/issues/3021
 
 
 def test_initial_state() -> None:

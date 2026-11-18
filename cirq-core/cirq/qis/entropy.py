@@ -57,7 +57,7 @@ def _bitstring_format_helper(
 ) -> npt.NDArray[np.int8]:
     """Formats the bitstring for analysis based on the selected subsystem.
     Args:
-        measured_bitstrings: List of sampled measurement outcomes as a numpy array of bitstrings.
+        measured_bitstrings: List of sampled measurement outcomes as a NumPy array of bitstrings.
         subsystem: Subsystem of interest
     Returns: The bitstring string for the subsystem
     """
@@ -98,7 +98,7 @@ def process_renyi_entropy_from_bitstrings(
 ) -> float:
     """Compute the Rényi entropy of an array of bitstrings.
     Args:
-        measured_bitstrings: List of sampled measurement outcomes as a numpy array of bitstrings.
+        measured_bitstrings: List of sampled measurement outcomes as a NumPy array of bitstrings.
         subsystem: Subsystem of interest
         pool: ThreadPoolExecutor used to paralelleize the computation.
 

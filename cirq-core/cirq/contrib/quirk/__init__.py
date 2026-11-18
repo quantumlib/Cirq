@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Converts cirq circuits into quirk circuits."""
+"""Converts cirq circuits into Quirk circuits."""
 
 from cirq.contrib.quirk.export_to_quirk import circuit_to_quirk_url as circuit_to_quirk_url

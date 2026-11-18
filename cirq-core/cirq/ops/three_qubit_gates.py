@@ -90,13 +90,13 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _decompose_(self, qubits):
         """An adjacency-respecting decomposition.
 
-        0: ───p───@──────────────@───────@──────────@──────────
-                  │              │       │          │
-        1: ───p───X───@───p^-1───X───@───X──────@───X──────@───
-                      │              │          │          │
-        2: ───p───────X───p──────────X───p^-1───X───p^-1───X───
+            0: ───p───@──────────────@───────@──────────@──────────
+                      │              │       │          │
+            1: ───p───X───@───p^-1───X───@───X──────@───X──────@───
+                          │              │          │          │
+            2: ───p───────X───p──────────X───p^-1───X───p^-1───X───
 
-        where p = T**self._exponent
+        where p = `T**self._exponent`
         """
         a, b, c = qubits
 
@@ -275,11 +275,11 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
     def _decompose_(self, qubits):
         """An adjacency-respecting decomposition.
 
-        0: ───p_0───@──────────────@───────@──────────@──────────
-                    │              │       │          │
-        1: ───p_1───X───@───p_3────X───@───X──────@───X──────@───
-                        │              │          │          │
-        2: ───p_2───────X───p_4────────X───p_5────X───p_6────X───
+            0: ───p_0───@──────────────@───────@──────────@──────────
+                        │              │       │          │
+            1: ───p_1───X───@───p_3────X───@───X──────@───X──────@───
+                            │              │          │          │
+            2: ───p_2───────X───p_4────────X───p_5────X───p_6────X───
 
         where p_i = T**(4*x_i) and x_i solve the system of equations
                     [0, 0, 1, 0, 1, 1, 1][x_0]   [r_1]
@@ -289,11 +289,11 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
                     [1, 0, 1, 1, 0, 0, 1][x_4]   [r_5]
                     [1, 1, 0, 0, 0, 1, 1][x_5]   [r_6]
                     [1, 1, 1, 0, 1, 0, 0][x_6]   [r_7]
-        where r_i is self._diag_angles_radians[i].
+        where r_i is `self._diag_angles_radians[i]`.
 
         The above system was created by equating the composition of the gates
-        in the circuit diagram to np.diag(self._diag_angles) (shifted by a
-        global phase of np.exp(-1j * self._diag_angles[0])).
+        in the circuit diagram to `np.diag(self._diag_angles)` (shifted by a
+        global phase of `np.exp(-1j * self._diag_angles[0])`).
         """
 
         a, b, c = qubits

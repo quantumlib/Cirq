@@ -72,8 +72,8 @@ def match_global_phase(a: np.ndarray, b: np.ndarray) -> tuple[np.ndarray, np.nda
     the two matrices.
 
     Args:
-        a: A numpy array.
-        b: Another numpy array.
+        a: A NumPy array.
+        b: Another NumPy array.
 
     Returns:
         A tuple (a', b') where a' == b' implies a == b*exp(i t) for some t.
@@ -206,7 +206,7 @@ def _build_from_slices(
             out,
         )
 
-    When multiple slices are included in the _BuildFromSlicesArgs, this means to take the
+    When multiple slices are included in the `_BuildFromSlicesArgs`, this means to take the
     intersection of the source space and move it to the intersection of the target space. For
     example, the following takes the bottom-left edge and moves it to the top-right, leaving all
     other cells zero. Assume the lateral axis is 2 and right-most index thereof is 2:
@@ -296,7 +296,7 @@ def targeted_conjugate_about(
             buffer is used. Must have the same shape as target.
 
     Returns:
-        The result of the conjugation, as a numpy array.
+        The result of the conjugation, as a NumPy array.
     """
     conj_indices = conj_indices or [i + target.ndim // 2 for i in indices]
     first_multiply = targeted_left_multiply(tensor, target, indices, out=buffer)
@@ -314,7 +314,7 @@ def apply_matrix_to_slices(
     *,
     out: np.ndarray | None = None,
 ) -> np.ndarray:
-    r"""Left-multiplies an NxN matrix onto N slices of a numpy array.
+    r"""Left-multiplies an NxN matrix onto N slices of a NumPy array.
 
     One example is that the 4x4 matrix of a fractional SWAP gate can be expressed as
 
@@ -324,6 +324,7 @@ def apply_matrix_to_slices(
         & X**t & \\
         & & 1 \\
     \end{bmatrix}
+    $$
 
     Where X is the 2x2 Pauli X gate and t is the power of the swap with t=1
     being a full swap. X**t is a power of the Pauli X gate's matrix.
@@ -347,7 +348,7 @@ def apply_matrix_to_slices(
             that the matrix should operate on. May be integers or complicated
             multi-dimensional slices into a tensor. The slices must refer to
             non-overlapping sections of the input all with the same shape.
-        out: Where to write the output. If not specified, a new numpy array is
+        out: Where to write the output. If not specified, a new NumPy array is
             created, with the same shape and dtype as the target, to store the
             output.
 
@@ -495,9 +496,10 @@ def sub_state_vector(
     $|x\rangle$ is defined over the subset ``keep_indices`` of k qubits, then
     this method will factor $|\psi\rangle$ into $|x\rangle$ and $|y\rangle$ and
     return $|x\rangle$. Note that $|x\rangle$ is not unique, because scalar
-    multiplication may be absorbed by any factor of a tensor product,
-    $e^{i \theta} |y\rangle \otimes |x\rangle =
-    |y\rangle \otimes e^{i \theta} |x\rangle$
+    multiplication may be absorbed by any factor of a tensor product:
+    $$
+    e^{i \theta} |y\rangle \otimes |x\rangle = |y\rangle \otimes e^{i \theta} |x\rangle
+    $$
 
     This method randomizes the global phase of $|x\rangle$ in order to avoid
     accidental reliance on the global phase being some specific value.

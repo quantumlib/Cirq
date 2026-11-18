@@ -201,7 +201,7 @@ class GridQid(_BaseGridQid):
         GridQid(0, 0, dimension=2) < GridQid(0, 1, dimension=2)
         < GridQid(1, 0, dimension=2) < GridQid(1, 1, dimension=2)
 
-    New GridQid can be constructed by adding or subtracting tuples or numpy
+    New GridQid can be constructed by adding or subtracting tuples or NumPy
     arrays
 
     >>> cirq.GridQid(2, 3, dimension=2) + (3, 1)
@@ -239,7 +239,7 @@ class GridQid(_BaseGridQid):
         return inst
 
     def __getnewargs_ex__(self):
-        """Returns a tuple of (args, kwargs) to pass to __new__ when unpickling."""
+        """Returns a tuple of (args, kwargs) to pass to `__new__` when unpickling."""
         return (self._row, self._col), {"dimension": self._dimension}
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs_ex__
@@ -397,7 +397,7 @@ class GridQubit(_BaseGridQid):
         return inst
 
     def __getnewargs__(self):
-        """Returns a tuple of args to pass to __new__ when unpickling."""
+        """Returns a tuple of args to pass to `__new__` when unpickling."""
         return (self._row, self._col)
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs__

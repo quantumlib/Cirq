@@ -291,7 +291,7 @@ def test_approx_eq() -> None:
     # Must be same type.
     assert not cirq.approx_eq(f('X'), m('X'), atol=1e-4)
 
-    # Differing paulis ignores tolerance.
+    # Differing Paulis ignores tolerance.
     assert not cirq.approx_eq(f('X'), f('YYY'), atol=1e-8)
     assert not cirq.approx_eq(f('X'), f('Y'), atol=1e-8)
     assert not cirq.approx_eq(f('X'), f('Y'), atol=500)

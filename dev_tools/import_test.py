@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,10 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Locates imports that violate cirq's submodule dependencies.
 
 Specifically, this test treats the modules as a tree structure where `cirq` is
-the root, each submodule is a node and each python file is a leaf node.  While
+the root, each submodule is a node and each Python file is a leaf node.  While
 a node (module) is in the process of being imported, it is not allowed to import
 nodes for the first time other than its children.  If a module was imported
 earlier by `cirq.__init__`, it may be imported.  This is currently only enforced
@@ -56,7 +58,7 @@ parser.add_argument(
 
 def verify_import_tree(depth: int = 1, track_others: bool = False, timeit: bool = False) -> bool:
     """Locates imports that violate cirq's submodule dependencies by
-    instrumenting python import machinery then importing cirq.
+    instrumenting Python import machinery then importing cirq.
 
     Logs when each submodule (up to the given depth) begins and ends executing
     during import and prints an error when any import within a submodule causes

@@ -84,10 +84,10 @@ def _lindbladian(left_op: np.ndarray) -> np.ndarray:
 def _kraus_ops_from_rates(
     flat_rates: tuple[float, ...], shape: tuple[int, int]
 ) -> Sequence[np.ndarray]:
-    """Generate kraus operators from an array of rates.
+    """Generate Kraus operators from an array of rates.
 
     Args:
-        flat_rates: A tuple of rates, flattened from a numpy array with:
+        flat_rates: A tuple of rates, flattened from a NumPy array with:
             flat_rates = tuple(rates.reshape(-1))
             This format is necessary to support caching of inputs.
         shape: The shape of flat_rates prior to flattening.

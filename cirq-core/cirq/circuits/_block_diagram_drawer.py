@@ -71,7 +71,7 @@ class Block:
             right: Draw rightward leg?
             bottom: Draw downward leg?
             crossing_char: Overrides the all-legs-present character. Useful for
-                ascii diagrams, where the + doesn't always look the clearest.
+                ASCII diagrams, where the + doesn't always look the clearest.
         """
         if not any([top, left, right, bottom]):
             return

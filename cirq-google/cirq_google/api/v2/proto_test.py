@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Check protobuf modules initialize successfully."""
+"""Check Protobuf modules initialize successfully."""
 
 from __future__ import annotations
 

@@ -105,7 +105,7 @@ class EngineClient:
 
     @cached_property
     def grpc_client(self) -> quantum.QuantumEngineServiceAsyncClient:
-        """Creates an async grpc client for the Quantum Engine service."""
+        """Creates an async gRPC client for the Quantum Engine service."""
 
         async def make_client():
             # Suppress warnings about using Application Default Credentials.

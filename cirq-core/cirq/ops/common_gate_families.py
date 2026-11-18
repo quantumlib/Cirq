@@ -138,7 +138,7 @@ class ParallelGateFamily(gateset.GateFamily):
         """Inits ParallelGateFamily
 
         Args:
-            gate: The gate which can act in parallel. It can be a python `type` inheriting from
+            gate: The gate which can act in parallel. It can be a Python `type` inheriting from
                 `cirq.Gate` or a non-parameterized instance of a `cirq.Gate`. If an instance of
                 `cirq.ParallelGate` is passed, then the corresponding `gate.sub_gate` is used.
             name: The name of the gate family.
@@ -192,7 +192,6 @@ class ParallelGateFamily(gateset.GateFamily):
         )
 
     def _value_equality_values_(self) -> Any:
-        # `isinstance` is used to ensure the a gate type and gate instance is not compared.
         return (*super()._value_equality_values_(), self._max_parallel_allowed)
 
     def _json_dict_(self) -> dict[str, Any]:

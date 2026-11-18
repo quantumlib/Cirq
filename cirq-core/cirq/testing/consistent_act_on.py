@@ -58,7 +58,7 @@ def state_vector_has_stabilizer(
     args = state_vector_simulation_state.StateVectorSimulationState(
         available_buffer=np.empty_like(state_vector),
         qubits=qubits,
-        prng=np.random.RandomState(),
+        prng=np.random.default_rng(),
         initial_state=state_vector.copy(),
         dtype=complex_dtype,
     )
@@ -74,7 +74,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
     Checks that act_on with CliffordTableau or StabilizerStateCHForm behaves
     consistently with act_on through final state vector. Does not work with
     Operations or Gates expecting non-qubit Qids. If either of the
-    assert_*_implemented args is true, fails if the corresponding method is not
+    `assert_*_implemented` args is true, fails if the corresponding method is not
     implemented for the test circuit.
 
     Args:
@@ -165,7 +165,7 @@ def _final_clifford_tableau(circuit: Circuit, qubit_map) -> clifford_tableau.Cli
 
     tableau = clifford_tableau.CliffordTableau(len(qubit_map))
     args = clifford_tableau_simulation_state.CliffordTableauSimulationState(
-        tableau=tableau, qubits=list(qubit_map.keys()), prng=np.random.RandomState()
+        tableau=tableau, qubits=list(qubit_map.keys()), prng=np.random.default_rng()
     )
     for op in circuit.all_operations():
         try:
@@ -194,7 +194,7 @@ def _final_stabilizer_state_ch_form(
     stabilizer_ch_form = stabilizer_state_ch_form.StabilizerStateChForm(len(qubit_map))
     args = stabilizer_ch_form_simulation_state.StabilizerChFormSimulationState(
         qubits=list(qubit_map.keys()),
-        prng=np.random.RandomState(),
+        prng=np.random.default_rng(),
         initial_state=stabilizer_ch_form,
     )
     for op in circuit.all_operations():

@@ -1084,7 +1084,7 @@ class Operation(_message.Message):
     @_builtins.property
     def conditioned_on(self) -> _containers.RepeatedCompositeFieldContainer[Global___Arg]:
         """Classical conditions
-        Note that this condition is not a sympy expression
+        Note that this condition is not a SymPy expression
         as it has a relation such as "==", "<" etc
         """
 
@@ -1736,7 +1736,7 @@ Global___RepeatedString: _TypeAlias = RepeatedString  # noqa: Y015
 
 @_typing.final
 class RepeatedBoolean(_message.Message):
-    """A repeated boolean value."""
+    """A repeated Boolean value."""
 
     DESCRIPTOR: _descriptor.Descriptor
 
@@ -1775,7 +1775,7 @@ class Tuple(_message.Message):
         FROZENSET: Tuple._SequenceType.ValueType  # 4
 
     class SequenceType(_SequenceType, metaclass=_SequenceTypeEnumTypeWrapper):
-        """Original (python) type of the data"""
+        """Original (Python) type of the data"""
 
     UNSPECIFIED: Tuple.SequenceType.ValueType  # 0
     LIST: Tuple.SequenceType.ValueType  # 1

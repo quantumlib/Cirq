@@ -322,12 +322,12 @@ def test_is_cptp() -> None:
         ]
     )
 
-    # Makes 4 2x2 kraus ops.
+    # Makes 4 2x2 Kraus ops.
     one_qubit_u = cirq.testing.random_unitary(8)
     one_qubit_kraus = np.reshape(one_qubit_u[:, :2], (-1, 2, 2))
     assert cirq.is_cptp(kraus_ops=one_qubit_kraus)  # type: ignore[arg-type]
 
-    # Makes 16 4x4 kraus ops.
+    # Makes 16 4x4 Kraus ops.
     two_qubit_u = cirq.testing.random_unitary(64)
     two_qubit_kraus = np.reshape(two_qubit_u[:, :4], (-1, 4, 4))
     assert cirq.is_cptp(kraus_ops=two_qubit_kraus)  # type: ignore[arg-type]

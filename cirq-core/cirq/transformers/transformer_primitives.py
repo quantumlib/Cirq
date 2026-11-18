@@ -206,20 +206,20 @@ def _map_operations_impl(
                     preserve_moments=preserve_moments,
                 )
             ).with_tags(*op.tags)
-        mapped_ops = [*ops.flatten_to_ops(map_func(op, idx))]
-        op_qubits = set(op.qubits)
-        mapped_ops_qubits: set[cirq.Qid] = set()
-        has_overlapping_ops = False
-        for mapped_op in mapped_ops:
-            if raise_if_add_qubits and not op_qubits.issuperset(mapped_op.qubits):
-                raise ValueError(
-                    f"Mapped operations {mapped_ops} should act on a subset "
-                    f"of qubits of the original operation {op}"
-                )
-            if not mapped_ops_qubits.isdisjoint(mapped_op.qubits):
-                has_overlapping_ops = True
-            mapped_ops_qubits.update(mapped_op.qubits)
-        if wrap_in_circuit_op and has_overlapping_ops:
+        mop = map_func(op, idx)
+        if (mapped_to_operation := isinstance(mop, ops.Operation)) and mop.qubits == op.qubits:
+            return [mop]
+        mapped_ops: list[cirq.Operation] = (
+            [cast(ops.Operation, mop)] if mapped_to_operation else list(ops.flatten_to_ops(mop))
+        )
+
+        mapped_ops_qubits = frozenset(q for op in mapped_ops for q in op.qubits)
+        if raise_if_add_qubits and not mapped_ops_qubits.issubset(op.qubits):
+            raise ValueError(
+                f"Mapped operations {mapped_ops} should act on a subset "
+                f"of qubits of the original operation {op}"
+            )
+        if wrap_in_circuit_op and len(mapped_ops_qubits) < sum(len(op.qubits) for op in mapped_ops):
             # Mapped operations should be wrapped in a `CircuitOperation` only iff they occupy more
             # than one moment, i.e. there are at least two operations that share a qubit.
             mapped_ops = [
@@ -678,7 +678,7 @@ def merge_operations_to_circuit_op(
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
         can_merge: Callable to determine whether a new operation `right_op` can be merged into an
-            existing connected component of operations `left_ops` based on boolean returned by
+            existing connected component of operations `left_ops` based on Boolean returned by
             `can_merge(left_ops, right_op)`.
         tags_to_ignore: Tagged operations marked any of `tags_to_ignore` will not be considered as
             potential candidates for any connected component.

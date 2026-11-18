@@ -156,7 +156,7 @@ class T1DecayResult:
         Args:
             ax: the plt.Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
-            include_fit: boolean to include exponential decay fit on graph
+            include_fit: Boolean to include exponential decay fit on graph
             **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
 
         Returns:

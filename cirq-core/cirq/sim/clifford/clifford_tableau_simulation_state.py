@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""A protocol for implementing high performance clifford tableau evolutions
+"""A protocol for implementing high performance Clifford tableau evolutions
 for Clifford Simulator."""
 
 from __future__ import annotations
@@ -24,18 +24,16 @@ from cirq.qis import clifford_tableau
 from cirq.sim.clifford.stabilizer_simulation_state import StabilizerSimulationState
 
 if TYPE_CHECKING:
-    import numpy as np
-
     import cirq
 
 
 class CliffordTableauSimulationState(StabilizerSimulationState[clifford_tableau.CliffordTableau]):
-    """State and context for an operation acting on a clifford tableau."""
+    """State and context for an operation acting on a Clifford tableau."""
 
     def __init__(
         self,
         tableau: cirq.CliffordTableau,
-        prng: np.random.RandomState | None = None,
+        prng: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         qubits: Sequence[cirq.Qid] | None = None,
         classical_data: cirq.ClassicalDataStore | None = None,
     ):
@@ -47,8 +45,8 @@ class CliffordTableauSimulationState(StabilizerSimulationState[clifford_tableau.
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            prng: The pseudo random number generator to use for probabilistic
-                effects.
+            prng: The pseudo random number generator (or seed) to use for
+                probabilistic effects.
             classical_data: The shared classical data container for this
                 simulation.
         """

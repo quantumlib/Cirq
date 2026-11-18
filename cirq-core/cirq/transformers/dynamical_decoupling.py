@@ -93,7 +93,7 @@ def _validate_dd_sequence(dd_sequence: tuple[ops.Gate, ...]) -> None:
 def _parse_dd_sequence(
     schema: str | tuple[ops.Gate, ...],
 ) -> tuple[tuple[ops.Gate, ...], dict[ops.Gate, ops.Pauli]]:
-    """Parses and returns dynamical decoupling sequence and its associated pauli map from schema."""
+    """Parses and returns dynamical decoupling sequence and its associated Pauli map from schema."""
     dd_sequence = None
     if isinstance(schema, str):
         dd_sequence = _get_dd_sequence_from_schema_name(schema)
@@ -210,11 +210,13 @@ class _Grid:
     backtracking.
 
     An example labeled circuit is shown below:
-         |  0  |  1  |  2  |  3  |  4  |
-    -----+-----+-----+-----+-----+-----+
-    q(0) |  d  |  i  | i,s |  d  |  w  |
-    q(1) |  d  |  i  | d,s |  w  |  w  |
-    q(2) |  d  |  d  | d,s |  w  |  w  |
+
+             |  0  |  1  |  2  |  3  |  4  |
+        -----+-----+-----+-----+-----+-----+
+        q(0) |  d  |  i  | i,s |  d  |  w  |
+        q(1) |  d  |  i  | d,s |  w  |  w  |
+        q(2) |  d  |  d  | d,s |  w  |  w  |
+
     where `w`=WALL, `d`=DOOR, `i`=INSERTABLE. `s` represents a stop gate,
     meaning that any unfinished DD sequences must be merged at this gate.
     """

@@ -24,10 +24,10 @@ class GithubRepository:
         """Inits GithubRepository.
 
         Args:
-            organization: The github organization the repository is under.
-            name: The name of the github repository.
+            organization: The GitHub organization the repository is under.
+            name: The name of the GitHub repository.
             access_token: If present, this token is used to authorize changes
-                to the repository when calling the github API (e.g. set build
+                to the repository when calling the GitHub API (e.g. set build
                 status indicators). Avoid using access tokens with more
                 permissions than necessary.
         """

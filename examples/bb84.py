@@ -57,21 +57,21 @@ obtained keys.
 
 Simulating non-eavesdropped protocol
 
-0: ───X───M───────────
+    0: ───X───M───────────
 
-1: ───H───H───M───────
+    1: ───H───H───M───────
 
-2: ───X───H───M───────
+    2: ───X───H───M───────
 
-3: ───X───H───M───────
+    3: ───X───H───M───────
 
-4: ───X───H───M───────
+    4: ───X───H───M───────
 
-5: ───X───H───H───M───
+    5: ───X───H───H───M───
 
-6: ───H───M───────────
+    6: ───H───M───────────
 
-7: ───H───H───M───────
+    7: ───H───H───M───────
 
 Alice's basis:  CHCCCHCH
 Bob's basis:    CHHHHHHH
@@ -82,21 +82,21 @@ Actual key:     1010
 
 Simulating eavesdropped protocol
 
-0: ───H───M───────────H───M───────────
+    0: ───H───M───────────H───M───────────
 
-1: ───H───M───────────H───H───M───────
+    1: ───H───M───────────H───H───M───────
 
-2: ───X───H───H───M───X───H───H───M───
+    2: ───X───H───H───M───X───H───H───M───
 
-3: ───H───M───────────H───M───────────
+    3: ───H───M───────────H───M───────────
 
-4: ───M───────────────M───────────────
+    4: ───M───────────────M───────────────
 
-5: ───X───H───M───────X───H───M───────
+    5: ───X───H───M───────X───H───M───────
 
-6: ───H───M───────────X───H───M───────
+    6: ───H───M───────────X───H───M───────
 
-7: ───X───H───H───M───X───H───M───────
+    7: ───X───H───H───M───X───H───M───────
 
 Alice's basis:  HCHCCHCH
 Bob's basis:    HHHCCHCC
@@ -145,11 +145,11 @@ def main(num_qubits=8):
 
     # Setup eavesdropped protocol
     print('Simulating eavesdropped protocol')
-    np.random.seed(200)  # Seed random generator for consistent results
-    alice_basis = [np.random.randint(0, 2) for _ in range(num_qubits)]
-    alice_state = [np.random.randint(0, 2) for _ in range(num_qubits)]
-    bob_basis = [np.random.randint(0, 2) for _ in range(num_qubits)]
-    eve_basis = [np.random.randint(0, 2) for _ in range(num_qubits)]
+    rng = np.random.default_rng(1)  # Seed random generator for consistent results
+    alice_basis = [rng.integers(0, 2) for _ in range(num_qubits)]
+    alice_state = [rng.integers(0, 2) for _ in range(num_qubits)]
+    bob_basis = [rng.integers(0, 2) for _ in range(num_qubits)]
+    eve_basis = [rng.integers(0, 2) for _ in range(num_qubits)]
 
     expected_key = bitstring(
         [alice_state[i] for i in range(num_qubits) if alice_basis[i] == bob_basis[i]]
@@ -161,14 +161,14 @@ def main(num_qubits=8):
 
     # Run simulations.
     repetitions = 1
-    result = cirq.Simulator().run(program=alice_eve_circuit, repetitions=repetitions)
+    result = cirq.Simulator(seed=rng).run(program=alice_eve_circuit, repetitions=repetitions)
     eve_state = [result.measurements[str(q)].item() for q in qubits]
 
     eve_bob_circuit = make_bb84_circ(num_qubits, eve_basis, bob_basis, eve_state)
 
     # Run simulations.
     repetitions = 1
-    result = cirq.Simulator().run(program=eve_bob_circuit, repetitions=repetitions)
+    result = cirq.Simulator(seed=rng).run(program=eve_bob_circuit, repetitions=repetitions)
     result_bitstring = bitstring([result.measurements[str(q)].item() for q in qubits])
 
     # Take only qubits where bases match

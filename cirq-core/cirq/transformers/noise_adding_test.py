@@ -33,7 +33,7 @@ def test_noise_adding() -> None:
     transformed_circuit_p1 = na.DepolarizingNoiseTransformer(1.0)(circuit)
     assert len(transformed_circuit_p1) == 20
 
-    # test that we get a deterministic result when using a specific rng
+    # test that we get a deterministic result when using a specific RNG
     rng = np.random.default_rng(0)
     transformed_circuit_p0_03 = na.DepolarizingNoiseTransformer(0.03)(circuit, rng=rng)
     expected_circuit = (

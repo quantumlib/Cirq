@@ -124,7 +124,7 @@ def fidelity(
             prod *= np.abs(np.vdot(s1.state_vector(), s2.state_vector()))
         return prod**2
 
-    # Two numpy arrays that are either state vector, state tensor, or
+    # Two NumPy arrays that are either state vector, state tensor, or
     # density matrix
     if (
         isinstance(state1, np.ndarray)
@@ -304,9 +304,9 @@ def entanglement_fidelity(operation: cirq.SupportsKraus) -> float:
     the maximally entangled state $|\phi\rangle = \frac{1}{\sqrt{dim H}} \sum_i|i\rangle|i\rangle$
     and the state obtained by sending one half of $|\phi\rangle$ through the channel $E$, i.e.
 
-        $$
-        F_e = \langle\phi|(E \otimes I)(|\phi\rangle\langle\phi|)|\phi\rangle
-        $$
+    $$
+    F_e = \langle\phi|(E \otimes I)(|\phi\rangle\langle\phi|)|\phi\rangle
+    $$
 
     where $I: L(H) \to L(H)$ is the identity map.
 

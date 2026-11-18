@@ -49,7 +49,7 @@ class Condition(abc.ABC):
     @property
     @abc.abstractmethod
     def qasm(self):
-        """Returns the qasm of this condition."""
+        """Returns the QASM of this condition."""
 
     def _qasm_(self, args: cirq.QasmArgs, **kwargs) -> str | None:
         return self.qasm
@@ -123,6 +123,8 @@ class KeyCondition(Condition):
         raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
 
     def _qasm_(self, args: cirq.QasmArgs, **kwargs) -> str | None:
+        if self.index != -1:
+            raise ValueError('Only most recent measurement at key can be used for QASM.')
         args.validate_version('2.0', '3.0')
         key_str = str(self.key)
         if key_str not in args.meas_key_id_map:
@@ -247,9 +249,9 @@ class BitMaskKeyCondition(Condition):
 
 @dataclasses.dataclass(frozen=True)
 class SympyCondition(Condition):
-    """A classical control condition based on a sympy expression.
+    """A classical control condition based on a SymPy expression.
 
-    This condition resolves to True iff the sympy expression resolves to a
+    This condition resolves to True iff the SymPy expression resolves to a
     truthy value (i.e. `bool(x) == True`) when the measurement keys are
     substituted in as the free variables.
 

@@ -134,7 +134,7 @@ def test_unrelated_attribute():
 
 
 def test_classcell_in_namespace():
-    """Tests a historical issue where super() triggers python to add
+    """Tests a historical issue where super() triggers Python to add
     `__classcell__` to the namespace passed to the metaclass __new__.
     """
 

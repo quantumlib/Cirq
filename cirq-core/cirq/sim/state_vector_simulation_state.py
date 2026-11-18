@@ -210,7 +210,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
             axes: The axes on which to apply the channel.
             prng: The pseudo random number generator to use.
         Returns:
-            The kraus index if the operation succeeded, otherwise None.
+            The Kraus index if the operation succeeded, otherwise None.
         """
         kraus_operators = protocols.kraus(action, default=None)
         if kraus_operators is None:
@@ -313,7 +313,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
     There are two common ways to act on this object:
 
     1. Directly edit the `target_tensor` property, which is storing the state
-        vector of the quantum system as a numpy array with one axis per qudit.
+        vector of the quantum system as a NumPy array with one axis per qudit.
     2. Overwrite the `available_buffer` property with the new state vector, and
         then pass `available_buffer` into `swap_target_tensor_for`.
     """
@@ -322,7 +322,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         self,
         *,
         available_buffer: np.ndarray | None = None,
-        prng: np.random.RandomState | None = None,
+        prng: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         qubits: Sequence[cirq.Qid] | None = None,
         initial_state: np.ndarray | cirq.STATE_VECTOR_LIKE = 0,
         dtype: type[np.complexfloating] | np.dtype[np.complexfloating] = np.complex64,
@@ -340,8 +340,8 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            prng: The pseudo random number generator to use for probabilistic
-                effects.
+            prng: The pseudo random number generator (or seed) to use for
+                probabilistic effects.
             initial_state: The initial state for the simulation in the
                 computational basis.
             dtype: The `numpy.dtype` of the inferred state vector. One of

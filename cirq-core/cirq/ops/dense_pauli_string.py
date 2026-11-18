@@ -47,7 +47,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     `cirq.BaseDensePauliString` is an abstract base class, which is used to implement
     `cirq.DensePauliString` and `cirq.MutableDensePauliString`. The non-mutable version
     is used as the corresponding gate for `cirq.PauliString` operation and the mutable
-    version is mainly used for efficiently manipulating dense pauli strings.
+    version is mainly used for efficiently manipulating dense Pauli strings.
 
     See the docstrings of `cirq.DensePauliString` and `cirq.MutableDensePauliString` for more
     details.
@@ -75,16 +75,16 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         *,
         coefficient: cirq.TParamValComplex = 1,
     ):
-        """Initializes a new dense pauli string.
+        """Initializes a new dense Pauli string.
 
         Args:
             pauli_mask: A specification of the Pauli gates to use. This argument
                 can be a string like "IXYYZ", or a numeric list like
                 [0, 1, 3, 2] with I=0, X=1, Y=2, Z=3=X|Y.
 
-                The internal representation is a 1-dimensional uint8 numpy array
-                containing numeric values. If such a numpy array is given, and
-                the pauli string is mutable, the argument will be used directly
+                The internal representation is a 1-dimensional uint8 NumPy array
+                containing numeric values. If such a NumPy array is given, and
+                the Pauli string is mutable, the argument will be used directly
                 instead of being copied.
             coefficient: A complex number. Usually +1, -1, 1j, or -1j but other
                 values are supported.
@@ -99,7 +99,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
     @property
     def pauli_mask(self) -> np.ndarray:
-        """A 1-dimensional uint8 numpy array giving a specification of Pauli gates to use."""
+        """A 1-dimensional uint8 NumPy array giving a specification of Pauli gates to use."""
         return self._pauli_mask
 
     @property
@@ -117,7 +117,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
     @classmethod
     def one_hot(cls, *, index: int, length: int, pauli: cirq.PAULI_GATE_LIKE) -> Self:
-        """Creates a dense pauli string with only one non-identity Pauli.
+        """Creates a dense Pauli string with only one non-identity Pauli.
 
         Args:
             index: The index of the Pauli that is not an identity.
@@ -134,10 +134,10 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
     @classmethod
     def eye(cls, length: int) -> Self:
-        """Creates a dense pauli string containing only identity gates.
+        """Creates a dense Pauli string containing only identity gates.
 
         Args:
-            length: The length of the dense pauli string.
+            length: The length of the dense Pauli string.
         """
         concrete_cls = cast(Callable, DensePauliString if cls is BaseDensePauliString else cls)
         return concrete_cls(pauli_mask=np.zeros(length, dtype=np.uint8))
@@ -270,14 +270,14 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return NotImplemented
 
     def tensor_product(self, other: BaseDensePauliString) -> Self:
-        """Concatenates dense pauli strings and multiplies their coefficients.
+        """Concatenates dense Pauli strings and multiplies their coefficients.
 
         Args:
-            other: The dense pauli string to place after the end of this one.
+            other: The dense Pauli string to place after the end of this one.
 
         Returns:
-            A dense pauli string with the concatenation of the paulis from the
-            two input pauli strings, and the product of their coefficients.
+            A dense Pauli string with the concatenation of the Paulis from the
+            two input Pauli strings, and the product of their coefficients.
         """
         return type(self)(
             coefficient=self.coefficient * other.coefficient,
@@ -295,7 +295,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return self.sparse(qubits)
 
     def sparse(self, qubits: Sequence[cirq.Qid] | None = None) -> cirq.PauliString:
-        """A `cirq.PauliString` version of this dense pauli string.
+        """A `cirq.PauliString` version of this dense Pauli string.
 
         Args:
             qubits: The qubits to apply the Paulis to. Defaults to
@@ -303,7 +303,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
         Returns:
             A `cirq.PauliString` with the non-identity operations from
-            this dense pauli string applied to appropriate qubits.
+            this dense Pauli string applied to appropriate qubits.
 
         Raises:
             ValueError: If the number of qubits supplied does not match that of
@@ -371,7 +371,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             coefficient: The new coefficient value. If not specified, defaults
                 to the current `coefficient` value.
             pauli_mask: The new `pauli_mask` value. If not specified, defaults
-                to the current pauli mask value.
+                to the current Pauli mask value.
 
         Returns:
             A copied instance.
@@ -381,7 +381,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 class DensePauliString(BaseDensePauliString):
     """An immutable string of Paulis, like `XIXY`, with a coefficient.
 
-    A `DensePauliString` represents a multi-qubit pauli operator, i.e. a tensor product of single
+    A `DensePauliString` represents a multi-qubit Pauli operator, i.e. a tensor product of single
     qubits Pauli gates (including the `cirq.IdentityGate`), each of which would act on a
     different qubit. When applied on qubits, a `DensePauliString` results in `cirq.PauliString`
     as an operation.
@@ -410,7 +410,7 @@ class DensePauliString(BaseDensePauliString):
     also a `cirq.Gate`.
 
     Note that `DensePauliString` is an immutable object. If you need a mutable version of
-    dense pauli strings, see `cirq.MutableDensePauliString`.
+    dense Pauli strings, see `cirq.MutableDensePauliString`.
     """
 
     def frozen(self) -> DensePauliString:
@@ -434,7 +434,7 @@ class MutableDensePauliString(BaseDensePauliString):
     """A mutable string of Paulis, like `XIXY`, with a coefficient.
 
     `cirq.MutableDensePauliString` is a mutable version of `cirq.DensePauliString`.
-    It exists mainly to help mutate dense pauli strings efficiently, instead of always creating
+    It exists mainly to help mutate dense Pauli strings efficiently, instead of always creating
     a copy, and then converting back to a frozen `cirq.DensePauliString` representation.
 
     For example:
@@ -444,7 +444,7 @@ class MutableDensePauliString(BaseDensePauliString):
     >>> print(mutable_dps)
     +YYZZ (mutable)
 
-    See docstrings of `cirq.DensePauliString` for more details on dense pauli strings.
+    See docstrings of `cirq.DensePauliString` for more details on dense Pauli strings.
     """
 
     @overload
@@ -596,7 +596,7 @@ def _try_interpret_as_dps(v: cirq.Operation) -> BaseDensePauliString | None:
 
 
 def _vectorized_pauli_mul_phase(lhs: int | np.ndarray, rhs: int | np.ndarray) -> complex:
-    """Computes the leading coefficient of a pauli string multiplication.
+    """Computes the leading coefficient of a Pauli string multiplication.
 
     The two inputs must have the same length. They must follow the convention
     that I=0, X=1, Z=2, Y=3 and have no out-of-range values.

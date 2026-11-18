@@ -22,7 +22,7 @@ component operations in order, including any nested CircuitOperations.
 from __future__ import annotations
 
 import math
-from collections.abc import Callable, Iterator, Mapping, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence, Set
 from functools import cached_property, reduce
 from typing import Any, cast, TYPE_CHECKING, TypeAlias
 
@@ -87,7 +87,7 @@ class CircuitOperation(ops.Operation):
         Args:
             circuit: The FrozenCircuit wrapped by this operation.
             repetitions: How many times the circuit should be repeated. This can be
-                integer, or a sympy expression. If sympy, the expression must
+                integer, or a SymPy expression. If SymPy, the expression must
                 resolve to an integer, or float within 0.001 of integer, at
                 runtime.
             qubit_map: Remappings for qubits in the circuit.
@@ -120,7 +120,7 @@ class CircuitOperation(ops.Operation):
                 with repetitions or repetition_ids.
 
         Raises:
-            TypeError: if repetitions is not an integer or sympy expression, or if
+            TypeError: if repetitions is not an integer or SymPy expression, or if
                 the provided circuit is not a FrozenCircuit.
             ValueError: if any of the following conditions is met.
                 - Negative repetitions on non-invertible circuit
@@ -379,19 +379,41 @@ class CircuitOperation(ops.Operation):
         )
 
     def _is_parameterized_(self) -> bool:
-        return any(self._parameter_names_generator())
+        return any(self._parameter_name_sets())
 
     def _parameter_names_(self) -> frozenset[str]:
-        return frozenset(self._parameter_names_generator())
+        # Union whole sets rather than individual names, so that large subcircuit name sets are
+        # copied in bulk.
+        sets = [s for s in self._parameter_name_sets() if s]
+        if len(sets) == 1 and isinstance(sets[0], frozenset):
+            return sets[0]
+        return frozenset().union(*sets)
 
-    def _parameter_names_generator(self) -> Iterator[str]:
-        yield from protocols.parameter_names(self.repetitions)
-        yield from protocols.parameter_names(self._mapped_repeat_until)
-        yield from protocols.parameter_names(self._mapped_any_loop)
+    def _parameter_name_sets(self) -> Iterator[Set[str]]:
+        yield protocols.parameter_names(self.repetitions)
+        yield protocols.parameter_names(self._mapped_repeat_until)
+        if self._mapping_preserves_parameter_names():
+            # Reuse the names cached on the frozen subcircuit instead of building the mapped copy.
+            yield protocols.parameter_names(self.circuit)
+        else:
+            yield protocols.parameter_names(self._mapped_any_loop)
         # get variable qubits that are in the map but not circuit
         mapped_qubits = self.qubit_map.keys() - self.circuit.all_qubits()
         for k in mapped_qubits:
-            yield from protocols.parameter_names((k, self.qubit_map[k]))
+            yield protocols.parameter_names((k, self.qubit_map[k]))
+
+    def _mapping_preserves_parameter_names(self) -> bool:
+        """Returns whether `_mapped_any_loop` has the same parameter names as `self.circuit`.
+
+        Measurement key mappings never change parameter names. Parameter resolution can, a
+        parameterized qubit map can introduce or replace variable qubits, and inverting the
+        subcircuit for negative repetitions is not guaranteed to preserve them.
+        """
+        return (
+            not self.param_resolver
+            and not self._is_qubit_map_parameterized()
+            and not (isinstance(self.repetitions, INT_CLASSES) and self.repetitions < 0)
+        )
 
     @cached_property
     def _mapped_any_loop(self) -> cirq.Circuit:
@@ -635,7 +657,7 @@ class CircuitOperation(ops.Operation):
         Returns:
             A copy of this operation repeated `repetitions` times with the
             appropriate `repetition_ids`. The output `repetition_ids` are the
-            cartesian product of input `repetition_ids` with the base
+            Cartesian product of input `repetition_ids` with the base
             operation's `repetition_ids`. If the base operation has unset
             `repetition_ids` (indicates {-1, 0, 1} `repetitions` with no custom
             IDs), the input `repetition_ids` are directly used.

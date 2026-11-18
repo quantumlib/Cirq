@@ -25,7 +25,7 @@ BASE_MAINTAINERS = {CIRQ_MAINTAINERS}
 
 DOCS_MAINTAINERS = BASE_MAINTAINERS.union({('TEAM', "@quantumlib/cirq-contributors")})
 
-GOOGLE_TEAM = {('USERNAME', "@wcourtney"), ('USERNAME', "@verult"), ("USERNAME", "@hoisinberg")}
+GOOGLE_TEAM = {('TEAM', "@quantumlib/cirq-google-contributors")}
 
 GOOGLE_MAINTAINERS = BASE_MAINTAINERS.union(GOOGLE_TEAM)
 
@@ -45,10 +45,6 @@ AZURE_TEAM = {('TEAM', "@quantumlib/cirq-azure-contributors")}
 
 AZURE_MAINTAINERS = BASE_MAINTAINERS.union(AZURE_TEAM)
 
-QCVV_TEAM = {('USERNAME', "@mrwojtek")}
-
-QCVV_MAINTAINERS = BASE_MAINTAINERS.union(QCVV_TEAM)
-
 
 @pytest.mark.parametrize(
     "filepath,expected",
@@ -58,29 +54,26 @@ QCVV_MAINTAINERS = BASE_MAINTAINERS.union(QCVV_TEAM)
         ("cirq-core/setup.py", BASE_MAINTAINERS),
         ("cirq-core/cirq/contrib/__init__.py", BASE_MAINTAINERS),
         ("docs/_book.yaml", DOCS_MAINTAINERS),
-        # qcvv
-        ("cirq-core/cirq/experiments/__init__.py", QCVV_MAINTAINERS),
-        ("docs/noise/qcvv/isolated_xeb.ipynb", QCVV_MAINTAINERS.union(DOCS_MAINTAINERS)),
-        # aqt
+        # AQT
         ("cirq-aqt/cirq_aqt/__init__.py", AQT_MAINTAINERS),
         ("cirq-aqt/setup.py", AQT_MAINTAINERS),
         ("docs/hardware/aqt/access.md", AQT_MAINTAINERS),
         ("docs/hardware/aqt/getting_started.ipynb", AQT_MAINTAINERS),
-        # pasqal
+        # Pasqal
         ("cirq-pasqal/cirq_pasqal/__init__.py", PASQAL_MAINTAINERS),
         ("cirq-pasqal/setup.py", PASQAL_MAINTAINERS),
         ("docs/hardware/pasqal/access.md", PASQAL_MAINTAINERS),
         ("docs/hardware/pasqal/getting_started.ipynb", PASQAL_MAINTAINERS),
-        # ionq
+        # IonQ
         ("cirq-ionq/cirq_ionq/__init__.py", IONQ_MAINTAINERS),
         ("cirq-ionq/setup.py", IONQ_MAINTAINERS),
         ("docs/hardware/ionq/access.md", IONQ_MAINTAINERS),
         ("docs/hardware/ionq/getting_started.ipynb", IONQ_MAINTAINERS),
-        # google
+        # Google
         ("cirq-google/cirq_google/__init__.py", GOOGLE_MAINTAINERS),
         ("cirq-google/setup.py", GOOGLE_MAINTAINERS),
         ("docs/google/access.md", GOOGLE_MAINTAINERS),
-        ("docs/tutorials/google/start.ipynb", GOOGLE_MAINTAINERS.union(DOCS_MAINTAINERS)),
+        ("docs/tutorials/google/start.ipynb", GOOGLE_MAINTAINERS),
         # azure-quantum
         ("docs/hardware/azure-quantum/access.md", AZURE_MAINTAINERS),
     ],

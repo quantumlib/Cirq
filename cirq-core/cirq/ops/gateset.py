@@ -112,7 +112,7 @@ class GateFamily:
         """Init GateFamily.
 
         Args:
-            gate: A python `type` inheriting from `cirq.Gate` for type based membership checks, or
+            gate: A Python `type` inheriting from `cirq.Gate` for type based membership checks, or
                 a non-parameterized instance of a `cirq.Gate` for equality based membership checks.
             name: The name of the gate family.
             description: Human readable description of the gate family.
@@ -202,7 +202,7 @@ class GateFamily:
         The default predicate depends on the gate family initialization type:
 
         - Instance Family: `cirq.equal_up_to_global_phase(gate, self.gate)`
-            if self._ignore_global_phase else `gate == self.gate`.
+            if `self._ignore_global_phase` else `gate == self.gate`.
         - Type Family: `isinstance(gate, self.gate)`.
 
         Args:
@@ -251,7 +251,7 @@ class GateFamily:
         )
 
     def _value_equality_values_(self) -> Any:
-        # `isinstance` is used to ensure the a gate type and gate instance is not compared.
+        # `isinstance` is used to ensure a gate type and gate instance are not compared.
         description = self.description if self.description != self._default_description() else None
         return (
             isinstance(self.gate, raw_types.Gate),

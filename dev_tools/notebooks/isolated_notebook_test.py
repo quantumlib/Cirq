@@ -20,7 +20,7 @@
 # to provide earlier feedback.
 #
 # In case the dev environment changes or this particular file changes, all notebooks are executed!
-# This can take a long time and even lead to timeout on Github Actions, hence partitioning of the
+# This can take a long time and even lead to timeout on GitHub Actions, hence partitioning of the
 # tests is possible, via setting the NOTEBOOK_PARTITIONS env var to e.g. 5, and then passing to
 # pytest the `-k partition-0` or `-k partition-1`, etc. argument to limit to the given partition.
 
@@ -75,14 +75,14 @@ SKIP_NOTEBOOKS += [
 SKIP_NOTEBOOKS += NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES
 
 # As these notebooks run in an isolated env, we want to minimize dependencies that are
-# installed. We assume colab packages (feel free to add dependencies here that appear in colab, as
+# installed. We assume Colab packages (feel free to add dependencies here that appear in Colab, as
 # needed by the notebooks) exist. These packages are installed into a base environment as a starting
 # point, that is then cloned to a separate folder for each test.
 PACKAGES = [
     # for running the notebooks
     "papermill",
     "jupyter",
-    # assumed to be part of colab
+    # assumed to be part of Colab
     "seaborn~=0.12",
 ]
 

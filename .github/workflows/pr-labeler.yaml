@@ -67,7 +67,6 @@ jobs:
 
       - name: Label the PR with a size label
         id: label
-        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         run: ./dev_tools/ci/size-labeler.sh

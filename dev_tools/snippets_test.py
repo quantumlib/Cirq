@@ -302,9 +302,9 @@ def _canonicalize_printed_line_chunk(chunk: str) -> str:
 def canonicalize_printed_line(line: str) -> str:
     """Remove minor variations between outputs on some systems.
 
-    Basically, numpy is extremely inconsistent about where it puts spaces and
+    Basically, NumPy is extremely inconsistent about where it puts spaces and
     minus signs on 0s. This method goes through the line looking for stuff
-    that looks like it came from numpy, and if so then strips out spacing and
+    that looks like it came from NumPy, and if so then strips out spacing and
     turns signed zeroes into just zeroes.
 
     Args:

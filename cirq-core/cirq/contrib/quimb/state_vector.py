@@ -32,7 +32,7 @@ def circuit_to_tensors(
             will be left open and the tensor network will represent the
             circuit unitary.
     Returns:
-        tensors: A list of quimb Tensor objects
+        tensors: A list of Quimb Tensor objects
         qubit_frontier: A mapping from qubit to time index at the end of
             the circuit. This can be used to deduce the names of the free
             tensor indices.

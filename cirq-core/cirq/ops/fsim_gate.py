@@ -101,7 +101,7 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
             theta: Swap angle on the ``|01⟩`` ``|10⟩`` subspace, in radians.
                 Determined by the strength and duration of the XX+YY
                 interaction. Note: uses opposite sign convention to the
-                iSWAP gate. Maximum strength (full iswap) is at pi/2.
+                iSWAP gate. Maximum strength (full iSWAP) is at pi/2.
             phi: Controlled phase angle, in radians. Determines how much the
                 ``|11⟩`` state is phased. Note: uses opposite sign convention to
                 the CZPowGate. Maximum strength (full cz) is at pi.

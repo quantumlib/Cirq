@@ -57,6 +57,7 @@ TestSpec = ModuleJsonTestSpec(
         'TextDiagramDrawer',
         'Timestamp',
         'TwoQubitGateTabulationResult',
+        'TwoQubitNumericalCompilationResult',
         'StateVectorTrialResult',
         'ZerosSampler',
     ],

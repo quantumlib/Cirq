@@ -35,7 +35,7 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
     r"""A channel that depolarizes asymmetrically along different directions.
 
     This channel applies one of $4^n$ disjoint possibilities: nothing (the
-    identity channel) or one of the $4^n - 1$ pauli gates.
+    identity channel) or one of the $4^n - 1$ Pauli gates.
 
     This channel evolves a density matrix via
 
@@ -208,7 +208,7 @@ def asymmetric_depolarize(
     r"""Returns an `AsymmetricDepolarizingChannel` with the given parameters.
 
     This channel applies one of $4^n$ disjoint possibilities: nothing (the
-    identity channel) or one of the $4^n - 1$ pauli gates.
+    identity channel) or one of the $4^n - 1$ Pauli gates.
 
     This channel evolves a density matrix via
 
@@ -247,7 +247,7 @@ class DepolarizingChannel(raw_types.Gate):
     r"""A channel that depolarizes one or several qubits.
 
     This channel applies one of $4^n$ disjoint possibilities: nothing (the
-    identity channel) or one of the $4^n - 1$ pauli gates. The disjoint
+    identity channel) or one of the $4^n - 1$ Pauli gates. The disjoint
     probabilities of the non-identity Pauli gates are all the same,
     $p / (4^n - 1)$, and the identity is done with probability $1 - p$. The
     supplied probability must be a valid probability or else this
@@ -348,7 +348,7 @@ def depolarize(p: float, n_qubits: int = 1) -> DepolarizingChannel:
     r"""Returns a DepolarizingChannel with given probability of error.
 
     This channel applies one of $4^n$ disjoint possibilities: nothing (the
-    identity channel) or one of the $4^n - 1$ pauli gates. The disjoint
+    identity channel) or one of the $4^n - 1$ Pauli gates. The disjoint
     probabilities of the non-identity Pauli gates are all the same,
     $p / (4^n - 1)$, and the identity is done with probability 1 - p. The
     supplied probability must be a valid probability or else this constructor
@@ -489,8 +489,8 @@ def generalized_amplitude_damp(p: float, gamma: float) -> GeneralizedAmplitudeDa
     This channel evolves a density matrix via:
 
     $$
-    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-          + M_2 \rho M_2^\dagger + M_3 \rho M_3^\dagger
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger +
+          M_2 \rho M_2^\dagger + M_3 \rho M_3^\dagger
     $$
 
     With:
@@ -576,7 +576,7 @@ class AmplitudeDampingChannel(raw_types.Gate):
         return 1
 
     def _kraus_(self) -> Iterable[np.ndarray]:
-        # just return first two kraus ops, we don't care about
+        # just return first two Kraus ops, we don't care about
         # the last two.
         return list(self._delegate._kraus_())[:2]
 
@@ -801,6 +801,11 @@ class PhaseDampingChannel(raw_types.Gate):
           \end{bmatrix}
     \end{aligned}
     $$
+
+    This channel is equivalent to a phase flip channel with probability
+    $p = (1 - \sqrt{1 - \gamma}) / 2$, so it also has a mixture
+    representation: apply the identity with probability $1 - p$ and
+    $Z$ with probability $p$.
     """
 
     def __init__(self, gamma: float) -> None:
@@ -840,6 +845,15 @@ class PhaseDampingChannel(raw_types.Gate):
         )
 
     def _has_kraus_(self) -> bool:
+        return True
+
+    def _mixture_(self) -> Sequence[tuple[float, Any]]:
+        # p = gamma / (2 * (1 + sqrt(1 - gamma))) is algebraically equal to
+        # (1 - sqrt(1 - gamma)) / 2, but avoids cancellation for small values of gamma.
+        p = self._gamma / (2.0 * (1.0 + (1.0 - self._gamma) ** 0.5))
+        return ((1.0 - p, identity.I), (p, pauli_gates.Z))
+
+    def _has_mixture_(self) -> bool:
         return True
 
     def _value_equality_values_(self):
@@ -890,6 +904,9 @@ def phase_damp(gamma: float) -> PhaseDampingChannel:
           \end{bmatrix}
     \end{aligned}
     $$
+
+    This channel also has a mixture representation like the
+    phase flip channel
 
     Args:
         gamma: The damping constant.

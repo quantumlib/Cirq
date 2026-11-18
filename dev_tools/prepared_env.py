@@ -46,7 +46,7 @@ class PreparedEnv:
             destination_directory: The location where the environment has been
                 prepared. If the directory isn't prepared yet, this should be
                 None.
-            virtual_env_path: The location of the python virtual environment
+            virtual_env_path: The location of the Python virtual environment
                 that has been prepared for use when testing. If the virtual
                 environment is not prepared yet, this should be None.
         """

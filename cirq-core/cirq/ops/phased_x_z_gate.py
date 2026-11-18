@@ -140,7 +140,7 @@ class PhasedXZGate(raw_types.Gate):
     def _value_equality_values_(self):
         if self._is_parameterized_():
             # If this is parameterized, do not try to calculate the canonical exponents
-            # as this results in some slow sympy operations.
+            # as this results in some slow SymPy operations.
             return (self._x_exponent, self._z_exponent, self._axis_phase_exponent)
         c = self._canonical()
         return (

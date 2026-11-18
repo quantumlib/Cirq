@@ -18,6 +18,7 @@ import dataclasses
 import importlib.util
 import inspect
 import io
+import json
 import pathlib
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -32,7 +33,7 @@ import cirq
 if TYPE_CHECKING:
     from cirq.protocols.json_serialization import ObjectFactory
 
-# This is the testing framework for json serialization
+# This is the testing framework for JSON serialization
 # The actual tests live in cirq.protocols.json_serialization_test.py.
 #
 # When registering a new module, it has to come with the following setup:
@@ -62,7 +63,7 @@ class ModuleJsonTestSpec:
     # {DeprecatedClass: deprecation_deadline} pairs to avoid deprecation errors
     # in serialization tests.
     deprecated: dict[str, str]
-    # The unqualified public name is different from the cirq_type field of the json object,
+    # The unqualified public name is different from the cirq_type field of the JSON object,
     # usually due to namespacing.
     custom_class_name_to_cirq_type: dict[str, str] = dataclasses.field(default_factory=dict)
     # Special cases where classes cannot be tested using the normal infrastructure.
@@ -154,8 +155,8 @@ def assert_json_roundtrip_works(obj, text_should_be=None, resolvers=None) -> Non
 
     Args:
         obj: The object to test round-tripping for.
-        text_should_be: An optional argument to assert the JSON serialized
-            output.
+        text_should_be: An optional argument to assert the expected JSON output.
+            When present the JSON must be pretty-formatted with `indent=2`.
         resolvers: Any resolvers if testing those other than the default.
 
     Raises:
@@ -168,7 +169,8 @@ def assert_json_roundtrip_works(obj, text_should_be=None, resolvers=None) -> Non
     if text_should_be is not None:
         buffer.seek(0)
         text = buffer.read()
-        assert text == text_should_be, text
+        text_pretty = json.dumps(json.loads(text), indent=2)
+        assert text_pretty == text_should_be, text_pretty
 
     buffer.seek(0)
     restored_obj = cirq.protocols.read_json(buffer, resolvers=resolvers)

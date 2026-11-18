@@ -139,6 +139,9 @@ class RepetitionsStoppingCriteria(StoppingCriteria):
         return protocols.dataclass_json_dict(self)
 
 
+# Mapping from single-qubit Pauli observable to the X- and Y-rotation parameter values. The
+# second element in the key is whether to measure in the positive or negative (flipped) basis
+# for readout symmetrization.
 _OBS_TO_PARAM_VAL: dict[tuple[cirq.Pauli, bool], tuple[float, float]] = {
     (ops.X, False): (0, -1 / 2),
     (ops.X, True): (0, +1 / 2),
@@ -147,10 +150,8 @@ _OBS_TO_PARAM_VAL: dict[tuple[cirq.Pauli, bool], tuple[float, float]] = {
     (ops.Z, False): (0, 0),
     (ops.Z, True): (1, 0),
 }
-"""Mapping from single-qubit Pauli observable to the X- and Y-rotation parameter values. The
-second element in the key is whether to measure in the positive or negative (flipped) basis
-for readout symmetrization."""
 
+# Mapping from an initial `_NamedOneQubitState` to the X- and Y-rotation parameter values.
 _STATE_TO_PARAM_VAL: dict[_NamedOneQubitState, tuple[float, float]] = {
     value.KET_PLUS: (0, +1 / 2),
     value.KET_MINUS: (0, -1 / 2),
@@ -159,7 +160,6 @@ _STATE_TO_PARAM_VAL: dict[_NamedOneQubitState, tuple[float, float]] = {
     value.KET_ZERO: (0, 0),
     value.KET_ONE: (1, 0),
 }
-"""Mapping from an initial _NamedOneQubitState to the X- and Y-rotation parameter values."""
 
 
 def _get_params_for_setting(
@@ -299,7 +299,7 @@ def _check_meas_specs_still_todo(
 @dataclasses.dataclass(frozen=True)
 class _FlippyMeasSpec:
     """Internally, each MeasurementSpec class is split into two
-    _FlippyMeasSpecs to support readout symmetrization.
+    `_FlippyMeasSpecs` to support readout symmetrization.
 
     Bitstring results are combined, so this should be opaque to the user.
     """
@@ -328,8 +328,8 @@ def _subdivide_meas_specs(
 
     In readout symmetrization, we first run the "normal" circuit followed
     by running the circuit with flipped measurement.
-    One _MeasurementSpec is split into two _FlippyMeasSpecs. These are run
-    separately but accumulated according to their shared _MeasurementSpec.
+    One `_MeasurementSpec` is split into two `_FlippyMeasSpecs`. These are run
+    separately but accumulated according to their shared `_MeasurementSpec`.
     """
     n_qubits = len(qubits)
     flippy_mspecs = []
@@ -626,7 +626,7 @@ def measure_observables(
     """Measure a collection of PauliString observables for a state prepared by a Circuit.
 
     If you need more control over the process, please see `measure_grouped_settings` for a
-    lower-level API. If you would like your results returned as a pandas DataFrame,
+    lower-level API. If you would like your results returned as a Pandas DataFrame,
     please see `measure_observables_df`.
 
     Args:

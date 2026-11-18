@@ -78,7 +78,7 @@ class _IonQClient:
         It handles retry and authentication.
 
         Args:
-            remote_host: The url of the server exposing the IonQ API. This will strip anything
+            remote_host: The URL of the server exposing the IonQ API. This will strip anything
                 besides the base scheme and netloc, i.e. it only takes the part of the host of
                 the form `http://example.com` of `http://example.com/test`.
             api_key: The key used for authenticating against the IonQ API.
@@ -133,7 +133,7 @@ class _IonQClient:
             batch_mode: bool determines whether to submit a single circuit or a batch of circuits.
 
         Returns:
-            The json body of the response as a dict. This does not contain populated information
+            The JSON body of the response as a dict. This does not contain populated information
             about the job, but does contain the job id.
 
         Raises:
@@ -197,7 +197,7 @@ class _IonQClient:
             job_id: The UUID of the job (returned when the job was created).
 
         Returns:
-            The json body of the response as a dict.
+            The JSON body of the response as a dict.
 
         Raises:
             IonQNotFoundException: If a job with the given job_id does not exist.
@@ -216,7 +216,7 @@ class _IonQClient:
 
         Args:
             job_id: The UUID of the job (returned when the job was created).
-            sharpen: A boolean that determines how to aggregate error mitigated.
+            sharpen: A Boolean that determines how to aggregate error mitigated.
                 If True, apply majority vote mitigation; if False, apply average mitigation.
             extra_query_params: Specify any parameters to include in the request.
 
@@ -260,10 +260,10 @@ class _IonQClient:
         Args:
             status: If not None, filter to jobs with this status.
             limit: The maximum number of jobs to return.
-            batch_size: The size of the batches requested per http GET call.
+            batch_size: The size of the batches requested per HTTP GET call.
 
         Returns:
-            A list of the json bodies of the job dicts.
+            A list of the JSON bodies of the job dicts.
 
         Raises:
             IonQException: If the API call fails.
@@ -283,7 +283,7 @@ class _IonQClient:
         canceled.
 
         Returns:
-            The json body of the response as a dict.
+            The JSON body of the response as a dict.
         """
 
         def request():
@@ -298,7 +298,7 @@ class _IonQClient:
             job_id: The UUID of the job (returned when the job was created).
 
         Returns:
-            The json body of the response as a dict.
+            The JSON body of the response as a dict.
         """
 
         def request():
@@ -330,10 +330,10 @@ class _IonQClient:
             start: If supplied, only calibrations after this date and time. Accurate to seconds.
             end: If supplied, only calibrations before this date and time. Accurate to seconds.
             limit: The maximum number of calibrations to return.
-            batch_size: The size of the batches requested per http GET call.
+            batch_size: The size of the batches requested per HTTP GET call.
 
         Returns:
-            A list of the json bodies of the calibration dicts.
+            A list of the JSON bodies of the calibration dicts.
 
         Raises:
             IonQException: If the API call fails.
@@ -366,7 +366,7 @@ class _IonQClient:
         """Generates the user agent string which is helpful in identifying
         different tools in the internet. Valid user-agent ionq_client header that
         indicates the request is from cirq_ionq along with the system, os,
-        python,libraries details.
+        Python,libraries details.
 
         Returns:
             str: A string of generated user agent.
@@ -401,7 +401,7 @@ class _IonQClient:
 
         Raises:
             IonQException: If there was a not-retriable error from the API.
-            IonQNotFoundException: If the api returned not found.
+            IonQNotFoundException: If the API returned not found.
             TimeoutError: If the requests retried for more than `max_retry_seconds`.
 
         """
@@ -457,12 +457,12 @@ class _IonQClient:
         """Helper method for list calls.
 
         Args:
-            resource_path: The resource path for the object being listed. Follows the base url
+            resource_path: The resource path for the object being listed. Follows the base URL
                 and version. No leading slash.
             params: The params to pass with the list call.
             response_key: The key to get the list of objects that have been listed.
             limit: The maximum number of objects to return.
-            batch_size: The size of the batches requested per http GET call.
+            batch_size: The size of the batches requested per HTTP GET call.
 
         Returns:
             A sequence of dictionaries corresponding to the objects listed.

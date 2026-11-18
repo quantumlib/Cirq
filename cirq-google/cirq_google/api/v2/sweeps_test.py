@@ -341,7 +341,7 @@ def test_sweep_from_proto_with_func_round_trip(sweep):
         cirq.Zip(cirq.Points('a', [1, 2, 3]), cirq.Points('b', [4, 5, 6])),
     ],
 )
-def test_sweep_to_proto_with_func_on_resursive_sweep_succeeds(sweep):
+def test_sweep_to_proto_with_func_on_recursive_sweep_succeeds(sweep):
     def add_tunit_func(sweep: sweeps.SingleSweep):
         if isinstance(sweep, cirq.Points):
             sweep.points = [point * tunits.ns for point in sweep.points]  # type: ignore[misc]
@@ -368,7 +368,7 @@ def test_sweep_to_proto_with_func_on_resursive_sweep_succeeds(sweep):
         ),
     ],
 )
-def test_sweep_from_proto_with_func_on_resursive_sweep_succeeds(expected_sweep):
+def test_sweep_from_proto_with_func_on_recursive_sweep_succeeds(expected_sweep):
     def add_tunit_func(sweep_to_transform: sweeps.SingleSweep):
         sweep = deepcopy(sweep_to_transform)
         if isinstance(sweep, cirq.Points):

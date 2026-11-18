@@ -11,7 +11,7 @@ def main(minimum_cliffords=5, maximum_cliffords=20, cliffords_step=5):
     This example shows various methods on how to characterize a qubit, including
     Clifford-based randomized benchmarking and state tomography.
 
-    The number of cliffords to use in a randomized benchmarking experiment
+    The number of Cliffords to use in a randomized benchmarking experiment
     can be varied.  For instance, setting minimum_cliffords=10,
     maximum_cliffords=30 and cliffords_step=5 will test depths of 10, 15, 20,
     and 25 (the maximum of the range is exclusive).

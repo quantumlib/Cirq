@@ -322,14 +322,14 @@ class AnalogSimulationCircuitBuilder:
         which includes higher levels and higher-order nonlocal interactions.
         * Ramps faster than 2-3 nanoseconds are not possible on hardware; filters
         smooth out such fast ramps but are not simulated here.
-        * Sympy symbols are not supported. Please resolve all parameters.
+        * SymPy symbols are not supported. Please resolve all parameters.
 
         Args:
             trotter_step: The Trotter step size used for simulation. Should divide the total
                 time.
             interaction_pattern: The pattern of two-qubit gates to use for the simulation.
                 Shouldn't matter as long as the Trotter step size is sufficiently small.
-            trotter_order: The order of the Trotter approximation (1 and 2 are are the only
+            trotter_order: The order of the Trotter approximation (1 and 2 are the only
                 supported options).
                 (otherwise use first-order).
             idle_freq_map: The qubit idle frequencies. If not provided, set to 0.

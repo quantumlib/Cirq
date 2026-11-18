@@ -133,7 +133,7 @@ class NamedQid(_BaseNamedQid):
         return inst
 
     def __getnewargs__(self):
-        """Returns a tuple of args to pass to __new__ when unpickling."""
+        """Returns a tuple of args to pass to `__new__` when unpickling."""
         return (self._name, self._dimension)
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs__
@@ -205,7 +205,7 @@ class NamedQubit(_BaseNamedQid):
         return inst
 
     def __getnewargs__(self):
-        """Returns a tuple of args to pass to __new__ when unpickling."""
+        """Returns a tuple of args to pass to `__new__` when unpickling."""
         return (self._name,)
 
     # avoid pickling the _hash value, attributes are already stored with __getnewargs__

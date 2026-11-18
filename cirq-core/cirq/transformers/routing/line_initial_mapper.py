@@ -20,12 +20,12 @@ It first creates a partial connectivity graph between logical qubits in the give
 maps these logical qubits on physical qubits on the device by starting at the center of the device
 and greedily choosing the highest degree neighbor.
 
-If some logical qubits are unampped after this first procedure then there are two cases:
+If some logical qubits are unmapped after this first procedure then there are two cases:
     (1) These unmammep logical qubits do interact in the circuit with some other logical partner.
     In this case we map such a qubit to the nearest available physical qubit on the device to the
     one that its partner was mapped to.
 
-    (2) These unampped logical qubits only have single qubit operations on them (i.e they do not
+    (2) These unmapped logical qubits only have single qubit operations on them (i.e they do not
     interact with any other logical qubit at any point in the circuit). In this case we map them to
     the nearest available neighbor to the center of the device.
 """
