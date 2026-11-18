@@ -1926,7 +1926,7 @@ class Circuit(AbstractCircuit):
             if i in moments_by_index:
                 self._moments.append(moments_by_index[i].with_operations(op_lists_by_index[i]))
             else:
-                self._moments.append(Moment(op_lists_by_index[i]))
+                self._moments.append(Moment.from_ops(*op_lists_by_index[i]))
 
     def __copy__(self) -> cirq.Circuit:
         return self.copy()
@@ -3132,17 +3132,16 @@ def get_earliest_accommodating_moment_index(
         # Look for the maximum conflict; i.e. a moment that has a qubit the same as one of this op's
         # qubits, that has a measurement or control key the same as one of this op's measurement
         # keys, or that has a measurement key the same as one of this op's control keys. (Control
-        # keys alone can commute past each other). The `ifs` are logically unnecessary but seem to
-        # make this slightly faster.
-        if mop_qubits:
-            last_conflict = max(
-                last_conflict, *[qubit_indices.get(qubit, -1) for qubit in mop_qubits]
-            )
-        if mop_mkeys:
-            last_conflict = max(last_conflict, *[mkey_indices.get(key, -1) for key in mop_mkeys])
-            last_conflict = max(last_conflict, *[ckey_indices.get(key, -1) for key in mop_mkeys])
-        if mop_ckeys:
-            last_conflict = max(last_conflict, *[mkey_indices.get(key, -1) for key in mop_ckeys])
+        # keys alone can commute past each other).
+        for qubit in mop_qubits:
+            index = qubit_indices.get(qubit, -1)
+            last_conflict = max(last_conflict, index)
+        for key in mop_mkeys:
+            index = max(mkey_indices.get(key, -1), ckey_indices.get(key, -1))
+            last_conflict = max(last_conflict, index)
+        for key in mop_ckeys:
+            index = mkey_indices.get(key, -1)
+            last_conflict = max(last_conflict, index)
 
     # The index of the moment to place this moment or operation ("mop") into.
     mop_index = last_conflict + 1
