@@ -55,7 +55,6 @@ obtained keys.
 
  === Example output ===
 
-```
 Simulating non-eavesdropped protocol
 
     0: ───X───M───────────
@@ -105,7 +104,6 @@ Alice's bits:   00100101
 Bases match::   X_XXXXX_
 Expected key:   010010
 Actual key:     111011
-```
 
 """
 

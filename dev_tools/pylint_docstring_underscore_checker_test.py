@@ -18,17 +18,29 @@ import pathlib
 import tomllib
 
 import pytest
-from astroid import parse
+from astroid import nodes, parse
 from pylint.lint import Run
 from pylint.reporters import CollectingReporter
 from pylint.testutils import CheckerTestCase, MessageTest
 
 from dev_tools.pylint_docstring_underscore_checker import (
     DocstringUnderscoreChecker,
-    find_unescaped_underscore_symbols_in_source,
+    find_unescaped_underscore_symbols,
 )
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent
+
+
+def _msg(node: nodes.NodeNG, line: int, symbol: str) -> MessageTest:
+    return MessageTest(
+        msg_id="unescaped-underscore-in-docstring",
+        node=node,
+        line=line,
+        col_offset=node.col_offset,
+        end_line=node.end_lineno,
+        end_col_offset=node.end_col_offset,
+        args=(symbol,),
+    )
 
 
 class TestDocstringUnderscoreChecker(CheckerTestCase):
@@ -36,35 +48,21 @@ class TestDocstringUnderscoreChecker(CheckerTestCase):
 
     CHECKER_CLASS = DocstringUnderscoreChecker
 
-    def test_unescaped_symbols_reported_with_exact_columns(self) -> None:
-        node = parse('"""Uses __init__ and _unitary_ without backticks."""\n')
+    def test_unescaped_symbols_reported_with_line_numbers(self) -> None:
+        module = parse('"""Uses __init__ and _unitary_ without backticks."""\n')
+        assert module.doc_node is not None
         with self.assertAddsMessages(
-            MessageTest(
-                msg_id="unescaped-underscore-in-docstring", line=1, col_offset=8, args=("__init__",)
-            ),
-            MessageTest(
-                msg_id="unescaped-underscore-in-docstring",
-                line=1,
-                col_offset=21,
-                args=("_unitary_",),
-            ),
+            _msg(module.doc_node, 1, "__init__"), _msg(module.doc_node, 1, "_unitary_")
         ):
-            self.checker.process_module(node)
+            self.walk(module)
 
     def test_dotted_underscore_wrapped_symbols_are_flagged(self) -> None:
-        node = parse('"""See __init__.py and _private_.attr for details."""\n')
+        module = parse('"""See __init__.py and _private_.attr for details."""\n')
+        assert module.doc_node is not None
         with self.assertAddsMessages(
-            MessageTest(
-                msg_id="unescaped-underscore-in-docstring", line=1, col_offset=7, args=("__init__",)
-            ),
-            MessageTest(
-                msg_id="unescaped-underscore-in-docstring",
-                line=1,
-                col_offset=23,
-                args=("_private_",),
-            ),
+            _msg(module.doc_node, 1, "__init__"), _msg(module.doc_node, 1, "_private_")
         ):
-            self.checker.process_module(node)
+            self.walk(module)
 
     def test_multiline_and_nested_definitions(self) -> None:
         source = (
@@ -73,26 +71,17 @@ class TestDocstringUnderscoreChecker(CheckerTestCase):
             '\n'
             '    Details calling _private_helper on line 4.\n'
             '    """\n'
-            '    def inner(self) -> None:\n'
+            '    async def inner(self) -> None:\n'
             '        """Inner method referencing __call__."""\n'
             '        "Bare non-docstring string with __ignored__ in body."\n'
         )
-        node = parse(source)
+        module = parse(source)
+        outer_cls = module.body[0]
+        inner_fn = outer_cls.body[0]
         with self.assertAddsMessages(
-            MessageTest(
-                msg_id="unescaped-underscore-in-docstring",
-                line=4,
-                col_offset=20,
-                args=("_private_helper",),
-            ),
-            MessageTest(
-                msg_id="unescaped-underscore-in-docstring",
-                line=7,
-                col_offset=36,
-                args=("__call__",),
-            ),
+            _msg(outer_cls.doc_node, 4, "_private_helper"), _msg(inner_fn.doc_node, 7, "__call__")
         ):
-            self.checker.process_module(node)
+            self.walk(module)
 
     def test_document_call_and_attribute_docstrings(self) -> None:
         source = (
@@ -100,93 +89,38 @@ class TestDocstringUnderscoreChecker(CheckerTestCase):
             '"""Attribute docstring with _attr_symbol_."""\n'
             'document(X, "Defaults to __debug__.")\n'
             '_doc.document(X, doc_string="Keyword _unitary_.")\n'
+            'other_call(X, "Ignored __init__.")\n'
         )
-        node = parse(source)
+        module = parse(source)
+        attr_doc = module.body[1].value
+        call1_arg = module.body[2].value.args[1]
+        call2_kw = module.body[3].value.keywords[0].value
         with self.assertAddsMessages(
-            MessageTest(
-                msg_id="unescaped-underscore-in-docstring",
-                line=2,
-                col_offset=28,
-                args=("_attr_symbol_",),
-            ),
-            MessageTest(
-                msg_id="unescaped-underscore-in-docstring",
-                line=3,
-                col_offset=25,
-                args=("__debug__",),
-            ),
-            MessageTest(
-                msg_id="unescaped-underscore-in-docstring",
-                line=4,
-                col_offset=37,
-                args=("_unitary_",),
-            ),
+            _msg(attr_doc, 2, "_attr_symbol_"),
+            _msg(call1_arg, 3, "__debug__"),
+            _msg(call2_kw, 4, "_unitary_"),
         ):
-            self.checker.process_module(node)
-
-    def test_non_ascii_document_call_reports_exact_char_offsets(self) -> None:
-        source = (
-            'θ = 1\n'
-            'document(θ, """First line.\n'
-            'Second line with __init__ and single line.\n'
-            '""")\n'
-            'document(θ, "Inline __call__.")\n'
-        )
-        node = parse(source)
-        with self.assertAddsMessages(
-            MessageTest(
-                msg_id="unescaped-underscore-in-docstring",
-                line=3,
-                col_offset=17,
-                args=("__init__",),
-            ),
-            MessageTest(
-                msg_id="unescaped-underscore-in-docstring",
-                line=5,
-                col_offset=20,
-                args=("__call__",),
-            ),
-        ):
-            self.checker.process_module(node)
+            self.walk(module)
 
     def test_stray_currency_dollar_does_not_mask_symbols(self) -> None:
-        source = '"""Price is $5 later _a_b_ and\nmore $6 after __init__."""\n'
-        node = parse(source)
+        module = parse('"""Price is $5 later _a_b_ and\nmore $6 after __init__."""\n')
+        assert module.doc_node is not None
         with self.assertAddsMessages(
-            MessageTest(
-                msg_id="unescaped-underscore-in-docstring", line=1, col_offset=21, args=("_a_b_",)
-            ),
-            MessageTest(
-                msg_id="unescaped-underscore-in-docstring",
-                line=2,
-                col_offset=14,
-                args=("__init__",),
-            ),
+            _msg(module.doc_node, 1, "_a_b_"), _msg(module.doc_node, 2, "__init__")
         ):
-            self.checker.process_module(node)
+            self.walk(module)
 
     def test_colon_in_prose_outside_args_is_flagged(self) -> None:
-        source = '"""Note:\n    __init__: initializes the instance.\n"""\n'
-        node = parse(source)
-        with self.assertAddsMessages(
-            MessageTest(
-                msg_id="unescaped-underscore-in-docstring", line=2, col_offset=4, args=("__init__",)
-            )
-        ):
-            self.checker.process_module(node)
+        module = parse('"""Note:\n    __init__: initializes the instance.\n"""\n')
+        assert module.doc_node is not None
+        with self.assertAddsMessages(_msg(module.doc_node, 2, "__init__")):
+            self.walk(module)
 
     def test_leading_ellipsis_in_prose_is_flagged(self) -> None:
-        source = '"""Summary.\n\n..._foo_bar_ at the start of a prose line.\n"""\n'
-        node = parse(source)
-        with self.assertAddsMessages(
-            MessageTest(
-                msg_id="unescaped-underscore-in-docstring",
-                line=3,
-                col_offset=3,
-                args=("_foo_bar_",),
-            )
-        ):
-            self.checker.process_module(node)
+        module = parse('"""Summary.\n\n..._foo_bar_ at the start of a prose line.\n"""\n')
+        assert module.doc_node is not None
+        with self.assertAddsMessages(_msg(module.doc_node, 3, "_foo_bar_")):
+            self.walk(module)
 
     def test_doctest_masks_output_until_blank_line_only(self) -> None:
         source = (
@@ -197,62 +131,53 @@ class TestDocstringUnderscoreChecker(CheckerTestCase):
             'Prose after doctest referencing __init__.\n'
             '"""\n'
         )
-        node = parse(source)
-        with self.assertAddsMessages(
-            MessageTest(
-                msg_id="unescaped-underscore-in-docstring",
-                line=6,
-                col_offset=32,
-                args=("__init__",),
-            )
-        ):
-            self.checker.process_module(node)
+        module = parse(source)
+        assert module.doc_node is not None
+        with self.assertAddsMessages(_msg(module.doc_node, 6, "__init__")):
+            self.walk(module)
 
     def test_prose_after_indented_code_block_is_flagged(self) -> None:
         source = (
-            '"""Summary:\n\n'
+            '"""Summary.\n\n'
+            '    Usage:\n\n'
             '        x = _in_code_block_\n'
-            '      Prose after code block referencing __init__.\n'
-            '    Base indent line.\n'
+            '    Prose after code block referencing __init__.\n'
             '"""\n'
         )
-        node = parse(source)
-        with self.assertAddsMessages(
-            MessageTest(
-                msg_id="unescaped-underscore-in-docstring",
-                line=4,
-                col_offset=41,
-                args=("__init__",),
-            )
-        ):
-            self.checker.process_module(node)
+        module = parse(source)
+        assert module.doc_node is not None
+        with self.assertAddsMessages(_msg(module.doc_node, 6, "__init__")):
+            self.walk(module)
 
-    def test_implicitly_concatenated_docstring_tokens(self) -> None:
+    def test_multiline_joined_string_reports_node_lineno(self) -> None:
         source = (
             'def f():\n'
             '    (\n'
-            '        "First literal part "\n'
-            '        "second part referencing __init__."\n'
+            '        "First line "\n'
+            '        "second line referencing __init__."\n'
             '    )\n'
         )
-        node = parse(source)
-        with self.assertAddsMessages(
-            MessageTest(
-                msg_id="unescaped-underscore-in-docstring",
-                line=4,
-                col_offset=33,
-                args=("__init__",),
-            )
-        ):
-            self.checker.process_module(node)
+        module = parse(source)
+        fn = module.body[0]
+        with self.assertAddsMessages(_msg(fn.doc_node, fn.doc_node.lineno, "__init__")):
+            self.walk(module)
+
+    def test_section_header_on_first_line_dedents_cleanly(self) -> None:
+        doc = "Args:\n    _x: Parameter.\n    Calls __init__."
+        assert find_unescaped_underscore_symbols(doc) == [(2, "__init__")]
 
     @pytest.mark.parametrize(
         "source",
         [
+            pytest.param('def f():\n    pass\n', id="no-docstring"),
             pytest.param('def f():\n    """"""\n', id="empty-docstring"),
             pytest.param(
                 '"""Uses `__init__`, `_unitary_`, and ``_private_helper`` in backticks."""\n',
                 id="inline-backticks",
+            ),
+            pytest.param(
+                '"""Calls `cirq._some_long_helper(\nx)` across lines."""\n',
+                id="multiline-inline-backticks",
             ),
             pytest.param(
                 '"""Code block:\n\n'
@@ -272,7 +197,8 @@ class TestDocstringUnderscoreChecker(CheckerTestCase):
                 '"""Indented code block:\n\n'
                 '    Usage:\n'
                 '        def _default_do_a_using_b(self):\n'
-                '            pass\n"""\n',
+                '            pass\n'
+                '        x = _more_code_\n"""\n',
                 id="indented-code-block",
             ),
             pytest.param(
@@ -280,7 +206,7 @@ class TestDocstringUnderscoreChecker(CheckerTestCase):
                 id="latex-math",
             ),
             pytest.param(
-                '"""URL https://example.com/_foo_bar/__init__.py and _module_name.attr and '
+                '"""URL (https://example.com/_foo_bar/__init__.py) and _module_name.attr and '
                 '1_000_."""\n',
                 id="urls-dotted-prefixes-and-numeric-literals",
             ),
@@ -296,18 +222,12 @@ class TestDocstringUnderscoreChecker(CheckerTestCase):
                 '    **_extra_kwargs: Extra args.\n"""\n',
                 id="args-section-parameter-names",
             ),
+            pytest.param('"""_a' + '_' * 40 + '-x."""\n', id="long-underscore-run-no-redos"),
         ],
     )
     def test_valid_contexts_not_flagged(self, source: str) -> None:
-        node = parse(source)
         with self.assertNoMessages():
-            self.checker.process_module(node)
-
-    def test_disabled_message_early_return(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        node = parse('"""Docstring with __init__."""\n')
-        monkeypatch.setattr(self.linter, "is_message_enabled", lambda *_args, **_kwargs: False)
-        with self.assertNoMessages():
-            self.checker.process_module(node)
+            self.walk(parse(source))
 
 
 def _lint(tmp_path: pathlib.Path, source: str) -> list[str]:
@@ -365,24 +285,3 @@ def test_pyproject_enables_unescaped_underscore_checker() -> None:
     pylint_cfg = pyproject["tool"]["pylint"]
     assert "dev_tools.pylint_docstring_underscore_checker" in pylint_cfg["main"]["load-plugins"]
     assert "unescaped-underscore-in-docstring" in pylint_cfg["messages_control"]["enable"]
-
-
-def test_find_unescaped_underscore_symbols_in_source_offsets() -> None:
-    assert find_unescaped_underscore_symbols_in_source(
-        '"""Trailing symbol_name_ in prose."""\n'
-    ) == [(1, 12, "symbol_name_")]
-
-
-def test_long_underscore_run_does_not_backtrack_exponentially() -> None:
-    assert find_unescaped_underscore_symbols_in_source('"""_a' + '_' * 40 + '-x."""\n') == []
-
-
-def test_non_lf_line_separators_do_not_shift_line_numbers() -> None:
-    source = (
-        '# comment with form feed \x0c on line 1\n'
-        'θ = 1\n'
-        'document(θ, """First\x0csame line.\n'
-        'Second __init__.\n'
-        '""")\n'
-    )
-    assert find_unescaped_underscore_symbols_in_source(source) == [(4, 7, "__init__")]
