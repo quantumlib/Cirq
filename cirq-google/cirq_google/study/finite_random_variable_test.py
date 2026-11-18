@@ -115,7 +115,7 @@ def test_rng_state_is_restored():
 
 
 def test_equality():
-    """Tests the __eq__ method for comparing sweep instances."""
+    """Tests the `__eq__` method for comparing sweep instances."""
     sweep1 = cirq_google.study.FiniteRandomVariable(
         key=KEY, distribution=DIST, seed=SEED, length=LENGTH
     )

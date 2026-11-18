@@ -82,7 +82,7 @@ def test_ghz_circuits_state(
 
 
 def test_transform_circuit_properties() -> None:
-    """Tests that _transform_circuit preserves circuit properties."""
+    """Tests that `_transform_circuit` preserves circuit properties."""
     circuit = ghz_2d.generate_2d_ghz_circuit(
         CENTER_QUBIT, GRAPH, num_qubits=9, randomized=False, add_dd_and_align_right=False
     )
