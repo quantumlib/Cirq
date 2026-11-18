@@ -264,6 +264,10 @@ class SympyCondition(Condition):
 
     expr: sympy.Basic
 
+    def __post_init__(self):
+        if not isinstance(self.expr, sympy.Basic):
+            raise TypeError(f'Expected SymPy expression, got {type(self.expr)}.')
+
     @property
     def keys(self):
         return tuple(

@@ -114,6 +114,13 @@ def test_key_condition_qasm_protocol_invalid_args():
         _ = cirq.qasm(cond, args=args)
 
 
+def test_sympy_condition_validation():
+    with pytest.raises(TypeError, match="Expected SymPy expression, got.*class 'str'"):
+        _ = cirq.SympyCondition("0:a >= 1")
+    with pytest.raises(TypeError, match="Expected SymPy expression, got.*class 'list'"):
+        _ = cirq.SympyCondition([sympy.Symbol('0:a') >= 1])
+
+
 def test_sympy_condition_with_keys():
     c = init_sympy_condition.replace_key(key_a, key_b)
     assert c.keys == (key_b,)
@@ -206,7 +213,7 @@ def test_sympy_condition_qasm():
     with pytest.raises(
         ValueError, match='QASM is defined only for SympyConditions of type key == constant'
     ):
-        _ = cirq.SympyCondition(sympy.Symbol('a') != 2).qasm
+        _ = cirq.SympyCondition(sympy.Unequality(sympy.Symbol('a'), 2)).qasm
 
 
 @pytest.mark.parametrize(
