@@ -50,13 +50,13 @@ class SupportsMeasurementKey(Protocol):
     Note: Measurements, in contrast to general quantum channels, are
     distinguished by the recording of the quantum operation that occurred.
     That is a general quantum channel may enact the evolution
-        $$
-        \rho \rightarrow \sum_k A_k \rho A_k^\dagger
-        $$
+    $$
+    \rho \rightarrow \sum_k A_k \rho A_k^\dagger
+    $$
     where as a measurement enacts the evolution
-        $$
-        \rho \rightarrow A_k \rho A_k^\dagger
-        $$
+    $$
+    \rho \rightarrow A_k \rho A_k^\dagger
+    $$
     conditional on the measurement outcome being $k$.
     """
 
@@ -134,7 +134,7 @@ def measurement_key_obj(val, default=RaiseTypeErrorIfNotProvided):
         value was specified, the default value is returned.
 
     Raises:
-        TypeError: `val` doesn't have a _measurement_key_obj[s]_ method (or that method
+        TypeError: `val` doesn't have a `_measurement_key_obj[s]_` method (or that method
             returned NotImplemented) and also no default value was specified.
         ValueError: `val` has multiple measurement keys.
     """
@@ -178,7 +178,7 @@ def measurement_key_name(val, default=RaiseTypeErrorIfNotProvided):
         value was specified, the default value is returned.
 
     Raises:
-        TypeError: `val` doesn't have a _measurement_key_name_ method (or that method
+        TypeError: `val` doesn't have a `_measurement_key_name_` method (or that method
             returned NotImplemented) and also no default value was specified.
         ValueError: `val` has multiple measurement keys.
     """

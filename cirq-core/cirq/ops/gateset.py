@@ -202,7 +202,7 @@ class GateFamily:
         The default predicate depends on the gate family initialization type:
 
         - Instance Family: `cirq.equal_up_to_global_phase(gate, self.gate)`
-            if self._ignore_global_phase else `gate == self.gate`.
+            if `self._ignore_global_phase` else `gate == self.gate`.
         - Type Family: `isinstance(gate, self.gate)`.
 
         Args:
@@ -251,7 +251,7 @@ class GateFamily:
         )
 
     def _value_equality_values_(self) -> Any:
-        # `isinstance` is used to ensure the a gate type and gate instance is not compared.
+        # `isinstance` is used to ensure a gate type and gate instance are not compared.
         description = self.description if self.description != self._default_description() else None
         return (
             isinstance(self.gate, raw_types.Gate),

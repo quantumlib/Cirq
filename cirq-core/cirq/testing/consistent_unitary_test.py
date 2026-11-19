@@ -33,7 +33,7 @@ class InconsistentGate(cirq.Gate):
         yield cirq.CNOT(q, qubits[0])
 
 
-class FailsOnDecompostion(cirq.Gate):
+class FailsOnDecomposition(cirq.Gate):
     def _num_qubits_(self) -> int:
         return 1
 
@@ -93,6 +93,6 @@ def test_assert_unitary_is_consistent(g, ignore_phase, is_consistent) -> None:
 
 def test_failed_decomposition() -> None:
     with pytest.raises(ValueError):
-        cirq.testing.assert_unitary_is_consistent(FailsOnDecompostion())
+        cirq.testing.assert_unitary_is_consistent(FailsOnDecomposition())
 
     cirq.testing.assert_unitary_is_consistent(cirq.Circuit())

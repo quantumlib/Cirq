@@ -35,7 +35,7 @@ class StabilizerSampler(sampler.Sampler):
             seed: The random seed or generator to use when sampling.
         """
         self.init = True
-        self._prng = value.parse_random_state(seed)
+        self._prng = value.parse_random_generator(seed)
 
     def run_sweep(
         self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1

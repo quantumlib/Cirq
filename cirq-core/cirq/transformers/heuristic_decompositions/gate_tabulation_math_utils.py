@@ -48,7 +48,7 @@ def _single_qubit_unitary(
 def random_qubit_unitary(
     shape: Sequence[int] = (),
     randomize_global_phase: bool = False,
-    rng: np.random.RandomState | None = None,
+    rng: random_state.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> np.ndarray:
     """Random qubit unitary distributed over the Haar measure.
 
@@ -60,20 +60,22 @@ def random_qubit_unitary(
         randomize_global_phase: (Default False) If True, a global phase is also
             sampled randomly. This corresponds to sampling over U(2) instead of
             SU(2).
-        rng: Random number generator to be used in sampling. Default is
-            numpy.random.
+        rng: Random number generator (or seed) to be used in sampling. Anything
+            accepted by `cirq.value.parse_random_generator`. If unspecified,
+            use a default unseeded `np.random.Generator`.
     """
-    real_rng = random_state.parse_random_state(rng)
+    real_rng = random_state.parse_random_generator(rng)
+    shape = tuple(shape)
 
-    theta = np.arcsin(np.sqrt(real_rng.rand(*shape)))
-    phi_d = real_rng.rand(*shape) * np.pi * 2
-    phi_o = real_rng.rand(*shape) * np.pi * 2
+    theta = np.arcsin(np.sqrt(real_rng.random(shape)))
+    phi_d = real_rng.random(shape) * np.pi * 2
+    phi_o = real_rng.random(shape) * np.pi * 2
 
     out = _single_qubit_unitary(theta, phi_d, phi_o)
 
     if randomize_global_phase:
         out = np.moveaxis(out, (-2, -1), (0, 1))
-        out *= np.exp(1j * np.pi * 2 * real_rng.rand(*shape))
+        out *= np.exp(1j * np.pi * 2 * real_rng.random(shape))
         out = np.moveaxis(out, (0, 1), (-2, -1))
     return out
 
@@ -259,9 +261,10 @@ def kak_vector_to_unitary(vector: np.ndarray) -> np.ndarray:
         vector: A KAK vector shape (..., 3). (Input may be vectorized).
 
     Returns:
-        unitary: Corresponding 2-qubit unitary, of the form
-           $exp( i k_x \sigma_x \sigma_x + i k_y \sigma_y \sigma_y
-                + i k_z \sigma_z \sigma_z)$.
+        unitary: Corresponding 2-qubit unitary, of the form:
+           $$
+           exp( i k_x \sigma_x \sigma_x + i k_y \sigma_y \sigma_y + i k_z \sigma_z \sigma_z)
+           $$
            matrix or tensor of matrices of shape (..., 4,4).
     """
     vector = np.asarray(vector)

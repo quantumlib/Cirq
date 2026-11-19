@@ -80,11 +80,11 @@ class Sweep(metaclass=abc.ABCMeta):
 
     def __add__(self, other: Sweep) -> Sweep:
         sweeps: list[Sweep] = []
-        if isinstance(self, Zip):
+        if type(self) is Zip:
             sweeps.extend(self.sweeps)
         else:
             sweeps.append(self)
-        if isinstance(other, Zip):
+        if type(other) is Zip:
             sweeps.extend(other.sweeps)
         elif isinstance(other, Sweep):
             sweeps.append(other)

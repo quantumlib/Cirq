@@ -123,7 +123,7 @@ class _PauliAndZPow:
         return f"─{self.pauli}──{self.zpow}─"
 
     def to_single_qubit_gate(self) -> ops.PhasedXZGate | ops.ZPowGate | ops.IdentityGate:
-        """Converts the _PauliAndZPow to a single-qubit gate."""
+        """Converts the `_PauliAndZPow` to a single-qubit gate."""
         exp = self.zpow.exponent
         match self.pauli:
             case ops.I:
@@ -207,7 +207,7 @@ class CPhaseGaugeTransformerMM(MultiMomentGaugeTransformer):
         # the gauge to the left of the current `moment`, and the loop computes
         # the transformed `moment` and the new `pulled` gauge to its right.
         for moment in moments_to_gauge:
-            # Calculate --prev--moment-- ==> --updated_momment--pulled--
+            # Calculate --prev--moment-- ==> --updated_moment--pulled--
             prev = pulled
             pulled = {}
             ops_at_updated_moment: list[ops.Operation] = []

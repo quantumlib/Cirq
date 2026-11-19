@@ -1059,7 +1059,7 @@ class QasmParser:
             # Both "/" and "^" can raise this, for different reasons, so the
             # message distinguishes them by operator. It deliberately does not
             # reuse Python's own text: CPython rewords ZeroDivisionError
-            # between releases (3.11 says "0.0 cannot be raised to a negative
+            # between releases (3.12 says "0.0 cannot be raised to a negative
             # power" where 3.14 says "zero to a negative power"), which would
             # make this parser's user-visible error depend on the interpreter.
             reason = "zero to a negative power" if p[2] == '^' else "division by zero"
@@ -1220,7 +1220,10 @@ class QasmParser:
             for i, key in enumerate(carg):
                 v = (val >> i) & 1
                 conditions.append(sympy.Eq(sympy.Symbol(key), v))
-        p[0] = [ops.ClassicallyControlledOperation(conditions=conditions, sub_operation=next(p[5]))]
+        p[0] = [
+            ops.ClassicallyControlledOperation(conditions=conditions, sub_operation=operation)
+            for operation in p[5]
+        ]
 
     def p_gate_params_multiple(self, p):
         """gate_params : ID ',' gate_params"""

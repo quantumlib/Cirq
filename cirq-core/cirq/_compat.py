@@ -44,7 +44,7 @@ __cirq_debug__ = contextvars.ContextVar('__cirq_debug__', default=__debug__)
 document(
     __cirq_debug__,
     "A cirq specific flag which can be used to conditionally turn off all validations across Cirq "
-    "to boost performance in production mode. Defaults to python's built-in constant __debug__. "
+    "to boost performance in production mode. Defaults to python's built-in constant `__debug__`. "
     "The flag is implemented as a `ContextVar` and is thread safe.",
 )
 
@@ -212,10 +212,10 @@ def dataclass_repr(value: Any, namespace: str = 'cirq') -> str:
         value: The dataclass. We respect the `repr` attribute of dataclass fields if you deign
             to omit a field from the repr.
         namespace: The Python namespace or module name to prepend with a "." to the class name.
-            This is the key difference between the default dataclass-generated __repr__.
+            This is the key difference between the default dataclass-generated `__repr__`.
 
     Returns:
-        A representation suitable for the __repr__ method of a dataclass.
+        A representation suitable for the `__repr__` method of a dataclass.
     """
     field_strs = []
     field: dataclasses.Field
@@ -231,7 +231,7 @@ def dataclass_repr(value: Any, namespace: str = 'cirq') -> str:
 
 
 def proper_eq(a: Any, b: Any) -> bool:
-    """Compares objects for equality, working around __eq__ not always working.
+    """Compares objects for equality, working around `__eq__` not always working.
 
     For example, in NumPy a == b broadcasts and returns an array instead of
     doing what np.array_equal(a, b) does. This method uses np.array_equal(a, b)
@@ -509,41 +509,11 @@ class DeprecatedModuleLoader(importlib.abc.Loader):
         if hasattr(loader, 'exec_module'):
             # mypy#2427
             self.exec_module = self._wrap_exec_module(loader.exec_module)  # type: ignore[method-assign]
-        # while this is rare and load_module was deprecated in 3.4
-        # in older environments this line makes them work as well
-        if hasattr(loader, 'load_module'):
-            # mypy#2427
-            self.load_module = self._wrap_load_module(loader.load_module)  # type: ignore[method-assign]
         if hasattr(loader, 'create_module'):
             # mypy#2427
             self.create_module = loader.create_module  # type: ignore[method-assign]
         self.old_module_name = old_module_name
         self.new_module_name = new_module_name
-
-    def module_repr(self, module: ModuleType) -> str:
-        return self.loader.module_repr(module)
-
-    def _wrap_load_module(self, method: Any) -> Any:
-        def load_module(fullname: str) -> ModuleType:
-            assert fullname == self.old_module_name, (
-                f"DeprecatedModuleLoader for {self.old_module_name} was asked to "
-                f"load {fullname}"
-            )
-            if self.new_module_name in sys.modules:
-                sys.modules[self.old_module_name] = sys.modules[self.new_module_name]
-                return sys.modules[self.old_module_name]
-            method(self.new_module_name)
-            # https://docs.python.org/3.11/library/importlib.html#importlib.abc.Loader.load_module
-            assert self.new_module_name in sys.modules, (
-                f"Wrapped loader {self.loader} was "
-                f"expected to insert "
-                f"{self.new_module_name} in sys.modules "
-                f"but it did not."
-            )
-            sys.modules[self.old_module_name] = sys.modules[self.new_module_name]
-            return sys.modules[self.old_module_name]
-
-        return load_module
 
     def _wrap_exec_module(self, method: Any) -> Any:
         def exec_module(module: ModuleType) -> None:

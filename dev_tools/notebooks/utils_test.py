@@ -61,7 +61,7 @@ def test_rewrite_notebook_multiple() -> None:
     shutil.rmtree(directory)
 
 
-def test_rewrite_notebook_ignore_non_seperator_lines() -> None:
+def test_rewrite_notebook_ignore_non_separator_lines() -> None:
     directory, ipynb_path = write_test_data('d = 5\nd = 4', 'd = 5->d = 3\n# comment')
 
     path = dt.rewrite_notebook(ipynb_path)
@@ -86,7 +86,7 @@ def test_rewrite_notebook_no_tst_file() -> None:
     shutil.rmtree(directory)
 
 
-def test_rewrite_notebook_extra_seperator() -> None:
+def test_rewrite_notebook_extra_separator() -> None:
     directory, ipynb_path = write_test_data('d = 5\nd = 4', 'd = 5->d = 3->d = 1')
 
     with pytest.raises(AssertionError, match='only contain one'):

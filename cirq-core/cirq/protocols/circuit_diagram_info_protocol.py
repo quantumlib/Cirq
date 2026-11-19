@@ -431,8 +431,8 @@ def circuit_diagram_info(
 ):
     """Requests information on drawing an operation in a circuit diagram.
 
-    Calls _circuit_diagram_info_ on `val`. If `val` doesn't have
-    _circuit_diagram_info_, or it returns NotImplemented, that indicates that
+    Calls `_circuit_diagram_info_` on `val`. If `val` doesn't have
+    `_circuit_diagram_info_`, or it returns NotImplemented, that indicates that
     diagram information is not available.
 
     Args:
@@ -443,11 +443,11 @@ def circuit_diagram_info(
             instead.
 
     Returns:
-        If `val` has no _circuit_diagram_info_ method or it returns
+        If `val` has no `_circuit_diagram_info_` method or it returns
         NotImplemented, then `default` is returned (or a TypeError is
         raised if no `default` is specified).
 
-        Otherwise, the value returned by _circuit_diagram_info_ is returned.
+        Otherwise, the value returned by `_circuit_diagram_info_` is returned.
 
     Raises:
         TypeError:

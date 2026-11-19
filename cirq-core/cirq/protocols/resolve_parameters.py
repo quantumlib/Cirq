@@ -43,7 +43,7 @@ class SupportsParameterization(Protocol):
     @doc_private
     def _parameter_names_(self) -> Set[str]:
         """Returns a collection of string names of parameters that require
-        resolution. If _is_parameterized_ is False, the collection is empty.
+        resolution. If `_is_parameterized_` is False, the collection is empty.
         The converse is not necessarily true, because some objects may report
         that they are parameterized when they contain symbolic constants which
         need to be evaluated, but no free symbols.
@@ -102,7 +102,7 @@ def parameter_names(val: Any) -> Set[str]:
 
     Returns:
         A set of parameter names if the object is parameterized. It the object
-        does not implement the _parameter_names_ magic method or that method
+        does not implement the `_parameter_names_` magic method or that method
         returns NotImplemented, returns an empty set.
     """
     if isinstance(val, sympy.Basic):
@@ -128,7 +128,7 @@ def parameter_symbols(val: Any) -> Set[sympy.Symbol]:
 
     Returns:
         A set of parameter symbols if the object is parameterized. It the object
-        does not implement the _parameter_symbols_ magic method or that method
+        does not implement the `_parameter_symbols_` magic method or that method
         returns NotImplemented, returns an empty set.
     """
     return {sympy.Symbol(name) for name in parameter_names(val)}
@@ -164,7 +164,7 @@ def resolve_parameters(
     Raises:
         RecursionError if the ParamResolver detects a loop in resolution.
         ValueError if `recursive=False` is passed to an external
-            _resolve_parameters_ method with no `recursive` parameter.
+            `_resolve_parameters_` method with no `recursive` parameter.
     """
     if not param_resolver:
         return val

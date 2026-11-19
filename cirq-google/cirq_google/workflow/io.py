@@ -140,7 +140,7 @@ class _WorkflowSaver(abc.ABC):
         """Initialize a data saving for a workflow execution.
 
         Args:
-            rt_config: The immutable `cg.QuantumRuntimeConfiguation` for this run. This should
+            rt_config: The immutable `cg.QuantumRuntimeConfiguration` for this run. This should
                 be saved once, likely during initialization.
             shared_rt_info: The current `cg.SharedRuntimeInfo` for saving.
         """
@@ -203,7 +203,7 @@ class _FilesystemSaver(_WorkflowSaver):
         """Initialize the filesystem for data saving
 
         Args:
-            rt_config: The immutable `cg.QuantumRuntimeConfiguation` for this run. This is written
+            rt_config: The immutable `cg.QuantumRuntimeConfiguration` for this run. This is written
                 once during this initialization.
             shared_rt_info: The initial `cg.SharedRuntimeInfo` to be saved to a file.
         """

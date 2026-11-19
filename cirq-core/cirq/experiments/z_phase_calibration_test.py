@@ -37,9 +37,9 @@ _SEED = 276154030
 _POOL_NUM_PROCESSES = min(4, multiprocessing.cpu_count())
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def pool() -> Iterator[multiprocessing.pool.Pool]:
-    ctx = multiprocessing.get_context()
+    ctx = multiprocessing.get_context('spawn')
     with ctx.Pool(_POOL_NUM_PROCESSES) as pool:
         yield pool
 

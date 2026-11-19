@@ -382,7 +382,7 @@ class AbstractCircuit(abc.ABC):
             The index of the next moment that touches each qubit. If there
             is no such moment, the next moment is specified as the number of
             moments in the circuit. Equivalently, can be characterized as one
-            plus the index of the last moment after start_moment_index
+            plus the index of the last moment after `start_moment_index`
             (inclusive) that does *not* act on a given qubit.
         """
         next_moments = {}
@@ -675,22 +675,22 @@ class AbstractCircuit(abc.ABC):
 
         An operation is considered blocking if both of the following hold:
 
-        - It is in the 'light cone' of start_frontier.
+        - It is in the 'light cone' of `start_frontier`.
         - `is_blocker` returns a truthy value, or it acts on a blocked qubit
 
         Every qubit acted on by a blocking operation is thereafter itself
         blocked.
 
         The notion of reachability here differs from that in
-        reachable_frontier_from in two respects:
+        `reachable_frontier_from` in two respects:
 
         - An operation is not considered blocking only because it is in a
-            moment before the start_frontier of one of the qubits on which it
+            moment before the `start_frontier` of one of the qubits on which it
             acts.
-        - Operations that act on qubits not in start_frontier are not
+        - Operations that act on qubits not in `start_frontier` are not
             automatically blocking.
 
-        For every (moment_index, operation) returned:
+        For every (`moment_index`, `operation`) returned:
 
         - moment_index >= min((start_frontier[q] for q in operation.qubits
             if q in start_frontier), default=0)
@@ -1216,7 +1216,7 @@ class AbstractCircuit(abc.ABC):
                 allowed (as opposed to ascii-only diagrams).
             transpose: Arranges qubit wires vertically instead of horizontally.
             include_tags: Controls which tags attached to operations are
-                included. ``True`` includes all tags, ``False`` includes none,
+                included. `True` includes all tags, `False` includes none,
                 or a collection of tag classes may be specified to include only
                 those tags.
             precision: Number of digits to display in text diagram
@@ -1258,10 +1258,10 @@ class AbstractCircuit(abc.ABC):
         Args:
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
-            qubit_namer: Names qubits in diagram. Defaults to using _circuit_diagram_info_ or str.
+            qubit_namer: Names qubits in diagram. Defaults to using `_circuit_diagram_info_` or str.
             transpose: Arranges qubit wires vertically instead of horizontally.
             include_tags: Controls which tags attached to operations are
-                included. ``True`` includes all tags, ``False`` includes none,
+                included. `True` includes all tags, `False` includes none,
                 or a collection of tag classes may be specified to include only
                 those tags.
             draw_moment_groups: Whether to draw moment symbol or not
@@ -1822,6 +1822,7 @@ class Circuit(AbstractCircuit):
                 or generally anything meeting the `cirq.OP_TREE` contract.
                 Non-moment entries will be appended according to the specified
                 insertion strategy; see `Circuit.append` for specific mechanics.
+                `cirq.Moment` entries are added intact.
             strategy: When initializing the circuit with operations and moments
                 from `contents`, this determines how the operations are packed
                 together. This option does not affect later insertions into the
@@ -2265,14 +2266,19 @@ class Circuit(AbstractCircuit):
 
         Moments within the operation tree are inserted intact. Operations are
         inserted into the moment specified by the index and 'InsertStrategy'.
-        Operations affecting similar qubits are separated into different moments
-        according to the insertion strategy.
+        Operations acting on a common qubit are separated into different
+        moments according to the insertion strategy.
 
-        Measurements with the same keys are discouraged and will be separated
-        into different moments; prefer multi-qubit measurements. Controlled
-        operations and measurements with the same key will also be separated.
-        Special use cases requiring these operations to be in the same moment
-        should insert them as a moment.
+        Measurement and control keys are respected in the same way: two
+        measurements with the same key, or a measurement and an operation
+        classically controlled by that key, are never placed into the same
+        moment. Several operations classically controlled by the same key can
+        still share a moment. To measure several qubits under one key, prefer
+        a single multi-qubit measurement, e.g. `cirq.measure(q0, q1, key="m")`,
+        or use distinct keys. An explicitly constructed `cirq.Moment` is
+        inserted intact and its operations are not checked for overlapping
+        keys; therefore such operations can be intentionally packed into one
+        moment, e.g. `cirq.Moment(cirq.measure(q0, key="m"), cirq.measure(q1, key="m"))`.
 
         Args:
             index: The index to insert all the operations at.
@@ -2610,14 +2616,19 @@ class Circuit(AbstractCircuit):
         """Appends operations onto the end of the circuit.
 
         Moments within the operation tree are appended intact. Operations
-        affecting similar qubits are separated into different moments according
+        acting on a common qubit are separated into different moments according
         to the insertion strategy.
 
-        Measurements with the same keys are discouraged and will be separated
-        into different moments; prefer multi-qubit measurements. Controlled
-        operations and measurements with the same key will also be separated.
-        Special use cases requiring these operations to be in the same moment
-        should append them as a moment.
+        Measurement and control keys are respected in the same way: two
+        measurements with the same key, or a measurement and an operation
+        classically controlled by that key, are never placed into the same
+        moment. Several operations classically controlled by the same key can
+        still share a moment. To measure several qubits under one key, prefer
+        a single multi-qubit measurement, e.g. `cirq.measure(q0, q1, key="m")`,
+        or use distinct keys. An explicitly constructed `cirq.Moment` is
+        appended intact and its operations are not checked for overlapping
+        keys; therefore such operations can be intentionally packed into one
+        moment, e.g. `cirq.Moment(cirq.measure(q0, key="m"), cirq.measure(q1, key="m"))`.
 
         Args:
             moment_or_operation_tree: The moment or operation tree to append.
@@ -3006,7 +3017,7 @@ def _group_until_different(items: Iterable[_TIn], key: Callable[[_TIn], _TKey], 
             item itself.
 
     Examples:
-        _group_until_different(range(11), key=is_prime) yields
+        `_group_until_different(range(11), key=is_prime)` yields
             (False, [0, 1])
             (True, [2, 3])
             (False, [4])

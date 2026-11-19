@@ -28,7 +28,7 @@ from cirq.transformers.heuristic_decompositions.two_qubit_gate_tabulation import
     TwoQubitGateTabulation,
 )
 
-_rng = value.parse_random_state(11)  # for determinism
+_rng = value.parse_random_generator(11)  # for determinism
 
 sycamore_tabulation = two_qubit_gate_product_tabulation(
     cirq.unitary(cirq.FSimGate(np.pi / 2, np.pi / 6)), 0.2, random_state=_rng
@@ -49,18 +49,36 @@ def test_gate_compilation_matches_expected_max_infidelity(tabulation, target) ->
     assert result.success
     max_error = tabulation.max_expected_infidelity
     assert 1 - unitary_entanglement_fidelity(target, result.actual_gate) < max_error
+    expected_actual_gate = np.kron(*result.local_unitaries[0])
+    for u0u1 in result.local_unitaries[1:]:
+        expected_actual_gate = np.kron(*u0u1) @ result.base_gate_unitary @ expected_actual_gate
+    np.testing.assert_allclose(result.actual_gate, expected_actual_gate)
 
 
 @pytest.mark.parametrize('tabulation', [sycamore_tabulation, sqrt_iswap_tabulation])
-def test_gate_compilation_on_base_gate_standard(tabulation) -> None:
-    base_gate = tabulation.base_gate
+@pytest.mark.parametrize(
+    'phase_angle',
+    [0.0, *np.random.uniform(0, 2 * np.pi, 4).tolist()],
+    ids=[f"phase_angle{i}" for i in range(5)],
+)
+def test_gate_compilation_on_base_gate_standard(
+    tabulation: TwoQubitGateTabulation, phase_angle: float
+) -> None:
+    phased_base_gate = np.exp(1j * phase_angle) * tabulation.base_gate
 
-    result = tabulation.compile_two_qubit_gate(base_gate)
+    result = tabulation.compile_two_qubit_gate(phased_base_gate)
 
     assert len(result.local_unitaries) == 2
     assert result.success
-    fidelity = unitary_entanglement_fidelity(result.actual_gate, base_gate)
+    expected_actual_gate = (
+        np.kron(*result.local_unitaries[1])
+        @ result.base_gate_unitary
+        @ np.kron(*result.local_unitaries[0])
+    )
+    np.testing.assert_allclose(result.actual_gate, expected_actual_gate)
+    fidelity = unitary_entanglement_fidelity(result.actual_gate, phased_base_gate)
     assert fidelity > 0.99999
+    np.testing.assert_allclose(result.actual_gate, phased_base_gate, atol=1e-8)
 
 
 def test_gate_compilation_on_base_gate_identity() -> None:
@@ -85,9 +103,7 @@ def test_gate_compilation_missing_points_raises_error() -> None:
 @pytest.mark.parametrize('seed', [0, 1])
 def test_sycamore_gate_tabulation(seed) -> None:
     base_gate = cirq.unitary(cirq.FSimGate(np.pi / 2, np.pi / 6))
-    tab = two_qubit_gate_product_tabulation(
-        base_gate, 0.1, sample_scaling=2, random_state=np.random.RandomState(seed)
-    )
+    tab = two_qubit_gate_product_tabulation(base_gate, 0.1, sample_scaling=2, random_state=seed)
     result = tab.compile_two_qubit_gate(base_gate)
     assert result.success
 
@@ -105,7 +121,7 @@ def test_sycamore_gate_tabulation_repr() -> None:
 
 
 def test_sycamore_gate_tabulation_eq() -> None:
-    rng = value.parse_random_state(11)
+    rng = value.parse_random_generator(11)
     sycamore_tabulation_copy = two_qubit_gate_product_tabulation(
         cirq.unitary(cirq.FSimGate(np.pi / 2, np.pi / 6)), 0.2, random_state=rng
     )

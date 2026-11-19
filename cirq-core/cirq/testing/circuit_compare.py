@@ -285,7 +285,7 @@ def assert_has_diagram(
 
 
 def assert_has_consistent_apply_unitary(val: Any, *, atol: float = 1e-8) -> None:
-    """Tests whether a value's _apply_unitary_ is correct.
+    """Tests whether a value's `_apply_unitary_` is correct.
 
     Contrasts the effects of the value's `_apply_unitary_` with the
     matrix returned by the value's `_unitary_` method.
@@ -327,7 +327,7 @@ def assert_has_consistent_apply_unitary(val: Any, *, atol: float = 1e-8) -> None
 
 
 def assert_has_consistent_apply_channel(val: Any, *, atol: float = 1e-8) -> None:
-    """Tests whether a value's _apply_channel_ is correct.
+    """Tests whether a value's `_apply_channel_` is correct.
 
     Contrasts the effects of the value's `_apply_channel_` with the superoperator calculated from
     the Kraus components returned by the value's `_kraus_` method.
@@ -370,7 +370,7 @@ def assert_has_consistent_apply_channel(val: Any, *, atol: float = 1e-8) -> None
 
 
 def _assert_apply_unitary_works_when_axes_transposed(val: Any, *, atol: float = 1e-8) -> None:
-    """Tests whether a value's _apply_unitary_ handles out-of-order axes.
+    """Tests whether a value's `_apply_unitary_` handles out-of-order axes.
 
     A common mistake to make when implementing `_apply_unitary_` is to assume
     that the incoming axes will be contiguous, or ascending, or that they can be
@@ -444,7 +444,7 @@ def _assert_apply_unitary_works_when_axes_transposed(val: Any, *, atol: float = 
 def assert_has_consistent_apply_unitary_for_various_exponents(
     val: Any, *, exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s'))
 ) -> None:
-    """Tests whether a value's _apply_unitary_ is correct.
+    """Tests whether a value's `_apply_unitary_` is correct.
 
     Contrasts the effects of the value's `_apply_unitary_` with the
     matrix returned by the value's `_unitary_` method. Attempts this after

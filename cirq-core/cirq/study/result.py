@@ -429,12 +429,14 @@ class ResultDict(Result):
     def measurements(self) -> Mapping[str, np.ndarray]:
         if self._measurements is None:
             assert self._records is not None
-            self._measurements = {}
+            _measurements = {}
             for key, data in self._records.items():
                 reps, instances, qubits = data.shape
                 if instances != 1:
                     raise ValueError('Cannot extract 2D measurements for repeated keys')
-                self._measurements[key] = data.reshape((reps, qubits))
+                _measurements[key] = data.reshape((reps, qubits))
+            # assign only after the _measurements are successfully resolved
+            self._measurements = _measurements
         return self._measurements
 
     @property
@@ -466,7 +468,7 @@ class ResultDict(Result):
         return self._data
 
     def _record_dict_repr(self):
-        """Helper function for use in __repr__ to display the records field."""
+        """Helper function for use in `__repr__` to display the records field."""
         return '{' + ', '.join(f'{k!r}: {proper_repr(v)}' for k, v in self.records.items()) + '}'
 
     def __repr__(self) -> str:

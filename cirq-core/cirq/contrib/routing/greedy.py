@@ -103,7 +103,7 @@ class _GreedyRouter:
         random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ):
 
-        self.prng = value.parse_random_state(random_state)
+        self.prng = value.parse_random_generator(random_state)
 
         self.device_graph = device_graph
         self.physical_distances: dict[QidPair, int] = {
