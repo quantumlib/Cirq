@@ -114,7 +114,7 @@ def test_key_condition_qasm_protocol_invalid_args():
         _ = cirq.qasm(cond, args=args)
 
 
-def test_sympy_condition_validation():
+def test_sympy_condition_validation() -> None:
     with pytest.raises(TypeError, match="Expected SymPy expression, got.*class 'str'"):
         _ = cirq.SympyCondition("0:a >= 1")
     with pytest.raises(TypeError, match="Expected SymPy expression, got.*class 'list'"):
