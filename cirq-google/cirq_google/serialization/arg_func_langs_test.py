@@ -394,9 +394,9 @@ def test_sympy_func_rejects_string_arg(mock_parse_expr: mock.MagicMock, expr: sy
     arg_s = next(a for a in msg.func.args if a.symbol == 's')
     # and then replace it with a string expression
     arg_s.arg_value.string_value = 's+1'
-    with pytest.raises(TypeError, match="Expected a serialized SymPy argument, got.*str"):
+    with pytest.raises(TypeError, match="Expected a serialized SymPy argument, got.*class 'str'"):
         _ = arg_from_proto(msg)
-    with pytest.raises(TypeError, match="Expected a serialized SymPy argument, got.*str"):
+    with pytest.raises(TypeError, match="Expected a serialized SymPy argument, got.*class 'str'"):
         _ = float_arg_from_proto(msg)
     mock_parse_expr.assert_not_called()
 

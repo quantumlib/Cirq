@@ -468,7 +468,7 @@ def _check_sympy_arg(arg: ARG_RETURN_LIKE | None) -> ARG_RETURN_LIKE:
     pass to SymPy constructors, which may call the `sympy.parse_expr` on them.
     """
     if not isinstance(arg, (sympy.Basic, *FLOAT_TYPES)):
-        raise TypeError(f"Expected a serialized SymPy argument, got {type(arg).__name__}.")
+        raise TypeError(f"Expected a serialized SymPy argument, got {type(arg)}.")
     return arg
 
 
