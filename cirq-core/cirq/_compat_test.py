@@ -447,7 +447,7 @@ def _import_deprecated_first_new_second():
 
 
 def _import_new_first_deprecated_second():
-    """To ensure that module_a gets initialized only once.
+    """To ensure that `module_a` gets initialized only once.
 
     It is the same as `_import_deprecated_first_new_second` just with different import order.
     See that for more details.
