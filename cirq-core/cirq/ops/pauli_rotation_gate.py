@@ -43,8 +43,9 @@ class PauliRotationGate(raw_types.Gate):
 
     def __init__(
         self,
-        dense_pauli_string: cirq.DensePauliString | Iterable[cirq.PAULI_GATE_LIKE] | np.ndarray,
+        dense_pauli_string: cirq.BaseDensePauliString | Iterable[cirq.PAULI_GATE_LIKE] | np.ndarray,
         exponent: cirq.TParamVal = 1,
+        atol: float = 1e-8,
     ):
         """Initializes the gate.
 
@@ -55,10 +56,11 @@ class PauliRotationGate(raw_types.Gate):
         Raises:
             TypeError: If `dense_pauli_string` is not a `cirq.DensePauliString` or a string.
         """
-        if not isinstance(dense_pauli_string, dps.DensePauliString):
+        if not isinstance(dense_pauli_string, dps.BaseDensePauliString):
             dense_pauli_string = dps.DensePauliString(dense_pauli_string)
-        self._dense_pauli_string: cirq.DensePauliString = dense_pauli_string
+        self._dense_pauli_string: cirq.DensePauliString = dense_pauli_string.frozen()
         self._exponent: cirq.TParamVal = exponent
+        self._atol = atol
 
     @property
     def dense_pauli_string(self) -> cirq.DensePauliString:
@@ -74,7 +76,7 @@ class PauliRotationGate(raw_types.Gate):
         return len(self._dense_pauli_string)
 
     def _value_equality_values_(self) -> Any:
-        return (self._dense_pauli_string, self._exponent)
+        return (self._unit_pauli_string(), self._angle())
 
     def _unit_pauli_string(self) -> cirq.DensePauliString:
         """Returns the Pauli string $P_0$ with a coefficient of 1."""
@@ -83,6 +85,10 @@ class PauliRotationGate(raw_types.Gate):
     def _angle(self) -> cirq.TParamValComplex:
         """Returns the angle $k c$, such that this gate is $e^{i k c P_0}$."""
         return self._exponent * self._dense_pauli_string.coefficient
+
+    def _has_real_angle(self) -> bool:
+        """Returns whether the non-parameterized angle $k c$ has no imaginary component."""
+        return abs(complex(self._angle()).imag) < self._atol
 
     @_compat.cached_method
     def _is_parameterized_(self) -> bool:
@@ -103,42 +109,35 @@ class PauliRotationGate(raw_types.Gate):
             protocols.resolve_parameters(self._exponent, resolver, recursive),
         )
 
-    def matrix(self) -> np.ndarray:
+    @_compat.cached_method
+    def _has_unitary_(self) -> bool:
+        return not self._is_parameterized_() and self._has_real_angle()
+
+    def _unitary_(self) -> np.ndarray:
         r"""Returns the matrix $\cos(k c) I + i \sin(k c) P_0$ of this gate.
 
         Raises:
             ValueError: If the gate is parameterized, or if the angle
                 `exponent * dense_pauli_string.coefficient` is not real.
         """
-        if self._is_parameterized_():
-            raise ValueError("PauliRotationGate should not be parameterized.")
-        angle = complex(self._angle())
-        if not self._has_real_angle():
-            raise ValueError(
-                f"PauliRotationGate requires the resulting exponent "
-                f"(exponent * dense_pauli_string.coefficient) to have no imaginary component. "
-                f"Got {angle}."
-            )
+        if not self._has_unitary_():
+            return NotImplemented
+        angle = complex(self._angle()).real
         identity = np.eye(2 ** self._num_qubits_(), dtype=np.complex128)
         pauli_unitary = protocols.unitary(self._unit_pauli_string())
         return np.cos(angle) * identity + 1j * np.sin(angle) * pauli_unitary
 
-    def _has_real_angle(self) -> bool:
-        """Returns whether the non-parameterized angle $k c$ has no imaginary component."""
-        return complex(self._angle()).imag == 0.0
-
-    @_compat.cached_method
-    def _has_unitary_(self) -> bool:
-        return not self._is_parameterized_() and self._has_real_angle()
-
-    def _unitary_(self) -> np.ndarray | None:
-        if not self._has_unitary_():
-            return None
-        return self.matrix()
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray | None:
+        if not protocols.has_unitary(self):
+            return NotImplemented
+        angle = complex(self._angle()).real
+        return np.cos(angle) * args.target_tensor + 1j * np.sin(angle) * protocols.apply_unitary(
+            self._unit_pauli_string(), args
+        )
 
     def _decompose_(self, qubits: Sequence[cirq.Qid]) -> list[cirq.Operation] | None:
         angle = self._angle()
-        if not isinstance(angle, sympy.Basic):
+        if not self._is_parameterized_():
             if not self._has_real_angle():
                 # A non-real angle is not a rotation.
                 return None
@@ -156,7 +155,7 @@ class PauliRotationGate(raw_types.Gate):
             )
         ]
 
-    def __pow__(self, exponent: int) -> PauliRotationGate:
+    def __pow__(self, exponent: cirq.TParamVal) -> PauliRotationGate:
         return PauliRotationGate(self._dense_pauli_string, self._exponent * exponent)
 
     def __repr__(self) -> str:

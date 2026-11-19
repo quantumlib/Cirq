@@ -47,7 +47,11 @@ def test_gate_equality() -> None:
     )
     eq.add_equality_group(cirq.PauliRotationGate('XZ', 0.25))
     eq.add_equality_group(cirq.PauliRotationGate(cirq.DensePauliString('XZ', coefficient=-1), 0.5))
-    eq.add_equality_group(cirq.PauliRotationGate('ZX', 0.5))
+    eq.add_equality_group(
+        cirq.PauliRotationGate(cirq.DensePauliString('ZX', coefficient=0.25), 2.0),
+        cirq.PauliRotationGate('ZX', 0.5),
+        cirq.PauliRotationGate(cirq.DensePauliString('ZX', coefficient=0.5)),
+    )
     assert cirq.approx_eq(
         cirq.PauliRotationGate('XZ', 0.5), cirq.PauliRotationGate('XZ', 0.5 + 1e-10)
     )
@@ -119,8 +123,6 @@ def test_gate_no_unitary_for_non_real_angle(pauli, k) -> None:
     assert not cirq.has_unitary(gate)
     assert cirq.unitary(gate, None) is None
     assert cirq.decompose_once_with_qubits(gate, [q0], None) is None
-    with pytest.raises(ValueError, match='imaginary'):
-        gate.matrix()
 
 
 def test_gate_unitary_for_real_angle_from_imaginary_parts() -> None:
@@ -139,12 +141,31 @@ def test_gate_parameterized() -> None:
     assert cirq.is_parameterized(gate)
     assert cirq.parameter_names(gate) == {'t'}
     assert not cirq.has_unitary(gate)
-    with pytest.raises(ValueError, match='parameterized'):
-        gate.matrix()
+    assert cirq.unitary(gate, None) is None
     assert cirq.resolve_parameters(gate, {'t': 0.5}) == cirq.PauliRotationGate('XZ', 0.5)
     coefficient_gate = cirq.PauliRotationGate(cirq.DensePauliString('XZ', coefficient=t))
     assert cirq.is_parameterized(coefficient_gate)
     assert cirq.parameter_names(coefficient_gate) == {'t'}
+
+
+def test_gate_parameterized_exponent_and_coefficient() -> None:
+    t, s = sympy.symbols('t s')
+    gate = cirq.PauliRotationGate(cirq.DensePauliString('XZ', coefficient=s), t)
+    assert cirq.is_parameterized(gate)
+    assert cirq.parameter_names(gate) == {'t', 's'}
+    assert not cirq.has_unitary(gate)
+    assert cirq.unitary(gate, None) is None
+
+    partially_resolved = cirq.resolve_parameters(gate, {'t': 0.5})
+    assert cirq.is_parameterized(partially_resolved)
+    assert cirq.parameter_names(partially_resolved) == {'s'}
+
+    resolved = cirq.resolve_parameters(gate, {'t': 0.5, 's': 2})
+    assert not cirq.is_parameterized(resolved)
+    assert resolved == cirq.PauliRotationGate('XZ', 1.0)
+    np.testing.assert_allclose(
+        cirq.unitary(resolved), _expected_unitary(cirq.DensePauliString('XZ'), 1.0), atol=1e-8
+    )
 
 
 def test_gate_pow() -> None:
@@ -164,3 +185,18 @@ def test_gate_repr(gate) -> None:
 
 def test_gate_str() -> None:
     assert str(cirq.PauliRotationGate('XIZ', 0.5)) == 'exp(j * 0.5 * (+XIZ))'
+
+
+def test_circuit_diagram() -> None:
+    op = cirq.PauliRotationGate('XIZ', 0.5).on(q0, q1, q2)
+    circuit = cirq.Circuit(op)
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ───exp(j * 0.5 * (+XIZ))───
+      │
+1: ───#2──────────────────────
+      │
+2: ───#3──────────────────────
+""",
+    )
