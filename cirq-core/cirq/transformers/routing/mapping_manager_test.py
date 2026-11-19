@@ -169,6 +169,8 @@ def test_shortest_path():
     # unreachable path on disconnected component raises ValueError
     with pytest.raises(ValueError, match=f"No path exists between {q_int[0]} and {q_int[1]}"):
         mm.shortest_path(q_int[0], q_int[1])
+    with pytest.raises(IndexError, match="index 99 is out of bounds"):
+        mm.shortest_path(99, 99)
 
     # undirected and directed shortest paths are the same for undirected graph
     for lq1, lq2 in itertools.product(one_to_four, repeat=2):

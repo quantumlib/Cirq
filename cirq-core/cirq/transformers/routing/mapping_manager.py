@@ -16,7 +16,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 import networkx as nx
@@ -209,7 +208,7 @@ class MappingManager:
         }
         return op.transform_qubits(qubit_map)
 
-    def shortest_path(self, lq1: int, lq2: int, *, undirected=False) -> Sequence[int]:
+    def shortest_path(self, lq1: int, lq2: int, *, undirected=False) -> np.ndarray:
         """Find the shortest path between two logical qubits on the device, given their mapping.
 
         Args:
@@ -224,11 +223,12 @@ class MappingManager:
         Raises:
             ValueError: If no path exists between `lq1` and `lq2`.
         """
+        pq1, pq2 = self.logical_to_physical[[lq1, lq2]]
         if lq1 == lq2:
-            return [lq1]
+            return np.array([lq1])
         predecessors = self._undirected_predecessors if undirected else self._predecessors
         try:
-            path = nx.reconstruct_path(*self.logical_to_physical[[lq1, lq2]], predecessors)
-            return self.physical_to_logical[path]
+            path = nx.reconstruct_path(pq1, pq2, predecessors)
         except KeyError as e:
             raise ValueError(f"No path exists between {lq1} and {lq2}.") from e
+        return self.physical_to_logical[path]
