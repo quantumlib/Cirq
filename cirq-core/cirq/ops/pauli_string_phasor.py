@@ -366,6 +366,14 @@ class PauliStringPhasorGate(raw_types.Gate):
         # Identity factors do not contribute to the parity, so exclude them.
         active_qubits = [q for q, m in zip(qubits, self.dense_pauli_string.pauli_mask) if m]
         if not active_qubits:
+            # Every factor is identity, so the parity is always even and only the
+            # positive-eigenspace phase applies, which is a global phase.
+            if self.exponent_pos:
+                any_qubit = qubits[0]
+                yield pauli_gates.X(any_qubit)
+                yield pauli_gates.Z(any_qubit) ** self.exponent_pos
+                yield pauli_gates.X(any_qubit)
+                yield pauli_gates.Z(any_qubit) ** self.exponent_pos
             return
         any_qubit = active_qubits[0]
         to_z_ops = op_tree.freeze_op_tree(self._to_z_basis_ops(qubits))

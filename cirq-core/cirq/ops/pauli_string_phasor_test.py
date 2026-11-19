@@ -720,20 +720,27 @@ def test_gate_str() -> None:
     assert str(gate) == 'exp(-iπ0.25*+ZYX)'
 
 
-def test_unitary_with_identity_qubits() -> None:
+@pytest.mark.parametrize(
+    'qubits, ps',
+    [
+        ([cirq.LineQubit(0), cirq.LineQubit(1)], cirq.Z(cirq.LineQubit(0))),
+        ([cirq.LineQubit(0), cirq.LineQubit(1)], cirq.X(cirq.LineQubit(1))),
+        ([cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2)], cirq.Y(cirq.LineQubit(1))),
+        (
+            [cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2)],
+            cirq.X(cirq.LineQubit(0)) * cirq.Z(cirq.LineQubit(2)),
+        ),
+        ([cirq.LineQubit(0), cirq.LineQubit(1)], cirq.PauliString()),
+        ([cirq.LineQubit(0), cirq.LineQubit(1)], -cirq.PauliString()),
+    ],
+)
+def test_unitary_with_identity_qubits(qubits: list[cirq.Qid], ps: cirq.PauliString) -> None:
     # Regression test for https://github.com/quantumlib/Cirq/issues/6612
-    q0, q1, q2 = cirq.LineQubit.range(3)
-    for qubits, ps in [
-        ([q0, q1], cirq.Z(q0)),
-        ([q0, q1], cirq.X(q1)),
-        ([q0, q1, q2], cirq.Y(q1)),
-        ([q0, q1, q2], cirq.X(q0) * cirq.Z(q2)),
-    ]:
-        phasor = cirq.PauliStringPhasor(ps, qubits, exponent_neg=0.3, exponent_pos=0.1)
-        pauli = ps.matrix(qubits)
-        identity = np.eye(len(pauli))
-        expected = (
-            np.exp(1j * np.pi * 0.3) * (identity - pauli) / 2
-            + np.exp(1j * np.pi * 0.1) * (identity + pauli) / 2
-        )
-        np.testing.assert_allclose(cirq.unitary(phasor), expected, atol=1e-7)
+    phasor = cirq.PauliStringPhasor(ps, qubits, exponent_neg=0.3, exponent_pos=0.1)
+    pauli = ps.matrix(qubits)
+    identity = np.eye(len(pauli))
+    expected = (
+        np.exp(1j * np.pi * 0.3) * (identity - pauli) / 2
+        + np.exp(1j * np.pi * 0.1) * (identity + pauli) / 2
+    )
+    np.testing.assert_allclose(cirq.unitary(phasor), expected, atol=1e-7)
