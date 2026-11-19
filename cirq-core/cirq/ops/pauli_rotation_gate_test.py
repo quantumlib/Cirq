@@ -186,9 +186,7 @@ def test_gate_apply_unitary(gate) -> None:
 
     target = state.reshape((2,) * n).astype(np.complex128)
     args = cirq.ApplyUnitaryArgs(
-        target_tensor=target.copy(),
-        available_buffer=np.empty_like(target),
-        axes=tuple(range(n)),
+        target_tensor=target.copy(), available_buffer=np.empty_like(target), axes=tuple(range(n))
     )
     actual = gate._apply_unitary_(args)
     np.testing.assert_allclose(actual.reshape(2**n), expected, atol=1e-8)
@@ -196,11 +194,7 @@ def test_gate_apply_unitary(gate) -> None:
 
 
 @pytest.mark.parametrize(
-    'gate',
-    (
-        cirq.PauliRotationGate('XZ', sympy.Symbol('t')),
-        cirq.PauliRotationGate('X', 1j),
-    ),
+    'gate', (cirq.PauliRotationGate('XZ', sympy.Symbol('t')), cirq.PauliRotationGate('X', 1j))
 )
 def test_gate_apply_unitary_not_implemented(gate) -> None:
     n = cirq.num_qubits(gate)
