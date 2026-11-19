@@ -358,19 +358,23 @@ def test_diagram() -> None:
 """,
         use_unicode_characters=False,
     )
+
+
+def test_parameterized_diagram() -> None:
+    a, b, c = cirq.LineQubit.range(3)
+    s = sympy.Symbol('s')
+
     parameterized_circuit = cirq.Circuit(
-        cirq.ThreeQubitDiagonalGate([0.12345, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, sympy.Symbol('a')])(
-            a, b, c
-        )
+        cirq.ThreeQubitDiagonalGate([0.12345, 1, 2.0, 3, 4.0, 5, 6.0, 2 * s])(a, b, c)
     )
     cirq.testing.assert_has_diagram(
         parameterized_circuit,
         """
-0: ───diag(0.123, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, sympy.Symbol('a'))───
+0: ───diag(0.123, 1, 2.0, 3, 4.0, 5, 6.0, sympy.Mul(sympy.Integer(2), sympy.Symbol('s')))───
       │
-1: ───#2─────────────────────────────────────────────────────────────
+1: ───#2────────────────────────────────────────────────────────────────────────────────────
       │
-2: ───#3─────────────────────────────────────────────────────────────
+2: ───#3────────────────────────────────────────────────────────────────────────────────────
 """,
     )
 

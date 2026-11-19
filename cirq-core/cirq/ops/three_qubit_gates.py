@@ -29,6 +29,7 @@ from cirq.ops import (
     common_gates,
     control_values as cv,
     controlled_gate,
+    diagonal_gate,
     eigen_gate,
     gate_features,
     global_phase_op,
@@ -259,12 +260,7 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
         return args.target_tensor
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        rounded_angles = self._diag_angles_radians
-        if args.precision is not None:
-            rounded_angles = tuple(
-                round(angle, args.precision) if not protocols.is_parameterized(angle) else angle
-                for angle in rounded_angles
-            )
+        rounded_angles = diagonal_gate._round_angles(self._diag_angles_radians, args.precision)
         diag_str = f"diag({', '.join(proper_repr(angle) for angle in rounded_angles)})"
         return protocols.CircuitDiagramInfo((diag_str, '#2', '#3'))
 

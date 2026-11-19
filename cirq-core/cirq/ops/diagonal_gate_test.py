@@ -142,29 +142,33 @@ def test_diagram() -> None:
 1: ───#2─────────────────
 """,
     )
-    parameterized_circuit = cirq.Circuit(
-        cirq.DiagonalGate([0.12345, 1.0, sympy.Symbol('a'), 2.0])(a, b)
-    )
+
+
+def test_parameterized_diagram() -> None:
+    a, b, c = cirq.LineQubit.range(3)
+    s = sympy.Symbol('s')
+
+    parameterized_circuit = cirq.Circuit(cirq.DiagonalGate([0, 1.2345, s, 2 * s])(a, b))
     cirq.testing.assert_has_diagram(
         parameterized_circuit,
         """
-0: ───diag(0.123, 1.0, sympy.Symbol('a'), 2.0)───
+0: ───diag(0, 1.234, sympy.Symbol('s'), sympy.Mul(sympy.Integer(2), sympy.Symbol('s')))───
       │
-1: ───#2─────────────────────────────────────────
+1: ───#2──────────────────────────────────────────────────────────────────────────────────
 """,
     )
 
     parameterized_circuit_large = cirq.Circuit(
-        cirq.DiagonalGate([0.12345, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, sympy.Symbol('a')])(a, b, c)
+        cirq.DiagonalGate([0.12345, 1, 2.0, 3, 4.0, 5, 6.0, 2 * s])(a, b, c)
     )
     cirq.testing.assert_has_diagram(
         parameterized_circuit_large,
         """
-0: ───diag(0.123, 1.0, ..., 6.0, sympy.Symbol('a'))───
+0: ───diag(0.123, 1, ..., 6.0, sympy.Mul(sympy.Integer(2), sympy.Symbol('s')))───
       │
-1: ───#2──────────────────────────────────────────────
+1: ───#2─────────────────────────────────────────────────────────────────────────
       │
-2: ───#3──────────────────────────────────────────────
+2: ───#3─────────────────────────────────────────────────────────────────────────
 """,
     )
 
