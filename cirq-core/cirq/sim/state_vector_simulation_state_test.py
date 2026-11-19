@@ -109,7 +109,7 @@ def test_act_using_probabilistic_single_qubit_channel() -> None:
             return [cirq.unitary(cirq.S) * np.sqrt(1 / 3), cirq.unitary(cirq.X) * np.sqrt(2 / 3)]
 
     initial_state = cirq.testing.random_superposition(dim=16).reshape((2,) * 4)
-    mock_prng = mock.Mock()
+    mock_prng = mock.Mock(spec=np.random.Generator)
 
     mock_prng.random.return_value = 1 / 3 + 1e-6
     args = cirq.StateVectorSimulationState(
@@ -164,7 +164,7 @@ def test_act_using_adaptive_two_qubit_channel() -> None:
                 top_right * np.sqrt(1 / 4),
             ]
 
-    mock_prng = mock.Mock()
+    mock_prng = mock.Mock(spec=np.random.Generator)
 
     def get_result(state: np.ndarray, sample: float):
         mock_prng.random.return_value = sample
@@ -220,7 +220,7 @@ def test_probability_comes_up_short_results_in_fallback() -> None:
         def _kraus_(self):
             return [cirq.unitary(cirq.X) * np.sqrt(0.999), np.eye(2) * 0]
 
-    mock_prng = mock.Mock()
+    mock_prng = mock.Mock(spec=np.random.Generator)
     mock_prng.random.return_value = 0.9999
 
     args = cirq.StateVectorSimulationState(

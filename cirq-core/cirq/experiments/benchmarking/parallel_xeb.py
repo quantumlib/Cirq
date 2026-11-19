@@ -331,22 +331,21 @@ def simulate_circuit_library(
     if pool is None:
         simulation_results = [
             simulate_circuit(
-                sim.Simulator(seed=np.random.RandomState(), dtype=np.complex128),
-                circuit=circuit,
-                cycle_depths=cycle_depths,
+                sim.Simulator(dtype=np.complex128), circuit=circuit, cycle_depths=cycle_depths
             )
             for circuit in all_circuits
         ]
     else:
+        rngs = value.parse_random_generator(None).spawn(len(all_circuits))
         simulation_results = [[np.empty(0)] for _ in range(len(all_circuits))]
         tasks = [
             pool.submit(
                 simulate_circuit,
-                simulator=sim.Simulator(seed=np.random.RandomState(), dtype=np.complex128),
+                simulator=sim.Simulator(seed=rng, dtype=np.complex128),
                 circuit=circuit,
                 cycle_depths=cycle_depths,
             )
-            for circuit in all_circuits
+            for circuit, rng in zip(all_circuits, rngs)
         ]
         tasks_index = {t: i for i, t in enumerate(tasks)}
         for task in futures.as_completed(tasks):

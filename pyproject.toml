@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [tool.black]
 fast = true
 line-length = 100
-target-version = ['py311', 'py312', 'py313', 'py314']
+target-version = ['py312', 'py313', 'py314']
 skip-string-normalization = true
 skip-magic-trailing-comma = true
 extend-exclude = ".*_pb2[.]py[i]?"
@@ -47,6 +47,7 @@ extend_skip_glob = ["*_pb2.py"]
 
 
 [tool.mypy]
+# '/setup\.py' purposefully excludes all setup.py files _except_ the top-level one.
 exclude = [
     '/setup\.py',
     'cirq-google/cirq_google/cloud/',
@@ -65,7 +66,14 @@ ignore_missing_imports = true
 
 # Require explicit reexport from cirq modules
 [[tool.mypy.overrides]]
-module = ["cirq.*"]
+module = [
+    "cirq.*",
+    "cirq_aqt.*",
+    "cirq_google.*",
+    "cirq_ionq.*",
+    "cirq_pasqal.*",
+    "cirq_web.*"
+]
 no_implicit_reexport = true
 
 # Generated code
@@ -104,10 +112,7 @@ module = [
     "_pytest.*",
     "absl.*",
     "astroid.*",
-    "cachetools.*",
     "filelock.*",
-    "ipywidgets.*",
-    "matplotlib.*",
     "mpl_toolkits.*",
     "networkx.*",
     "pandas.*",
@@ -118,7 +123,6 @@ module = [
     "pytest.*",
     "qiskit.*",
     "quimb.*",
-    "ruamel.*",
     "scipy.*",
     "setuptools.*",
     "stimcirq.*",
@@ -219,7 +223,7 @@ score = false
 [tool.ruff]
 line-length = 100
 preview = true
-target-version = "py311"
+target-version = "py312"
 extend-exclude = [
     "*_pb2.py*",
     "cirq-google/cirq_google/cloud/*.py",  # contains only generated code

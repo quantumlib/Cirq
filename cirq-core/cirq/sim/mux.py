@@ -206,7 +206,7 @@ def sample_sweep(
         Result list for this run; one for each possible parameter
         resolver.
     """
-    prng = value.parse_random_state(seed)
+    prng = value.parse_random_generator(seed)
 
     trial_results: list[study.Result] = []
     for param_resolver in study.to_resolvers(params):
@@ -230,7 +230,7 @@ def final_density_matrix(
     param_resolver: cirq.ParamResolverOrSimilarType = None,
     qubit_order: cirq.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     dtype: type[np.complexfloating] = np.complex64,
-    seed: int | np.random.RandomState | None = None,
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ignore_measurement_results: bool = True,
 ) -> np.ndarray:
     """Returns the density matrix resulting from simulating the circuit.

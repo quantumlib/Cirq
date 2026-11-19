@@ -743,13 +743,15 @@ class Operation(metaclass=abc.ABCMeta):
 
     @cached_method
     def _qubit_parameter_names(self) -> frozenset[str]:
+        # Only variable qubits can carry parameters, so skip the generic protocol dispatch on every
+        # qubit in the common case where there are none.
+        if not self._are_qubits_parameterized():
+            return frozenset()
         return frozenset(protocols.parameter_names(self.qubits))
 
     @cached_method
     def _are_qubits_parameterized(self) -> bool:
-        from cirq.ops.variable_qid import VariableQid
-
-        return any(isinstance(q, VariableQid) for q in self.qubits)
+        return any(isinstance(q, ops.VariableQid) for q in self.qubits)
 
     def _is_parameterized_(self) -> bool:
         """Returns true if the Operation is parameterized, false otherwise."""
@@ -775,6 +777,11 @@ class TaggedOperation(Operation):
     can be initialized with using `Operation.with_tags(tag)`
     or by using `TaggedOperation(op, tag)`.
 
+    A TaggedOperation never wraps another TaggedOperation: wrapping an
+    already-tagged operation merges the tags into a single wrapper, with the
+    inner tags first. This keeps `untagged` and `tags` complete without
+    having to unwrap multiple layers.
+
     Tags added can be of any type, but they should be Hashable in order
     to allow equality checking.  If you wish to serialize operations into
     JSON, you should restrict yourself to only use objects that have a JSON
@@ -785,6 +792,9 @@ class TaggedOperation(Operation):
     """
 
     def __init__(self, sub_operation: cirq.Operation, *tags: Hashable):
+        if isinstance(sub_operation, TaggedOperation):
+            tags = (*sub_operation.tags, *tags)
+            sub_operation = sub_operation.sub_operation
         self._sub_operation = sub_operation
         self._tags = tuple(tags)
         if any(isinstance(tag, type) for tag in tags):
@@ -1141,12 +1151,19 @@ def _operations_commutes_impl(
     # behave like the suboperations, so if the suboperations commute then these commute. Or
     # one of them is cold in which case it behaves like the identity, which always commutes.
     shared_qubits = ops1_qubits.intersection(ops2_qubits)
-    ops1_raw = [
-        op.without_classical_controls() for op in ops1 if not shared_qubits.isdisjoint(op.qubits)
-    ]
-    ops2_raw = [
-        op.without_classical_controls() for op in ops2 if not shared_qubits.isdisjoint(op.qubits)
-    ]
+    try:
+        ops1_raw = [
+            op.without_classical_controls()
+            for op in ops1
+            if not shared_qubits.isdisjoint(op.qubits)
+        ]
+        ops2_raw = [
+            op.without_classical_controls()
+            for op in ops2
+            if not shared_qubits.isdisjoint(op.qubits)
+        ]
+    except NotImplementedError:
+        return NotImplemented
     moment1 = circuits.Moment(ops1_raw)
     moment2 = circuits.Moment(ops2_raw)
 

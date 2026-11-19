@@ -19,8 +19,8 @@
 
 upper_tabs:
   # Dropdown menu
-  - name: "Software"
-    path: /software
+  - name: "Cirq"
+    path: /cirq
     is_default: true
     lower_tabs:
       # Subsite tabs
