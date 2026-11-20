@@ -432,14 +432,14 @@ def test_x_act_on_tableau() -> None:
 
 
 class iZGate(cirq.testing.SingleQubitGate):
-    """Equivalent to an iZ gate without _act_on_ defined on it."""
+    """Equivalent to an iZ gate without `_act_on_` defined on it."""
 
     def _unitary_(self):
         return np.array([[1j, 0], [0, -1j]])
 
 
 class MinusOnePhaseGate(cirq.testing.SingleQubitGate):
-    """Equivalent to a -1 global phase without _act_on_ defined on it."""
+    """Equivalent to a -1 global phase without `_act_on_` defined on it."""
 
     def _unitary_(self):
         return np.array([[-1, 0], [0, -1]])
