@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import overload, TYPE_CHECKING
+from typing import overload, TYPE_CHECKING, TypeVar
 
 import numpy as np
 import sympy
@@ -22,12 +22,15 @@ import sympy
 if TYPE_CHECKING:
     from cirq.value import type_alias
 
+# Match TParamVal: real NumPy scalars only. `np.number` also includes complex.
+TNumpyReal = TypeVar('TNumpyReal', bound=np.integer | np.floating)
+
 
 def chosen_angle_to_half_turns(
     half_turns: type_alias.TParamVal | None = None,
-    rads: float | None = None,
-    degs: float | None = None,
-    default: float = 1.0,
+    rads: type_alias.TParamVal | None = None,
+    degs: type_alias.TParamVal | None = None,
+    default: type_alias.TParamVal = 1.0,
 ) -> type_alias.TParamVal:
     """Returns a half_turns value based on the given arguments.
 
@@ -64,9 +67,9 @@ def chosen_angle_to_half_turns(
 
 def chosen_angle_to_canonical_half_turns(
     half_turns: type_alias.TParamVal | None = None,
-    rads: float | None = None,
-    degs: float | None = None,
-    default: float = 1.0,
+    rads: type_alias.TParamVal | None = None,
+    degs: type_alias.TParamVal | None = None,
+    default: type_alias.TParamVal = 1.0,
 ) -> type_alias.TParamVal:
     """Returns a canonicalized half_turns based on the given arguments.
 
@@ -85,6 +88,11 @@ def chosen_angle_to_canonical_half_turns(
     return canonicalize_half_turns(
         chosen_angle_to_half_turns(half_turns=half_turns, rads=rads, degs=degs, default=default)
     )
+
+
+@overload
+def canonicalize_half_turns(half_turns: TNumpyReal) -> TNumpyReal:
+    pass
 
 
 @overload
