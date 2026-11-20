@@ -281,6 +281,41 @@ class SympyCondition(Condition):
     def replace_key(self, current: cirq.MeasurementKey, replacement: cirq.MeasurementKey):
         return SympyCondition(self.expr.subs({str(current): sympy.Symbol(str(replacement))}))
 
+    def _replace_keys(
+        self, key_replacements: Mapping[cirq.MeasurementKey, cirq.MeasurementKey]
+    ) -> SympyCondition:
+        replacements: dict[sympy.Basic, sympy.Basic] = {}
+        for symbol in self.expr.free_symbols:
+            if isinstance(symbol, sympy.Symbol):
+                key = measurement_key.MeasurementKey.parse_serialized(symbol.name)
+                new_key = key_replacements.get(key)
+                if new_key is not None and new_key != key:
+                    replacements[symbol] = sympy.Symbol(str(new_key), **symbol.assumptions0)
+        if not replacements:
+            return self
+        return SympyCondition(self.expr.xreplace(replacements))
+
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> SympyCondition:
+        return self._replace_keys(
+            {k: mkp.with_measurement_key_mapping(k, key_map) for k in self.keys}
+        )
+
+    def _with_key_path_prefix_(self, path: tuple[str, ...]) -> SympyCondition:
+        return self._replace_keys({k: mkp.with_key_path_prefix(k, path) for k in self.keys})
+
+    def _with_rescoped_keys_(
+        self, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey]
+    ) -> SympyCondition:
+        key_replacements: dict[cirq.MeasurementKey, cirq.MeasurementKey] = {}
+        for key in self.keys:
+            for i in range(len(path) + 1):
+                back_path = path[: len(path) - i]
+                new_key = key.with_key_path_prefix(*back_path)
+                if new_key in bindable_keys:
+                    key_replacements[key] = new_key
+                    break
+        return self._replace_keys(key_replacements)
+
     def __str__(self):
         return str(self.expr)
 

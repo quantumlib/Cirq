@@ -393,3 +393,37 @@ def test_bitmask_replace_key():
     cond = cirq.BitMaskKeyCondition('a')
     assert cond.replace_key('a', 'b') == cirq.BitMaskKeyCondition('b')
     assert cond.replace_key('c', 'd') is cond
+
+
+def test_sympy_condition_with_measurement_key_mapping_swap():
+    a, b, c = sympy.symbols('a b c')
+    cond = cirq.SympyCondition(a > b)
+    swapped = cirq.with_measurement_key_mapping(cond, {'a': 'b', 'b': 'a'})
+    assert swapped == cirq.SympyCondition(b > a)
+
+    cyclic = cirq.with_measurement_key_mapping(
+        cirq.SympyCondition((a > b) & (b > c)), {'a': 'b', 'b': 'c', 'c': 'a'}
+    )
+    assert cyclic == cirq.SympyCondition((b > c) & (c > a))
+
+    # Symbols with assumptions should also swap without collapsing.
+    a_int = sympy.Symbol('a', integer=True)
+    b_int = sympy.Symbol('b', integer=True)
+    swapped_int = cirq.with_measurement_key_mapping(
+        cirq.SympyCondition(a_int > b_int), {'a': 'b', 'b': 'a'}
+    )
+    assert swapped_int == cirq.SympyCondition(b_int > a_int)
+
+
+def test_sympy_condition_circuit_key_swap_simulation():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    a, b = sympy.symbols('a b')
+    c = cirq.Circuit(
+        cirq.X(q0),
+        cirq.measure(q0, key='a'),
+        cirq.measure(q1, key='b'),
+        cirq.X(q2).with_classical_controls(cirq.SympyCondition(a > b)),
+        cirq.measure(q2, key='out'),
+    )
+    mapped = cirq.with_measurement_key_mapping(c, {'a': 'b', 'b': 'a'})
+    assert cirq.Simulator().run(mapped).records['out'].tolist() == [[[1]]]
