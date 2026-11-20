@@ -1,0 +1,138 @@
+[
+  {
+    "cirq_type": "Repeat",
+    "count": 3,
+    "sub_operation": {
+      "cirq_type": "SingleQubitPauliStringGateOperation",
+      "pauli": {
+        "cirq_type": "_PauliX",
+        "exponent": 1.0,
+        "global_shift": 0.0
+      },
+      "qubit": {
+        "cirq_type": "LineQubit",
+        "x": 0
+      }
+    }
+  },
+  {
+    "cirq_type": "Repeat",
+    "count": 2,
+    "sub_operation": {
+      "cirq_type": "CircuitOperation",
+      "circuit": {
+        "cirq_type": "VAL",
+        "key": 0,
+        "val": {
+          "cirq_type": "FrozenCircuit",
+          "moments": [
+            {
+              "cirq_type": "Moment",
+              "operations": [
+                {
+                  "cirq_type": "SingleQubitPauliStringGateOperation",
+                  "pauli": {
+                    "cirq_type": "_PauliX",
+                    "exponent": 1.0,
+                    "global_shift": 0.0
+                  },
+                  "qubit": {
+                    "cirq_type": "LineQubit",
+                    "x": 0
+                  }
+                },
+                {
+                  "cirq_type": "SingleQubitPauliStringGateOperation",
+                  "pauli": {
+                    "cirq_type": "_PauliY",
+                    "exponent": 1.0,
+                    "global_shift": 0.0
+                  },
+                  "qubit": {
+                    "cirq_type": "LineQubit",
+                    "x": 1
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "repetitions": 1,
+      "qubit_map": [],
+      "measurement_key_map": {},
+      "param_resolver": {
+        "cirq_type": "ParamResolver",
+        "param_dict": []
+      },
+      "repetition_ids": null,
+      "use_repetition_ids": false,
+      "parent_path": []
+    }
+  },
+  {
+    "cirq_type": "Repeat",
+    "count": 4,
+    "sub_operation": {
+      "cirq_type": "CircuitOperation",
+      "circuit": {
+        "cirq_type": "VAL",
+        "key": 1,
+        "val": {
+          "cirq_type": "FrozenCircuit",
+          "moments": [
+            {
+              "cirq_type": "Moment",
+              "operations": [
+                {
+                  "cirq_type": "GateOperation",
+                  "gate": {
+                    "cirq_type": "HPowGate",
+                    "exponent": 1.0,
+                    "global_shift": 0.0
+                  },
+                  "qubits": [
+                    {
+                      "cirq_type": "LineQubit",
+                      "x": 0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "cirq_type": "Moment",
+              "operations": [
+                {
+                  "cirq_type": "GateOperation",
+                  "gate": {
+                    "cirq_type": "MeasurementGate",
+                    "num_qubits": 1,
+                    "key": "m",
+                    "invert_mask": []
+                  },
+                  "qubits": [
+                    {
+                      "cirq_type": "LineQubit",
+                      "x": 0
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "repetitions": 1,
+      "qubit_map": [],
+      "measurement_key_map": {},
+      "param_resolver": {
+        "cirq_type": "ParamResolver",
+        "param_dict": []
+      },
+      "repetition_ids": null,
+      "use_repetition_ids": false,
+      "parent_path": []
+    }
+  }
+]
