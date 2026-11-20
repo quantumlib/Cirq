@@ -606,7 +606,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
         size = state_vector.size
         num_qubits = size.bit_length() - 1
-        if len(state_vector.shape) != 1 and state_vector.shape != (2,) * num_qubits:
+        if state_vector.shape not in ((2**num_qubits,), (2,) * num_qubits):
             raise ValueError(
                 "Input array does not represent a state vector "
                 "with shape `(2 ** n,)` or `(2, ..., 2)`."

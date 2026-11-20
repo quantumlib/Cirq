@@ -964,8 +964,13 @@ def test_expectation_from_state_vector_invalid_input() -> None:
     _ = ps.expectation_from_state_vector(wf, {q0: 0, q1: 1, q2: 0})
 
     # Incorrectly shaped state_vector input.
-    with pytest.raises(ValueError, match='7'):
-        ps.expectation_from_state_vector(np.arange(7, dtype=np.complex64), q_map)
+    for bad_size in (3, 5, 7):
+        with pytest.raises(ValueError, match='shape'):
+            ps.expectation_from_state_vector(np.zeros(bad_size, dtype=np.complex64), q_map)
+        with pytest.raises(ValueError, match='shape'):
+            ps.expectation_from_state_vector(
+                np.zeros(bad_size, dtype=np.complex64), q_map, check_preconditions=False
+            )
     q_map_2 = {q0: 0, q1: 1, q2: 2, q3: 3}
     with pytest.raises(ValueError, match='normalized'):
         ps.expectation_from_state_vector(np.arange(16, dtype=np.complex64), q_map_2)
