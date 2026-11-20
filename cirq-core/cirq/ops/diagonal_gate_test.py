@@ -157,6 +157,15 @@ def test_parameterized_diagram() -> None:
 1: ───#2──────────────────────────────────────────────────────────────────────────────────
 """,
     )
+    cirq.testing.assert_has_diagram(
+        parameterized_circuit,
+        """
+0: ───diag(0, 1.2345, sympy.Symbol('s'), sympy.Mul(sympy.Integer(2), sympy.Symbol('s')))───
+      │
+1: ───#2───────────────────────────────────────────────────────────────────────────────────
+""",
+        precision=None,
+    )
 
     parameterized_circuit_large = cirq.Circuit(
         cirq.DiagonalGate([0.12345, 1, 2.0, 3, 4.0, 5, 6.0, 2 * s])(a, b, c)
