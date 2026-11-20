@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+import inspect
 from typing import TypeVar
 
 T = TypeVar('T')
@@ -39,6 +40,7 @@ def document(value: T, doc_string: str = '') -> T:
     Returns:
         The given value.
     """
+    doc_string = inspect.cleandoc(doc_string)
     RECORDED_CONST_DOCS[id(value)] = doc_string
 
     ## this is how the devsite API generator picks up

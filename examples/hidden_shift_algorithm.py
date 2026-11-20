@@ -1,11 +1,4 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-
-from __future__ import annotations
-
-import random
-
-import cirq
-
 """Example program that demonstrates a Hidden Shift algorithm.
 
 The Hidden Shift Problem is one of the known problems whose quantum algorithm
@@ -83,6 +76,12 @@ Counter({'100101': 100})
 Most common bitstring: 100101
 Found a match: True
 """
+
+from __future__ import annotations
+
+import random
+
+import cirq
 
 
 def set_qubits(qubit_count):

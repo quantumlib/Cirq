@@ -79,7 +79,7 @@ def sample_density_matrix(
     if repetitions == 0 or len(indices) == 0:
         return np.zeros(shape=(repetitions, len(indices)), dtype=np.int8)
 
-    prng = value.parse_random_state(seed)
+    prng = value.parse_random_generator(seed)
 
     # Calculate the measurement probabilities.
     probs = _probs(density_matrix, indices, qid_shape)
@@ -158,7 +158,7 @@ def measure_density_matrix(
     if len(indices) == 0:
         return ([], arrout)
 
-    prng = value.parse_random_state(seed)
+    prng = value.parse_random_generator(seed)
 
     # Calculate the measurement probabilities and then make the measurement.
     probs = _probs(density_matrix, indices, qid_shape)
