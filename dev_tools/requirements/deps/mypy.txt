@@ -1,6 +1,0 @@
-# the mypy dependency file
-mypy==2.1.0
-
-# packages with stub types for various libraries
-types-protobuf>=6.32.1, <8.0
-types-requests~=2.32

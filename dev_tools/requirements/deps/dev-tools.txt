@@ -1,4 +1,4 @@
--r mypy.txt
+-r typecheck.txt
 -r pytest.txt
 -r format.txt
 -r pylint.txt
