@@ -200,6 +200,20 @@ def test_resolution_of_unknown_formulas() -> None:
     assert r.value_of(sympy.sin(a), recursive=False) == sympy.sin(b - 2)
 
 
+@pytest.mark.filterwarnings("ignore:Casting param_dict:UserWarning")
+def test_does_not_eval_param_dict_keys() -> None:
+    a = sympy.Symbol('a')
+    r = cirq.ParamResolver({a: sympy.pi / 4, 'exec("assert False")': 0})
+    r.value_of(sympy.sin(a), recursive=False)
+
+
+@pytest.mark.filterwarnings("ignore:Casting param_dict:UserWarning")
+def test_does_not_eval_param_dict_vals() -> None:
+    a = sympy.Symbol('a')
+    r = cirq.ParamResolver({a: 'exec("assert False")'})
+    r.value_of(sympy.sin(a), recursive=False)
+
+
 def test_unbound_recursion_halted() -> None:
     a = sympy.Symbol('a')
     b = sympy.Symbol('b')
