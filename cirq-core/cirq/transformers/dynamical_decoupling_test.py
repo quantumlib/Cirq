@@ -860,7 +860,7 @@ q(2) |  d  |  d  | d,s |  w  |  w  |""")
 
 
 def test_labeled_circuit_str_empty():
-    """Tests the __str__ method of _Grid for empty and no-qubit circuits."""
+    """Tests the `__str__` method of `_Grid` for empty and no-qubit circuits."""
     # Test case for an empty circuit (no moments, no qubits)
     empty_circuit = cirq.Circuit()
     labeled_empty = _Grid.from_circuit(empty_circuit, single_qubit_gate_moments_only=True)

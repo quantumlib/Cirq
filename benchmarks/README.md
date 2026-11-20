@@ -7,10 +7,10 @@ This directory contains Cirq performance benchmarks established using the
 
 The benchmarks are defined by the `*_perf.py` files provided in this
 `benchmarks` package and its sub-folders.  The benchmark definitions are
-very similar to common pytest test functions, but they use an extra features
+very similar to common pytest test functions, but they use extra features
 from the pytest-benchmark plugin to collect code execution times and statistics.
 For more information on how to write new benchmarks, please refer to
-existing benchmark files and to the [pytest-benchmark] documentation
+existing benchmark files and to the [pytest-benchmark] documentation.
 
 ## Usage
 
@@ -43,8 +43,7 @@ for later comparison, use the `--benchmark-autosave` option together
 with the pytest identifier of the benchmark, for example,
 
 ```bash
-pytest -p no:randomly --benchmark-enable \
-    --benchmark-enable --benchmark-autosave \
+pytest -p no:randomly --benchmark-enable --benchmark-autosave \
     "benchmarks/linalg_decompositions_perf.py::test_kak_decomposition[CNOT]"
 ```
 
