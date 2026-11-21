@@ -97,7 +97,7 @@ def test_random_circuit(
 
 @pytest.mark.parametrize('seed', [random.randint(0, 2**32) for _ in range(10)])
 def test_random_circuit_reproducible_with_seed(seed) -> None:
-    wrappers = (lambda s: s, np.random.RandomState)
+    wrappers = (lambda s: s, np.random.default_rng)
     circuits = [
         cirq.testing.random_circuit(
             qubits=10, n_moments=10, op_density=0.7, random_state=wrapper(seed)
@@ -121,17 +121,17 @@ def test_random_circuit_not_expected_number_of_qubits() -> None:
 def test_random_circuit_reproducible_between_runs() -> None:
     circuit = cirq.testing.random_circuit(5, 8, 0.5, random_state=77)
     expected_diagram = """
-                  ┌──┐
-0: ────────────────S─────iSwap───────Y───X───
-                         │
-1: ───────────Y──────────iSwap───────Y───────
-
-2: ─────────────────X────T───────────S───S───
-                    │
-3: ───────@────────S┼────H───────────────Z───
-          │         │
-4: ───────@─────────@────────────────────X───
-                  └──┘
+      ┌──────┐           ┌──────┐   ┌──────┐           ┌──────┐
+0: ─────iSwap─────────────X────────────────────X─────────iSwap────────
+        │                                      │         │
+1: ────Y┼─────────────────iSwap──────iSwap─────@─────────┼────────@───
+        │                 │          │                   │        │
+2: ─────iSwap────iSwap────┼────Y─────┼────@─────────────X┼────────┼───
+                 │        │          │    │              │        │
+3: ────@─────────iSwap────┼──────────┼────@────────T─────iSwap────@───
+       │                  │          │
+4: ────X──────────────────iSwap──────iSwap─────────X────T─────────────
+      └──────┘           └──────┘   └──────┘           └──────┘
     """
     cirq.testing.assert_has_diagram(circuit, expected_diagram)
 

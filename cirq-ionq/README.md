@@ -55,9 +55,9 @@ version.
 To get started with using IonQ quantum computers through Cirq, please refer to
 the following documentation:
 
-*   [Access and authentication](https://quantumai.google/cirq/ionq/access).
+*   [Access and authentication](https://quantumai.google/cirq/hardware/ionq/access).
 *   [Getting started
-    guide](https://quantumai.google/cirq/tutorials/ionq/getting_started).
+    guide](https://quantumai.google/cirq/hardware/ionq/getting_started).
 
 To get started with using Cirq in general, please refer to the [Cirq
 documentation site].
@@ -68,4 +68,8 @@ repository on GitHub](https://github.com/quantumlib/Cirq).
 
 ## Disclaimer
 
-Cirq is not an official Google product. Copyright 2019 The Cirq Developers.
+This is not an officially supported Google product. This project is not
+eligible for the [Google Open Source Software Vulnerability Rewards
+Program](https://bughunters.google.com/open-source-security).
+
+Copyright 2018 The Cirq Developers.
