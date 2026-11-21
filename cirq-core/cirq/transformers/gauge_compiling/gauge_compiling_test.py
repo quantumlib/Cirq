@@ -139,7 +139,7 @@ def test_as_sweep_convert_to_phxz_failed() -> None:
         cirq.CZ ** sympy.Symbol('t'),
     ],
 )
-def test_symbolize_2_qubits_gate_failed(two_qubit_gate) -> None:
+def test_symbolize_2_qubits_gate_failed(two_qubit_gate: cirq.Gate) -> None:
     qs = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.CZPowGate(exponent=0.5).on(*qs))
 
