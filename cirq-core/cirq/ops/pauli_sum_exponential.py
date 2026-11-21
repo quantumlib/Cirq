@@ -120,7 +120,7 @@ class PauliSumExponential:
     def _unitary_(self) -> np.ndarray:
         return self.matrix()
 
-    def __pow__(self, exponent: int) -> PauliSumExponential:
+    def __pow__(self, exponent: cirq.TParamVal) -> PauliSumExponential:
         return PauliSumExponential(self._pauli_sum, self._exponent * exponent)
 
     def __repr__(self) -> str:
