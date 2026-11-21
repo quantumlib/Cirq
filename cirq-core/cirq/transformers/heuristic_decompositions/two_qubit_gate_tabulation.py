@@ -349,7 +349,7 @@ def two_qubit_gate_product_tabulation(
         ValueError: If `allow_missing_points` is False and not all the points
             in the Weyl chamber are compilable using 2 or 3 base gates.
     """
-    rng = value.parse_random_state(random_state)
+    rng = value.parse_random_generator(random_state)
 
     assert 1 / 2 > max_infidelity > 0
     spacing = np.sqrt(max_infidelity / 3)
