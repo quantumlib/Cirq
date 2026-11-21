@@ -776,3 +776,9 @@ def test_all_identity_phasor_symbolic_exponent() -> None:
     np.testing.assert_allclose(
         cirq.unitary(resolved), np.exp(1j * np.pi * 0.25) * np.eye(1), atol=1e-7
     )
+
+
+def test_all_identity_phasor_zero_exponent_pos() -> None:
+    phasor = cirq.PauliStringPhasor(cirq.PauliString(), [q0, q1], exponent_neg=0.3, exponent_pos=0)
+    assert not cirq.decompose_once(phasor)
+    np.testing.assert_allclose(cirq.unitary(phasor), np.eye(4), atol=1e-7)
