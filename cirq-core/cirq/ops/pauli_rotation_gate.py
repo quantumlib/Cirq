@@ -142,7 +142,7 @@ class PauliRotationGate(raw_types.Gate):
     def __pow__(self, exponent: cirq.TParamVal) -> PauliRotationGate:
         if isinstance(exponent, str):
             raise TypeError(
-                "Gate exponent must be a number or sympy expression. "
+                f"Gate exponent must be a number or sympy expression. "
                 f"Received a string instead: {exponent!r}"
             )
         return PauliRotationGate(self._unit_pauli_string, self._rads * exponent)
@@ -160,15 +160,5 @@ class PauliRotationGate(raw_types.Gate):
         return protocols.obj_to_dict_helper(self, ["dense_pauli_string", "rads"])
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        qubits = self.qubits if args.known_qubits is None else args.known_qubits
-        pauli_string = self.dense_pauli_string(*qubits)
-        if not qubits:
-            return NotImplemented
-
-        def sym(qubit):
-            if qubit in pauli_string:
-                return f'{pauli_string[qubit]}'
-            return 'I'
-
-        syms = tuple(sym(qubit) for qubit in qubits)
-        return protocols.CircuitDiagramInfo(wire_symbols=syms, exponent=self.rads)
+        pauli_string_symbols = tuple(str(p) for p in self._unit_pauli_string)
+        return protocols.CircuitDiagramInfo(wire_symbols=pauli_string_symbols, exponent=self.rads)

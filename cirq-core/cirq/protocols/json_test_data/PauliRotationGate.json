@@ -15,7 +15,7 @@
         "imag": 0.0
       }
     },
-    "exponent": 0.2
+    "rads": 0.2
   },
   {
     "cirq_type": "PauliRotationGate",
@@ -31,6 +31,6 @@
         "imag": 0.0
       }
     },
-    "exponent": 5.283185307179586
+    "rads": 5.283185307179586
   }
 ]
