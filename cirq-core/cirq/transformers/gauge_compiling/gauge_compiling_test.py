@@ -130,15 +130,24 @@ def test_as_sweep_convert_to_phxz_failed() -> None:
             _ = CZGaugeTransformer.as_sweep(c, context=cirq.TransformerContext(), N=1)
 
 
-def test_symbolize_2_qubits_gate_failed() -> None:
+@pytest.mark.parametrize(
+    'two_qubit_gate',
+    [
+        # Not a CZPowGate.
+        cirq.ISWAP,
+        # A CZPowGate whose exponent is not a real number.
+        cirq.CZ ** sympy.Symbol('t'),
+    ],
+)
+def test_symbolize_2_qubits_gate_failed(two_qubit_gate: cirq.Gate) -> None:
     qs = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.CZPowGate(exponent=0.5).on(*qs))
 
     with unittest.mock.patch.object(
         SqrtCZGauge,
         "sample",
-        # ISWAP gate is not a CZPowGate; errors are expected when symbolizing the 2-qubit gate.
-        return_value=ConstantGauge(two_qubit_gate=cirq.ISWAP),
+        # Errors are expected when symbolizing a 2-qubit gate that is not CZ**exponent.
+        return_value=ConstantGauge(two_qubit_gate=two_qubit_gate),
     ):
         with pytest.raises(ValueError, match="Can't symbolize non-CZPowGate as CZ\\*\\*symbol."):
             _ = SqrtCZGaugeTransformer.as_sweep(c, N=1)
