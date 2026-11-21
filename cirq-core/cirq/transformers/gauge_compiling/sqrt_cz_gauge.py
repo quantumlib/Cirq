@@ -79,11 +79,7 @@ class SqrtCZGauge(Gauge):
         if prng.choice([True, False]):
             return ConstantGauge(two_qubit_gate=gate)
         correction = ops.S if canonical is _SQRT_CZ else _ADJ_S
-        # Keep the gate's own representation when it can be inverted; a gate that only
-        # implements `_unitary_` cannot, so fall back to the canonical inverse.
-        inverse = protocols.pow(gate, -1, None)
-        if inverse is None:
-            inverse = _ADJ_SQRT_CZ if canonical is _SQRT_CZ else _SQRT_CZ
+        inverse = gate**-1
         swap_qubits = prng.choice([True, False])
         if swap_qubits:
             return ConstantGauge(

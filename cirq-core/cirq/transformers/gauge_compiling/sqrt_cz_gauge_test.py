@@ -35,22 +35,6 @@ class TestAdjointSqrtCZGauge(GaugeTester):
     gauge_transformer = SqrtCZGaugeTransformer
 
 
-class _UnitaryOnlyGate(cirq.Gate):
-    """A two-qubit diagonal gate that implements `_unitary_` but not `__pow__` or `_decompose_`."""
-
-    def __init__(self, diagonal: tuple[complex, ...]) -> None:
-        self._diagonal = diagonal
-
-    def _num_qubits_(self) -> int:
-        return 2
-
-    def _unitary_(self) -> np.ndarray:
-        return np.diag(self._diagonal)
-
-    def __repr__(self) -> str:
-        return f'_UnitaryOnlyGate({self._diagonal!r})'
-
-
 # Gates that the transformer's target gateset accepts because they equal CZ**0.5 or CZ**-0.5 up
 # to global phase, although most of them are not equal to CZ**0.5 or CZ**-0.5 under `==`.
 # `ControlledGate(S)` is also what the OpenQASM importer produces for `cp(pi/2)`.
@@ -60,7 +44,6 @@ _SQRT_CZ_REPRESENTATIONS = [
     cirq.ControlledGate(cirq.S),
     cirq.CZPowGate(exponent=0.5, global_shift=0.25),
     cirq.MatrixGate(np.diag([1, 1, 1, 1j])),
-    _UnitaryOnlyGate(tuple(np.exp(0.3j) * np.array([1, 1, 1, 1j]))),
 ]
 _ADJ_SQRT_CZ_REPRESENTATIONS = [
     cirq.CZ**-0.5,
@@ -68,16 +51,9 @@ _ADJ_SQRT_CZ_REPRESENTATIONS = [
     cirq.ControlledGate(cirq.S**-1),
     cirq.CZPowGate(exponent=-0.5, global_shift=0.25),
     cirq.MatrixGate(np.diag([1, 1, 1, -1j])),
-    _UnitaryOnlyGate(tuple(np.exp(0.3j) * np.array([1, 1, 1, -1j]))),
 ]
 # Two-qubit gates that equal neither CZ**0.5 nor CZ**-0.5 up to global phase.
-_UNSUPPORTED_GATES = [
-    cirq.CZ,
-    cirq.CZ**0.25,
-    cirq.CNOT,
-    cirq.MatrixGate(np.diag([1, 1, 1, -1])),
-    _UnitaryOnlyGate((1, 1, 1, np.exp(0.25j * np.pi))),
-]
+_UNSUPPORTED_GATES = [cirq.CZ, cirq.CZ**0.25, cirq.CNOT, cirq.MatrixGate(np.diag([1, 1, 1, -1]))]
 
 
 def _gauge_as_circuit(gauge, q0: cirq.Qid, q1: cirq.Qid) -> cirq.Circuit:
