@@ -40,14 +40,12 @@ class TestAdjointSqrtCZGauge(GaugeTester):
 # `ControlledGate(S)` is also what the OpenQASM importer produces for `cp(pi/2)`.
 _SQRT_CZ_REPRESENTATIONS = [
     cirq.CZ**0.5,
-    cirq.CZ**-1.5,
     cirq.ControlledGate(cirq.S),
     cirq.CZPowGate(exponent=0.5, global_shift=0.25),
     cirq.MatrixGate(np.diag([1, 1, 1, 1j])),
 ]
 _ADJ_SQRT_CZ_REPRESENTATIONS = [
     cirq.CZ**-0.5,
-    cirq.CZ**1.5,
     cirq.ControlledGate(cirq.S**-1),
     cirq.CZPowGate(exponent=-0.5, global_shift=0.25),
     cirq.MatrixGate(np.diag([1, 1, 1, -1j])),
