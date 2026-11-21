@@ -139,9 +139,17 @@ class ClassicallyControlledOperation(raw_types.Operation):
     def _value_equality_values_(self):
         return (frozenset(self._conditions), self._sub_operation)
 
-    def __str__(self) -> str:
+    def _diagram_str(self, style: str | None = None) -> str:
         keys = ', '.join(map(str, self._conditions))
-        return f'{self._sub_operation}.with_classical_controls({keys})'
+        sub_op_str = (
+            self._sub_operation._diagram_str(style=style)
+            if hasattr(self._sub_operation, '_diagram_str')
+            else str(self._sub_operation)
+        )
+        return f'{sub_op_str}.with_classical_controls({keys})'
+
+    def __str__(self) -> str:
+        return self._diagram_str()
 
     def __repr__(self):
         return (
