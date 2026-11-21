@@ -720,18 +720,18 @@ def test_gate_str() -> None:
     assert str(gate) == 'exp(-iπ0.25*+ZYX)'
 
 
+q0, q1, q2 = cirq.LineQubit.range(3)
+
+
 @pytest.mark.parametrize(
     'qubits, ps',
     [
-        ([cirq.LineQubit(0), cirq.LineQubit(1)], cirq.Z(cirq.LineQubit(0))),
-        ([cirq.LineQubit(0), cirq.LineQubit(1)], cirq.X(cirq.LineQubit(1))),
-        ([cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2)], cirq.Y(cirq.LineQubit(1))),
-        (
-            [cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2)],
-            cirq.X(cirq.LineQubit(0)) * cirq.Z(cirq.LineQubit(2)),
-        ),
-        ([cirq.LineQubit(0), cirq.LineQubit(1)], cirq.PauliString()),
-        ([cirq.LineQubit(0), cirq.LineQubit(1)], -cirq.PauliString()),
+        ([q0, q1], cirq.Z(q0)),
+        ([q0, q1], cirq.X(q1)),
+        ([q0, q1, q2], cirq.Y(q1)),
+        ([q0, q1, q2], cirq.X(q0) * cirq.Z(q2)),
+        ([q0, q1], cirq.PauliString()),
+        ([q0, q1], -cirq.PauliString()),
     ],
 )
 def test_unitary_with_identity_qubits(qubits: list[cirq.Qid], ps: cirq.PauliString) -> None:
@@ -746,7 +746,7 @@ def test_unitary_with_identity_qubits(qubits: list[cirq.Qid], ps: cirq.PauliStri
     np.testing.assert_allclose(cirq.unitary(phasor), expected, atol=1e-7)
 
 
-@pytest.mark.parametrize('paulis', itertools.product('IXYZ', repeat=3))
+@pytest.mark.parametrize('paulis', list(itertools.product('IXYZ', repeat=3)))
 @pytest.mark.parametrize('coefficient', [1, -1])
 def test_unitary_all_dense_pauli_strings(paulis: tuple[str, ...], coefficient: int) -> None:
     qubits = cirq.LineQubit.range(3)
@@ -762,10 +762,17 @@ def test_unitary_all_dense_pauli_strings(paulis: tuple[str, ...], coefficient: i
 
 
 def test_all_identity_phasor_is_global_phase_when_controlled() -> None:
-    q0, q1, q2 = cirq.LineQubit.range(3)
     phasor = cirq.PauliStringPhasor(
         cirq.PauliString(), [q1, q2], exponent_neg=0.3, exponent_pos=0.1
     )
     controlled = phasor.controlled_by(q0)
     expected = np.diag([1, 1, 1, 1] + [np.exp(1j * np.pi * 0.1)] * 4)
     np.testing.assert_allclose(cirq.unitary(cirq.Circuit(controlled)), expected, atol=1e-7)
+
+
+def test_all_identity_phasor_symbolic_exponent() -> None:
+    phasor = cirq.PauliStringPhasor(cirq.PauliString(), [q0, q1], exponent_pos=sympy.Symbol('t'))
+    resolved = cirq.resolve_parameters(cirq.Circuit(cirq.decompose_once(phasor)), {'t': 0.25})
+    np.testing.assert_allclose(
+        cirq.unitary(resolved), np.exp(1j * np.pi * 0.25) * np.eye(1), atol=1e-7
+    )

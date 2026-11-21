@@ -18,12 +18,15 @@ import numbers
 from collections.abc import Iterable, Iterator, Sequence, Set
 from typing import Any, cast, TYPE_CHECKING
 
+import sympy
+
 from cirq import protocols, value
 from cirq._compat import deprecated, proper_repr
 from cirq.ops import (
     common_gates,
     dense_pauli_string as dps,
     gate_operation,
+    global_phase_op,
     op_tree,
     pauli_gates,
     pauli_string as ps,
@@ -31,8 +34,6 @@ from cirq.ops import (
 )
 
 if TYPE_CHECKING:
-    import sympy
-
     import cirq
 
 
@@ -369,11 +370,10 @@ class PauliStringPhasorGate(raw_types.Gate):
             # Every factor is identity, so the parity is always even and only the
             # positive-eigenspace phase applies, which is a global phase.
             if self.exponent_pos:
-                any_qubit = qubits[0]
-                yield pauli_gates.X(any_qubit)
-                yield pauli_gates.Z(any_qubit) ** self.exponent_pos
-                yield pauli_gates.X(any_qubit)
-                yield pauli_gates.Z(any_qubit) ** self.exponent_pos
+                phase = (-1) ** self.exponent_pos
+                if protocols.is_parameterized(self.exponent_pos):
+                    phase = sympy.exp(sympy.I * sympy.pi * self.exponent_pos)
+                yield global_phase_op.global_phase_operation(phase)
             return
         any_qubit = active_qubits[0]
         to_z_ops = op_tree.freeze_op_tree(self._to_z_basis_ops(qubits))
