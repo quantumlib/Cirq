@@ -27,10 +27,10 @@
       ],
       "coefficient": {
         "cirq_type": "complex",
-        "real": -1.0,
+        "real": 1.0,
         "imag": 0.0
       }
     },
-    "exponent": 1
+    "exponent": 5.283185307179586
   }
 ]
