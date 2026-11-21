@@ -69,7 +69,7 @@ class PauliRotationGate(raw_types.Gate):
             # If rads is parameterized, verify that the radians to rotate by is real.
             if abs(complex(self._rads).imag) > atol:
                 raise ValueError(
-                    'Rotation cannot have imaginary component above atol={atol}. Received'
+                    f'Rotation cannot have imaginary component above atol={atol}. Received'
                     f'{dense_pauli_string.coefficient} * {rads} = {self._rads}.'
                 )
             self._rads = complex(self._rads).real % (2.0 * np.pi)
