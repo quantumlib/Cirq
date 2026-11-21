@@ -65,6 +65,17 @@ def _gen_gray_code(n: int) -> Iterator[tuple[int, int]]:
     yield gray_code, int(np.log2(gray_code))
 
 
+def _round_angles(
+    angles: Sequence[cirq.TParamVal], precision: int | None
+) -> tuple[cirq.TParamVal, ...]:
+    if precision is None:
+        return tuple(angles)
+    return tuple(
+        angle if protocols.is_parameterized(angle) else np.round(angle, precision)
+        for angle in angles
+    )
+
+
 @value.value_equality()
 class DiagonalGate(raw_types.Gate):
     r"""An n qubit gate which acts as phases on computational basis states.
@@ -123,9 +134,8 @@ class DiagonalGate(raw_types.Gate):
         return args.target_tensor
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        rounded_angles = np.array(self._diag_angles_radians)
-        if args.precision is not None:
-            rounded_angles = rounded_angles.round(args.precision)
+        rounded_angles = _round_angles(self._diag_angles_radians, args.precision)
+
         if len(rounded_angles) <= 4:
             rounded_angles_str = ', '.join(proper_repr(angle) for angle in rounded_angles)
             diag_str = f'diag({rounded_angles_str})'

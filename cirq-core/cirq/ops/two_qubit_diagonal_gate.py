@@ -28,7 +28,7 @@ import sympy
 
 from cirq import protocols, value
 from cirq._compat import proper_repr
-from cirq.ops import common_gates, raw_types
+from cirq.ops import common_gates, diagonal_gate, raw_types
 
 if TYPE_CHECKING:
     import cirq
@@ -116,9 +116,7 @@ class TwoQubitDiagonalGate(raw_types.Gate):
         return args.target_tensor
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        rounded_angles = np.array(self._diag_angles_radians)
-        if args.precision is not None:
-            rounded_angles = rounded_angles.round(args.precision)
+        rounded_angles = diagonal_gate._round_angles(self._diag_angles_radians, args.precision)
         diag_str = f"diag({', '.join(proper_repr(angle) for angle in rounded_angles)})"
         return protocols.CircuitDiagramInfo((diag_str, '#2'))
 
