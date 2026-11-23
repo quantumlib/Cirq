@@ -54,9 +54,9 @@ class PauliRotationGate(raw_types.Gate):
             dense_pauli_string: The Pauli string $P$ to rotate about.
             rads: The radians $k$ in $e^{i k P}$. Defaults to 1.
             atol: The absolute tolerance for the imaginary component of the computed rotation
-                (`dense_pauli_string.coefficient * rads`). If the imaginary component is at most
-                `atol`, it is considered invalid. Otherwise, the imaginary component is considered
-                within error tolerance and removed.
+                (`dense_pauli_string.coefficient * rads`). If the imaginary component is greater
+                then `atol`, the rotation is considered invalid. If not, the imaginary component
+                is assumed to be negligible and removed.
 
         Raises:
             ValueError: If the computed rotation (`dense_pauli_string.coefficient * rads`)
