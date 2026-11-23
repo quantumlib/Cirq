@@ -37,6 +37,7 @@ import duet
 import google.auth
 
 import cirq
+from cirq import _compat
 from cirq_google.api import v2
 from cirq_google.engine import (
     abstract_engine,
@@ -246,6 +247,11 @@ class Engine(abstract_engine.AbstractEngine):
     def __str__(self) -> str:
         return f'Engine(project_id={self.project_id!r})'
 
+    @_compat.deprecated(
+        deadline='v1.9',
+        fix='Use Engine.run_sweep() to get a non-blocking EngineJob, or use '
+        'Engine.get_sampler(processor_id).run() to block and get a Result.',
+    )
     def run(
         self,
         program: cirq.AbstractCircuit,
@@ -702,7 +708,7 @@ class Engine(abstract_engine.AbstractEngine):
         if not isinstance(processor_id, str):
             raise ValueError(
                 f'Passing a list of processors ({processor_id}) '
-                'to get_sampler() no longer supported. Use Engine.run() instead if '
+                'to get_sampler() no longer supported. Use Engine.run_sweep() instead if '
                 'you need to specify a list.'
             )
 
