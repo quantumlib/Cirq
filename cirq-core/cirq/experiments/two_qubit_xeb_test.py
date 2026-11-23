@@ -94,7 +94,7 @@ def test_parallel_two_qubit_xeb(
     res = cirq.experiments.parallel_two_qubit_xeb(
         sampler=sampler,
         qubits=qubits,
-        n_repetitions=100,
+        n_repetitions=2000,
         n_combinations=1,
         n_circuits=1,
         cycle_depths=[3, 4, 5],
@@ -299,7 +299,7 @@ def test_run_rb_and_xeb(
         sampler=sampler,
         qubits=qubits,
         pairs=pairs,
-        repetitions=100,
+        repetitions=2000,
         num_clifford_range=tuple(np.arange(3, 10, 1)),
         xeb_combinations=1,
         num_circuits=1,

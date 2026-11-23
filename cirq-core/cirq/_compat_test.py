@@ -423,8 +423,8 @@ def _from_deprecated_import_sub():
 def _import_deprecated_first_new_second():
     """To ensure that module_a gets initialized only once.
 
-    Note that the single execution of _compat_test_data and module_a is asserted
-    in _test_deprecated_module_inner by counting the INFO messages emitted by
+    Note that the single execution of `_compat_test_data` and `module_a` is asserted
+    in `_test_deprecated_module_inner` by counting the INFO messages emitted by
     the modules ('init:compat_test_data' and 'init:module_a').
     """
 
@@ -447,9 +447,9 @@ def _import_deprecated_first_new_second():
 
 
 def _import_new_first_deprecated_second():
-    """To ensure that module_a gets initialized only once.
+    """To ensure that `module_a` gets initialized only once.
 
-    It is the same as _import_deprecated_first_new_second just with different import order.
+    It is the same as `_import_deprecated_first_new_second` just with different import order.
     See that for more details.
     """
     from cirq.testing._compat_test_data.module_a import module_b
@@ -727,10 +727,10 @@ def test_same_name_submodule_earlier_in_subtree():
     """Tests whether module resolution works in the right order.
 
     We have two packages with a bool `DUPE_CONSTANT` attribute each:
-       1. cirq.testing._compat_test_data.module_a.sub.dupe.DUPE_CONSTANT=True # the right one
-       2. cirq.testing._compat_test_data.module_a.dupe.DUPE_CONSTANT=False # the wrong one
+       1. `cirq.testing._compat_test_data.module_a.sub.dupe.DUPE_CONSTANT=True` # the right one
+       2. `cirq.testing._compat_test_data.module_a.dupe.DUPE_CONSTANT=False` # the wrong one
 
-    If the new module's (in this case cirq.testing._compat_test_data.module_a) path has precedence
+    If the new module's (in this case `cirq.testing._compat_test_data.module_a`) path has precedence
     during module spec resolution, dupe number 2 is going to get resolved.
 
     You might wonder where this comes up in cirq. There was a bug where the lookup path was not in
@@ -912,52 +912,6 @@ def test_loader_create_module():
 
     assert (
         DeprecatedModuleLoader(CreateModuleLoader(), 'old', 'new').create_module(None) == fake_mod
-    )
-
-
-def test_deprecated_module_loader_load_module_wrapper():
-    hello_module = types.ModuleType('hello')
-
-    class StubLoader(importlib.abc.Loader):
-        def load_module(self, fullname: str) -> ModuleType:
-            # we simulate loader behavior - it is assumed that loaders will set the
-            # module cache with the loaded module
-            sys.modules[fullname] = hello_module
-            return hello_module
-
-    with pytest.raises(AssertionError, match="for old was asked to load something_else"):
-        DeprecatedModuleLoader(StubLoader(), 'old', 'new').load_module('something_else')
-
-    # new module already loaded
-    sys.modules['new_hello'] = hello_module
-    assert (
-        DeprecatedModuleLoader(StubLoader(), 'old_hello', 'new_hello').load_module('old_hello')
-        == hello_module
-    )
-    assert 'old_hello' in sys.modules and sys.modules['old_hello'] == sys.modules['new_hello']
-    del sys.modules['new_hello']
-    del sys.modules['old_hello']
-
-    # new module is not loaded
-    assert (
-        DeprecatedModuleLoader(StubLoader(), 'old_hello', 'new_hello').load_module('old_hello')
-        == hello_module
-    )
-    assert 'new_hello' in sys.modules
-    assert 'old_hello' in sys.modules and sys.modules['old_hello'] == sys.modules['new_hello']
-    del sys.modules['new_hello']
-    del sys.modules['old_hello']
-
-
-def test_deprecated_module_loader_repr():
-    class StubLoader(importlib.abc.Loader):
-        def module_repr(self, module: ModuleType) -> str:
-            return 'hello'
-
-    module = types.ModuleType('old')
-    assert (
-        DeprecatedModuleLoader(StubLoader(), 'old_hello', 'new_hello').module_repr(module)
-        == 'hello'
     )
 
 

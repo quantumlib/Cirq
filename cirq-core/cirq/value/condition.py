@@ -39,7 +39,9 @@ class Condition(abc.ABC):
         """Gets the control keys."""
 
     @abc.abstractmethod
-    def replace_key(self, current: cirq.MeasurementKey, replacement: cirq.MeasurementKey):
+    def replace_key(
+        self, current: cirq.MeasurementKey, replacement: cirq.MeasurementKey
+    ) -> Condition:
         """Replaces the control keys."""
 
     @abc.abstractmethod
@@ -48,19 +50,19 @@ class Condition(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def qasm(self):
+    def qasm(self) -> str:
         """Returns the QASM of this condition."""
 
-    def _qasm_(self, args: cirq.QasmArgs, **kwargs) -> str | None:
+    def _qasm_(self, args: cirq.QasmArgs, **kwargs: Any) -> str | None:
         return self.qasm
 
-    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> cirq.Condition:
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> Condition:
         condition = self
         for k in self.keys:
             condition = condition.replace_key(k, mkp.with_measurement_key_mapping(k, key_map))
         return condition
 
-    def _with_key_path_prefix_(self, path: tuple[str, ...]) -> cirq.Condition:
+    def _with_key_path_prefix_(self, path: tuple[str, ...]) -> Condition:
         condition = self
         for k in self.keys:
             condition = condition.replace_key(k, mkp.with_key_path_prefix(k, path))
@@ -68,7 +70,7 @@ class Condition(abc.ABC):
 
     def _with_rescoped_keys_(
         self, path: tuple[str, ...], bindable_keys: frozenset[cirq.MeasurementKey]
-    ) -> cirq.Condition:
+    ) -> Condition:
         condition = self
         for key in self.keys:
             for i in range(len(path) + 1):
@@ -92,16 +94,18 @@ class KeyCondition(Condition):
     index: int = -1
 
     @property
-    def keys(self):
+    def keys(self) -> tuple[cirq.MeasurementKey, ...]:
         return (self.key,)
 
-    def replace_key(self, current: cirq.MeasurementKey, replacement: cirq.MeasurementKey):
+    def replace_key(
+        self, current: cirq.MeasurementKey, replacement: cirq.MeasurementKey
+    ) -> KeyCondition:
         return KeyCondition(replacement) if self.key == current else self
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.key) if self.index == -1 else f'{self.key}[{self.index}]'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.index != -1:
             return f'cirq.KeyCondition({self.key!r}, {self.index})'
         return f'cirq.KeyCondition({self.key!r})'
@@ -115,14 +119,14 @@ class KeyCondition(Condition):
         return json_serialization.dataclass_json_dict(self)
 
     @classmethod
-    def _from_json_dict_(cls, key, **kwargs):
+    def _from_json_dict_(cls, key: cirq.MeasurementKey, **kwargs: Any) -> KeyCondition:
         return cls(key=key)
 
     @property
-    def qasm(self):
+    def qasm(self) -> str:
         raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
 
-    def _qasm_(self, args: cirq.QasmArgs, **kwargs) -> str | None:
+    def _qasm_(self, args: cirq.QasmArgs, **kwargs: Any) -> str | None:
         if self.index != -1:
             raise ValueError('Only most recent measurement at key can be used for QASM.')
         args.validate_version('2.0', '3.0')
@@ -180,12 +184,12 @@ class BitMaskKeyCondition(Condition):
     bitmask: int | None = None
 
     @property
-    def keys(self):
+    def keys(self) -> tuple[cirq.MeasurementKey, ...]:
         return (self.key,)
 
     @staticmethod
     def create_equal_mask(
-        key: cirq.MeasurementKey, bitmask: int, *, index: int = -1
+        key: cirq.MeasurementKey | str, bitmask: int, *, index: int = -1
     ) -> BitMaskKeyCondition:
         """Creates a condition that evaluates (meas & bitmask) == bitmask."""
         return BitMaskKeyCondition(
@@ -194,17 +198,19 @@ class BitMaskKeyCondition(Condition):
 
     @staticmethod
     def create_not_equal_mask(
-        key: cirq.MeasurementKey, bitmask: int, *, index: int = -1
+        key: cirq.MeasurementKey | str, bitmask: int, *, index: int = -1
     ) -> BitMaskKeyCondition:
         """Creates a condition that evaluates (meas & bitmask) != bitmask."""
         return BitMaskKeyCondition(
             key, index, target_value=bitmask, equal_target=False, bitmask=bitmask
         )
 
-    def replace_key(self, current: cirq.MeasurementKey, replacement: cirq.MeasurementKey):
+    def replace_key(
+        self, current: cirq.MeasurementKey | str, replacement: cirq.MeasurementKey | str
+    ) -> BitMaskKeyCondition:
         return BitMaskKeyCondition(replacement) if self.key == current else self
 
-    def __str__(self):
+    def __str__(self) -> str:
         s = str(self.key) if self.index == -1 else f'{self.key}[{self.index}]'
         if self.bitmask is not None:
             s = f'{s} & {self.bitmask}'
@@ -218,7 +224,7 @@ class BitMaskKeyCondition(Condition):
             s = f'{s} != {self.target_value}'
         return s
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         values = attrs.asdict(self)
         parameters = ', '.join(f'{f.name}={repr(values[f.name])}' for f in attrs.fields(type(self)))
         return f'cirq.BitMaskKeyCondition({parameters})'
@@ -237,13 +243,13 @@ class BitMaskKeyCondition(Condition):
         return json_serialization.attrs_json_dict(self)
 
     @classmethod
-    def _from_json_dict_(cls, key, **kwargs):
+    def _from_json_dict_(cls, key: cirq.MeasurementKey, **kwargs: Any) -> BitMaskKeyCondition:
         parameter_names = [f.name for f in attrs.fields(cls)[1:]]
         parameters = {k: kwargs[k] for k in parameter_names if k in kwargs}
         return cls(key=key, **parameters)
 
     @property
-    def qasm(self):
+    def qasm(self) -> str:
         raise NotImplementedError()
 
 
@@ -264,8 +270,12 @@ class SympyCondition(Condition):
 
     expr: sympy.Basic
 
+    def __post_init__(self) -> None:
+        if not isinstance(self.expr, sympy.Basic):
+            raise TypeError(f'Expected SymPy expression, got {type(self.expr)}.')
+
     @property
-    def keys(self):
+    def keys(self) -> tuple[cirq.MeasurementKey, ...]:
         return tuple(
             measurement_key.MeasurementKey.parse_serialized(symbol.name)
             for symbol in self.expr.free_symbols
@@ -274,13 +284,15 @@ class SympyCondition(Condition):
             # keep the former here.
         )
 
-    def replace_key(self, current: cirq.MeasurementKey, replacement: cirq.MeasurementKey):
+    def replace_key(
+        self, current: cirq.MeasurementKey, replacement: cirq.MeasurementKey
+    ) -> SympyCondition:
         return SympyCondition(self.expr.subs({str(current): sympy.Symbol(str(replacement))}))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.expr)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'cirq.SympyCondition({proper_repr(self.expr)})'
 
     def resolve(self, classical_data: cirq.ClassicalDataStoreReader) -> bool:
@@ -306,11 +318,11 @@ class SympyCondition(Condition):
         return json_serialization.dataclass_json_dict(self)
 
     @classmethod
-    def _from_json_dict_(cls, expr, **kwargs):
+    def _from_json_dict_(cls, expr: sympy.Basic, **kwargs: Any) -> SympyCondition:
         return cls(expr=expr)
 
     @property
-    def qasm(self):
+    def qasm(self) -> str:
         if isinstance(self.expr, sympy.Equality):
             if isinstance(self.expr.lhs, sympy.Symbol) and isinstance(self.expr.rhs, sympy.Integer):
                 # Measurements get prepended with "m_", so the condition needs to be too.

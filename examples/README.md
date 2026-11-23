@@ -1,6 +1,6 @@
 # Cirq Examples
 
-The files in this directory (`cirq/examples/`) are examples of various quantum
+The files in this directory (`examples/`) are examples of various quantum
 programs, algorithms, and demonstrations of using Cirq. This directory is not
 included in the packaged Cirq releases.
 
@@ -23,7 +23,9 @@ Here is a summary of the examples found in this directory:
 *   [`deutsch.py`](deutsch.py): demonstration of Deutsch's algorithm.
 *   [`direct_fidelity_estimation.ipynb`](direct_fidelity_estimation.ipynb):
     an example that walks through the steps of running the direct fidelity
-    estimation (DFE) algorithm
+    estimation (DFE) algorithm.
+*   [`direct_fidelity_estimation.py`](direct_fidelity_estimation.py):
+    implementation of the direct fidelity estimation (DFE) algorithm.
 *   [`grover.py`](grover.py): demonstration of Grover's algorithm.
 *   [`heatmaps.py`](heatmaps.py): demonstration of how `cirq.Heatmap` can
     be used to generate a heatmap of qubit fidelities.
@@ -53,10 +55,31 @@ Here is a summary of the examples found in this directory:
     algorithm.
 *   [`stabilizer_code.ipynb`](stabilizer_code.ipynb): example of quantum
     error correction using a stabilizer code.
+*   [`stabilizer_code.py`](stabilizer_code.py): demonstration of quantum
+    error correction stabilizer codes.
 *   [`superdense_coding.py`](superdense_coding.py): example of superdense coding.
 *   [`swap_networks.py`](swap_networks.py): demonstration of swap networks.
 *   [`two_qubit_gate_compilation.py`](two_qubit_gate_compilation.py):
     example application of the two-qubit gate compilation algorithm.
+
+### Advanced examples
+
+The [`advanced/`](advanced/) subdirectory contains additional examples and
+notebooks:
+
+*   [`advanced/quantum_utility_sim_4a.ipynb`](advanced/quantum_utility_sim_4a.ipynb)
+    and
+    [`advanced/quantum_utility_sim_4b.ipynb`](advanced/quantum_utility_sim_4b.ipynb):
+    notebooks for simulating quantum utility circuits.
+*   [`advanced/quantum_volume.ipynb`](advanced/quantum_volume.ipynb): notebook
+    walking through the Quantum Volume benchmark algorithm.
+*   [`advanced/quantum_volume.py`](advanced/quantum_volume.py): command-line
+    program to run the Quantum Volume benchmark.
+*   [`advanced/quantum_volume_errors.ipynb`](advanced/quantum_volume_errors.ipynb):
+    notebook analyzing error rates required for Quantum Volume.
+*   [`advanced/quantum_volume_routing.ipynb`](advanced/quantum_volume_routing.ipynb):
+    notebook analyzing the effect of multiple routing attempts on Quantum
+    Volume.
 
 ## Tips
 
@@ -67,6 +90,6 @@ near the top of the file. (You can ignore the files whose names end in
 for the example files.)
 
 The [_Experiments_ page on the Cirq documentation
-site](https://quantumai.google/cirq/experiments/qcqmc/high_level) has more
-examples, including examples drawn from the
-[ReCirq](https://github.com/quantumlib/recirq) project.
+site](https://quantumai.google/cirq/experiments) has more examples, including
+examples drawn from the [ReCirq](https://github.com/quantumlib/ReCirq)
+project.

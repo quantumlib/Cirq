@@ -37,9 +37,9 @@ fi
 
 _PYPATH_PREFIX="${_PYPATH_BASE_DIR}$(
     set -o pipefail
-    cd "${_PYPATH_BASE_DIR}" &&
-        env PYTHONPATH=. python dev_tools/modules.py list --mode folder |
-        xargs printf ":${_PYPATH_BASE_DIR}/%s"
+    find "${_PYPATH_BASE_DIR}" -mindepth 2 -maxdepth 2 \
+        -type f -name setup.py -exec dirname "{}" ";" |
+        sort | tr "\n" "\0" | xargs -0 printf ":%s"
 )" || return $?
 
 [[ $PYTHONPATH == ${_PYPATH_PREFIX}* ]] ||

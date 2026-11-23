@@ -25,7 +25,7 @@ jobs:
     name: Pytest Ubuntu
     strategy:
       matrix:
-        python-version: ['3.11']
+        python-version: ['3.12']
     runs-on: ubuntu-22.04-x64-8-core
     steps:
       - name: Check out source repository
@@ -42,7 +42,7 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get update
-          sudo apt-get install $(cat apt-system-requirements.txt)
+          sudo apt-get install --no-install-recommends $(cat apt-system-requirements.txt)
       - name: Install requirements
         run: |
           pip install --upgrade setuptools

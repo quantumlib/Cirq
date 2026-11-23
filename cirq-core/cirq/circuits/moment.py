@@ -57,6 +57,12 @@ class Moment:
     operations have the same duration) and it is expected that all operations
     in a moment should be completed before beginning the next moment.
 
+    The operations in a moment must act on disjoint sets of qubits. Their
+    measurement and control keys are not validated, so a moment may hold, for
+    example, several measurements with the same key. `cirq.Circuit.insert` and
+    `cirq.Circuit.append` never pack such operations together on their own,
+    but an explicitly constructed `Moment` is always added to a circuit intact.
+
     Moment can be indexed by qubit or list of qubits:
 
     *   `moment[qubit]` returns the Operation in the moment which touches the
