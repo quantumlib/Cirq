@@ -1466,12 +1466,7 @@ cx q0,q1;
 def test_to_qasm_returns_none_for_unsupported_operation():
     class NoQasmGate(cirq.testing.SingleQubitGate):
         """A gate with no `_qasm_` method and no decomposition."""
-
-        def _has_unitary_(self) -> bool:
-            return True
-
-        def _unitary_(self) -> np.ndarray:
-            return np.eye(2)
+        pass
 
     q0, q1 = cirq.LineQubit.range(2)
     qubit_id_map = {q0: 'q0', q1: 'q1'}
