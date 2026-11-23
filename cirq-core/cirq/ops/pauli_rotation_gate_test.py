@@ -30,7 +30,7 @@ def _expected_unitary(pauli: cirq.DensePauliString, k: float) -> np.ndarray:
 
 
 def test_gate_accepts_string() -> None:
-    assert cirq.PauliRotationGate('XIZ').dense_pauli_string == cirq.DensePauliString('XIZ')
+    assert cirq.PauliRotationGate('XIZ').unit_dense_pauli_string == cirq.DensePauliString('XIZ')
     assert cirq.PauliRotationGate('XZ', 0.5) == cirq.PauliRotationGate(
         cirq.DensePauliString('XZ'), 0.5
     )
@@ -147,15 +147,15 @@ def test_gate_non_real_angle_raises_on_resolve() -> None:
     (
         (cirq.DensePauliString('XZ'), 0.5, 0.5),
         (cirq.DensePauliString('XZ', coefficient=2), 0.5, 1.0),
-        (cirq.DensePauliString('XZ', coefficient=-2), 0.5, 2 * np.pi - 1.0),
+        (cirq.DensePauliString('XZ', coefficient=-2), 0.5, -1.0),
         (cirq.DensePauliString('XZ', coefficient=1j), -1j, 1.0),
-        (cirq.DensePauliString('XZ', coefficient=-1j), -1j, 2 * np.pi - 1.0),
+        (cirq.DensePauliString('XZ', coefficient=-1j), -1j, -1.0),
     ),
 )
 def test_gate_folds_coefficient_into_exponent(pauli, k, expected_exponent) -> None:
     gate = cirq.PauliRotationGate(pauli, k)
-    assert gate.dense_pauli_string == cirq.DensePauliString(pauli.pauli_mask)
-    assert gate.dense_pauli_string.coefficient == 1
+    assert gate.unit_dense_pauli_string == pauli.copy(coefficient=1)
+    assert gate.unit_dense_pauli_string.coefficient == 1
     assert np.isclose(gate.rads, expected_exponent)
     assert gate == cirq.PauliRotationGate(
         cirq.DensePauliString(pauli.pauli_mask), expected_exponent
@@ -268,10 +268,10 @@ def test_circuit_diagram() -> None:
     cirq.testing.assert_has_diagram(
         circuit,
         """
-0: ───X───────
+0: ───[X]───────
       │
-1: ───I───────
+1: ───[I]───────
       │
-2: ───Z^0.5───
+2: ───[Z]^0.5───
 """,
     )

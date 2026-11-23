@@ -53,6 +53,10 @@ class PauliRotationGate(raw_types.Gate):
         Args:
             dense_pauli_string: The Pauli string $P$ to rotate about.
             rads: The radians $k$ in $e^{i k P}$. Defaults to 1.
+            atol: The absolute tolerance for the imaginary component of the computed rotation
+                (`dense_pauli_string.coefficient * rads`). If the imaginary component is at most
+                `atol`, it is considered invalid. Otherwise, the imaginary component is considered
+                within error tolerance and removed.
 
         Raises:
             ValueError: If the computed rotation (`dense_pauli_string.coefficient * rads`)
@@ -60,24 +64,28 @@ class PauliRotationGate(raw_types.Gate):
         """
         if not isinstance(dense_pauli_string, dps.BaseDensePauliString):
             dense_pauli_string = dps.DensePauliString(dense_pauli_string)
-        self._unit_pauli_string: cirq.DensePauliString = dense_pauli_string.frozen().copy(
+        self._unit_dense_pauli_string: cirq.DensePauliString = dense_pauli_string.frozen().copy(
             coefficient=1.0
         )
 
         self._rads: cirq.TParamVal = rads * dense_pauli_string.coefficient
         if not protocols.is_parameterized(self._rads):
-            # If rads is parameterized, verify that the radians to rotate by is real.
+            # If rads is not parameterized, verify that the radians to rotate by is real.
             if abs(complex(self._rads).imag) > atol:
                 raise ValueError(
                     f'Rotation cannot have imaginary component above atol={atol}. Received'
                     f'{dense_pauli_string.coefficient} * {rads} = {self._rads}.'
                 )
-            self._rads = complex(self._rads).real % (2.0 * np.pi)
+            self._rads = complex(self._rads).real
 
     @property
-    def dense_pauli_string(self) -> cirq.DensePauliString:
-        """The dense Pauli string $P$, as a unit Pauli string."""
-        return self._unit_pauli_string
+    def unit_dense_pauli_string(self) -> cirq.DensePauliString:
+        """The unit dense Pauli string $P_0$ (coefficient 1) that this gate rotates about.
+
+        Any coefficient of the dense Pauli string passed to the constructor is folded into
+        `rads`, so this may differ from the dense Pauli string originally provided.
+        """
+        return self._unit_dense_pauli_string
 
     @property
     def rads(self) -> cirq.TParamVal:
@@ -85,25 +93,29 @@ class PauliRotationGate(raw_types.Gate):
         return self._rads
 
     def _num_qubits_(self) -> int:
-        return len(self._unit_pauli_string)
+        return len(self._unit_dense_pauli_string)
 
     def _value_equality_values_(self) -> Any:
-        return (self._unit_pauli_string, self._rads)
+        # Rotations by k and k + 2*pi are the same gate, so compare rads modulo 2*pi. The modulus
+        # is only applied here (not to the stored rads) so that resolving parameters and taking
+        # powers commute.
+        rads = self._rads
+        if not protocols.is_parameterized(rads):
+            rads = rads % (2.0 * np.pi)
+        return (self._unit_dense_pauli_string, rads)
 
     @_compat.cached_method
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._rads)
 
     def _parameter_names_(self) -> Set[str]:
-        return protocols.parameter_names(self._rads) | protocols.parameter_names(
-            self._unit_pauli_string
-        )
+        return protocols.parameter_names(self._rads)
 
     def _resolve_parameters_(
         self, resolver: cirq.ParamResolver, recursive: bool
     ) -> PauliRotationGate:
         return PauliRotationGate(
-            self._unit_pauli_string, protocols.resolve_parameters(self._rads, resolver, recursive)
+            self._unit_dense_pauli_string, protocols.resolve_parameters(self._rads, resolver, recursive)
         )
 
     @_compat.cached_method
@@ -111,11 +123,11 @@ class PauliRotationGate(raw_types.Gate):
         return not self._is_parameterized_()
 
     def _unitary_(self) -> np.ndarray:
-        r"""Returns the matrix $\cos(k c) I + i \sin(k c) P_0$ of this gate."""
+        r"""Returns the matrix $\cos(k) I + i \sin(k) P_0$ of this gate."""
         if not self._has_unitary_():
             return NotImplemented
         identity = np.eye(2 ** self._num_qubits_(), dtype=np.complex128)
-        pauli_unitary = protocols.unitary(self._unit_pauli_string)
+        pauli_unitary = protocols.unitary(self._unit_dense_pauli_string)
         return np.cos(self._rads) * identity + 1j * np.sin(self._rads) * pauli_unitary
 
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray | None:
@@ -123,10 +135,10 @@ class PauliRotationGate(raw_types.Gate):
             return NotImplemented
         return np.cos(self._rads) * args.target_tensor + 1j * np.sin(
             self._rads
-        ) * protocols.apply_unitary(self._unit_pauli_string, args)
+        ) * protocols.apply_unitary(self._unit_dense_pauli_string, args)
 
     def _decompose_(self, qubits: Sequence[cirq.Qid]) -> list[cirq.Operation] | None:
-        pauli_string = self._unit_pauli_string.on(*qubits)
+        pauli_string = self._unit_dense_pauli_string.on(*qubits)
         if not len(pauli_string):
             # Captures cases where pauli_string is just identities.
             if isinstance(self._rads, sympy.Basic):
@@ -145,20 +157,20 @@ class PauliRotationGate(raw_types.Gate):
                 f"Gate exponent must be a number or sympy expression. "
                 f"Received a string instead: {exponent!r}"
             )
-        return PauliRotationGate(self._unit_pauli_string, self._rads * exponent)
+        return PauliRotationGate(self._unit_dense_pauli_string, self._rads * exponent)
 
     def __repr__(self) -> str:
         return (
-            f"cirq.PauliRotationGate({self._unit_pauli_string!r}, "
+            f"cirq.PauliRotationGate({self._unit_dense_pauli_string!r}, "
             f"{_compat.proper_repr(self._rads)})"
         )
 
     def __str__(self) -> str:
-        return f"exp(j * {self._rads!s} * ({self._unit_pauli_string!s}))"
+        return f"exp(j * {self._rads!s} * ({self._unit_dense_pauli_string!s}))"
 
     def _json_dict_(self) -> dict[str, Any]:
-        return protocols.obj_to_dict_helper(self, ["dense_pauli_string", "rads"])
+        return {'dense_pauli_string': self._unit_dense_pauli_string, 'rads': self._rads}
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        pauli_string_symbols = tuple(str(p) for p in self._unit_pauli_string)
+        pauli_string_symbols = tuple(f'[{p}]' for p in self._unit_dense_pauli_string)
         return protocols.CircuitDiagramInfo(wire_symbols=pauli_string_symbols, exponent=self.rads)
