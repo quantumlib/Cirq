@@ -439,17 +439,21 @@ class CircuitOperation(ops.Operation):
     @cached_property
     def _mapped_repeat_until(self) -> cirq.Condition | None:
         """Applies measurement_key_map, param_resolver, and current scope to repeat_until."""
+
         repeat_until = self.repeat_until
+        print('1.', repeat_until)
         if not repeat_until:
             return repeat_until
         if self.measurement_key_map:
             repeat_until = protocols.with_measurement_key_mapping(
                 repeat_until, self.measurement_key_map
             )
+        print('2.', repeat_until)
         if self.param_resolver:
             repeat_until = protocols.resolve_parameters(
                 repeat_until, self.param_resolver, recursive=False
             )
+        print('3.', repeat_until)
         return protocols.with_rescoped_keys(
             repeat_until,
             self.parent_path,
@@ -913,7 +917,16 @@ class CircuitOperation(ops.Operation):
     def _qasm_(
         self, *, args: cirq.QasmArgs | None = None, qubits: Sequence[cirq.Qid] | None = None
     ) -> str | None:
-        # TODO: Implement transpilation for additional controls.
-        if self.repetitions != 1 or self.repeat_until is not None:
-            return None  # pragma: no cover
-        return ''.join(protocols.qasm(op, args=args, qubits=qubits) for op in self._decompose_())
+        if self.repeat_until is not None:
+            # TODO: implement using `cirq.While` to avoid code repetition.
+            return None
+        if self.repetitions != 1:
+            # TODO: implement using `cirq.For` to avoid code repetition.
+            return None
+        # Check for any undefined operations before attempting to wrap into code.
+        qasm_sequence = [
+            protocols.qasm(op, args=args, qubits=qubits, default=None) for op in self._decompose_()
+        ]
+        if any(seq is None for seq in qasm_sequence):
+            return None
+        return ''.join(qasm_sequence)

@@ -1461,3 +1461,24 @@ def test_to_qasm():
 cx q0,q1;
 """
     assert protocols.qasm(cop, args=cirq.QasmArgs(qubit_id_map=qubit_id_map)) == expected_output
+
+
+def test_to_qasm_returns_none_for_unsupported_operation():
+    class NoQasmGate(cirq.testing.SingleQubitGate):
+        """A gate with no `_qasm_` method and no decomposition."""
+
+        def _has_unitary_(self) -> bool:
+            return True
+
+        def _unitary_(self) -> np.ndarray:
+            return np.eye(2)
+
+    q0, q1 = cirq.LineQubit.range(2)
+    qubit_id_map = {q0: 'q0', q1: 'q1'}
+    args = cirq.QasmArgs(qubit_id_map=qubit_id_map)
+    cop = cirq.CircuitOperation(
+        cirq.FrozenCircuit(cirq.H(q0), NoQasmGate().on(q1), cirq.CNOT(q0, q1))
+    )
+
+    assert cop._qasm_(args=args) is None
+    assert protocols.qasm(cop, args=args, default=None) is None
