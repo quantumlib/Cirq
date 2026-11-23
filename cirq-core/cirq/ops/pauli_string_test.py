@@ -986,6 +986,20 @@ def test_expectation_from_state_vector_invalid_input() -> None:
         ps.expectation_from_state_vector(wf.reshape((4, 4, 1)), q_map_2)
 
 
+@pytest.mark.parametrize('size', [0, 3, 5, 7, 9])
+def test_expectation_from_state_vector_invalid_sizes(size: int) -> None:
+    q = cirq.LineQubit(0)
+    state = np.zeros(size, dtype=np.complex64)
+    with pytest.raises(ValueError, match=rf'Input shape: \({size},\)'):
+        cirq.X(q).expectation_from_state_vector(state, {})
+
+
+def test_expectation_from_density_matrix_invalid_shape_precedes_mapping_validation() -> None:
+    q = cirq.LineQubit(0)
+    with pytest.raises(ValueError, match=r'Input shape: \(3, 3\)'):
+        cirq.X(q).expectation_from_density_matrix(np.zeros((3, 3), dtype=complex), {})
+
+
 def test_expectation_from_state_vector_check_preconditions() -> None:
     q0, q1, q2, q3 = _make_qubits(4)
     ps: cirq.PauliString[cirq.NamedQubit]

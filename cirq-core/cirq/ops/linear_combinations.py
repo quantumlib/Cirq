@@ -701,7 +701,8 @@ class PauliSum:
         if state_vector.shape not in ((2**num_qubits,), (2,) * num_qubits):
             raise ValueError(
                 "Input array does not represent a state vector "
-                "with shape `(2 ** n,)` or `(2, ..., 2)`."
+                "with shape `(2 ** n,)` or `(2, ..., 2)`. "
+                f"Input shape: {state_vector.shape}."
             )
 
         _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
@@ -759,14 +760,16 @@ class PauliSum:
 
         size = state.size
         num_qubits = int(np.sqrt(size)).bit_length() - 1
-        _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
-
         dim = int(np.sqrt(size))
-        if state.shape != (dim, dim) and state.shape != (2, 2) * num_qubits:
+        if dim != 1 << num_qubits or (
+            state.shape != (dim, dim) and state.shape != (2, 2) * num_qubits
+        ):
             raise ValueError(
                 "Input array does not represent a density matrix "
-                "with shape `(2 ** n, 2 ** n)` or `(2, ..., 2)`."
+                "with shape `(2 ** n, 2 ** n)` or `(2, ..., 2)`. "
+                f"Input shape: {state.shape}."
             )
+        _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
 
         if check_preconditions:
             # Do not enforce reshaping if the state all axes are dimension 2.
