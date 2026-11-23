@@ -65,11 +65,8 @@ class AbstractProcessor(abc.ABC):
         program_labels: dict[str, str] | None = None,
         job_description: str | None = None,
         job_labels: dict[str, str] | None = None,
-    ) -> abstract_job.AbstractJob:
+    ) -> cirq.Result:
         """Runs the supplied Circuit on this processor.
-
-        This is a non-blocking method that runs the supplied circuit and
-        returns the quantum engine job immediately.
 
         Args:
             program: The Circuit to execute. If a circuit is
@@ -102,9 +99,9 @@ class AbstractProcessor(abc.ABC):
             job_labels: Optional set of labels to set on the job.
 
         Returns:
-            An AbstractJob.
+            A single Result for this run.
         """
-        return await self.run_sweep_async(
+        job = await self.run_sweep_async(
             program=program,
             program_id=program_id,
             job_id=job_id,
@@ -118,6 +115,7 @@ class AbstractProcessor(abc.ABC):
             snapshot_id=snapshot_id,
             device_config_name=device_config_name,
         )
+        return job.results()[0]
 
     run = duet.sync(run_async)
 

@@ -258,8 +258,7 @@ def test_run_circuit_with_unary_rpcs(client, compress_run_context):
             compress_run_context=compress_run_context,
         ),
     )
-    job = engine.run(program=_CIRCUIT, program_id='prog', job_id='job-id', processor_id='mysim')
-    result = job.results()[0]
+    result = engine.run(program=_CIRCUIT, program_id='prog', job_id='job-id', processor_id='mysim')
     if compress_run_context:
         expected_sweep = util.pack_any(
             v2.run_context_to_proto(cirq.UnitSweep, 1, compress_proto=True)
@@ -321,8 +320,7 @@ def test_run_circuit_with_stream_rpcs_passes(client):
         project_id='proj',
         context=EngineContext(service_args={'client_info': 1}, enable_streaming=True),
     )
-    job = engine.run(program=_CIRCUIT, program_id='prog', job_id='job-id', processor_id='mysim')
-    result = job.results()[0]
+    result = engine.run(program=_CIRCUIT, program_id='prog', job_id='job-id', processor_id='mysim')
 
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
@@ -357,7 +355,7 @@ def test_run_circuit_snapshot_id_with_stream_rpcs(client):
         project_id='proj',
         context=EngineContext(service_args={'client_info': 1}, enable_streaming=True),
     )
-    job = engine.run(
+    result = engine.run(
         program=_CIRCUIT,
         program_id='prog',
         job_id='job-id',
@@ -365,7 +363,6 @@ def test_run_circuit_snapshot_id_with_stream_rpcs(client):
         snapshot_id="123",
         device_config_name="config",
     )
-    result = job.results()[0]
 
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
@@ -430,7 +427,7 @@ def test_run_circuit_failed_with_unary_rpcs(client):
         match='Job projects/proj/programs/prog/jobs/job-id on processor'
         ' myqc failed. SYSTEM_ERROR: Not good',
     ):
-        engine.run(program=_CIRCUIT, processor_id='processor0').results()
+        engine.run(program=_CIRCUIT, processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -453,7 +450,7 @@ def test_run_circuit_failed_with_stream_rpcs(client):
         match='Job projects/proj/programs/prog/jobs/job-id on processor'
         ' myqc failed. SYSTEM_ERROR: Not good',
     ):
-        engine.run(program=_CIRCUIT, processor_id='processor0').results()
+        engine.run(program=_CIRCUIT, processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -482,7 +479,7 @@ def test_run_circuit_failed_missing_processor_name_with_unary_rpcs(client):
         match='Job projects/proj/programs/prog/jobs/job-id on processor'
         ' UNKNOWN failed. SYSTEM_ERROR: Not good',
     ):
-        engine.run(program=_CIRCUIT, processor_id='processor0').results()
+        engine.run(program=_CIRCUIT, processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -504,7 +501,7 @@ def test_run_circuit_failed_missing_processor_name_with_stream_rpcs(client):
         match='Job projects/proj/programs/prog/jobs/job-id on processor'
         ' UNKNOWN failed. SYSTEM_ERROR: Not good',
     ):
-        engine.run(program=_CIRCUIT, processor_id='processor0').results()
+        engine.run(program=_CIRCUIT, processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -527,7 +524,7 @@ def test_run_circuit_cancelled_with_unary_rpcs(client):
     with pytest.raises(
         RuntimeError, match='Job projects/proj/programs/prog/jobs/job-id failed in state CANCELLED.'
     ):
-        engine.run(program=_CIRCUIT, processor_id='processor0').results()
+        engine.run(program=_CIRCUIT, processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -543,7 +540,7 @@ def test_run_circuit_cancelled_with_stream_rpcs(client):
     with pytest.raises(
         RuntimeError, match='Job projects/proj/programs/prog/jobs/job-id failed in state CANCELLED.'
     ):
-        engine.run(program=_CIRCUIT, processor_id='processor0').results()
+        engine.run(program=_CIRCUIT, processor_id='processor0')
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)

@@ -262,11 +262,8 @@ class Engine(abstract_engine.AbstractEngine):
         run_name: str = "",
         snapshot_id: str = "",
         device_config_name: str = "",
-    ) -> engine_job.EngineJob:
+    ) -> cirq.Result:
         """Runs the supplied Circuit via Quantum Engine.
-
-        This is a non-blocking method that runs the supplied circuit and
-        returns the quantum engine job immediately.
 
         Args:
             program: The Circuit to execute. If a circuit is
@@ -300,7 +297,7 @@ class Engine(abstract_engine.AbstractEngine):
                 If specified, `processor_id` is required to be set.
 
         Returns:
-            An EngineJob.
+            A single Result for this run.
 
         Raises:
             ValueError: If no gate set is provided.
@@ -308,21 +305,24 @@ class Engine(abstract_engine.AbstractEngine):
             ValueError: If either `run_name` and `device_config_name` are set but
                 `processor_id` is empty.
         """
-        return self.run_sweep(
-            program=program,
-            program_id=program_id,
-            job_id=job_id,
-            params=[param_resolver],
-            repetitions=repetitions,
-            processor_id=processor_id,
-            program_description=program_description,
-            program_labels=program_labels,
-            job_description=job_description,
-            job_labels=job_labels,
-            run_name=run_name,
-            snapshot_id=snapshot_id,
-            device_config_name=device_config_name,
+        results = list(
+            self.run_sweep(
+                program=program,
+                program_id=program_id,
+                job_id=job_id,
+                params=[param_resolver],
+                repetitions=repetitions,
+                processor_id=processor_id,
+                program_description=program_description,
+                program_labels=program_labels,
+                job_description=job_description,
+                job_labels=job_labels,
+                run_name=run_name,
+                snapshot_id=snapshot_id,
+                device_config_name=device_config_name,
+            )
         )
+        return results[0]
 
     async def run_sweep_async(
         self,
