@@ -115,7 +115,8 @@ class PauliRotationGate(raw_types.Gate):
         self, resolver: cirq.ParamResolver, recursive: bool
     ) -> PauliRotationGate:
         return PauliRotationGate(
-            self._unit_dense_pauli_string, protocols.resolve_parameters(self._rads, resolver, recursive)
+            self._unit_dense_pauli_string,
+            protocols.resolve_parameters(self._rads, resolver, recursive),
         )
 
     @_compat.cached_method
