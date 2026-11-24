@@ -100,7 +100,7 @@ def t1_decay(
     print()
     print(':DB initial tab.columns:', tab.columns)
 
-    tab.rename_axis(None, axis="columns", inplace=True)
+    tab = tab.rename_axis(None, axis="columns")
     tab = tab.rename(columns={0: 'false_count', 1: 'true_count'}).reset_index()
     for col_index, name in [(1, 'false_count'), (2, 'true_count')]:
         if name not in tab:
