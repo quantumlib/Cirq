@@ -177,13 +177,15 @@ The `main` branch should never see a non-dev version specifier.
 
 ### Create the distribution wheel
 
-From a release branch, create a binary distribution wheel. This is the package
-that will go to PyPI.
+From a release branch, create a binary distribution wheel (requires
+`pip >= 25.3`, ideally in a clean virtual environment). `produce-package.sh`
+verifies the build backend against
+`dev_tools/requirements/deps/release-build.txt`.
 
 ```bash
 git checkout "v${VER}-dev"
 ./dev_tools/packaging/produce-package.sh dist
-ls dist  # should only contain one file, for each modules
+ls dist  # should only contain one file, for each module
 ```
 
 ### Push to Test PyPI
