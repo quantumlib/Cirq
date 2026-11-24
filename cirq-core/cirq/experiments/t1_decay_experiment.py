@@ -96,17 +96,12 @@ def t1_decay(
     tab = pd.crosstab(
         results.delay_ns.reset_index(drop=True), results.output.reset_index(drop=True)
     )
-
-    print()
-    print(':DB initial tab.columns:', tab.columns)
-
     tab = tab.rename_axis(None, axis="columns")
     tab = tab.rename(columns={0: 'false_count', 1: 'true_count'}).reset_index()
     for col_index, name in [(1, 'false_count'), (2, 'true_count')]:
         if name not in tab:
             tab.insert(col_index, name, [0] * tab.shape[0])
 
-    print(':DB final tab.columns:', tab.columns)
     return T1DecayResult(tab)
 
 

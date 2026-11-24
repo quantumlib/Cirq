@@ -190,9 +190,6 @@ def process_results(
             )
             bad_measurements.update(*mismatches)
 
-    print()
-    print(':DB initial data.columns:', data.columns)
-
     # Remove the parity qubits from the measurements.
     for parity_qubit in parity_mapping.values():
         data = data.drop(str(inverse_mapping[parity_qubit]), axis=1)
@@ -200,7 +197,6 @@ def process_results(
     print(f"Dropping {len(bad_measurements)} measurements")
     data = data.drop(bad_measurements)
 
-    print(':DB final data.columns:', data.columns)
     return data
 
 
