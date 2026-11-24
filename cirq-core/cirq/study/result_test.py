@@ -116,13 +116,9 @@ def test_repeated_measurements_ambiguous_key(keys: tuple[str, str]) -> None:
         'a[0]': np.array([[[0, 0]], [[1, 1]]]),
     }
     r = cirq.ResultDict(params=None, records={k: all_records[k] for k in keys})
-    with pytest.raises(
-        ValueError, match=r"collision for measurement key\(s\) \['a\[0\]'\]"
-    ):
+    with pytest.raises(ValueError, match=r"collision for measurement key\(s\) \['a\[0\]'\]"):
         _ = r.measurements
-    with pytest.raises(
-        ValueError, match=r"collision for measurement key\(s\) \['a\[0\]'\]"
-    ):
+    with pytest.raises(ValueError, match=r"collision for measurement key\(s\) \['a\[0\]'\]"):
         _ = r.data
     assert r.records.keys() == set(keys)
 
