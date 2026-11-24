@@ -80,7 +80,7 @@ def _read_json(json_filename: str) -> Any:
 
 
 def test_exclude_json_files_has_valid_entries() -> None:
-    """Verify _EXCLUDE_JSON_FILES has valid entries."""
+    """Verify `_EXCLUDE_JSON_FILES` has valid entries."""
     json_file_validates = lambda f: any(
         m.test_data_path.joinpath(os.path.basename(f)).is_file() for m in MODULE_TEST_SPECS
     )

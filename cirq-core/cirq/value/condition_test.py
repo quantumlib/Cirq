@@ -28,36 +28,38 @@ init_key_condition = cirq.KeyCondition(key_a)
 init_sympy_condition = cirq.SympyCondition(sympy.Symbol('0:a') >= 1)
 
 
-def test_key_condition_with_keys():
+def test_key_condition_with_keys() -> None:
     c = init_key_condition.replace_key(key_a, key_b)
     assert c.key is key_b
     c = init_key_condition.replace_key(key_b, key_c)
     assert c.key is key_a
 
 
-def test_key_condition_str():
+def test_key_condition_str() -> None:
     assert str(init_key_condition) == '0:a'
     assert str(cirq.KeyCondition(key_a, index=-2)) == '0:a[-2]'
 
 
-def test_key_condition_repr():
+def test_key_condition_repr() -> None:
     cirq.testing.assert_equivalent_repr(init_key_condition)
     cirq.testing.assert_equivalent_repr(cirq.KeyCondition(key_a, index=-2))
 
 
-def test_key_condition_resolve():
-    def resolve(records):
+def test_key_condition_resolve() -> None:
+    def resolve(records: dict[cirq.MeasurementKey, list[tuple[int, ...]]]) -> bool:
         classical_data = cirq.ClassicalDataDictionaryStore(_records=records)
         return init_key_condition.resolve(classical_data)
 
-    assert resolve({'0:a': [[1]]})
-    assert resolve({'0:a': [[2]]})
-    assert resolve({'0:a': [[0, 1]]})
-    assert resolve({'0:a': [[1, 0]]})
-    assert not resolve({'0:a': [[0]]})
-    assert not resolve({'0:a': [[0, 0]]})
-    assert not resolve({'0:a': [[]]})
-    assert not resolve({'0:a': [[0]], 'b': [[1]]})
+    mkey_0a = cirq.MeasurementKey.parse_serialized('0:a')
+    mkey_0b = cirq.MeasurementKey.parse_serialized('0:b')
+    assert resolve({mkey_0a: [(1,)]})
+    assert resolve({mkey_0a: [(2,)]})
+    assert resolve({mkey_0a: [(0, 1)]})
+    assert resolve({mkey_0a: [(1, 0)]})
+    assert not resolve({mkey_0a: [(0,)]})
+    assert not resolve({mkey_0a: [(0, 0)]})
+    assert not resolve({mkey_0a: [()]})
+    assert not resolve({mkey_0a: [(0,)], mkey_0b: [(1,)]})
     with pytest.raises(
         ValueError, match='Measurement key 0:a missing when testing classical control'
     ):
@@ -65,22 +67,22 @@ def test_key_condition_resolve():
     with pytest.raises(
         ValueError, match='Measurement key 0:a missing when testing classical control'
     ):
-        _ = resolve({'0:b': [[1]]})
+        _ = resolve({mkey_0b: [(1,)]})
 
 
-def test_key_condition_qasm():
+def test_key_condition_qasm() -> None:
     with pytest.raises(ValueError, match='QASM is defined only for SympyConditions'):
         _ = cirq.KeyCondition(cirq.MeasurementKey('a')).qasm
 
 
-def test_key_condition_qasm_protocol():
+def test_key_condition_qasm_protocol() -> None:
     cond = cirq.KeyCondition(cirq.MeasurementKey('a'))
     args = cirq.QasmArgs(meas_key_id_map={'a': 'm_a'}, meas_key_bitcount={'m_a': 1})
     qasm = cirq.qasm(cond, args=args)
     assert qasm == 'm_a==1'
 
 
-def test_key_condition_qasm_protocol_v3():
+def test_key_condition_qasm_protocol_v3() -> None:
     cond = cirq.KeyCondition(cirq.MeasurementKey('a'))
     args = cirq.QasmArgs(meas_key_id_map={'a': 'm_a'}, version='3.0')
     qasm = cirq.qasm(cond, args=args)
@@ -88,7 +90,7 @@ def test_key_condition_qasm_protocol_v3():
 
 
 @pytest.mark.parametrize('version', ['2.0', '3.0'])
-def test_key_condition_qasm_protocol_rejects_non_default_index(version):
+def test_key_condition_qasm_protocol_rejects_non_default_index(version: str) -> None:
     cond = cirq.KeyCondition(cirq.MeasurementKey('a'), index=0)
     args = cirq.QasmArgs(
         meas_key_id_map={'a': 'm_a'}, meas_key_bitcount={'m_a': 1}, version=version
@@ -99,7 +101,7 @@ def test_key_condition_qasm_protocol_rejects_non_default_index(version):
         _ = cirq.qasm(cond, args=args)
 
 
-def test_key_condition_qasm_protocol_invalid_args():
+def test_key_condition_qasm_protocol_invalid_args() -> None:
     cond = cirq.KeyCondition(cirq.MeasurementKey('a'))
     args = cirq.QasmArgs()
     with pytest.raises(ValueError, match='Key "a" not in QasmArgs.meas_key_id_map.'):
@@ -114,34 +116,43 @@ def test_key_condition_qasm_protocol_invalid_args():
         _ = cirq.qasm(cond, args=args)
 
 
-def test_sympy_condition_with_keys():
+def test_sympy_condition_validation() -> None:
+    with pytest.raises(TypeError, match="Expected SymPy expression, got.*class 'str'"):
+        _ = cirq.SympyCondition("0:a >= 1")
+    with pytest.raises(TypeError, match="Expected SymPy expression, got.*class 'list'"):
+        _ = cirq.SympyCondition([sympy.Symbol('0:a') >= 1])
+
+
+def test_sympy_condition_with_keys() -> None:
     c = init_sympy_condition.replace_key(key_a, key_b)
     assert c.keys == (key_b,)
     c = init_sympy_condition.replace_key(key_b, key_c)
     assert c.keys == (key_a,)
 
 
-def test_sympy_condition_str():
+def test_sympy_condition_str() -> None:
     assert str(init_sympy_condition) == '0:a >= 1'
 
 
-def test_sympy_condition_repr():
+def test_sympy_condition_repr() -> None:
     cirq.testing.assert_equivalent_repr(init_sympy_condition)
 
 
-def test_sympy_condition_resolve():
-    def resolve(records):
+def test_sympy_condition_resolve() -> None:
+    def resolve(records: dict[cirq.MeasurementKey, list[tuple[int, ...]]]) -> bool:
         classical_data = cirq.ClassicalDataDictionaryStore(_records=records)
         return init_sympy_condition.resolve(classical_data)
 
-    assert resolve({'0:a': [[1]]})
-    assert resolve({'0:a': [[2]]})
-    assert resolve({'0:a': [[0, 1]]})
-    assert resolve({'0:a': [[1, 0]]})
-    assert not resolve({'0:a': [[0]]})
-    assert not resolve({'0:a': [[0, 0]]})
-    assert not resolve({'0:a': [[]]})
-    assert not resolve({'0:a': [[0]], 'b': [[1]]})
+    mkey_0a = cirq.MeasurementKey.parse_serialized('0:a')
+    mkey_0b = cirq.MeasurementKey.parse_serialized('0:b')
+    assert resolve({mkey_0a: [(1,)]})
+    assert resolve({mkey_0a: [(2,)]})
+    assert resolve({mkey_0a: [(0, 1)]})
+    assert resolve({mkey_0a: [(1, 0)]})
+    assert not resolve({mkey_0a: [(0,)]})
+    assert not resolve({mkey_0a: [(0, 0)]})
+    assert not resolve({mkey_0a: [()]})
+    assert not resolve({mkey_0a: [(0,)], mkey_0b: [(1,)]})
     with pytest.raises(
         ValueError,
         match=re.escape("Measurement keys ['0:a'] missing when testing classical control"),
@@ -151,62 +162,64 @@ def test_sympy_condition_resolve():
         ValueError,
         match=re.escape("Measurement keys ['0:a'] missing when testing classical control"),
     ):
-        _ = resolve({'0:b': [[1]]})
+        _ = resolve({mkey_0b: [(1,)]})
 
 
-def test_sympy_indexed_condition():
+def test_sympy_indexed_condition() -> None:
     a = sympy.IndexedBase('a')
     cond = cirq.SympyCondition(sympy.Xor(a[0], a[1]))
-    assert cond.keys == (cirq.MeasurementKey('a'),)
+    mkey_a = cirq.MeasurementKey('a')
+    assert cond.keys == (mkey_a,)
     assert str(cond) == 'a[0] ^ a[1]'
 
-    def resolve(records):
+    def resolve(records: dict[cirq.MeasurementKey, list[tuple[int, ...]]]) -> bool:
         classical_data = cirq.ClassicalDataDictionaryStore(_records=records)
         return cond.resolve(classical_data)
 
-    assert not resolve({'a': [(0, 0)]})
-    assert resolve({'a': [(1, 0)]})
-    assert resolve({'a': [(0, 1)]})
-    assert not resolve({'a': [(1, 1)]})
-    assert resolve({'a': [(0, 1, 0)]})
-    assert resolve({'a': [(0, 1, 1)]})
-    assert not resolve({'a': [(1, 1, 0)]})
-    assert not resolve({'a': [(1, 1, 1)]})
+    assert not resolve({mkey_a: [(0, 0)]})
+    assert resolve({mkey_a: [(1, 0)]})
+    assert resolve({mkey_a: [(0, 1)]})
+    assert not resolve({mkey_a: [(1, 1)]})
+    assert resolve({mkey_a: [(0, 1, 0)]})
+    assert resolve({mkey_a: [(0, 1, 1)]})
+    assert not resolve({mkey_a: [(1, 1, 0)]})
+    assert not resolve({mkey_a: [(1, 1, 1)]})
     with pytest.raises(IndexError):
-        assert resolve({'a': [()]})
+        assert resolve({mkey_a: [()]})
     with pytest.raises(IndexError):
-        assert resolve({'a': [(0,)]})
+        assert resolve({mkey_a: [(0,)]})
     with pytest.raises(IndexError):
-        assert resolve({'a': [(1,)]})
+        assert resolve({mkey_a: [(1,)]})
 
 
-def test_sympy_indexed_condition_qudits():
+def test_sympy_indexed_condition_qudits() -> None:
     a = sympy.IndexedBase('a')
     cond = cirq.SympyCondition(sympy.And(a[1] >= 2, a[2] <= 3))
-    assert cond.keys == (cirq.MeasurementKey('a'),)
+    mkey_a = cirq.MeasurementKey('a')
+    assert cond.keys == (mkey_a,)
     assert str(cond) == '(a[1] >= 2) & (a[2] <= 3)'
 
-    def resolve(records):
+    def resolve(records: dict[cirq.MeasurementKey, list[tuple[int, ...]]]) -> bool:
         classical_data = cirq.ClassicalDataDictionaryStore(_records=records)
         return cond.resolve(classical_data)
 
-    assert not resolve({'a': [(0, 0, 0)]})
-    assert not resolve({'a': [(0, 1, 0)]})
-    assert resolve({'a': [(0, 2, 0)]})
-    assert resolve({'a': [(0, 3, 0)]})
-    assert not resolve({'a': [(0, 0, 4)]})
-    assert not resolve({'a': [(0, 1, 4)]})
-    assert not resolve({'a': [(0, 2, 4)]})
-    assert not resolve({'a': [(0, 3, 4)]})
+    assert not resolve({mkey_a: [(0, 0, 0)]})
+    assert not resolve({mkey_a: [(0, 1, 0)]})
+    assert resolve({mkey_a: [(0, 2, 0)]})
+    assert resolve({mkey_a: [(0, 3, 0)]})
+    assert not resolve({mkey_a: [(0, 0, 4)]})
+    assert not resolve({mkey_a: [(0, 1, 4)]})
+    assert not resolve({mkey_a: [(0, 2, 4)]})
+    assert not resolve({mkey_a: [(0, 3, 4)]})
 
 
-def test_sympy_condition_qasm():
+def test_sympy_condition_qasm() -> None:
     # Measurements get prepended with "m_", so the condition needs to be too.
     assert cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), 2)).qasm == 'm_a==2'
     with pytest.raises(
         ValueError, match='QASM is defined only for SympyConditions of type key == constant'
     ):
-        _ = cirq.SympyCondition(sympy.Symbol('a') != 2).qasm
+        _ = cirq.SympyCondition(sympy.Unequality(sympy.Symbol('a'), 2)).qasm
 
 
 @pytest.mark.parametrize(
@@ -298,7 +311,7 @@ def test_sympy_condition_qasm():
         ),
     ],
 )
-def test_bitmask_condition_str(cond: cirq.BitMaskKeyCondition, cond_str: str):
+def test_bitmask_condition_str(cond: cirq.BitMaskKeyCondition, cond_str: str) -> None:
     assert str(cond) == cond_str
 
 
@@ -309,7 +322,7 @@ def test_bitmask_condition_str(cond: cirq.BitMaskKeyCondition, cond_str: str):
         (cirq.BitMaskKeyCondition('d', bitmask=13, target_value=12, equal_target=True), True),
     ],
 )
-def test_bitmask_condition_resolve(cond: cirq.BitMaskKeyCondition, value: bool):
+def test_bitmask_condition_resolve(cond: cirq.BitMaskKeyCondition, value: bool) -> None:
     resolver = cirq.ClassicalDataDictionaryStore(
         _records={
             cirq.MeasurementKey('c'): [(1, 0, 0, 1)],
@@ -319,7 +332,7 @@ def test_bitmask_condition_resolve(cond: cirq.BitMaskKeyCondition, value: bool):
     assert cond.resolve(resolver) == value
 
 
-def test_bitmask_condition_resolve_invalid_input_raises():
+def test_bitmask_condition_resolve_invalid_input_raises() -> None:
     cond = cirq.BitMaskKeyCondition('a')
     resolver = cirq.ClassicalDataDictionaryStore(
         _records={
@@ -362,27 +375,27 @@ def test_bitmask_condition_resolve_invalid_input_raises():
         cirq.BitMaskKeyCondition(bitmask=9, equal_target=False, index=-1, key='e', target_value=9),
     ],
 )
-def test_bitmask_condition_repr(cond):
+def test_bitmask_condition_repr(cond: cirq.BitMaskKeyCondition) -> None:
     cirq.testing.assert_equivalent_repr(cond)
 
 
-def test_bitmask_condition_keys():
+def test_bitmask_condition_keys() -> None:
     assert cirq.BitMaskKeyCondition('test').keys == ('test',)
 
 
-def test_bitmask_create_equal_mask():
+def test_bitmask_create_equal_mask() -> None:
     assert cirq.BitMaskKeyCondition.create_equal_mask('a', 9) == cirq.BitMaskKeyCondition(
         'a', equal_target=True, bitmask=9, target_value=9
     )
 
 
-def test_bitmask_create_not_equal_mask():
+def test_bitmask_create_not_equal_mask() -> None:
     assert cirq.BitMaskKeyCondition.create_not_equal_mask('b', 14) == cirq.BitMaskKeyCondition(
         'b', equal_target=False, bitmask=14, target_value=14
     )
 
 
-def test_bitmask_replace_key():
+def test_bitmask_replace_key() -> None:
     cond = cirq.BitMaskKeyCondition('a')
     assert cond.replace_key('a', 'b') == cirq.BitMaskKeyCondition('b')
     assert cond.replace_key('c', 'd') is cond
