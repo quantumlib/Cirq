@@ -150,7 +150,8 @@ def test_engine_result():
 
     circ = cirq.Circuit(cirq.measure(cirq.GridQubit(5, 4)))
 
-    res1 = proc.run(circ, run_name="run", device_config_name="config_alias")
+    job = proc.run_sweep(circ, run_name="run", device_config_name="config_alias")
+    res1 = job.results()[0]
     assert isinstance(res1, cg.EngineResult)
     res2 = samp.run(circ)
     assert isinstance(res2, cg.EngineResult)
