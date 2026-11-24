@@ -329,14 +329,13 @@ def _looks_like_expression(expr: str) -> bool:
 
 def _make_safe_dict(unsafe_dict: ParamDictType) -> ParamDictType:
     safe = {}
+    expr_chars = frozenset("+-*/()")
     for key, val in unsafe_dict.items():
-        if isinstance(key, str):
-            if _looks_like_expression(key):
-                warnings.warn(f'Casting param_dict key "{key}" to Symbol')
+        if isinstance(key, str) and not expr_chars.isdisjoint(key):
+            warnings.warn(f'Casting param_dict key {key!r} to Symbol')
             key = sympy.Symbol(key)
-        if isinstance(val, str):
-            if _looks_like_expression(val):
-                warnings.warn(f'Casting param_dict value "{val}" to Symbol')
+        if isinstance(val, str) and not expr_chars.isdisjoint(val):
+            warnings.warn(f'Casting param_dict value {val!r} to Symbol')
             val = sympy.Symbol(val)
         safe[key] = val
     return safe
