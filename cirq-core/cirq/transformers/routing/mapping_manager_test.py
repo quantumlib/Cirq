@@ -159,6 +159,7 @@ def test_shortest_path():
     one_to_four = [q_int[1], q_int[3], q_int[2], q_int[4]]
     assert all(mm.shortest_path(q_int[1], q_int[2]) == one_to_four[:3])
     assert all(mm.shortest_path(q_int[1], q_int[4]) == one_to_four)
+    assert isinstance(mm.shortest_path(q_int[1], q_int[4]), np.ndarray)
     # shortest path on symmetric qubit reverses the list
     assert all(mm.shortest_path(q_int[4], q_int[1]) == one_to_four[::-1])
 
@@ -166,6 +167,7 @@ def test_shortest_path():
     for qi in q_int:
         np.testing.assert_array_equal(mm.shortest_path(qi, qi), [qi])
         np.testing.assert_array_equal(mm.shortest_path(qi, qi, undirected=True), [qi])
+    assert isinstance(mm.shortest_path(q_int[1], q_int[1]), np.ndarray)
     # unreachable path on disconnected component raises ValueError
     with pytest.raises(ValueError, match=f"No path exists between {q_int[0]} and {q_int[1]}"):
         mm.shortest_path(q_int[0], q_int[1])

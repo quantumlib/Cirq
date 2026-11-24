@@ -218,7 +218,7 @@ class MappingManager:
                 between connected qubits.
 
         Returns:
-            A sequence of logical qubit integers on the shortest path from `lq1` to `lq2`.
+            A 1D NumPy array of logical qubit integers on the shortest path from `lq1` to `lq2`.
 
         Raises:
             ValueError: If no path exists between `lq1` and `lq2`.
