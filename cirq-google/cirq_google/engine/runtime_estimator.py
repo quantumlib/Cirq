@@ -120,7 +120,7 @@ def estimate_run_time(
     """Compute the estimated time for running a single circuit.
 
     This should approximate, in seconds, the time for the execution of a batch of circuits
-    using Engine.run() on QCS at a time where there is no queue (such as a reserved slot).
+    using Engine.run_sweep() on QCS at a time where there is no queue (such as a reserved slot).
     This estimation should be considered a rough approximation.  Many factors can contribute to
     the execution time of a circuit, and the run time can also vary as the service's code changes
     frequently.

@@ -27,6 +27,7 @@ from typing import TYPE_CHECKING
 import duet
 
 import cirq
+from cirq import _compat
 
 if TYPE_CHECKING:
     import cirq_google as cg
@@ -40,9 +41,9 @@ class AbstractProcessor(abc.ABC):
     """An abstract interface for a quantum processor.
 
     This quantum processor has the ability to execute single circuits
-    (via the run method), parameter sweeps (via run_sweep), batched
-    lists of circuits (via run_batch).  Running circuits can also be
-    done using the `cirq.Sampler` by calling get_sampler.
+    and parameter sweeps (via run_sweep), batched lists of circuits
+    (via run_batch).  Running circuits can also be done using the
+    `cirq.Sampler` by calling get_sampler.
 
     The processor interface also includes methods to create, list,
     and remove reservations on the processor for dedicated access.
@@ -50,6 +51,11 @@ class AbstractProcessor(abc.ABC):
     This is an abstract class.  Inheritors should implement abstract methods.
     """
 
+    @_compat.deprecated(
+        deadline='v1.9',
+        fix='Use run_sweep() to get a non-blocking job, or use get_sampler().run() '
+        'to block and get a Result.',
+    )
     async def run_async(
         self,
         program: cirq.Circuit,
@@ -117,7 +123,7 @@ class AbstractProcessor(abc.ABC):
         )
         return job.results()[0]
 
-    run = duet.sync(run_async)
+    run = duet.sync(run_async)  # type: ignore[misc]
 
     @abc.abstractmethod
     async def run_sweep_async(
