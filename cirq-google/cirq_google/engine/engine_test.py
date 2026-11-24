@@ -295,10 +295,10 @@ def test_run_circuit_with_unary_rpcs(client, compress_run_context):
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
-def test_run_deprecated(client):
+def test_run_deprecated(client: cirq_google.engine.engine_client.EngineClient) -> None:
     setup_run_circuit_with_result_(client, _A_RESULT)
     engine = cg.Engine(project_id='proj', context=EngineContext(enable_streaming=False))
-    with cirq.testing.assert_deprecated('Engine.run_sweep', deadline='v1.9'):
+    with cirq.testing.assert_deprecated('Engine.run was used', deadline='v1.9'):
         _ = engine.run(program=_CIRCUIT, program_id='prog', job_id='job-id', processor_id='mysim')
 
 

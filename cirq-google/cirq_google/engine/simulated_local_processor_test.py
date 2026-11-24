@@ -131,7 +131,7 @@ def test_run():
     proc = SimulatedLocalProcessor(processor_id='test_proc')
     q = cirq.GridQubit(5, 4)
     circuit = cirq.Circuit(cirq.X(q), cirq.measure(q, key='m'))
-    with cirq.testing.assert_deprecated('run_sweep', deadline='v1.9'):
+    with cirq.testing.assert_deprecated('AbstractProcessor.run_async was used', deadline='v1.9'):
         result = proc.run(
             circuit, repetitions=100, run_name="run", device_config_name="config_alias"
         )

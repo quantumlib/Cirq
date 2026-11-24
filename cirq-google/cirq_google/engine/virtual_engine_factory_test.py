@@ -47,17 +47,17 @@ def _test_processor(processor: cg.engine.abstract_processor.AbstractProcessor) -
     job = processor.run_sweep(circuit, repetitions=100, run_name="run", device_config_name="config")
     results = job.results()[0]
     assert np.all(results.measurements[str(good_qubit)] == 1)
-    job = processor.run_sweep(
-        circuit, repetitions=100_000_000, run_name="run", device_config_name="config"
-    )
     with pytest.raises(RuntimeError, match='requested total repetitions'):
-        _ = job.results()
+        _ = processor.run_sweep(
+            circuit, repetitions=100_000_000, run_name="run", device_config_name="config"
+        ).results()
 
     bad_qubit = cirq.GridQubit(1000, 1000)
     circuit = cirq.Circuit(cirq.X(bad_qubit), cirq.measure(bad_qubit))
-    job = processor.run_sweep(circuit, repetitions=100, run_name="run", device_config_name="config")
     with pytest.raises(ValueError, match='Qubit not on device'):
-        _ = job.results()
+        _ = processor.run_sweep(
+            circuit, repetitions=100, run_name="run", device_config_name="config"
+        ).results()
     circuit = cirq.Circuit(
         cirq.testing.DoesNotSupportSerializationGate()(good_qubit), cirq.measure(good_qubit)
     )
@@ -273,16 +273,18 @@ def test_create_default_noisy_quantum_virtual_machine(
     processor = engine.get_processor(processor_id)
     bad_qubit = cirq.GridQubit(1000, 1000)
     circuit = cirq.Circuit(cirq.X(bad_qubit), cirq.measure(bad_qubit))
-    job = processor.run_sweep(circuit, repetitions=100, run_name="run", device_config_name="config")
     with pytest.raises(ValueError, match='Qubit not on device'):
-        _ = job.results()
+        _ = processor.run_sweep(
+            circuit, repetitions=100, run_name="run", device_config_name="config"
+        ).results()
     good_qubit = cirq.GridQubit(5, 4)
     circuit = cirq.Circuit(
         cirq.testing.DoesNotSupportSerializationGate()(good_qubit), cirq.measure(good_qubit)
     )
-    job = processor.run_sweep(circuit, repetitions=100, run_name="run", device_config_name="config")
     with pytest.raises(ValueError, match='.* contains a gate which is not supported.'):
-        _ = job.results()
+        _ = processor.run_sweep(
+            circuit, repetitions=100, run_name="run", device_config_name="config"
+        ).results()
     device_specification = processor.get_device_specification()
     expected = factory.create_device_spec_from_processor_id(processor_id)
     assert device_specification is not None
