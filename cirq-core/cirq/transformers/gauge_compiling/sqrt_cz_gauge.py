@@ -18,9 +18,9 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from numbers import Real
-from typing import TYPE_CHECKING
+from typing import cast, TYPE_CHECKING
 
-from cirq.ops import CZ, CZPowGate, Gate, Gateset, S, X
+from cirq import ops
 from cirq.transformers.gauge_compiling.gauge_compiling import (
     ConstantGauge,
     Gauge,
@@ -33,10 +33,11 @@ if TYPE_CHECKING:
     import numpy as np
     import sympy
 
-    import cirq
-
-_SQRT_CZ = CZ**0.5
-_ADJ_S = S**-1
+_SQRT_CZ = ops.CZPowGate(exponent=0.5)
+_ADJ_SQRT_CZ = ops.CZPowGate(exponent=-0.5)
+_GATESET_SQRT_CZ = ops.Gateset(_SQRT_CZ)
+_GATESET_ADJ_SQRT_CZ = ops.Gateset(_ADJ_SQRT_CZ)
+_ADJ_S = ops.S**-1
 
 
 class SqrtCZGauge(Gauge):
@@ -44,39 +45,44 @@ class SqrtCZGauge(Gauge):
     def weight(self) -> float:
         return 3.0
 
-    def sample(self, gate: cirq.Gate, prng: np.random.Generator) -> ConstantGauge:
+    def sample(self, gate: ops.Gate, prng: np.random.Generator) -> ConstantGauge:
         if prng.choice([True, False]):
             return ConstantGauge(two_qubit_gate=gate)
         swap_qubits = prng.choice([True, False])
         if swap_qubits:
             return ConstantGauge(
-                pre_q1=X,
-                post_q1=X,
-                post_q0=S if gate == _SQRT_CZ else _ADJ_S,
+                pre_q1=ops.X,
+                post_q1=ops.X,
+                post_q0=ops.S if gate in _GATESET_SQRT_CZ else _ADJ_S,
                 two_qubit_gate=gate**-1,
                 swap_qubits=True,
             )
         else:
             return ConstantGauge(
-                pre_q0=X,
-                post_q0=X,
-                post_q1=S if gate == _SQRT_CZ else _ADJ_S,
+                pre_q0=ops.X,
+                post_q0=ops.X,
+                post_q1=ops.S if gate in _GATESET_SQRT_CZ else _ADJ_S,
                 two_qubit_gate=gate**-1,
             )
 
 
 def _symbolize_as_cz_pow(
-    two_qubit_gate: Gate, symbols: Sequence[sympy.Symbol]
-) -> tuple[Gate, dict[str, Real]]:
-    """Symbolizes a CZPowGate to a parameterized CZPowGate."""
-
-    if not isinstance(two_qubit_gate, CZPowGate) or not isinstance(two_qubit_gate.exponent, Real):
+    two_qubit_gate: ops.Gate, symbols: Sequence[sympy.Symbol]
+) -> tuple[ops.Gate, dict[str, Real]]:
+    """Symbolizes a CZPowGate, or a gate equal to CZ**±0.5 up to global phase, as CZ**symbol."""
+    if isinstance(two_qubit_gate, ops.CZPowGate) and isinstance(two_qubit_gate.exponent, Real):
+        exponent = two_qubit_gate.exponent
+    elif two_qubit_gate in _GATESET_SQRT_CZ:
+        exponent = cast(Real, 0.5)
+    elif two_qubit_gate in _GATESET_ADJ_SQRT_CZ:
+        exponent = cast(Real, -0.5)
+    else:
         raise ValueError("Can't symbolize non-CZPowGate as CZ**symbol.")
-    return (CZ ** symbols[0], {str(symbols[0]): two_qubit_gate.exponent})
+    return (ops.CZ ** symbols[0], {str(symbols[0]): exponent})
 
 
 SqrtCZGaugeTransformer = GaugeTransformer(
-    target=Gateset(_SQRT_CZ, _SQRT_CZ**-1),
+    target=ops.Gateset(_SQRT_CZ, _ADJ_SQRT_CZ),
     gauge_selector=GaugeSelector(gauges=[SqrtCZGauge()]),
     two_qubit_gate_symbolizer=TwoQubitGateSymbolizer(
         symbolizer_fn=_symbolize_as_cz_pow, n_symbols=1
