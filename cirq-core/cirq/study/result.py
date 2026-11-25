@@ -402,7 +402,9 @@ class ResultDict(Result):
                 results. The value for each key is a 2-D array of Booleans,
                 with the first index running over the repetitions, and the
                 second index running over the qubits for the corresponding
-                measurements.
+                measurements. If not given, measurements are derived from
+                `records`, with repeated measurements flattened into one
+                entry per instance named `'{key}[{instance}]'`.
             records: A dictionary from measurement gate key to measurement
                 results. The value for each key is a 3D array of Booleans,
                 with the first index running over the repetitions, the second
@@ -429,12 +431,20 @@ class ResultDict(Result):
     def measurements(self) -> Mapping[str, np.ndarray]:
         if self._measurements is None:
             assert self._records is not None
-            _measurements = {}
+            _measurements: dict[str, np.ndarray] = {}
             for key, data in self._records.items():
                 reps, instances, qubits = data.shape
-                if instances != 1:
-                    raise ValueError('Cannot extract 2D measurements for repeated keys')
-                _measurements[key] = data.reshape((reps, qubits))
+                flattened = {
+                    key if instances == 1 else f'{key}[{i}]': data[:, i, :]
+                    for i in range(instances)
+                }
+                clashing = _measurements.keys() & flattened.keys()
+                if clashing:
+                    raise ValueError(
+                        f'Flattening measurement keys leads to a collision for '
+                        f'measurement key(s) {sorted(clashing)!r}.'
+                    )
+                _measurements.update(flattened)
             # assign only after the _measurements are successfully resolved
             self._measurements = _measurements
         return self._measurements

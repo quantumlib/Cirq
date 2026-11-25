@@ -87,14 +87,16 @@ def test_construct_from_repeated_measurements() -> None:
             'b': np.array([[[0, 0, 0]], [[1, 1, 1]]]),
         },
     )
-    with pytest.raises(ValueError, match="Cannot extract 2D measurements"):
-        _ = r.measurements
-    # Check that a second access raises ValueError again.
-    with pytest.raises(ValueError, match="Cannot extract 2D measurements"):
-        _ = r.measurements
+    assert list(r.measurements) == ['a[0]', 'a[1]', 'b']
+    np.testing.assert_array_equal(r.measurements['a[0]'], [[0, 0], [1, 0]])
+    np.testing.assert_array_equal(r.measurements['a[1]'], [[0, 1], [1, 1]])
+    np.testing.assert_array_equal(r.measurements['b'], [[0, 0, 0], [1, 1, 1]])
     assert np.all(r.records['a'] == np.array([[[0, 0], [0, 1]], [[1, 0], [1, 1]]]))
     assert np.all(r.records['b'] == np.array([[[0, 0, 0]], [[1, 1, 1]]]))
     assert r.repetitions == 2
+    pd.testing.assert_frame_equal(
+        r.data, pd.DataFrame({'a[0]': [0, 2], 'a[1]': [1, 3], 'b': [0, 7]}, dtype=np.int64)
+    )
 
     r2 = cirq.ResultDict(
         params=None,
@@ -105,6 +107,20 @@ def test_construct_from_repeated_measurements() -> None:
     assert np.all(r2.records['a'] == np.array([[[0, 0]], [[1, 1]]]))
     assert np.all(r2.records['b'] == np.array([[[0, 0, 0]], [[1, 1, 1]]]))
     assert r2.repetitions == 2
+
+
+@pytest.mark.parametrize('keys', [('a', 'a[0]'), ('a[0]', 'a')])
+def test_repeated_measurements_ambiguous_key(keys: tuple[str, str]) -> None:
+    all_records = {
+        'a': np.array([[[0, 0], [0, 1]], [[1, 0], [1, 1]]]),
+        'a[0]': np.array([[[0, 0]], [[1, 1]]]),
+    }
+    r = cirq.ResultDict(params=None, records={k: all_records[k] for k in keys})
+    with pytest.raises(ValueError, match=r"collision for measurement key\(s\) \['a\[0\]'\]"):
+        _ = r.measurements
+    with pytest.raises(ValueError, match=r"collision for measurement key\(s\) \['a\[0\]'\]"):
+        _ = r.data
+    assert r.records.keys() == set(keys)
 
 
 def test_empty_measurements() -> None:
