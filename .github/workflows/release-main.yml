@@ -42,11 +42,6 @@ jobs:
             has_no_release=false
           fi
           echo "has_no_release=${has_no_release}" >> "${GITHUB_OUTPUT}"
-      - name: Install dependencies
-        if: steps.check-labels.outputs.has_no_release != 'true'
-        run: |
-          python -m pip install --upgrade pip
-          pip install --upgrade setuptools
       - name: Build wheels
         id: build-wheels
         if: steps.check-labels.outputs.has_no_release != 'true'
