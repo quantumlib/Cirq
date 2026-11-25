@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import contextlib
+import importlib
 import os
 import shutil
 import subprocess
@@ -23,6 +24,7 @@ import tempfile
 from collections.abc import Iterator
 from io import StringIO
 from pathlib import Path
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -112,8 +114,19 @@ def chdir(*, target_dir: str | None = None, clone_dir: str | None = None) -> Ite
             shutil.rmtree(tdir)
 
 
+@mock.patch("importlib.import_module", wraps=importlib.import_module)
+@pytest.mark.parametrize(
+    "setuptools_missing", [True, False], ids=["setuptools-missing", "setuptools-present"]
+)
 @chdir(target_dir="dev_tools/modules_test_data")
-def test_main() -> None:
+def test_main(mock_import_module: mock.MagicMock, setuptools_missing: bool) -> None:
+    def import_error_for_missing_setuptools(name: str, package: str | None = None) -> Any:
+        if setuptools_missing and name == "setuptools":
+            raise ModuleNotFoundError("No module named 'setuptools'")
+        return mock.DEFAULT
+
+    mock_import_module.side_effect = import_error_for_missing_setuptools
+
     with mock.patch('sys.stdout', new=StringIO()) as output:
         modules.main(["list", "--mode", "package-path"])
         assert output.getvalue() == ' '.join(
