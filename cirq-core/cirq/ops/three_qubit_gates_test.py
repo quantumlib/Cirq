@@ -360,6 +360,25 @@ def test_diagram() -> None:
     )
 
 
+def test_parameterized_diagram() -> None:
+    a, b, c = cirq.LineQubit.range(3)
+    s = sympy.Symbol('s')
+
+    parameterized_circuit = cirq.Circuit(
+        cirq.ThreeQubitDiagonalGate([0.12345, 1, 2.0, 3, 4.0, 5, 6.0, 2 * s])(a, b, c)
+    )
+    cirq.testing.assert_has_diagram(
+        parameterized_circuit,
+        """
+0: ───diag(0.123, 1, 2.0, 3, 4.0, 5, 6.0, sympy.Mul(sympy.Integer(2), sympy.Symbol('s')))───
+      │
+1: ───#2────────────────────────────────────────────────────────────────────────────────────
+      │
+2: ───#3────────────────────────────────────────────────────────────────────────────────────
+""",
+    )
+
+
 def test_diagonal_exponent() -> None:
     diagonal_angles = [2, 3, 5, 7, 11, 13, 17, 19]
     diagonal_gate = cirq.ThreeQubitDiagonalGate(diagonal_angles)
