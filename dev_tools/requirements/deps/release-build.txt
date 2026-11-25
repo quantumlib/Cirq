@@ -2,8 +2,9 @@
 # dev_tools/packaging/produce-package.sh build (CI, manual releases, and
 # packaging_test.sh). Kept separate from packaging.txt so --require-hashes is
 # not forced onto dev.env.txt.
-# Requires setuptools >= 70.1 (folded bdist_wheel in, avoiding a separate wheel
-# package). Updated automatically by Dependabot (monthly, 7-day cooldown).
+# Requires setuptools >= 78.1.1 (matches pyproject.toml; >= 70.1 includes
+# bdist_wheel, avoiding a separate wheel package). Updated automatically by
+# Dependabot (monthly, 7-day cooldown).
 # Any new build dependency in pyproject.toml must be added here with hashes,
 # or builds will fail.
 setuptools==84.2.1 \
