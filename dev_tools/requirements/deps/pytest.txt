@@ -15,7 +15,7 @@ filelock~=4.0
 codeowners; platform_system != "Windows"
 
 # for resolving module metadata
-setuptools>=70
+setuptools>=78.1.1
 
 # for creating isolated environments
 virtualenv~=21.1

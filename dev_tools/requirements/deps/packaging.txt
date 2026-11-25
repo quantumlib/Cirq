@@ -1,5 +1,5 @@
 # for creating packages
-setuptools>=70
+setuptools>=78.1.1
 
 # for uploading packages to pypi
 twine
