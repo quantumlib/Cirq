@@ -964,8 +964,13 @@ def test_expectation_from_state_vector_invalid_input() -> None:
     _ = ps.expectation_from_state_vector(wf, {q0: 0, q1: 1, q2: 0})
 
     # Incorrectly shaped state_vector input.
-    with pytest.raises(ValueError, match='7'):
-        ps.expectation_from_state_vector(np.arange(7, dtype=np.complex64), q_map)
+    for bad_size in (3, 5, 7):
+        with pytest.raises(ValueError, match='shape'):
+            ps.expectation_from_state_vector(np.zeros(bad_size, dtype=np.complex64), q_map)
+        with pytest.raises(ValueError, match='shape'):
+            ps.expectation_from_state_vector(
+                np.zeros(bad_size, dtype=np.complex64), q_map, check_preconditions=False
+            )
     q_map_2 = {q0: 0, q1: 1, q2: 2, q3: 3}
     with pytest.raises(ValueError, match='normalized'):
         ps.expectation_from_state_vector(np.arange(16, dtype=np.complex64), q_map_2)
@@ -979,6 +984,20 @@ def test_expectation_from_state_vector_invalid_input() -> None:
         ps.expectation_from_state_vector(wf.reshape((16, 1)), q_map_2)
     with pytest.raises(ValueError, match='shape'):
         ps.expectation_from_state_vector(wf.reshape((4, 4, 1)), q_map_2)
+
+
+@pytest.mark.parametrize('size', [0, 3, 5, 7, 9])
+def test_expectation_from_state_vector_invalid_sizes(size: int) -> None:
+    q = cirq.LineQubit(0)
+    state = np.zeros(size, dtype=np.complex64)
+    with pytest.raises(ValueError, match=rf'Input shape: \({size},\)'):
+        cirq.X(q).expectation_from_state_vector(state, {})
+
+
+def test_expectation_from_density_matrix_invalid_shape_precedes_mapping_validation() -> None:
+    q = cirq.LineQubit(0)
+    with pytest.raises(ValueError, match=r'Input shape: \(3, 3\)'):
+        cirq.X(q).expectation_from_density_matrix(np.zeros((3, 3), dtype=complex), {})
 
 
 def test_expectation_from_state_vector_check_preconditions() -> None:

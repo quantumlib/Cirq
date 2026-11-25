@@ -606,10 +606,11 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
         size = state_vector.size
         num_qubits = size.bit_length() - 1
-        if len(state_vector.shape) != 1 and state_vector.shape != (2,) * num_qubits:
+        if state_vector.shape not in ((2**num_qubits,), (2,) * num_qubits):
             raise ValueError(
                 "Input array does not represent a state vector "
-                "with shape `(2 ** n,)` or `(2, ..., 2)`."
+                "with shape `(2 ** n,)` or `(2, ..., 2)`. "
+                f"Input shape: {state_vector.shape}."
             )
 
         _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
@@ -712,12 +713,16 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             raise TypeError("Input state dtype must be np.complex64 or np.complex128")
 
         size = state.size
-        num_qubits = int(np.sqrt(size)).bit_length() - 1
+        state_dim = int(np.sqrt(size))
+        num_qubits = state_dim.bit_length() - 1
         dim = 1 << num_qubits
-        if state.shape != (dim, dim) and state.shape != (2, 2) * num_qubits:
+        if state_dim != dim or (
+            state.shape != (dim, dim) and state.shape != (2, 2) * num_qubits
+        ):
             raise ValueError(
                 "Input array does not represent a density matrix "
-                "with shape `(2 ** n, 2 ** n)` or `(2, ..., 2)`."
+                "with shape `(2 ** n, 2 ** n)` or `(2, ..., 2)`. "
+                f"Input shape: {state.shape}."
             )
 
         _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
