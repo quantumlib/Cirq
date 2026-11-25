@@ -96,7 +96,9 @@ cd "${repo_dir}"
 # release-build.txt instead.
 min_pip_version="26.1"
 pip_version=$(python3 -m pip --version | awk '{print $2}')
-if [[ "$(printf '%s\n' "${min_pip_version}" "${pip_version}" | sort -V | head -n1)" != "${min_pip_version}" ]]; then
+# Sort both versions numerically; if the lower one isn't the minimum, pip is too old.
+lowest_version=$(printf '%s\n' "${min_pip_version}" "${pip_version}" | sort -V | head -n1)
+if [[ "${lowest_version}" != "${min_pip_version}" ]]; then
     die 1 "produce-package.sh requires pip >= ${min_pip_version} to verify build-dependency hashes; found '${pip_version}'."
 fi
 
