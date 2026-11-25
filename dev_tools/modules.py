@@ -197,7 +197,7 @@ def _find_version_file(top: Path) -> Path:
 def _with_cwd_first_in_sys_path() -> Iterator[None]:
     """Local helper to insert the current directory as the first one in `sys.path`.
 
-    This is only intended for the `_parse_module` support.
+    This is only intended to support `_parse_module`.
     """
     cwd = os.getcwd()
     sys.path.insert(0, cwd)
@@ -215,7 +215,7 @@ def _parse_module(folder: Path) -> dict[str, Any]:
 
     with contextlib.ExitStack() as stack:
         try:
-            # use importlib to allow a test with simulated ImportError
+            # Use importlib to allow a test with simulated ImportError.
             setuptools = importlib.import_module("setuptools")
         except ImportError:
             setuptools = mock.MagicMock()
@@ -223,7 +223,7 @@ def _parse_module(folder: Path) -> dict[str, Any]:
 
         stack.enter_context(mock.patch.object(setuptools, "setup", setup))
         stack.enter_context(_with_cwd_first_in_sys_path())
-        stack.enter_context(contextlib.chdir(str(folder)))
+        stack.enter_context(contextlib.chdir(folder))
 
         try:
             setup_py = Path("setup.py").read_text(encoding="utf8")

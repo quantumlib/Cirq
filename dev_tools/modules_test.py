@@ -120,7 +120,7 @@ def chdir(*, target_dir: str | None = None, clone_dir: str | None = None) -> Ite
 )
 @chdir(target_dir="dev_tools/modules_test_data")
 def test_main(mock_import_module: mock.MagicMock, setuptools_missing: bool) -> None:
-    def import_error_for_missing_setuptools(name: str, package=None) -> Any:
+    def import_error_for_missing_setuptools(name: str, package: str | None = None) -> Any:
         if setuptools_missing and name == "setuptools":
             raise ModuleNotFoundError("No module named 'setuptools'")
         return mock.DEFAULT
