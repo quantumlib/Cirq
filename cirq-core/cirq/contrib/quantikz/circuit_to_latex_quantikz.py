@@ -372,38 +372,53 @@ class CircuitToQuantikz:
             A string representing the LaTeX name of the gate (e.g., "H",
             "Rx(0.5)", "CZ").
         """
+
+
+
         gate_type = type(gate)
         if (simple_name := _SIMPLE_GATE_MAP.get(gate_type)) is not None:
             return simple_name
 
+
+
         base_key = _EXPONENT_GATE_MAP.get(gate_type)
         if base_key is not None and hasattr(gate, "exponent") and gate.exponent == 1:
             return self.current_gate_name_map.get(base_key, base_key)
-
-        if (param_base_key := _PARAMETERIZED_GATE_BASE_NAMES.get(gate_type)) is not None:
-            mapped_name = self.current_gate_name_map.get(param_base_key, param_base_key)
-            if not self.show_parameters:
-                return mapped_name
-            # Use protocols directly
-            info = protocols.circuit_diagram_info(gate, default=NotImplemented)
-            if info is not NotImplemented and info.wire_symbols:
-                s_diag = info.wire_symbols[0]
-                if (op_idx := s_diag.find("(")) != -1 and (cp_idx := s_diag.rfind(")")) > op_idx:
-                    return (
-                        f"{mapped_name}"
-                        f"({self._format_exponent_for_display(s_diag[op_idx+1:cp_idx])})"
-                    )
-            if hasattr(gate, "exponent") and not math.isclose(
-                gate.exponent, 1.0
-            ):  # pragma: no cover
-                return f"{mapped_name}({self._format_exponent_for_display(gate.exponent)})"
-            return mapped_name  # pragma: no cover
+        #
+        # if (param_base_key := _PARAMETERIZED_GATE_BASE_NAMES.get(gate_type)) is not None:
+        #     mapped_name = self.current_gate_name_map.get(param_base_key, param_base_key)
+        #     if not self.show_parameters:
+        #         return mapped_name
+        #     # Use protocols directly
+        #     info = protocols.circuit_diagram_info(gate, default=NotImplemented)
+        #     if info is not NotImplemented and info.wire_symbols:
+        #         s_diag = info.wire_symbols[0]
+        #         if (op_idx := s_diag.find("(")) != -1 and (cp_idx := s_diag.rfind(")")) > op_idx:
+        #             return (
+        #                 f"{mapped_name}"
+        #                 f"({self._format_exponent_for_display(s_diag[op_idx+1:cp_idx])})"
+        #             )
+        #     if hasattr(gate, "exponent") and not math.isclose(
+        #         gate.exponent, 1.0
+        #     ):  # pragma: no cover
+        #         return f"{mapped_name}({self._format_exponent_for_display(gate.exponent)})"
+        #     return mapped_name  # pragma: no cover
 
         try:
             # Use protocols directly
             info = protocols.circuit_diagram_info(gate, default=NotImplemented)
             if info is not NotImplemented and info.wire_symbols:
                 name_cand = info.wire_symbols[0]
+                op_idx = name_cand.find("(")
+                cp_idx = name_cand.rfind(")")
+                if op_idx > 0 and cp_idx == len(name_cand) - 1 and "^" not in name_cand[:op_idx] and "**" not in name_cand[:op_idx]:
+                    base_name = name_cand[:op_idx]
+                    base_key_for_name = _PARAMETERIZED_GATE_BASE_NAMES.get(gate_type, base_name)
+                    mapped_name = self.current_gate_name_map.get(base_key_for_name, base_key_for_name)
+                    if not self.show_parameters:
+                        return mapped_name
+                    parameters = self._format_exponent_for_display(name_cand[op_idx + 1: cp_idx])
+                    return f"{mapped_name}({parameters})"
                 if not self.show_parameters:
                     base_part = name_cand.split("^")[0].split("**")[0].split("(")[0].strip()
                     if isinstance(gate, ops.CZPowGate) and base_part == "@":
