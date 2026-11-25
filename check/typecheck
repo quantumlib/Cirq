@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 ################################################################################
-# Runs type checking on the repository using the mypy tool.
+# Runs type checking on the repository using mypy and Pyrefly.
 #
 # Usage:
-#     check/typecheck [flags-for-mypy]
+#     check/typecheck [--flags]
 ################################################################################
 
 # Get the working directory to the repo root.
@@ -13,4 +13,13 @@ repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel) || exit $?
 cd "${repo_dir}" || exit $?
 
 source dev_tools/pypath || exit $?
+
 mypy "$@" .
+mypy_result=$?
+if (( mypy_result != 0 )); then
+    exit "${mypy_result}"
+fi
+
+pyrefly check
+result=$?
+exit "${result}"
