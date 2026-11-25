@@ -208,11 +208,12 @@ def test_does_not_eval_param_dict_keys() -> None:
     assert np.allclose(resolved, np.sqrt(0.5))
 
 
-@pytest.mark.filterwarnings("ignore:Casting param_dict:UserWarning")
 def test_does_not_eval_param_dict_vals() -> None:
     a = sympy.Symbol('a')
     r = cirq.ParamResolver({a: 'exec("assert False")'})
-    r.value_of(sympy.sin(a), recursive=False)
+    with pytest.warns(UserWarning, match="Casting param_dict value"):
+        resolved = r.value_of(sympy.sin(a), recursive=False)
+    assert isinstance(resolved, sympy.Expr)
 
 
 def test_unbound_recursion_halted() -> None:
