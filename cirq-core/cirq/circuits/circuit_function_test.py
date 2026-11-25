@@ -215,3 +215,21 @@ def test_resolve_parameters() -> None:
 
     # resolve parameters should do nothing
     assert cirq.resolve_parameters(cf, {x: 2, theta: 3}) == cf
+
+
+def test_measurement() -> None:
+    x = sympy.Symbol('x')
+    qx = cirq.VariableLineQid(x)
+    theta = sympy.Symbol('theta')
+    c = cirq.Circuit(
+        cirq.X(qx) ** theta,
+        cirq.measure(cirq.q(1), key='m0'),
+        cirq.measure(qx, key='m1'),
+        cirq.Y(qx).with_classical_controls('m2'),
+    )
+    cf = cirq.CircuitFunction("test_function", c, function_params=[theta])
+
+    assert cirq.is_measurement(cf)
+    assert cirq.measurement_key_objs(cf) == {cirq.MeasurementKey('m0'), cirq.MeasurementKey('m1')}
+    assert cirq.measurement_key_names(cf) == {'m0', 'm1'}
+    assert cirq.control_keys(cf) == {'m2'}
