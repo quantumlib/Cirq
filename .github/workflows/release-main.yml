@@ -46,14 +46,9 @@ jobs:
         if: steps.check-labels.outputs.has_no_release != 'true'
         run: |
           python -m pip install --upgrade pip
-          pip install --upgrade setuptools twine
-      - name: Create PyPI config file
-        if: steps.check-labels.outputs.has_no_release != 'true'
-        env:
-          CIRQ_PYPI_TOKEN: ${{ secrets.CIRQ_PYPI_TOKEN }}
-        run: |
-          envsubst < dev_tools/packaging/pypirc_template > $HOME/.pypirc
-      - name: Build and publish
+          pip install --upgrade setuptools
+      - name: Build wheels
+        id: build-wheels
         if: steps.check-labels.outputs.has_no_release != 'true'
         run: |
           CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
@@ -75,7 +70,13 @@ jobs:
             echo "### Skipped identical release"  >> "${GITHUB_STEP_SUMMARY}"
             echo "Cirq wheels for ${CIRQ_PRE_RELEASE_VERSION} (${GITHUB_SHA})" \
               "are identical to their build at the previous commit." >> "${GITHUB_STEP_SUMMARY}"
-            exit 0
+            echo "skip_publish=true" >> "${GITHUB_OUTPUT}"
           fi
-          echo "Deploying dev version '$CIRQ_PRE_RELEASE_VERSION'"
-          twine upload "${out_dir}/*"
+      - name: Publish to PyPI
+        if: >-
+          steps.check-labels.outputs.has_no_release != 'true' &&
+          steps.build-wheels.outputs.skip_publish != 'true'
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
+        with:
+          password: ${{ secrets.CIRQ_PYPI_TOKEN }}
+          packages_dir: cirq-dist/
