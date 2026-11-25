@@ -192,10 +192,10 @@ def process_results(
 
     # Remove the parity qubits from the measurements.
     for parity_qubit in parity_mapping.values():
-        data.drop(str(inverse_mapping[parity_qubit]), axis=1, inplace=True)
+        data = data.drop(str(inverse_mapping[parity_qubit]), axis=1)
 
     print(f"Dropping {len(bad_measurements)} measurements")
-    data.drop(bad_measurements, inplace=True)
+    data = data.drop(bad_measurements)
 
     return data
 
