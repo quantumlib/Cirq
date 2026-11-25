@@ -2160,6 +2160,60 @@ def test_try_interpret_as_pauli_string() -> None:
     h_gate = cirq.H(q)
     assert _try_interpret_as_pauli_string(h_gate) is None
 
+    # gates with global_shift (#8450)
+    x_shifted = cirq.XPowGate(exponent=1, global_shift=1)(q)
+    assert _try_interpret_as_pauli_string(x_shifted) == -cirq.X(q)
+
+    x2_shifted = cirq.XPowGate(exponent=2, global_shift=0.5)(q)
+    assert _try_interpret_as_pauli_string(x2_shifted) == cirq.PauliString(coefficient=-1)
+
+    y_shifted = cirq.YPowGate(exponent=1, global_shift=1)(q)
+    assert _try_interpret_as_pauli_string(y_shifted) == -cirq.Y(q)
+
+    z_shifted = cirq.ZPowGate(exponent=1, global_shift=1)(q)
+    assert _try_interpret_as_pauli_string(z_shifted) == -cirq.Z(q)
+
+    z2_shifted = cirq.ZPowGate(exponent=2, global_shift=0.5)(q)
+    assert _try_interpret_as_pauli_string(z2_shifted) == cirq.PauliString(coefficient=-1)
+
+    x_phase_shifted = cirq.XPowGate(exponent=1, global_shift=0.5)(q)
+    assert _try_interpret_as_pauli_string(x_phase_shifted) == 1j * cirq.X(q)
+
+    x2_cycle_shifted = cirq.XPowGate(exponent=2, global_shift=1.0)(q)
+    assert _try_interpret_as_pauli_string(x2_cycle_shifted) == cirq.PauliString()
+
+
+@pytest.mark.parametrize(
+    'gate_cls, pauli', [(cirq.XPowGate, cirq.X), (cirq.YPowGate, cirq.Y), (cirq.ZPowGate, cirq.Z)]
+)
+@pytest.mark.parametrize('exponent', [-3, -2, -1, 0, 1, 2, 3])
+@pytest.mark.parametrize('global_shift', [-1.0, -0.5, 0.0, 0.5, 1.0])
+def test_try_interpret_as_pauli_string_matches_unitary(
+    gate_cls: type[cirq.EigenGate], pauli: cirq.Pauli, exponent: int, global_shift: float
+) -> None:
+    from cirq.ops.pauli_string import _try_interpret_as_pauli_string
+
+    q = cirq.LineQubit(0)
+    gate = gate_cls(exponent=exponent, global_shift=global_shift)
+    op = gate(q)
+    ps = _try_interpret_as_pauli_string(op)
+    assert ps is not None
+    np.testing.assert_allclose(ps.matrix([q]), cirq.unitary(gate), atol=1e-12)
+
+
+def test_pauli_arithmetic_with_global_shift() -> None:
+    # Reproduction from #8450: Adding XPowGate(exponent=1, global_shift=1)(q) to Z(q)
+    q = cirq.LineQubit(0)
+    gate = cirq.XPowGate(exponent=1, global_shift=1)
+    observable = cirq.Z(q) + gate(q)
+    expected_matrix = cirq.unitary(cirq.Z(q)) + cirq.unitary(gate)
+    np.testing.assert_allclose(observable.matrix([q]), expected_matrix, atol=1e-12)
+
+    circuit = cirq.Circuit(cirq.H(q))
+    for cls in (cirq.Simulator, cirq.DensityMatrixSimulator):
+        value = cls(dtype=np.complex128).simulate_expectation_values(circuit, observable)[0]
+        np.testing.assert_allclose(value, -1.0, atol=1e-12)
+
 
 def test_variable_qid_resolution():
     x = sympy.Symbol('x')
