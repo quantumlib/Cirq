@@ -304,6 +304,7 @@ from cirq.ops import (
     QubitOrderOrList as QubitOrderOrList,
     QubitPermutationGate as QubitPermutationGate,
     R as R,
+    Repeat as Repeat,
     reset as reset,
     reset_each as reset_each,
     ResetChannel as ResetChannel,
