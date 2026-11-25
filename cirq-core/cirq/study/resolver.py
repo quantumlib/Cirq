@@ -322,11 +322,6 @@ def _resolve_value(val: Any) -> Any:
     return result
 
 
-def _looks_like_expression(expr: str) -> bool:
-    expr_chars = "+-*/()"
-    return any(char in expr for char in expr_chars)
-
-
 def _make_safe_dict(unsafe_dict: ParamDictType) -> ParamDictType:
     safe = {}
     expr_chars = frozenset("+-*/()")
