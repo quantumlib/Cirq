@@ -34,6 +34,10 @@ Options:
   -h, --help            display this message and exit.
 "
 
+# The minimum pip version required to support the options
+# --check-build-dependencies and --build-constraint below
+declare -r min_pip_version="26.1"
+
 out_dir=""
 specified_version=""
 commitish=HEAD
@@ -84,23 +88,17 @@ if [[ -z "${out_dir}" ]]; then
     die 2 "No output directory given."
 fi
 
+if ! python3 -m pip install --dry-run --no-index \
+    "pip>=${min_pip_version}" >/dev/null 2>&1;
+then
+    die 2 "$0 requires pip >= ${min_pip_version}; found $(python3 -m pip --version)"
+fi
+
 # Change to the root of the Cirq git repository
 thisdir=$(dirname "${BASH_SOURCE[0]:?}")
 repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel)
 build_constraint="${repo_dir}/dev_tools/requirements/deps/release-build.txt"
 cd "${repo_dir}"
-
-# --build-constraint can only apply the hashes in release-build.txt to
-# build requirements with pip >= 26.1. If this fails in CI, do not add an
-# unpinned "pip install --upgrade pip"; pin pip with hashes in
-# release-build.txt instead.
-min_pip_version="26.1"
-pip_version=$(python3 -m pip --version | awk '{print $2}')
-# Sort both versions numerically; if the lower one isn't the minimum, pip is too old.
-lowest_version=$(printf '%s\n' "${min_pip_version}" "${pip_version}" | sort -V | head -n1)
-if [[ "${lowest_version}" != "${min_pip_version}" ]]; then
-    die 1 "produce-package.sh requires pip >= ${min_pip_version} to verify build-dependency hashes; found '${pip_version}'."
-fi
 
 # Validate and resolve the commit value
 commit=$(git rev-parse --verify --quiet "${commitish}^{commit}") ||
