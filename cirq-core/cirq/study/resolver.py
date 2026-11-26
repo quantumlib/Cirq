@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import numbers
+import warnings
 from collections.abc import Iterator, Mapping
 from typing import Any, cast, TYPE_CHECKING, Union
 
@@ -86,6 +87,9 @@ class ParamResolver:
         self._param_hash: int | None = None
         self._param_dict = cast(ParamDictType, {} if param_dict is None else param_dict)
         self._param_dict_with_str_keys = self._param_dict
+        # This is passed to sympy's subs(), which calls eval() on its
+        # arguments. It is initialized the first time that we need it.
+        self._safe_param_dict: ParamDictType | None = None
         generate_str_keys = False
         for key in self._param_dict:
             if isinstance(key, sympy.Expr):
@@ -205,7 +209,9 @@ class ParamResolver:
             # Note that a sympy.SympifyError here likely means
             # that one of the expressions was not parsable by SymPy
             # (such as a function returning NotImplemented)
-            v = value.subs(self._param_dict, simultaneous=True)
+            if self._safe_param_dict is None:
+                self._safe_param_dict = _make_safe_dict(self._param_dict)
+            v = value.subs(self._safe_param_dict, simultaneous=True)
 
             if v.free_symbols:
                 return v
@@ -314,3 +320,17 @@ def _resolve_value(val: Any) -> Any:
     getter = getattr(val, '_resolved_value_', None)
     result = NotImplemented if getter is None else getter()
     return result
+
+
+def _make_safe_dict(unsafe_dict: ParamDictType) -> ParamDictType:
+    safe = {}
+    expr_chars = frozenset("+-*/()")
+    for key, val in unsafe_dict.items():
+        if isinstance(key, str) and not expr_chars.isdisjoint(key):
+            warnings.warn(f'Casting param_dict key {key!r} to Symbol')
+            key = sympy.Symbol(key)
+        if isinstance(val, str) and not expr_chars.isdisjoint(val):
+            warnings.warn(f'Casting param_dict value {val!r} to Symbol')
+            val = sympy.Symbol(val)
+        safe[key] = val
+    return safe

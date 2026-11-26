@@ -55,6 +55,7 @@ obtained keys.
 
  === Example output ===
 
+```
 Simulating non-eavesdropped protocol
 
     0: ───X───M───────────
@@ -104,6 +105,7 @@ Alice's bits:   00100101
 Bases match::   X_XXXXX_
 Expected key:   010010
 Actual key:     111011
+```
 
 """
 
@@ -145,11 +147,11 @@ def main(num_qubits=8):
 
     # Setup eavesdropped protocol
     print('Simulating eavesdropped protocol')
-    np.random.seed(200)  # Seed random generator for consistent results
-    alice_basis = [np.random.randint(0, 2) for _ in range(num_qubits)]
-    alice_state = [np.random.randint(0, 2) for _ in range(num_qubits)]
-    bob_basis = [np.random.randint(0, 2) for _ in range(num_qubits)]
-    eve_basis = [np.random.randint(0, 2) for _ in range(num_qubits)]
+    rng = np.random.default_rng(1)  # Seed random generator for consistent results
+    alice_basis = [rng.integers(0, 2) for _ in range(num_qubits)]
+    alice_state = [rng.integers(0, 2) for _ in range(num_qubits)]
+    bob_basis = [rng.integers(0, 2) for _ in range(num_qubits)]
+    eve_basis = [rng.integers(0, 2) for _ in range(num_qubits)]
 
     expected_key = bitstring(
         [alice_state[i] for i in range(num_qubits) if alice_basis[i] == bob_basis[i]]
@@ -161,14 +163,14 @@ def main(num_qubits=8):
 
     # Run simulations.
     repetitions = 1
-    result = cirq.Simulator().run(program=alice_eve_circuit, repetitions=repetitions)
+    result = cirq.Simulator(seed=rng).run(program=alice_eve_circuit, repetitions=repetitions)
     eve_state = [result.measurements[str(q)].item() for q in qubits]
 
     eve_bob_circuit = make_bb84_circ(num_qubits, eve_basis, bob_basis, eve_state)
 
     # Run simulations.
     repetitions = 1
-    result = cirq.Simulator().run(program=eve_bob_circuit, repetitions=repetitions)
+    result = cirq.Simulator(seed=rng).run(program=eve_bob_circuit, repetitions=repetitions)
     result_bitstring = bitstring([result.measurements[str(q)].item() for q in qubits])
 
     # Take only qubits where bases match

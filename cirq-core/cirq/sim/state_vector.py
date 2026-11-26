@@ -214,7 +214,7 @@ def sample_state_vector(
     if repetitions == 0 or len(indices) == 0:
         return np.zeros(shape=(repetitions, len(indices)), dtype=np.uint8)
 
-    prng = value.parse_random_state(seed)
+    prng = value.parse_random_generator(seed)
 
     # Calculate the measurement probabilities.
     probs = (state_vector * state_vector.conj()).real
@@ -285,7 +285,7 @@ def measure_state_vector(
         # Final else: if out is state then state will be modified in place.
         return ([], out)
 
-    prng = value.parse_random_state(seed)
+    prng = value.parse_random_generator(seed)
 
     # Calculate the measurement probabilities and then make the measurement.
     probs = (state_vector * state_vector.conj()).real

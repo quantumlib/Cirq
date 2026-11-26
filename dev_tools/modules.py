@@ -45,12 +45,16 @@ subcommands:
 from __future__ import annotations
 
 import argparse
+import contextlib
 import dataclasses
+import importlib
 import os
 import re
 import sys
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
+from unittest import mock
 
 _FOLDER = 'folder'
 _PACKAGE_PATH = 'package-path'
@@ -189,31 +193,46 @@ def _find_version_file(top: Path) -> Path:
     raise FileNotFoundError(f"Can't find _version.py in {top}.")
 
 
-def _parse_module(folder: Path) -> dict[str, Any]:
-    setup_args = {}
-    import setuptools
+@contextlib.contextmanager
+def _with_cwd_first_in_sys_path() -> Iterator[None]:
+    """Local helper to insert the current directory as the first one in `sys.path`.
 
-    orig_setup = setuptools.setup
+    This is only intended to support `_parse_module`.
+    """
     cwd = os.getcwd()
     sys.path.insert(0, cwd)
+    try:
+        yield
+    finally:
+        sys.path.remove(cwd)
+
+
+def _parse_module(folder: Path) -> dict[str, Any]:
+    setup_args = {}
 
     def setup(**kwargs):
         setup_args.update(kwargs)
 
-    try:
-        setuptools.setup = setup
-        os.chdir(str(folder))
-        setup_py = Path("setup.py").read_text(encoding="utf8")
-        exec(setup_py, globals(), {})
-        assert setup_args, f"Invalid setup.py - setup() was not called in {folder}/setup.py!"
-        return setup_args
-    except BaseException:
-        print(f"Failed to run {folder}/setup.py:")
-        raise
-    finally:
-        setuptools.setup = orig_setup
-        sys.path.remove(cwd)
-        os.chdir(cwd)
+    with contextlib.ExitStack() as stack:
+        try:
+            # Use importlib to allow a test with simulated ImportError.
+            setuptools = importlib.import_module("setuptools")
+        except ImportError:
+            setuptools = mock.MagicMock()
+            stack.enter_context(mock.patch.dict(sys.modules, {"setuptools": setuptools}))
+
+        stack.enter_context(mock.patch.object(setuptools, "setup", setup))
+        stack.enter_context(_with_cwd_first_in_sys_path())
+        stack.enter_context(contextlib.chdir(folder))
+
+        try:
+            setup_py = Path("setup.py").read_text(encoding="utf8")
+            exec(setup_py, globals(), {})
+            assert setup_args, f"Invalid setup.py - setup() was not called in {folder}/setup.py!"
+            return setup_args
+        except BaseException:
+            print(f"Failed to run {folder}/setup.py:")
+            raise
 
 
 ############################################

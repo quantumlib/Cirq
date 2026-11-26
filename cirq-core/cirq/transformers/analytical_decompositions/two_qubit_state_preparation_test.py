@@ -25,7 +25,7 @@ import pytest
 import cirq
 
 
-def random_state(seed: float) -> np.ndarray:
+def random_state(seed: int) -> np.ndarray:
     return cirq.testing.random_superposition(4, random_state=seed)
 
 

@@ -121,7 +121,7 @@ def test_controlled_operation_init() -> None:
     with pytest.raises(ValueError, match='Cannot control measurement'):
         _ = cirq.ControlledOperation([cb], cirq.measure(q))
     with pytest.raises(ValueError, match='Cannot control channel'):
-        _ = cirq.ControlledOperation([cb], cirq.PhaseDampingChannel(1)(q))
+        _ = cirq.ControlledOperation([cb], cirq.AmplitudeDampingChannel(1)(q))
 
 
 def test_controlled_operation_eq() -> None:
@@ -430,7 +430,9 @@ def test_parameterizable(resolve_fn) -> None:
 
     cchan = cirq.ControlledOperation(
         [qubits[0]],
-        cirq.RandomGateChannel(sub_gate=cirq.PhaseDampingChannel(0.1), probability=a)(qubits[1]),
+        cirq.RandomGateChannel(sub_gate=cirq.AmplitudeDampingChannel(0.1), probability=a)(
+            qubits[1]
+        ),
     )
     with pytest.raises(ValueError, match='Cannot control channel'):
         resolve_fn(cchan, cirq.ParamResolver({'a': 0.1}))
@@ -466,9 +468,10 @@ def test_controlled_operation_gate() -> None:
     assert op.gate is None
 
 
-def test_controlled_mixture() -> None:
+@pytest.mark.parametrize('sub_gate', [cirq.phase_flip(0.25), cirq.phase_damp(0.75)])
+def test_controlled_mixture(sub_gate) -> None:
     a, b = cirq.LineQubit.range(2)
-    c_yes = cirq.ControlledOperation(controls=[b], sub_operation=cirq.phase_flip(0.25).on(a))
+    c_yes = cirq.ControlledOperation(controls=[b], sub_operation=sub_gate.on(a))
     assert cirq.has_mixture(c_yes)
     assert cirq.approx_eq(cirq.mixture(c_yes), [(0.75, np.eye(4)), (0.25, cirq.unitary(cirq.CZ))])
 
@@ -499,3 +502,70 @@ def test_variable_qid_resolution():
     assert resolved_cx_0x == cirq.X(cirq.LineQubit(0)).controlled_by(cirq.LineQubit(1))
     resolved_cx_xy = cirq.resolve_parameters(cx_xy, resolver)
     assert resolved_cx_xy == cirq.X(cirq.LineQubit(1)).controlled_by(cirq.LineQubit(2))
+
+
+@pytest.mark.parametrize("gate", [cirq.H, cirq.X, cirq.Z])
+@pytest.mark.parametrize("control_value", [True, False])
+@pytest.mark.parametrize("use_sum_of_products", [True, False])
+def test_bool_control_values_match_ints(gate, control_value, use_sum_of_products):
+    def make_control_values(value):
+        if use_sum_of_products:
+            return cirq.SumOfProducts([[value]])
+        return [value]
+
+    bool_op = cirq.ControlledOperation(
+        [cirq.LineQubit(0)],
+        gate(cirq.LineQubit(1)),
+        control_values=make_control_values(control_value),
+    )
+    int_op = cirq.ControlledOperation(
+        [cirq.LineQubit(0)],
+        gate(cirq.LineQubit(1)),
+        control_values=make_control_values(int(control_value)),
+    )
+
+    np.testing.assert_allclose(cirq.unitary(bool_op), cirq.unitary(int_op))
+
+    cirq.testing.assert_decompose_is_consistent_with_unitary(bool_op)
+    cirq.testing.assert_implements_consistent_protocols(bool_op)
+
+
+def test_bool_control_values_mixed_with_ints_match_ints():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    bool_op = cirq.ControlledOperation([q0, q1], cirq.X(q2), control_values=[True, 0])
+    int_op = cirq.ControlledOperation([q0, q1], cirq.X(q2), control_values=[1, 0])
+
+    np.testing.assert_allclose(cirq.unitary(bool_op), cirq.unitary(int_op))
+    cirq.testing.assert_decompose_is_consistent_with_unitary(bool_op)
+
+
+def test_bool_control_values_sum_of_products_two_controls_match_ints():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    bool_op = cirq.ControlledOperation(
+        [q0, q1], cirq.H(q2), control_values=cirq.SumOfProducts([[True, False]])
+    )
+    int_op = cirq.ControlledOperation(
+        [q0, q1], cirq.H(q2), control_values=cirq.SumOfProducts([[1, 0]])
+    )
+
+    np.testing.assert_allclose(cirq.unitary(bool_op), cirq.unitary(int_op))
+    cirq.testing.assert_decompose_is_consistent_with_unitary(bool_op)
+
+
+def test_bool_control_values_controlled_gate_match_ints():
+    bool_gate = cirq.ControlledGate(cirq.H, control_values=[False])
+    int_gate = cirq.ControlledGate(cirq.H, control_values=[0])
+
+    np.testing.assert_allclose(cirq.unitary(bool_gate), cirq.unitary(int_gate))
+    cirq.testing.assert_implements_consistent_protocols(bool_gate)
+
+
+@pytest.mark.parametrize("control_values", [np.array([True, False]), np.array([1, 0])])
+def test_numpy_array_control_values_match_ints(control_values):
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    numpy_op = cirq.ControlledOperation([q0, q1], cirq.X(q2), control_values=control_values)
+    int_op = cirq.ControlledOperation([q0, q1], cirq.X(q2), control_values=[1, 0])
+
+    assert numpy_op == int_op
+    np.testing.assert_allclose(cirq.unitary(numpy_op), cirq.unitary(int_op))
+    cirq.testing.assert_decompose_is_consistent_with_unitary(numpy_op)

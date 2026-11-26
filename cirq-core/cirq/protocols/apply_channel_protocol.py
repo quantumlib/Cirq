@@ -132,7 +132,7 @@ class SupportsApplyChannel(Protocol):
         This method is given both the target tensor and workspace of the same
         shape and dtype. The method then either performs inline modifications of
         the target tensor and returns it, or writes its output into the
-        a workspace tensor and returns that. This signature makes it possible to
+        workspace tensor and returns that. This signature makes it possible to
         write specialized simulation methods that run without performing large
         allocations, significantly increasing simulation performance.
 
