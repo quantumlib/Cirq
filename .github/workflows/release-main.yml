@@ -53,8 +53,8 @@ jobs:
           fi
           echo "Building wheels for the dev version '${CIRQ_PRE_RELEASE_VERSION}'"
           THIS_DATE_EPOCH=$(git log -1 --pretty="%ct")
-          out_dir=/tmp/cirq-dist
-          out_dir_last=/tmp/cirq-dist-last
+          out_dir="${HOME}/cirq-dist"
+          out_dir_last="${HOME}/cirq-dist-last"
           dev_tools/packaging/produce-package.sh "${out_dir}" "${CIRQ_PRE_RELEASE_VERSION}"
           # disregard errors from building wheels at the previous commit
           SOURCE_DATE_EPOCH=${THIS_DATE_EPOCH} dev_tools/packaging/produce-package.sh \
@@ -74,4 +74,4 @@ jobs:
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
         with:
           password: ${{ secrets.CIRQ_PYPI_TOKEN }}
-          packages_dir: /tmp/cirq-dist
+          packages_dir: cirq-dist/
