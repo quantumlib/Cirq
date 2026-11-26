@@ -66,6 +66,9 @@ jobs:
             echo "Cirq wheels for ${CIRQ_PRE_RELEASE_VERSION} (${GITHUB_SHA})" \
               "are identical to their build at the previous commit." >> "${GITHUB_STEP_SUMMARY}"
             echo "skip_publish=true" >> "${GITHUB_OUTPUT}"
+          else
+            # move wheels to where gh-action-pypi-publish expects them
+            mv "${out_dir}" ./dist
           fi
       - name: Publish to PyPI
         if: >-
@@ -74,4 +77,3 @@ jobs:
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
         with:
           password: ${{ secrets.CIRQ_PYPI_TOKEN }}
-          packages_dir: cirq-dist/
