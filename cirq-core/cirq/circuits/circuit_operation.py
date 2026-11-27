@@ -439,6 +439,7 @@ class CircuitOperation(ops.Operation):
     @cached_property
     def _mapped_repeat_until(self) -> cirq.Condition | None:
         """Applies measurement_key_map, param_resolver, and current scope to repeat_until."""
+
         repeat_until = self.repeat_until
         if not repeat_until:
             return repeat_until
@@ -909,3 +910,21 @@ class CircuitOperation(ops.Operation):
                     f'\nMap after changes: {resolved.qubit_map}'
                 )
         return resolved
+
+    def _qasm_(
+        self, *, args: cirq.QasmArgs | None = None, qubits: Sequence[cirq.Qid] | None = None
+    ) -> str | None:
+        if self.repeat_until is not None:  # pragma: no cover
+            # TODO: implement using `cirq.While` to avoid code repetition.
+            return None
+        if self.repetitions != 1:  # pragma: no cover
+            # TODO: implement using `cirq.For` to avoid code repetition.
+            return None
+        # Check for any undefined operations before attempting to wrap into code.
+        qasm_parts: list[str] = []
+        for op in self._decompose_():
+            part = protocols.qasm(op, args=args, qubits=qubits, default=None)
+            if part is None:
+                return None
+            qasm_parts.append(part)
+        return ''.join(qasm_parts)
