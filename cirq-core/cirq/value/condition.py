@@ -100,7 +100,7 @@ class KeyCondition(Condition):
     def replace_key(
         self, current: cirq.MeasurementKey, replacement: cirq.MeasurementKey
     ) -> KeyCondition:
-        return KeyCondition(replacement) if self.key == current else self
+        return dataclasses.replace(self, key=replacement) if self.key == current else self
 
     def __str__(self) -> str:
         return str(self.key) if self.index == -1 else f'{self.key}[{self.index}]'
@@ -119,8 +119,10 @@ class KeyCondition(Condition):
         return json_serialization.dataclass_json_dict(self)
 
     @classmethod
-    def _from_json_dict_(cls, key: cirq.MeasurementKey, **kwargs: Any) -> KeyCondition:
-        return cls(key=key)
+    def _from_json_dict_(
+        cls, key: cirq.MeasurementKey, index: int = -1, **kwargs: Any
+    ) -> KeyCondition:
+        return cls(key=key, index=index)
 
     @property
     def qasm(self) -> str:
@@ -208,7 +210,7 @@ class BitMaskKeyCondition(Condition):
     def replace_key(
         self, current: cirq.MeasurementKey | str, replacement: cirq.MeasurementKey | str
     ) -> BitMaskKeyCondition:
-        return BitMaskKeyCondition(replacement) if self.key == current else self
+        return attrs.evolve(self, key=replacement) if self.key == current else self
 
     def __str__(self) -> str:
         s = str(self.key) if self.index == -1 else f'{self.key}[{self.index}]'

@@ -1,1 +1,4 @@
-cirq.KeyCondition(key=cirq.MeasurementKey('a'))
+[
+    cirq.KeyCondition(key=cirq.MeasurementKey('a')),
+    cirq.KeyCondition(key=cirq.MeasurementKey('a'), index=0),
+]

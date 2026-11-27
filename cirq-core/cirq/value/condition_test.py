@@ -34,6 +34,29 @@ def test_key_condition_with_keys() -> None:
     c = init_key_condition.replace_key(key_b, key_c)
     assert c.key is key_a
 
+    indexed = cirq.KeyCondition(key_a, index=0)
+    assert indexed.replace_key(key_a, key_b) == cirq.KeyCondition(key_b, index=0)
+    assert indexed.replace_key(key_b, key_c) is indexed
+    assert cirq.with_measurement_key_mapping(indexed, {'a': 'b'}) == cirq.KeyCondition(
+        key_b, index=0
+    )
+    assert cirq.with_key_path_prefix(indexed, ('p',)) == cirq.KeyCondition(
+        key_a.with_key_path_prefix('p'), index=0
+    )
+    assert cirq.with_rescoped_keys(indexed, ('p',), frozenset([key_a])) == indexed
+
+
+def test_key_condition_json_roundtrip() -> None:
+    cirq.testing.assert_json_roundtrip_works(cirq.KeyCondition(key_a, index=0))
+    cirq.testing.assert_json_roundtrip_works(cirq.KeyCondition(key_a, index=-2))
+
+    # Legacy JSON payloads without an "index" field default to -1.
+    legacy_json = (
+        '{"cirq_type": "KeyCondition", '
+        '"key": {"cirq_type": "MeasurementKey", "name": "a", "path": []}}'
+    )
+    assert cirq.read_json(json_text=legacy_json) == cirq.KeyCondition(cirq.MeasurementKey('a'))
+
 
 def test_key_condition_str() -> None:
     assert str(init_key_condition) == '0:a'
@@ -399,3 +422,61 @@ def test_bitmask_replace_key() -> None:
     cond = cirq.BitMaskKeyCondition('a')
     assert cond.replace_key('a', 'b') == cirq.BitMaskKeyCondition('b')
     assert cond.replace_key('c', 'd') is cond
+
+    full = cirq.BitMaskKeyCondition('a', index=2, target_value=9, equal_target=True, bitmask=13)
+    assert full.replace_key('a', 'b') == cirq.BitMaskKeyCondition(
+        'b', index=2, target_value=9, equal_target=True, bitmask=13
+    )
+    assert full.replace_key(
+        cirq.MeasurementKey('a'), cirq.MeasurementKey('b')
+    ) == cirq.BitMaskKeyCondition('b', index=2, target_value=9, equal_target=True, bitmask=13)
+    assert full.replace_key('c', 'd') is full
+    assert cirq.with_measurement_key_mapping(full, {'a': 'b'}) == cirq.BitMaskKeyCondition(
+        'b', index=2, target_value=9, equal_target=True, bitmask=13
+    )
+    assert cirq.with_key_path_prefix(full, ('p',)) == cirq.BitMaskKeyCondition(
+        cirq.MeasurementKey('a', path=('p',)),
+        index=2,
+        target_value=9,
+        equal_target=True,
+        bitmask=13,
+    )
+    assert cirq.with_rescoped_keys(full, ('p',), frozenset([cirq.MeasurementKey('a')])) == full
+
+
+def test_indexed_key_condition_in_circuit_operation() -> None:
+    q0, q1 = cirq.LineQubit.range(2)
+    ops = [
+        cirq.measure(q0, key='m'),
+        cirq.X(q0),
+        cirq.measure(q0, key='m'),
+        cirq.X(q1).with_classical_controls(cirq.KeyCondition(cirq.MeasurementKey('m'), index=0)),
+        cirq.measure(q1, key='out'),
+    ]
+    flat = cirq.Circuit(cirq.X(q0), *ops)
+    nested = cirq.Circuit(cirq.X(q0), cirq.CircuitOperation(cirq.FrozenCircuit(*ops)))
+    sim = cirq.Simulator()
+    assert sim.run(flat).records['out'].tolist() == [[[1]]]
+    assert sim.run(nested).records['out'].tolist() == [[[1]]]
+
+
+def test_bitmask_key_condition_in_circuit_operation() -> None:
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    # First measurement is 0b11, second is 0b00; dropping any of index, bitmask,
+    # target_value, or equal_target flips this condition from True to False.
+    cond = cirq.BitMaskKeyCondition(
+        'm', index=0, bitmask=0b01, target_value=0b01, equal_target=True
+    )
+    ops = [
+        cirq.measure(q0, q1, key='m'),
+        cirq.X(q0),
+        cirq.X(q1),
+        cirq.measure(q0, q1, key='m'),
+        cirq.X(q2).with_classical_controls(cond),
+        cirq.measure(q2, key='out'),
+    ]
+    flat = cirq.Circuit(cirq.X(q0), cirq.X(q1), *ops)
+    nested = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.CircuitOperation(cirq.FrozenCircuit(*ops)))
+    sim = cirq.Simulator()
+    assert sim.run(flat).records['out'].tolist() == [[[1]]]
+    assert sim.run(nested).records['out'].tolist() == [[[1]]]
