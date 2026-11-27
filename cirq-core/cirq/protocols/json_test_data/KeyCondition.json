@@ -1,9 +1,20 @@
-{
-  "cirq_type": "KeyCondition",
-  "key": {
-    "cirq_type": "MeasurementKey",
-    "name": "a",
-    "path": []
+[
+  {
+    "cirq_type": "KeyCondition",
+    "key": {
+      "cirq_type": "MeasurementKey",
+      "name": "a",
+      "path": []
+    },
+    "index": -1
   },
-  "index": -1
-}
+  {
+    "cirq_type": "KeyCondition",
+    "key": {
+      "cirq_type": "MeasurementKey",
+      "name": "a",
+      "path": []
+    },
+    "index": 0
+  }
+]
