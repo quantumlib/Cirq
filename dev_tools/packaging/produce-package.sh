@@ -34,6 +34,10 @@ Options:
   -h, --help            display this message and exit.
 "
 
+# The minimum pip version required to support the options
+# --check-build-dependencies and --build-constraint below
+declare -r min_pip_version="26.1"
+
 out_dir=""
 specified_version=""
 commitish=HEAD
@@ -84,9 +88,16 @@ if [[ -z "${out_dir}" ]]; then
     die 2 "No output directory given."
 fi
 
+if ! python3 -m pip install --dry-run --no-index \
+    "pip>=${min_pip_version}" >/dev/null 2>&1;
+then
+    die 2 "$0 requires pip >= ${min_pip_version}; found $(python3 -m pip --version)"
+fi
+
 # Change to the root of the Cirq git repository
 thisdir=$(dirname "${BASH_SOURCE[0]:?}")
 repo_dir=$(git -C "${thisdir}" rev-parse --show-toplevel)
+build_constraint="${repo_dir}/dev_tools/requirements/deps/release-build.txt"
 cd "${repo_dir}"
 
 # Validate and resolve the commit value
@@ -119,7 +130,10 @@ cirq_modules=$(my_dev_tools_modules list --mode folder --include-parent)
 for m in ${cirq_modules}; do
     echo "creating wheel for ${m}"
     SOURCE_DATE_EPOCH="${date_epoch}" \
-        python3 -m pip wheel --no-deps --wheel-dir="${out_dir}" "./${m}"
+        python3 -m pip wheel --no-deps \
+            --check-build-dependencies \
+            --build-constraint="${build_constraint}" \
+            --wheel-dir="${out_dir}" "./${m}"
 done
 
 ls "${out_dir}"
